@@ -1,0 +1,16 @@
+CashFlow – deine eigene App
+
+Inhalt: index.html (die App), manifest.webmanifest, sw.js (offline), Icons.
+
+Online stellen mit GitHub Pages (kostenlos, geht am iPhone):
+1. github.com öffnen, kostenloses Konto anlegen.
+2. Oben rechts „+“ › „New repository“, Name: cashflow, Public, „Create repository“.
+3. „uploading an existing file“ antippen und alle Dateien aus diesem Ordner hochladen (nicht den Ordner selbst), „Commit changes“.
+4. Settings › Pages › Source: „Deploy from a branch“, Branch „main“, Ordner „/ (root)“, Save.
+5. Nach 1–2 Minuten ist die App unter https://DEINNAME.github.io/cashflow/ erreichbar.
+6. In Safari öffnen › Teilen › „Zum Home-Bildschirm“.
+
+Danach in der App: Einstellungen › Import aus MoneyControl › MoneyControl-Umzug.json wählen.
+Deine Daten liegen nur auf deinem iPhone. Im Code auf GitHub stehen keine persönlichen Daten.
+Sicherung: Einstellungen › Export & Backup › „Sicherung als Datei speichern“ › in iCloud Drive ablegen.
+Update der App: neue index.html auf GitHub hochladen, App einmal schließen und neu öffnen.
