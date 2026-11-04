@@ -550,6 +550,11 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 body.navving #fab,body.navving #vfab,body.navving #asstRoot .abub{transform:scale(.72);opacity:.38}
 body.navving #fab:hover,body.navving #vfab:hover,body.navving #asstRoot .abub:hover{transform:none;opacity:1}
 a.arow,a.arow:visited{text-decoration:none;color:inherit}
+.jrow{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:10px 12px;cursor:pointer}.jrow+.jrow{border-top:.5px solid var(--sep)}.jrow .ico{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none}
+.jrow-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.jrow-t b{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.jrow-t small{font-size:12px;color:var(--muted)}.jrow-v{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.jins{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.jins div{background:var(--card);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}.jins b{font-size:17px;text-transform:capitalize}.jins span{font-size:12px;color:var(--muted)}
+.jdi{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent)}.jdi.b{background:color-mix(in srgb,var(--warn) 25%,transparent);color:var(--warn)}
+.cc2{position:relative}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -965,7 +970,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='82 (04.11.)';
+const APP_VER='83 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -994,7 +999,7 @@ function aVar(w){const st=w.replace(/^ge(?=\w{4})/,'').replace(/(ungen|ung|en|er
 const aRow=e=>`<button class="arow" data-aex="${e.id}"><span class="arow-t"><b>${esc(e.n||e.c||'Buchung')}</b><small>${new Date(e.t).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'2-digit'})} · ${esc(SHORT[e.b]||e.b)}${e.type=='tr'?' → '+esc(SHORT[e.to]||e.to):e.c&&e.n?' · '+esc(e.c):''}</small></span><span class="arow-v ${e.type=='in'?'in':''}">${e.type=='in'?'+':e.type=='tr'?'':'−'}${eur(e.a)}</span></button>`;
 function aList(L,max=25){return `<div class="alist">${L.slice(0,max).map(aRow).join('')}</div>${L.length>max?`<div class="a-s">… und ${L.length-max} weitere. Grenze die Suche ein, z. B. mit einem Monat oder Konto.</div>`:''}`}
 function askAI(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'').trim();if(!l)return null;const acc=accIn(l),cat=aCat(l),amt=aAmt(l);
-  if(/^(hilfe|was kannst du|was kann ich (dich )?fragen|beispiele)/.test(l))return{h:`<p>Frag mich zum Beispiel:</p><div class="chips wrap">${['Wie viel habe ich diesen Monat für Lebensmittel ausgegeben?','Suche Amazon','Buchungen über 100 € im Oktober','Kann ich mir 80 € leisten?','Was wird diese Woche abgebucht?','Welche Abos habe ich?','Größte Ausgaben letzten Monat','Wie viel ist noch in Flow?','News aus der Krypto-Welt'].map(x=>`<button class="chip" data-aq="${esc(x)}">${esc(x)}</button>`).join('')}</div>`};
+  if(/^(hilfe|was kannst du|was kann ich (dich )?fragen|beispiele)/.test(l))return{h:`<p>Frag mich zum Beispiel:</p><div class="chips wrap">${['Wie viel habe ich diesen Monat für Lebensmittel ausgegeben?','Suche Amazon','Buchungen über 100 € im Oktober','Kann ich mir 80 € leisten?','Was wird diese Woche abgebucht?','Welche Abos habe ich?','Größte Ausgaben letzten Monat','Wie viel ist noch in Flow?','News aus der Krypto-Welt','Journal: Lust auf Sneaker, aus Langeweile, widerstanden'].map(x=>`<button class="chip" data-aq="${esc(x)}">${esc(x)}</button>`).join('')}</div>`};
   let m;
   if((m=l.match(/kann ich (?:mir )?(.*?)(\d+(?:[.,]\d{1,2})?)\s*(?:€|euro)?/))&&/leisten|ausgeben|kaufen|drin/.test(l)){const a=pNum(m[2]),b=acc&&!isK(acc)?acc:(BUDG.find(x=>/gönn/i.test(x))||BUDG[0]),c=calc(b),P=c.p,after=c.rest-a,pd=Math.max(after,0)/Math.max(P.left,1);
     const ok=after>=0,w=a>=50;return{h:`<p class="a-big ${ok?'':'out'}">${ok?(w||pd<5?'Ja, aber':'Ja'):'Nein'}</p><p>${esc(b)} hat noch ${eur(c.rest)}. Danach blieben ${eur(after)}${ok?`, also ${eur(pd)} pro Tag bis Monatsende`:''}.${isLock(b)&&!ok?' Notfallbremse: kein Nachschub aus anderen Töpfen.':''}</p>${w?`<p>Bei ${eur(a)} gilt deine Regel: erst auf die Wunschliste, Wartezeit ${Math.round(wait(a)/864e5)} Tage.</p>`:''}`,a:w?[['Auf die Wunschliste',()=>{openWish();setTimeout(()=>{if($('wpreis'))$('wpreis').value=String(a).replace('.',',')},60)}]]:null}}
@@ -1027,7 +1032,8 @@ async function aNews(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'');if
   const out=[];j.__news.filter(n=>n&&n.t&&n.u&&n.ts>Date.now()-10*864e5).sort((a,b)=>b.ts-a.ts).forEach(n=>{const w=nWords(n.t);if(out.some(o=>{let c=0;w.forEach(x=>{if(o.w.has(x))c++});return o.u==n.u||(c>=3&&c/Math.max(1,Math.min(w.size,o.w.size))>=.6)}))return;out.push({...n,w})});
   if(!out.length)return `<p>Keine aktuellen Meldungen zu „${esc(qy.g)}“ gefunden.</p>`;
   return `<p><b>Aktuelle News: ${esc(qy.lab||qy.g)}</b></p><div class="alist">${out.slice(0,8).map(n=>`<a class="arow" href="${esc(n.u)}" target="_blank" rel="noopener noreferrer"><span class="arow-t"><b style="white-space:normal">${esc(n.t)}</b><small>${esc(n.p||'')} · ${agoTxt(n.ts)}</small></span></a>`).join('')}</div><p class="a-s">Quellen: Google News, Bing, Yahoo Finance. Doppelte Meldungen sind zusammengefasst.</p>`}
-function asstAsk(q){q=String(q||'').trim();if(!q)return;if(NEWSRX.test(q.toLowerCase())){const m={q,h:'<p class="a-s">Suche im Internet …</p>'};AQ.msgs.push(m);asstOpen=true;renderAsst();aNews(q).then(h=>{m.h=h}).catch(e=>{m.h='<p>Suche ging nicht: '+esc(e.message||e)+'</p>'}).finally(()=>{renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)});setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}
+const JRX=/^\s*(journal|tagebuch|konsum-?journal)\b|^ich hatte (lust|den drang|einen kaufimpuls)|^kaufimpuls\b|^impuls\b/i;
+function asstAsk(q){q=String(q||'').trim();if(!q)return;if(JRX.test(q)){const j=jParse(q);S.journal=S.journal||[];S.journal.push(j);save();AQ.msgs.push({q,h:`<p><b>Im Journal gespeichert</b>${j.out=='resist'?' – stark, dass du widerstanden hast!':''}</p><div class="alist">${jRow(j)}</div><p class="a-s">${[j.g?'Gefühl: '+esc(j.g):'',j.tr?'Auslöser: '+esc(j.tr):'',JOUT[j.out][0]].filter(Boolean).join(' · ')}. Antippen zum Ergänzen.</p>`,a:[['Bearbeiten',()=>openJournal(j.id)],['Journal öffnen',()=>{tab='wish';wishV='Journal';setView=null;curB=null;render();scrollTo(0,0)}]]});asstOpen=true;renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}if(NEWSRX.test(q.toLowerCase())){const m={q,h:'<p class="a-s">Suche im Internet …</p>'};AQ.msgs.push(m);asstOpen=true;renderAsst();aNews(q).then(h=>{m.h=h}).catch(e=>{m.h='<p>Suche ging nicht: '+esc(e.message||e)+'</p>'}).finally(()=>{renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)});setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}
   let a;try{a=askAI(q)}catch(e){a={h:'<p>Da ist etwas schiefgelaufen: '+esc(e.message||e)+'</p>'}}AQ.msgs.push({q,h:a?a.h:'<p>Das habe ich nicht verstanden.</p>',a:a&&a.a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();
   setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
@@ -1047,6 +1053,7 @@ function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hid
     $('aqMic').onclick=()=>listen(v=>asstAsk(v),$('aqI'),'Ich höre zu …');
     r.querySelectorAll('[data-aq]').forEach(b=>b.onclick=()=>asstAsk(b.dataset.aq));
     r.querySelectorAll('[data-aact]').forEach(b=>b.onclick=()=>{const[mi,xi]=b.dataset.aact.split('|').map(Number);const f=AQ.msgs[mi]&&AQ.msgs[mi].a&&AQ.msgs[mi].a[xi];if(f){asstOpen=false;renderAsst();f[1]()}});
+    r.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>openJournal(b.dataset.jr));
     r.querySelectorAll('[data-aex]').forEach(b=>b.onclick=()=>{const e=S.exp.find(x=>x.id==b.dataset.aex);if(e)openSheet(e)});
     r.querySelectorAll('.atip').forEach(el=>{let x0=null,y0=null,dx=0,drag=false;
       el.addEventListener('touchstart',e=>{if(e.target.closest('button'))return;x0=e.touches[0].clientX;y0=e.touches[0].clientY;dx=0;drag=false;el.style.transition='none'},{passive:true});
@@ -1172,15 +1179,15 @@ const DOTC=['#3b8fd9','#f25c54','#a06bf2','#2fc4a3','#f0a12d','#e56bb0','#5fb35a
       const ci=es.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),co=es.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0),wd=d.getDay();
       const cs=[...new Set(es.filter(e=>e.type!='tr').map(e=>e.c))],dots=cs.slice(0,4).map(c=>`<i style="background:${dc(c)}"></i>`).join('')+(cs.length>4?`<em>+${cs.length-4}</em>`:'')+(es.some(e=>e.type=='tr')?`<i class="trd"></i>`:'');
       const lab=d.getDate()==1||i==0?`${d.getDate()}.${d.getMonth()+1}.`:d.getDate();
-      const ovd=es.some(e=>e.ovr),fut=es.length&&es.every(isPlan);
+      const ovd=es.some(e=>e.ovr),fut=es.length&&es.every(isPlan),jd=(S.journal||[]).filter(j=>new Date(j.t).toDateString()==ds);
       cells.push(`<button class="cc2 ${fut?'futd':''} ${ovd?'ovd':''} ${inM?'':'out-m'} ${ds==now.toDateString()?'today':''} ${calDay==ds?'sel':''}" data-day="${ds}" aria-label="${d.toLocaleDateString('de-DE')}">
-        <span class="cd ${wd==0?'sun':wd==6?'sat':''}">${lab}</span>${ovd?`<span class="ovi" title="Notfallbremse gelöst">${I('lock',10)}</span>`:''}<span class="dots">${dots}</span>
+        <span class="cd ${wd==0?'sun':wd==6?'sat':''}">${lab}</span>${ovd?`<span class="ovi" title="Notfallbremse gelöst">${I('lock',10)}</span>`:''}${jd.length?`<span class="jdi ${jd.some(j=>j.out=='bought')?'b':''}" title="Journal">${I('pen',9)}</span>`:''}<span class="dots">${dots}</span>
         <span class="nums">${ci?`<span class="in">${nf(ci)}</span>`:''}${co?`<span class="out">${nf(co)}</span>`:''}${ci&&co?`<span class="tt">${nf(ci-co)}</span>`:''}</span></button>`)}
     const sel=calDay?ALLX.filter(e=>new Date(e.t).toDateString()==calDay&&(flt=='Alle'||e.b==flt||e.to==flt)&&(tflt=='Alle'||e.type==tflt)):null;
     return head+sum(inc,out)+`${showF||flt!='Alle'?`<div class="seg" id="flt">${['Alle',...BN].map(b=>`<button class="${flt==b?'on':''}" data-f="${b}">${b=='Alle'?b:esc(SHORT[b])}</button>`).join('')}</div>`:''}
     <div class="cal2"><div class="calh2">${['Mo','Di','Mi','Do','Fr','Sa','So'].map((w,i)=>`<span class="${i==6?'sun':i==5?'sat':''}">${w}</span>`).join('')}</div><div class="calg2">${cells.join('')}</div></div>
-    <div class="legend"><span><i style="background:var(--in)"></i>Einnahmen</span><span><i style="background:var(--out)"></i>Ausgaben</span><span><i style="background:var(--fg)"></i>Saldo</span><span>Punkte = Kategorien</span><span style="font-style:italic">kursiv = geplant</span><span style="color:var(--bad)">${I('lock',11)} = Notfallbremse gelöst</span></div>
-    ${sel?`<button class="btn soft" id="calAdd" data-dt="${calDay}">+ Buchung am ${new Date(calDay).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</button>`+dayBlocks(sel):'<div class="note">Tippe auf einen Tag, um seine Buchungen zu sehen.</div>'}`}
+    <div class="legend"><span><i style="background:var(--in)"></i>Einnahmen</span><span><i style="background:var(--out)"></i>Ausgaben</span><span><i style="background:var(--fg)"></i>Saldo</span><span>Punkte = Kategorien</span><span style="font-style:italic">kursiv = geplant</span><span style="color:var(--bad)">${I('lock',11)} = Notfallbremse gelöst</span><span style="color:var(--accent)">${I('pen',11)} = Journal</span></div>
+    ${sel?`<button class="btn soft" id="calAdd" data-dt="${calDay}">+ Buchung am ${new Date(calDay).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</button>`+(()=>{const jd=(S.journal||[]).filter(j=>new Date(j.t).toDateString()==calDay).sort((a,b)=>a.t-b.t);return jd.length?`<div class="sec"><div class="sh">Journal</div><div class="mmcard">${jd.map(jRow).join('')}</div></div>`:''})()+dayBlocks(sel):'<div class="note">Tippe auf einen Tag, um seine Buchungen zu sehen.</div>'}`}
 function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).filter(e=>inP(e,p));
   if(flt!='Alle')L=L.filter(e=>e.b==flt||e.to==flt);
   if(q){const s=q.toLowerCase().replace(/^#/,'');L=L.filter(e=>[e.n,e.c,e.p,e.b,e.sc,(e.tg||[]).join(' ')].join(' ').toLowerCase().includes(s)||String(e.a).includes(s.replace(',','.')))}
@@ -1462,15 +1469,52 @@ function goalsHtml(){const act=S.goals.filter(g=>!g.done&&!g.dropped),fin=S.goal
    <div class="note">Das Geld liegt in deinem Sinking-Funds-Pocket. Hier siehst du, wofür es verplant ist.</div></div>
   ${fin.length?`<div class="sec"><div class="sh">Erreichte Sparziele</div><div class="group">${fin.map(g=>`<div class="cell plain"><div class="t"><div>${esc(g.n)}</div><div class="s">Angelegt ${fd(g.t)} · gekauft ${fd(g.done)}</div></div><div class="v in" style="display:flex;align-items:center;gap:4px">${I('check',16)}${eur(g.ziel)}</div></div>`).join('')}</div></div>`:''}`}
 /* ---------- Wirkung der Impulsbremsen ---------- */
+/* ---------- Konsum-Journal ---------- */
+const JOUT={resist:['Widerstanden','check','var(--ok)'],wish:['Auf Wunschliste','heart','var(--accent)'],bought:['Gekauft','cart','var(--warn)'],note:['Nur Notiz','pen','var(--muted)']};
+function jParse(v){const l=spoken(v).toLowerCase();let txt=String(v).replace(/^\s*(journal|tagebuch|konsum-?journal|notiz|eintrag)\s*[:,-]?\s*/i,'').replace(/,?\s*(\d+(?:[.,]\d{1,2})?)\s*(€|euro)\s*$/i,'').trim();txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+  const g=GEF.find(x=>l.includes(x.toLowerCase()))||(/stress/.test(l)?'gestresst':/langw?e?weil|langeweile|langweil/.test(l)?'gelangweilt':/belohn|verdient/.test(l)?'Belohnung':/traurig|frust|down/.test(l)?'traurig':/euphor|gute laune|happy/.test(l)?'euphorisch':'');
+  const tr=TRIG.find(x=>l.includes(x.toLowerCase()))||(/insta/.test(l)?'Instagram':/tiktok/.test(l)?'TikTok':/werbung|anzeige/.test(l)?'Werbung':/laden|geschäft|schaufenster/.test(l)?'Im Laden':/scroll|online|handy/.test(l)?'Scrollen':/freund|kolleg/.test(l)?'Freunde':'');
+  const out=/nicht gekauft|widerstanden|verzichtet|nicht nachgegeben|liegen ?gelassen|nein gesagt/.test(l)?'resist':/wunschliste|warte|merke/.test(l)?'wish':/gekauft|bestellt|nachgegeben|zugeschlagen|geholt/.test(l)?'bought':'note';
+  const am=amtIn(l);const um=l.match(/(?:drang|lust|impuls)\D{0,12}(\d)\s*(?:\/|von)\s*5/);return{id:uid(),t:Date.now(),txt,g,tr,out,a:am||null,u:um?+um[1]:null}}
+function jIcon(o){const x=JOUT[o]||JOUT.note;return `<span class="ico" style="background:color-mix(in srgb,${x[2]} 16%,transparent);color:${x[2]}">${I(x[1],16)}</span>`}
+function jRow(j){return `<button class="jrow" data-jr="${j.id}">${jIcon(j.out)}<span class="jrow-t"><b>${esc(j.txt||JOUT[j.out][0])}</b><small>${new Date(j.t).toLocaleString('de-DE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${j.g&&j.g!='neutral'?' · '+esc(j.g):''}${j.tr?' · '+esc(j.tr):''}${j.u?' · Drang '+j.u+'/5':''}</small></span>${j.a?`<span class="jrow-v ${j.out=='resist'?'in':''}">${eur(j.a)}</span>`:''}</button>`}
+function openJournal(id,pre){S.journal=S.journal||[];const ex=S.journal.find(x=>x.id==id),j=Object.assign({id:uid(),t:Date.now(),txt:'',g:'',tr:'',out:'resist',a:null,u:3},ex||{},pre||{});
+  const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Journal"><div class="sheet-h"><button id="jX">Abbrechen</button><b>${ex?'Eintrag':'Neuer Eintrag'}</b><button id="jS" style="font-weight:600">Sichern</button></div>
+   <div class="sheet-b"><textarea class="box" id="jT" placeholder="Was war los? Z. B. „Wollte nach dem Meeting Sneaker bestellen“" style="min-height:76px">${esc(j.txt)}</textarea>
+   <div class="sh" style="padding:0">Wie ging es aus?</div><div class="seg" id="jO">${Object.entries(JOUT).map(([k,v])=>`<button class="${j.out==k?'on':''}" data-v="${k}">${v[0].replace('Auf ','')}</button>`).join('')}</div>
+   <div class="group"><div class="cell plain"><label for="jA">Betrag (optional)</label><input id="jA" inputmode="decimal" value="${j.a?String(j.a).replace('.',','):''}" placeholder="0,00" style="max-width:110px;text-align:right;margin-left:auto"><span>€</span></div>
+    <div class="cell plain"><span>Drang</span><span style="flex:1"></span><div class="seg" id="jU" style="width:200px">${[1,2,3,4,5].map(n=>`<button class="${j.u==n?'on':''}" data-v="${n}">${n}</button>`).join('')}</div></div>
+    <div class="cell plain"><label for="jD">Wann</label><input id="jD" type="datetime-local" value="${new Date(j.t-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16)}" style="margin-left:auto"></div></div>
+   <div class="sh" style="padding:0">Gefühl</div><div class="chips wrap" id="jG">${GEF.map(x=>`<button class="chip ${j.g==x?'on':''}" data-v="${x}">${x}</button>`).join('')}</div>
+   <div class="sh" style="padding:0">Auslöser</div><div class="chips wrap" id="jTr">${TRIG.map(x=>`<button class="chip ${j.tr==x?'on':''}" data-v="${x}">${x}</button>`).join('')}</div>
+   ${ex?'<button class="btn soft" id="jDel" style="color:var(--bad)">Eintrag löschen</button>':''}</div></div>`;
+   const keep=()=>{j.txt=$('jT').value.trim();j.a=pNum($('jA').value)||null;const d=new Date($('jD').value);if(!isNaN(d))j.t=d.getTime()};
+   $('scrim').onclick=$('jX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
+   document.querySelectorAll('#jO button').forEach(b=>b.onclick=()=>{keep();j.out=b.dataset.v;draw()});document.querySelectorAll('#jU button').forEach(b=>b.onclick=()=>{keep();j.u=+b.dataset.v;draw()});
+   document.querySelectorAll('#jG .chip').forEach(b=>b.onclick=()=>{keep();j.g=j.g==b.dataset.v?'':b.dataset.v;draw()});document.querySelectorAll('#jTr .chip').forEach(b=>b.onclick=()=>{keep();j.tr=j.tr==b.dataset.v?'':b.dataset.v;draw()});
+   if($('jDel'))$('jDel').onclick=()=>{const ss=JSON.stringify(S.journal);S.journal=S.journal.filter(x=>x.id!=j.id);save();$('sheetRoot').innerHTML='';render();toast('Eintrag gelöscht.',()=>{S.journal=JSON.parse(ss);save();render()})};
+   $('jS').onclick=()=>{keep();if(!j.txt&&!j.a){$('jT').focus();return}const i=S.journal.findIndex(x=>x.id==j.id);if(i>=0)S.journal[i]=j;else S.journal.push(j);save();$('sheetRoot').innerHTML='';render();toast(j.out=='resist'?'Stark! Im Journal gespeichert.':'Im Journal gespeichert.');if(j.out=='wish'&&!ex&&j.a)setTimeout(()=>{openWish();setTimeout(()=>{if($('wname'))$('wname').value=j.txt.slice(0,40);if($('wpreis'))$('wpreis').value=String(j.a).replace('.',',')},60)},400)}};draw()}
+function jStats(from){const J=(S.journal||[]).filter(j=>j.t>=from),cnt=(k)=>{const m={};J.forEach(j=>{if(j[k])m[j[k]]=(m[j[k]]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
+  const res=J.filter(j=>j.out=='resist'),bou=J.filter(j=>j.out=='bought'),hrs=Array(4).fill(0);J.forEach(j=>{const h=new Date(j.t).getHours();hrs[h<12?0:h<17?1:h<21?2:3]++});
+  return{J,res:res.length,resV:res.reduce((s,j)=>s+(j.a||0),0),bou:bou.length,bouV:bou.reduce((s,j)=>s+(j.a||0),0),g:cnt('g').filter(x=>x[0]!='neutral'),tr:cnt('tr'),hrs,uAvg:J.filter(j=>j.u).length?J.filter(j=>j.u).reduce((s,j)=>s+j.u,0)/J.filter(j=>j.u).length:null}}
+function journalHtml(){const J=(S.journal||[]).slice().sort((a,b)=>b.t-a.t),st=jStats(Date.now()-30*864e5),HL=['morgens','mittags','abends','nachts'],hm=st.hrs.indexOf(Math.max(...st.hrs));
+  return `<button class="btn" id="jNew" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('plus',18)}Eintrag schreiben</button>
+   <div class="note" style="padding:2px 4px 0">Oder sag dem Assistenten z. B. „Journal: hatte Lust auf Sneaker, aus Langeweile, widerstanden, 120 Euro“.</div>
+   ${st.J.length>=3?`<div class="sec"><div class="sh">Deine Muster · 30 Tage</div><div class="jins">
+    <div><b>${st.res}</b><span>widerstanden${st.resV?' · '+eur0(st.resV):''}</span></div><div><b>${st.bou}</b><span>nachgegeben${st.bouV?' · '+eur0(st.bouV):''}</span></div>
+    ${st.g[0]?`<div><b>${esc(st.g[0][0])}</b><span>häufigstes Gefühl (${st.g[0][1]}×)</span></div>`:''}${st.tr[0]?`<div><b>${esc(st.tr[0][0])}</b><span>häufigster Auslöser (${st.tr[0][1]}×)</span></div>`:''}
+    <div><b>${HL[hm]}</b><span>die meisten Impulse</span></div>${st.uAvg?`<div><b>${st.uAvg.toFixed(1).replace('.',',')}/5</b><span>Ø Drang</span></div>`:''}</div>
+    ${st.tr[0]&&st.bou?`<div class="note">${(()=>{const t=st.tr[0][0],b=st.J.filter(j=>j.tr==t&&j.out=='bought').length;return b?`Bei „${esc(t)}“ gibst du ${b} von ${st.tr[0][1]} Malen nach. Vielleicht hilft es, diesen Auslöser gezielt zu meiden.`:`Bei „${esc(t)}“ bleibst du bisher standhaft. Weiter so!`})()}</div>`:''}</div>`:''}
+   <div class="sec"><div class="sh">Einträge</div><div class="mmcard">${J.map(jRow).join('')||'<div class="empty">Noch keine Einträge. Schreib auf, wenn dich ein Kaufimpuls packt, egal ob du nachgibst oder nicht.</div>'}</div></div>`}
 function wirkung(from){const W=S.wish||[],f=x=>(x||0)>=from;
   const dropped=W.filter(w=>w.s=='verworfen'&&f(w.dt||w.t)),saved=W.filter(w=>w.s=='Sparziel'&&f(w.dt||w.t)),bought=W.filter(w=>w.s=='gekauft'&&f(w.dt||w.t)),open=W.filter(w=>w.s=='offen');
   const goalsDone=(S.goals||[]).filter(g=>g.done&&f(g.done)),ovr=(S.ovrLog||[]).filter(x=>f(x.t)),blocked={length:Math.max(0,(S.brakeAtt||[]).filter(t=>f(t)).length-ovr.length)};
-  const decided=dropped.length+saved.length+bought.length;
-  return{dropV:dropped.reduce((s,w)=>s+(w.p||0),0),drop:dropped.length,saveV:saved.reduce((s,w)=>s+(w.p||0),0),save:saved.length,buy:bought.length,buyV:bought.reduce((s,w)=>s+(w.p||0),0),open:open.length,goals:goalsDone.length,ovr:ovr.length,blocked:blocked.length,rate:decided?Math.round((dropped.length+saved.length)/decided*100):null}}
-function wirkungHtml(){const y=new Date(new Date().getFullYear(),0,1).getTime(),m=period(0).s.getTime(),Y=wirkung(y),M=wirkung(m);if(!Y.drop&&!Y.save&&!Y.buy&&!Y.ovr&&!Y.blocked)return '';
+  const jr=(S.journal||[]).filter(j=>j.out=='resist'&&f(j.t));const decided=dropped.length+saved.length+bought.length;
+  return{jr:jr.length,jrV:jr.reduce((s,j)=>s+(j.a||0),0),dropV:dropped.reduce((s,w)=>s+(w.p||0),0)+jr.reduce((s,j)=>s+(j.a||0),0),drop:dropped.length,saveV:saved.reduce((s,w)=>s+(w.p||0),0),save:saved.length,buy:bought.length,buyV:bought.reduce((s,w)=>s+(w.p||0),0),open:open.length,goals:goalsDone.length,ovr:ovr.length,blocked:blocked.length,rate:decided?Math.round((dropped.length+saved.length)/decided*100):null}}
+function wirkungHtml(){const y=new Date(new Date().getFullYear(),0,1).getTime(),m=period(0).s.getTime(),Y=wirkung(y),M=wirkung(m);if(!Y.drop&&!Y.save&&!Y.buy&&!Y.ovr&&!Y.blocked&&!Y.jr)return '';
   return `<div class="wk"><div class="wk-h">${I('sparkle',16)}<b>Deine Impulsbremse wirkt</b></div>
    <div class="wk-big">${eur0(Y.dropV+Y.saveV)}<small>${new Date().getFullYear()} nicht spontan ausgegeben</small></div>
-   <div class="wk-g"><div><b>${Y.drop}</b><span>Wünsche losgelassen</span></div><div><b>${Y.save}</b><span>in Sparziele umgewandelt</span></div><div><b>${Y.rate==null?'–':Y.rate+' %'}</b><span>Verzichtsquote</span></div><div><b>${Y.blocked}</b><span>Notfallbremse hat gestoppt</span></div></div>
+   <div class="wk-g"><div><b>${Y.drop}</b><span>Wünsche losgelassen</span></div><div><b>${Y.save}</b><span>in Sparziele umgewandelt</span></div><div><b>${Y.rate==null?'–':Y.rate+' %'}</b><span>Verzichtsquote</span></div><div><b>${Y.blocked}</b><span>Notfallbremse hat gestoppt</span></div>${Y.jr?`<div><b>${Y.jr}</b><span>Impulse widerstanden (Journal)</span></div>`:''}</div>
    <div class="wk-f">Diesen Monat: ${eur0(M.dropV+M.saveV)} gespart durch Warten${M.ovr?` · Bremse ${M.ovr}× gelöst`:''}${Y.buy?` · gekauft nach Wartezeit: ${Y.buy} (${eur0(Y.buyV)})`:''}</div></div>`}
 function notBoughtHtml(){const nb=[...S.wish.filter(w=>w.s=='verworfen').map(w=>({n:w.n,p:w.p,t:w.dt||w.t,g:w.g,w:w.w,k:'Wunsch verworfen'})),
    ...S.goals.filter(g=>g.dropped).map(g=>({n:g.n,p:g.ziel,t:g.dropped,g:g.g,w:g.w,k:'Sparziel aufgegeben'}))].sort((a,b)=>b.t-a.t);
@@ -1496,12 +1540,12 @@ function musterHtml(){const W=S.wish;if(!W.length)return '';const grp=f=>{const 
   if(top&&top[0]=='Newsletter')hints.push('Newsletter sind dein häufigster Auslöser. Heute zwei davon abbestellen.');const g=grp(w=>w.g)[0];if(g&&g[0]!='neutral')hints.push(`Bei „${g[0]}“ entstehen die meisten Wünsche. Plane für solche Momente eine Alternative, zum Beispiel eine Runde Klettern oder ein Anruf.`);
   return `<div class="sec"><div class="sh">Deine Muster</div>${hints.map(x=>`<div class="tip">${x}</div>`).join('')}</div>${tbl('Nach Gefühl',grp(w=>w.g))}${tbl('Nach Auslöser',tr)}${tbl('Nach Tageszeit',grp(w=>tod(w.t)))}`}
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
-  return `${appbar({title:'Impulse',big:open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden',left:`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`,tabs:{id:'wishV',cur:wishV,items:[['Wünsche','Wünsche',open.length],['Sparziele','Sparziele',act],['Verzicht','Verzicht',S.wish.filter(w=>w.s=='verworfen').length]]}})}
+  return `${appbar({title:'Impulse',big:open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden',left:`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`,tabs:{id:'wishV',cur:wishV,items:[['Wünsche','Wünsche',open.length],['Sparziele','Sparziele',act],['Verzicht','Verzicht',S.wish.filter(w=>w.s=='verworfen').length],['Journal','Journal',(S.journal||[]).filter(j=>j.t>Date.now()-7*864e5).length]]}})}
   <div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div>
   ${wirkungHtml()}
   ${wishV=='Wünsche'?`<div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine offenen Wünsche. Neue Wünsche kommen zuerst für 14 Tage hierher.</div>'}</div>
     <div class="note">Regel: Jeder Wunsch wartet mindestens 14 Tage. Danach prüft der Kauf-Check, ob Gönn dir oder ein Sparziel ihn deckt.</div>`
-   :wishV=='Sparziele'?goalsHtml():notBoughtHtml()+musterHtml()}`}
+   :wishV=='Sparziele'?goalsHtml():wishV=='Journal'?journalHtml():notBoughtHtml()+musterHtml()}`}
 function openDebt(i){const d=i>=0?Object.assign({},S.debts[i]):{n:'',total:'',interest:'',rate:'',start:ymd(Date.now()),match:'',note:''};
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kredit"><div class="sheet-h"><button id="dX">Abbrechen</button><b>${i>=0?'Kredit bearbeiten':'Neuer Kredit'}</b><button id="dS" style="font-weight:600">Sichern</button></div>
   <div class="sheet-b"><div class="group">
@@ -2261,7 +2305,7 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
   document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){{const k=$('kAbg');if(k)k.onclick=()=>openAbgleich(k.dataset.kb)}{const e=$('eyeH');if(e)e.onclick=()=>{depShow=!depShow;render()}}bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();bindAbos();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal()}document.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>openJournal(b.dataset.jr));{const k=$('kAbg');if(k)k.onclick=()=>openAbgleich(k.dataset.kb)}{const e=$('eyeH');if(e)e.onclick=()=>{depShow=!depShow;render()}}bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();bindAbos();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
@@ -2732,7 +2776,7 @@ function openRecover(){$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"><
       $('sheetRoot').innerHTML='';await sync(false);render();toast('Wiederhergestellt (Stand '+row.ym+'). Neues Sync-Passwort ist aktiv.')}catch(e){E.textContent=e.message||String(e)}}}
 const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
 const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
-let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts'];
+let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal'];
 const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 function b64big(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)}
 async function syDerive(pass,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
@@ -3279,6 +3323,7 @@ function voiceCmd(v){const l=v.toLowerCase().trim();if(!l)return true;
   if(/^(hilfe|was kann ich (sagen|fragen)|welche befehle|was verstehst du)/.test(l)){voiceHelp();return true}
   if(vShopDone(l))return true;
   if(isShopVoice(v)){shopVoiceDone(shopVoice(v));return true}
+  if(JRX.test(l)){$('sheetRoot').innerHTML='';asstAsk(v);return true}
   if(NEWSRX.test(l)||/^(such|find|zeig mir (alle |meine )?buchung|wie ?viel|was habe ich|was hab ich|kann ich mir|welche abos|was wird|wann habe ich|größte|teuerste)|\?$/.test(l)){$('sheetRoot').innerHTML='';asstAsk(v);return true}
   return vNav(l)||vFix(l)||vQuestion(l)||vWish(l,v)||vGoal(l)||vRecurring(l,v)||vMulti(v)}
 
