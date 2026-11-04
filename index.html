@@ -841,7 +841,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='27 (04.11.)';
+const APP_VER='28 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1574,11 +1574,23 @@ function shopVoice(v){let t=' '+v+' ';t=t.replace(/\b(setze?|schreibe?|packe?|f�
     s=s.replace(/^(die|der|das|den)\s+/i,'').trim();if(!s||s.length<2)return;s=s.charAt(0).toUpperCase()+s.slice(1);
     const d=dbFind(s),names=[s.toLowerCase(),d&&s.length<=d.n.length+1?d.n.toLowerCase():null].filter(Boolean),ex=sh.items.find(x=>!x.done&&names.includes(x.n.toLowerCase()));
     if(ex)ex.q=(ex.q||1)+q;else shopAdd((q>1?q+'x ':'')+s,'');added.push((q>1?q+'× ':'')+(ex?ex.n:sh.items[sh.items.length-1].n))});save();return added}
+let curSR=null;
 function listen(onText,field,ph,onEnd){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
-  try{const r=new SR();r.lang='de-DE';r.interimResults=false;r.maxAlternatives=1;const old=field?field.placeholder:'';if(field)field.placeholder=ph||'Ich höre zu …';
-    r.onresult=ev=>onText(ev.results[0][0].transcript);r.onerror=()=>{onEnd&&onEnd();if(field){field.placeholder=old;field.focus()}toast('Spracheingabe ging nicht. Nutze das Mikrofon der Tastatur.')};
-    r.onend=()=>{if(field&&document.body.contains(field))field.placeholder=old;onEnd&&onEnd()};r.start()}catch(e){onEnd&&onEnd();if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur.')}}
+  if(curSR){try{curSR.onend=curSR.onresult=curSR.onerror=null;curSR.abort()}catch(e){}curSR=null}
+  const old=field?field.placeholder:'';let txt='',done=false,silence=null,maxT=null,r;
+  const finish=(ok)=>{if(done)return;done=true;clearTimeout(silence);clearTimeout(maxT);if(curSR===r)curSR=null;try{r.onend=r.onresult=r.onerror=null;r.abort()}catch(e){}
+    if(field&&document.body.contains(field))field.placeholder=old;onEnd&&onEnd();
+    if(ok&&txt.trim())onText(txt.trim());else if(ok!==null){if(field)field.focus();toast('Nichts verstanden. Tippe nochmal aufs Mikrofon.')}};
+  const start=(retry)=>{try{r=new SR();curSR=r;r.lang='de-DE';r.interimResults=true;r.continuous=false;r.maxAlternatives=1;
+    r.onresult=ev=>{let t='';for(let i=0;i<ev.results.length;i++)t+=ev.results[i][0].transcript;txt=t;clearTimeout(silence);
+      if(ev.results[ev.results.length-1].isFinal)finish(true);else silence=setTimeout(()=>finish(true),1500)};
+    r.onerror=ev=>{const er=ev&&ev.error;if(er=='aborted')return;if(txt.trim()){finish(true);return}finish(null);
+      toast(er=='not-allowed'||er=='service-not-allowed'?'Mikrofon ist nicht erlaubt. In den iPhone-Einstellungen für Safari freigeben oder das Tastatur-Mikrofon nutzen.':er=='no-speech'?'Nichts gehört. Tippe nochmal aufs Mikrofon.':'Spracheingabe ging nicht. Tippe nochmal oder nutze das Tastatur-Mikrofon.')};
+    r.onend=()=>finish(true);
+    if(field)field.placeholder=ph||'Ich höre zu …';r.start();maxT=setTimeout(()=>finish(true),12000)}
+   catch(e){if(!retry){setTimeout(()=>start(true),350);return}finish(null);if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur.')}};
+  start(false)}
 function shopVoiceDone(added){if(!added.length){toast('Nichts erkannt. Sag z. B. „Milch, 2 Brot und Eier“.');return}toast('Auf dem Einkaufszettel: '+added.join(', '));renderAsst&&setTimeout(renderAsst,0)}
 function shopAdd(txt,price){const sh=shopS();let t=txt.trim();if(!t)return;let q=1,p=pNum(price);const mq=t.match(/^(\d+)\s*[x×]\s*/i);if(mq){q=+mq[1];t=t.slice(mq[0].length)}
   const mp=t.match(/\s(\d+(?:[.,]\d{1,2})?)\s*€?$/);if(mp&&isNaN(p)){p=pNum(mp[1]);t=t.slice(0,mp.index)}t=t.trim();const k=t.toLowerCase();
@@ -2113,6 +2125,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
 $('fab').onclick=()=>openSheet();
 $('vfab').innerHTML=I('mic',24);
 $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.webkitSpeechRecognition,shop=setView=='shop';
+  if(vf.classList.contains('rec')&&curSR){try{curSR.stop()}catch(e){}return}
   if(!SR){if(shop){$('shN')&&$('shN').focus()}else{openSheet();setTimeout(()=>$('equick')&&$('equick').focus(),60)}toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
   vf.classList.add('rec');listen(v=>{vf.classList.remove('rec');if(shop&&!/^(zeig|öffne|geh|wie|was|einkauf)/i.test(v.trim())){const a=shopVoice(v);render();shopVoiceDone(a);return}if(voiceCmd(v))return;
     openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))};
