@@ -461,6 +461,9 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 .vault-f{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.vault-x[hidden]{display:none!important}.vault-x{font-size:15px;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}.vault-x b{font-size:20px}.vault-x small{color:var(--muted);font-size:11px}
 .pmt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pmo{border:0;background:var(--card);border-radius:12px;padding:11px 12px;font:inherit;color:inherit;display:flex;gap:7px;align-items:center;cursor:pointer;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.05);flex-wrap:wrap}.pmo small{width:100%;font-size:11px;color:var(--muted);margin-left:15px}.pmo.on{box-shadow:inset 0 0 0 2px var(--accent)}
 .puf-b{border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;display:flex;flex-direction:column;gap:8px;width:100%}.vault.puf{cursor:default}.vault.puf.neg{border-left-color:var(--bad)}.vault.puf.neg .vault-ic{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}.puf-v{display:flex;flex-direction:column;align-items:flex-end;font-variant-numeric:tabular-nums}.puf-v b{font-size:18px}.puf-v small{font-size:12px;color:var(--muted)}.vault.puf .btn{margin-top:2px}
+.ana-flow{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:12px 14px;font-size:14px;font-variant-numeric:tabular-nums}.ana-flow b{text-align:right;font-weight:600}.ana-sum{border-top:1px solid var(--sep);padding-top:8px;font-weight:700}
+.ana-acc{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.ana-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:80px;padding:0 14px 12px;align-items:end}.ana-wd div{display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}.ana-wd i{width:70%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}.ana-wd span{font-size:11px;color:var(--muted)}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -841,7 +844,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='28 (04.11.)';
+const APP_VER='29 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1680,9 +1683,41 @@ function reviewData(o){const p=period(o),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e))
   const good=[],bad=[];bs.forEach(x=>{if(x.c.rest>=0&&x.c.used>0)good.push(`${x.b} im Budget (${eur0(x.c.rest)} übrig)`);else if(x.c.rest<0)bad.push(`${x.b} überzogen um ${eur0(-x.c.rest)}`)});
   if(gone.length)good.push(`${gone.length} Wünsche losgelassen, ${eur0(gone.reduce((s,w)=>s+w.p,0))} gespart`);if(ov.length)bad.push(`Notfallbremse ${ov.length}× gelöst`);if(bought.length)good.push(`${bought.length} Wunsch bewusst gekauft`);
   return{p,bs,top,big,good,bad,gone,ov}}
+function anaData(o){const p=period(o),pp=period(o-1),V=vaultAccs(),pa=pufAcc(),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e)),LP=S.exp.filter(e=>inP(e,pp)&&!isPlan(e));
+  const sum=(A,f)=>A.filter(f).reduce((s,e)=>s+e.a,0),inc=A=>sum(A,e=>e.type=='in'),out=A=>sum(A,e=>e.type=='out');
+  const intoV=e=>(e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b)),saved=sum(L,intoV),goalDep=S.goals.reduce((s,g)=>s+g.dep.filter(d=>inP({t:d.t},p)).reduce((q,d)=>q+d.a,0),0);
+  const fix=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&isRecE(e)):0,oneK=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&!isRecE(e)):0,budUsed=TOT.reduce((s,b)=>s+calc(b,o).used,0);
+  const accs=S.accts.map(a=>{const n=a.n,c=calc(n,o),A=L;return{n,col:a.col,k:a.kind,in:sum(A,e=>e.type=='in'&&e.b==n),out:sum(A,e=>e.type=='out'&&e.b==n),trI:sum(A,e=>e.type=='tr'&&e.to==n),trO:sum(A,e=>e.type=='tr'&&e.b==n),end:c.rest,start:a.kind=='konto'?calc(n,o-1).rest:null,tot:c.total,used:c.used}}).filter(x=>x.in||x.out||x.trI||x.trO||x.k=='konto');
+  const byC={};L.filter(e=>e.type=='out').forEach(e=>{const k=e.c||'Sonstiges';byC[k]=byC[k]||{v:0,n:0,acc:{}};byC[k].v+=e.a;byC[k].n++;byC[k].acc[e.b]=1});
+  const cats=Object.entries(byC).sort((a,b)=>b[1].v-a[1].v);
+  const rec=(S.rec||[]).map((r,i)=>({r,booked:L.some(e=>e.rid==r.id)})).filter(x=>x.r.type=='tr'&&V.includes(x.r.to)&&(x.booked||(!x.r.paused&&recDue(x.r,p))));
+  const outs=L.filter(e=>e.type=='out'),wd=[0,0,0,0,0,0,0];outs.forEach(e=>wd[new Date(e.t).getDay()]+=e.a);const wmax=wd.indexOf(Math.max(...wd));
+  const kons=sum(outs,e=>KONSUM.includes(e.c)),varOut=sum(outs,e=>!isRecE(e)),recOut=sum(outs,e=>isRecE(e));
+  const ws=S.wish,nw=ws.filter(w=>inP({t:w.t},p)).length,gone=ws.filter(w=>w.dt&&inP({t:w.dt},p)&&w.s=='verworfen'),bought=ws.filter(w=>w.dt&&inP({t:w.dt},p)&&w.s=='gekauft');
+  const I1=inc(L),O1=out(L),I0=inc(LP),O0=out(LP);
+  return{p,I1,O1,I0,O0,saved,goalDep,fix,oneK,budUsed,accs,cats,rec,wd,wmax,kons,varOut,recOut,cnt:outs.length,days:p.len||30,nw,gone,bought,quote:I1?saved/I1:0}}
 function viewReview(){const o=S.revOff??-1,R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]||{};
-  return `${appbar({title:'Monatsrückblick',back:'setBack',noGear:true,stats:`<div class="hc-month"><button class="hc-ic" id="rvP" aria-label="Voriger Monat">${I('back',18)}</button><b>${R.p.label}</b><button class="hc-ic" id="rvN" ${o>=0?'disabled':''} aria-label="Nächster Monat">${I('fwd',18)}</button></div>`})}
+  return `${appbar({title:'Monatsanalyse',back:'setBack',noGear:true,stats:`<div class="hc-month"><button class="hc-ic" id="rvP" aria-label="Voriger Monat">${I('back',18)}</button><b>${R.p.label}</b><button class="hc-ic" id="rvN" ${o>=0?'disabled':''} aria-label="Nächster Monat">${I('fwd',18)}</button></div>`})}
   <div class="minis">${R.bs.map(x=>{const s=stat(x.c);return `<div class="mini st-${s.k}" style="--c:${COL[x.b]};cursor:default"><div class="mini-n"><span class="dotc"></span>${esc(SHORT[x.b])}</div>${gauge(x.c.pct,COL[x.b],0,0,s.col)}<div class="mini-r ${x.c.rest<0?'out':''}">${eur0(x.c.rest)}</div><div class="mini-s">${eur0(x.c.used)} von ${eur0(x.c.total)}</div></div>`}).join('')}</div>
+  ${(()=>{const A=anaData(o),WD=['So','Mo','Di','Mi','Do','Fr','Sa'],pc=(a,b)=>b?Math.round((a-b)/b*100):0,cmax=A.cats.length?A.cats[0][1].v:1,dO=pc(A.O1,A.O0);
+   const flow=[['Einnahmen',A.I1,'in'],['Fixkosten '+(pufAcc()?esc(pufAcc().n):''),-A.fix,''],['Einmaliges '+(pufAcc()?esc(pufAcc().n):''),-A.oneK,''],['Budgets verbraucht',-A.budUsed,''],['In den Tresor',-A.saved,'']].filter(x=>x[1]);
+   const rest=flow.reduce((s,x)=>s+x[1],0);
+   return `<div class="kpis"><div class="kpi">Einnahmen<b class="in">${eur0(A.I1)}</b></div><div class="kpi">Ausgaben<b class="out">${eur0(A.O1)}</b></div><div class="kpi">Gespart<b>${eur0(A.saved)}</b></div><div class="kpi">Sparquote<b>${Math.round(A.quote*100)} %</b></div></div>
+   <div class="note" style="padding:0 4px">${A.O0?`Ausgaben ${dO>0?'+':''}${dO} % zum Vormonat (${eur0(A.O0)})`:'Kein Vormonat zum Vergleich'}${A.I0?` · Einnahmen ${pc(A.I1,A.I0)>0?'+':''}${pc(A.I1,A.I0)} %`:''}</div>
+   <div class="sec"><div class="sh">Geldfluss</div><div class="mmcard"><div class="ana-flow">${flow.map(([l,v,c])=>`<span>${l}</span><b class="${v<0?'out':c}">${v<0?'−':'+'}${eur(Math.abs(v))}</b>`).join('')}<span class="ana-sum">Bleibt übrig</span><b class="ana-sum ${rest<0?'out':'in'}">${eur(rest)}</b></div></div></div>
+   <div class="sec"><div class="sh">Alle Konten</div><div class="mmcard">${A.accs.map(x=>`<div class="srow"><div class="srow-h"><span><span class="dotc" style="--c:${x.col};display:inline-block;margin-right:6px"></span><b>${esc(x.n)}</b></span><span></span><b class="${x.end<0?'out':''}">${WH(x.n)?MASK:eur(x.end)}</b></div>
+     <div class="ana-acc">${x.start!=null&&!WH(x.n)?`<span>Anfang ${eur0(x.start)}</span>`:''}${x.k=='budget'?`<span>${eur0(x.used)} von ${eur0(x.tot)} verbraucht</span>`:''}${x.in?`<span class="in">+${eur0(x.in)} Eingang</span>`:''}${x.out?`<span class="out">−${eur0(x.out)} Ausgaben</span>`:''}${x.trI?`<span>+${eur0(x.trI)} umgebucht rein</span>`:''}${x.trO?`<span>−${eur0(x.trO)} umgebucht raus</span>`:''}</div></div>`).join('')}</div></div>
+   <div class="sec"><div class="sh">Tresor & Sparraten</div><div class="mmcard">${A.rec.map(({r,booked})=>`<div class="srow"><div class="srow-h"><span>${booked?I('check',14):I('hourglass',14)} ${esc(r.n||'Sparrate')}</span><span class="s" style="font-size:12px;color:var(--muted)">${esc(SHORT[r.b]||r.b)} → ${esc(SHORT[r.to]||r.to)}</span><b class="${booked?'in':''}">${eur(r.a)}</b></div></div>`).join('')||'<div class="srow"><span class="s" style="color:var(--muted);font-size:13px">Keine feste Sparrate in diesem Monat. Anlegen unter Einstellungen › Tresor.</span></div>'}
+     <div class="srow"><div class="srow-h"><span>Insgesamt in den Tresor</span><span></span><b class="in">${eur(A.saved)}</b></div>${A.goalDep?`<div class="s" style="font-size:12px;color:var(--muted)">Dazu ${eur(A.goalDep)} für Sparziele zurückgelegt</div>`:''}</div></div></div>
+   <div class="sec"><div class="sh">Ausgaben nach Kategorie</div><div class="mmcard">${A.cats.slice(0,10).map(([c,x])=>`<div class="srow"><div class="srow-h"><span>${esc(c)} <small style="color:var(--muted)">${x.n}×</small></span><span class="s" style="font-size:12px;color:var(--muted)">${Object.keys(x.acc).map(b=>esc(SHORT[b]||b)).join(', ')}</span><b>${eur(x.v)}</b></div><div class="bar"><i style="width:${(x.v/cmax*100).toFixed(0)}%;background:var(--accent)"></i></div></div>`).join('')||'<div class="empty">Keine Ausgaben.</div>'}</div></div>
+   <div class="sec"><div class="sh">Dein Verhalten</div><div class="mmcard"><div class="ana-flow">
+     <span>Ausgaben-Buchungen</span><b>${A.cnt} · Ø ${eur0(A.O1/A.days)} pro Tag</b>
+     <span>Wiederkehrend / einmalig</span><b>${eur0(A.recOut)} / ${eur0(A.varOut)}</b>
+     <span>Konsum-Anteil</span><b>${A.O1?Math.round(A.kons/A.O1*100):0} % (${eur0(A.kons)})</b>
+     <span>Teuerster Wochentag</span><b>${A.O1?WD[A.wmax]+' · '+eur0(A.wd[A.wmax]):'–'}</b>
+     <span>Neue Wünsche</span><b>${A.nw}</b><span>Losgelassen / gekauft</span><b>${A.gone.length} / ${A.bought.length}</b>
+     <span>Notfallbremse gelöst</span><b class="${R.ov.length?'out':''}">${R.ov.length}×</b></div>
+     <div class="ana-wd">${A.wd.map((v,i)=>({v,i})).slice(1).concat([{v:A.wd[0],i:0}]).map(({v,i})=>`<div><i style="height:${(Math.max(...A.wd)?v/Math.max(...A.wd)*100:0).toFixed(0)}%"></i><span>${WD[i]}</span></div>`).join('')}</div></div></div>`})()}
   <div class="sec"><div class="sh">Was gut lief</div><div class="mmcard">${R.good.map(t=>`<div class="srow" style="flex-direction:row;gap:8px;align-items:center;color:var(--ok)">${I('check',16)}<span style="color:var(--fg)">${t}</span></div>`).join('')||'<div class="empty">Diesmal kein Budget im grünen Bereich. Nächster Monat, neue Chance.</div>'}</div></div>
   ${R.bad.length?`<div class="sec"><div class="sh">Was nicht so gut lief</div><div class="mmcard">${R.bad.map(t=>`<div class="srow" style="flex-direction:row;gap:8px;align-items:center;color:var(--bad)">${I('alert',16)}<span style="color:var(--fg)">${t}</span></div>`).join('')}</div></div>`:''}
   ${R.top.length?`<div class="sec"><div class="sh">Größte Posten</div><div class="mmcard">${R.top.map(([c,v])=>`<div class="srow"><div class="srow-h"><span>${esc(c)}</span><span></span><b>${eur(v)}</b></div></div>`).join('')}${R.big?`<div class="srow"><div class="s" style="font-size:12px;color:var(--muted)">Größte Einzelausgabe: ${esc(R.big.n||R.big.c)} · ${eur(R.big.a)}</div></div>`:''}</div></div>`:''}
@@ -1696,7 +1731,7 @@ function bindPlan(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   ['ngT','ngV','ngR'].forEach(id=>{const el=$(id);if(el)el.onchange=()=>{S.ng=S.ng||{};const v=el.value.trim();if(id=='ngT')S.ng.target=pNum(v)||null;if(id=='ngV')S.ng.manual=v===''?null:pNum(v);if(id=='ngR')S.ng.rate=pNum(v)||150;save();render()}});
   on('rvP',()=>{S.revOff=(S.revOff??-1)-1;render()});on('rvN',()=>{if((S.revOff??-1)<0){S.revOff=(S.revOff??-1)+1;render()}});
   if($('rvG'))$('rvG').onchange=()=>{S.reviews=S.reviews||{};S.reviews[pkey(period(S.revOff??-1))]={t:$('rvG').value};save()};
-  on('rvCopy',()=>{const R=reviewData(S.revOff??-1);const t=`Mein Monatsrückblick ${R.p.label}:\n`+R.bs.map(x=>`- ${x.b}: ${eur(x.c.used)} von ${eur(x.c.total)} (${x.c.rest>=0?'übrig '+eur(x.c.rest):'überzogen '+eur(-x.c.rest)})`).join('\n')+`\nGut: ${R.good.join('; ')||'–'}\nNicht so gut: ${R.bad.join('; ')||'–'}\nGrößte Posten: ${R.top.map(([c,v])=>c+' '+eur(v)).join(', ')}\nMeine Notiz: ${($('rvG')||{}).value||'–'}\nWas sollte ich nächsten Monat anders machen?`;copy(t,$('rvMsg'),$('rvOut'))})}
+  on('rvCopy',()=>{const R=reviewData(S.revOff??-1);const t=`Mein Monatsrückblick ${R.p.label}:\n`+R.bs.map(x=>`- ${x.b}: ${eur(x.c.used)} von ${eur(x.c.total)} (${x.c.rest>=0?'übrig '+eur(x.c.rest):'überzogen '+eur(-x.c.rest)})`).join('\n')+`\nGut: ${R.good.join('; ')||'–'}\nNicht so gut: ${R.bad.join('; ')||'–'}\nGrößte Posten: ${R.top.map(([c,v])=>c+' '+eur(v)).join(', ')}\n${(()=>{const A=anaData(S.revOff??-1);return `Einnahmen ${eur(A.I1)}, Ausgaben ${eur(A.O1)}, in den Tresor ${eur(A.saved)} (Sparquote ${Math.round(A.quote*100)} %), Fixkosten ${eur(A.fix)}, Konsum-Anteil ${A.O1?Math.round(A.kons/A.O1*100):0} %`})()}\nMeine Notiz: ${($('rvG')||{}).value||'–'}\nWas sollte ich nächsten Monat anders machen?`;copy(t,$('rvMsg'),$('rvOut'))})}
 /* small celebration */
 const growFrom={};
 function celebrate(msg,big){const r=$('modalRoot'),C=['#6E4BD8','#D946EF','#F0657A','#22A699','#F2A23A','#4F6BED','#1F9D6B'];
@@ -1726,7 +1761,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
    nav('puffer','hourglass','Stundenlohn',eur(S.lohn)+' pro Std. · für „so viele Stunden Arbeit“',c3)+
    nav('pin','lock','PIN-Schutz',S.pin?'Aktiv':'Aus',c3))}
   ${sec('Rückblick & Hilfe','',
-   nav('review','book','Monatsrückblick',period(-1).label+' ansehen',c4)+
+   nav('review','book','Monatsanalyse','Einnahmen, Ausgaben, Konten, Sparraten, Verhalten',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
    btn('vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst',c4))}
   ${sec('Aussehen','',
