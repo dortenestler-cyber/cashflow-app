@@ -840,7 +840,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='23 (04.11.)';
+const APP_VER='24 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1673,33 +1673,39 @@ function celebrate(msg,big){const r=$('modalRoot'),C=['#6E4BD8','#D946EF','#F065
   const conf=big?Array.from({length:60},(_,i)=>`<i style="left:${Math.random()*100}%;background:${C[i%C.length]};animation-delay:${(Math.random()*.5).toFixed(2)}s;animation-duration:${(1.6+Math.random()*1.2).toFixed(2)}s;transform:rotate(${Math.random()*360|0}deg);${i%3?'':'border-radius:50%;'}"></i>`).join(''):'';
   r.innerHTML=`<div class="cele ${big?'big':''}" role="status">${conf?`<div class="confetti">${conf}</div>`:''}<div class="cele-ring">${I(big?'target':'piggy',34)}</div><b>${esc(msg)}</b>${big?'<span>Du hast es geschafft. Jetzt darfst du bewusst kaufen.</span>':''}</div>`;
   setTimeout(()=>{if(r.querySelector('.cele'))r.innerHTML=''},big?3200:1700)}
-function viewMore(){const nav=(k,ico,l,s)=>`<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue)">${I(ico)}</div><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><span class="chev">›</span></button>`;
+function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${c||'var(--blue)'} 14%,transparent);color:${c||'var(--blue)'}">${I(ico)}</div><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><span class="chev">›</span></button>`;
+  const btn=(id,ico,l,s,c)=>`<button class="cell" id="${id}"><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><span class="chev">›</span></button>`;
+  const sec=(t,d,body)=>`<div class="sec"><div class="sh">${t}</div><div class="group">${body}</div>${d?`<div class="note">${d}</div>`:''}</div>`;
+  const c1='#6E4BD8',c2='#22A699',c3='#F0657A',c4='#4F6BED',c5='#D4A23A',c6='#7A7390';
   return `${appbar({title:'Einstellungen',big:'CashFlow',noGear:true})}
-  <div class="sec"><div class="sh">Budgets</div><div class="group">
-   ${nav('accts','wallet','Konten',ALL.length+' Konten · '+S.accts.filter(a=>!a.vis).length+' ausgeblendet')}
-   ${nav('budgets','gauge','Monatsbudgets',BUDG.map(b=>eur0(S.budgets[b]||0)).join(' · '))}
-   ${nav('cats','grid','Kategorien','Anlegen, umbenennen, Symbol ändern')}
-   ${nav('rec','repeat','Wiederkehrende Buchungen',S.rec.length+' aktiv')}
-   ${nav('fav','star','Favoriten',S.fav.length+' Schnellbuchungen')}</div></div>
-  <div class="sec"><div class="sh">Einstellungen</div><div class="group">
-   ${nav('month','calendar','Finanzmonat','Beginnt am '+S.start+'.')}
-   ${nav('review','book','Monatsrückblick',period(-1).label+' ansehen')}
-   ${nav('yplan','calendar','Jahresplaner','Sonderausgaben, monatliche Rücklage')}
-   ${nav('abos','repeat','Abo-Radar',eur0(aboList().reduce((s,x)=>s+x.year,0))+' im Jahr · Kündigungsfristen')}
-   ${nav('ng','lifebuoy','Notgroschen',S.showWealth?eur0(ngVal())+' von '+eur0(ngTarget()):'Optional · Vermögen ausgeblendet')}
-   <button class="cell" id="asstShow"><div class="ico" style="background:color-mix(in srgb,#7b5cf6 14%,transparent);color:#7b5cf6">${I('sparkle')}</div><div class="t"><div>Hinweise des Assistenten</div><div class="s">Auch bereits gesehene Hinweise anzeigen</div></div><span class="chev">›</span></button>
-   ${nav('shop','cart','Einkaufszettel',(S.shop&&S.shop.items.length?S.shop.items.length+' Artikel · ':'')+'mit Budget-Check')}
-   ${nav('debts','target','Schuldenfrei',(S.debts||[]).length?((S.debts||[]).map(d=>eur0(debtInfo(d).rest)+' offen').join(' · ')):'Kredite und Raten abbauen')}
-   ${nav('rules','lock','Regeln & Monatsabschluss','Notfallbremse, 14 Tage, Restgeld')}
-   ${nav('puffer','lifebuoy','Stundenlohn',eur(S.lohn)+' pro Std.')}
-   ${nav('pin','lock','PIN-Schutz',S.pin?'Aktiv':'Aus')}
-   ${nav('theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[S.theme||'system'])}
-   ${nav('bgs','palette','Kartenhintergründe','Farbe oder eigenes Foto je Karte')}
-   ${nav('bg','palette','Hintergründe','Farbverlauf oder eigenes Foto pro Konto')}</div></div>
-  <div class="sec"><div class="sh">Daten</div><div class="group">
-   ${nav('import','export','Import aus MoneyControl','CSV-Export übernehmen, inkl. Verlauf')}
-   ${nav('export','export','Export & Backup','CSV für Excel, Sicherung wiederherstellen')}</div></div>`}
-
+  ${sec('Geld & Konten','',
+   nav('accts','wallet','Konten',ALL.length+' Konten · '+S.accts.filter(a=>!a.vis).length+' ausgeblendet',c1)+
+   nav('budgets','gauge','Monatsbudgets',BUDG.map(b=>eur0(S.budgets[b]||0)).join(' · '),c1)+
+   nav('rec','repeat','Wiederkehrende Buchungen',S.rec.length+' aktiv',c1)+
+   nav('cats','grid','Kategorien','Anlegen, umbenennen, Symbol ändern',c1)+
+   nav('fav','star','Favoriten',S.fav.length+' Schnellbuchungen',c1)+
+   nav('month','calendar','Finanzmonat','Beginnt am '+S.start+'.',c1))}
+  ${sec('Planen & Sparen','',
+   nav('yplan','calendar','Jahresplaner','Sonderausgaben, monatliche Rücklage',c2)+
+   nav('ng','lifebuoy','Notgroschen',S.showWealth?eur0(ngVal())+' von '+eur0(ngTarget()):'Optional · Vermögen ausgeblendet',c2)+
+   nav('debts','target','Schuldenfrei',(S.debts||[]).length?((S.debts||[]).map(d=>eur0(debtInfo(d).rest)+' offen').join(' · ')):'Kredite und Raten abbauen',c2)+
+   nav('abos','repeat','Abo-Radar',eur0(aboList().reduce((s,x)=>s+x.year,0))+' im Jahr · Kündigungsfristen',c2)+
+   nav('shop','cart','Einkaufszettel',(S.shop&&S.shop.items.length?S.shop.items.length+' Artikel · ':'')+'mit Budget-Check',c2))}
+  ${sec('Schutz vor Impulsen','Regeln, die dich vor Spontankäufen schützen.',
+   nav('rules','lock','Regeln & Tabu-Konten','Notfallbremse, 14 Tage Wartezeit, Restgeld',c3)+
+   nav('puffer','hourglass','Stundenlohn',eur(S.lohn)+' pro Std. · für „so viele Stunden Arbeit“',c3)+
+   nav('pin','lock','PIN-Schutz',S.pin?'Aktiv':'Aus',c3))}
+  ${sec('Rückblick & Hilfe','',
+   nav('review','book','Monatsrückblick',period(-1).label+' ansehen',c4)+
+   btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
+   btn('vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst',c4))}
+  ${sec('Aussehen','',
+   nav('theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[S.theme||'system']+' · Schrift im Kalender · Erfolge feiern',c5)+
+   nav('bgs','palette','Kartenhintergründe','Farbe oder eigenes Foto je Karte',c5))}
+  ${sec('Daten','',
+   nav('export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel',c6)+
+   nav('import','export','Import aus MoneyControl','Backup oder CSV übernehmen',c6))}
+  <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
 function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr</button>`;
   if(k=='accts')return back+`<h1 class="lt">Konten</h1></div><div class="group">${S.accts.map((a,i)=>`<div class="cell" style="flex-wrap:wrap">
     <button class="cell" data-ae="${i}" style="padding:0;flex:1;min-width:0;min-height:0"><div class="ico" style="background:color-mix(in srgb,${a.col} 16%,transparent);color:${a.col}">${I(a.kind=='konto'?'wallet':'gauge')}</div>
@@ -1864,6 +1870,7 @@ function bind(){bindSwipe();bindVault();{const pm=$('pufMove');if(pm)pm.onclick=
   document.querySelectorAll('[data-gdrop]').forEach(b=>b.onclick=()=>{const g=S.goals.find(x=>x.id==b.dataset.gdrop);if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich aufgeben?';return}
     g.dropped=Date.now();S.gespart+=g.ziel;save();render()});
   document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{setView=b.dataset.set;render();scrollTo(0,0)});
+  if($('vHelp2'))$('vHelp2').onclick=()=>voiceHelp();
   if($('asstShow'))$('asstShow').onclick=e=>{e.stopPropagation();asstOpen=true;renderAsst();if(!$('abub'))toast('Gerade gibt es keine Hinweise.')};
   document.querySelectorAll('#lookSeg button').forEach(b=>b.onclick=()=>{S.look=b.dataset.f;save();render()});
   on('debtAdd',()=>openDebt(-1));document.querySelectorAll('[data-dedit]').forEach(b=>b.onclick=()=>openDebt(+b.dataset.dedit));
