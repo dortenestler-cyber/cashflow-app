@@ -446,6 +446,7 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .pdbrow small.bon{color:var(--ok);display:flex;gap:3px;align-items:center}
 .tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button svg{width:23px;height:23px}
 .pufl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.pufl b{color:var(--fg);font-weight:500;text-align:right}.pufl span b{font-weight:700}
+.ed-ic{border:0;background:none;color:var(--muted);padding:4px;cursor:pointer;display:inline-flex;border-radius:6px}.ed-ic:hover{background:var(--fill)}.ed-link{border:0;background:none;padding:0;color:var(--blue);font:inherit;cursor:pointer;text-align:left}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -470,7 +471,7 @@ const swL=()=>BN.includes(curB)?BN:ALL;
 const DEFCATS={"Flow":[["Lebensmittel","cart"],["Drogerie","bottle"],["Friseur","scissors"],["Haushalt","home"],["Gesundheit","pill"],["Mobilität","bus"],["Kleidung","shirt"],["Sonstiges","dot"]],
  "Gönn dir":[["Restaurant","fork"],["Café","cup"],["Freizeit","ticket"],["Shopping","bag"],["Beauty","sparkle"],["Hobby","palette"],["Geschenke","gift"],["Sonstiges","dot"]],
  "Sinking Funds":[["Sparziel","target"],["Technik","headphones"],["Reise","plane"],["Möbel","sofa"],["Sonstiges","dot"]]};
-const IC={cart:'<path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
+const IC={trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',cart:'<path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
 bottle:'<path d="M10 3h4v3l2 3v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-3z"/><path d="M8 12h8"/>',
 scissors:'<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5 20 18M8 15.5 20 6"/>',
 home:'<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>',
@@ -1176,10 +1177,11 @@ function goalsHtml(){const act=S.goals.filter(g=>!g.done&&!g.dropped),fin=S.goal
   const tot=act.reduce((s,g)=>s+g.dep.reduce((a,d)=>a+d.a,0),0);
   return `<div class="sec"><div class="sh"><span>Sparziele</span><span>${eur0(tot)} zurückgelegt</span></div><div class="group">${act.map(g=>{const sv=g.dep.reduce((a,d)=>a+d.a,0),pc=Math.min(sv/g.ziel,1),rest=Math.max(g.ziel-sv,0),mon=Math.ceil(rest/Math.max(S.budgets['Sinking Funds']||100,1));
    return `<div class="cell" style="align-items:flex-start"><div class="ico" style="background:color-mix(in srgb,var(--sink) 16%,transparent);color:var(--sink)">${I('target')}</div><div class="t">
-    <div>${esc(g.n)}</div><div class="s">Seit ${fd(g.t)} · ${g.from=='Wunsch'?'aus der Wunschliste':'selbst angelegt'}${g.g?' · Gefühl damals: '+esc(g.g):''}</div>
+    <div style="display:flex;align-items:center;gap:6px">${esc(g.n)}<button class="ed-ic" data-ged="${g.id}" aria-label="Sparziel bearbeiten">${I('pen',14)}</button></div><div class="s">Seit ${fd(g.t)} · ${g.from=='Wunsch'?'aus der Wunschliste':'selbst angelegt'}${g.g?' · Gefühl damals: '+esc(g.g):''}</div>
     ${g.w?`<div class="s">„${esc(g.w)}“</div>`:''}
     <div class="bar" style="height:8px"><i class="grow" data-to="${(pc*100).toFixed(1)}" ${growFrom[g.id]!=null?`data-from="${(growFrom[g.id]*100).toFixed(1)}"`:''} style="width:${(pc*100).toFixed(0)}%;background:${pc>=1?'var(--ok)':'var(--sink)'}"></i></div>
     <div class="s">${eur(sv)} von ${eur(g.ziel)}${rest?` · noch ${eur(rest)}, bei ${eur0(S.budgets['Sinking Funds']||100)} im Monat ca. ${mon} Monat${mon>1?'e':''}`:' · Ziel erreicht'}</div>
+    ${g.dep.length?`<button class="s ed-link" style="color:var(--blue)" data-ged="${g.id}">${g.dep.length} Einzahlung${g.dep.length>1?'en':''} ansehen und bearbeiten ›</button>`:''}
     ${g.dep.length?`<div class="s">Zuletzt ${eur(g.dep[g.dep.length-1].a)} am ${fd(g.dep[g.dep.length-1].t)}${g.dep[g.dep.length-1].src?' aus '+esc(g.dep[g.dep.length-1].src):''}</div>`:''}
     <div class="choices" style="align-items:center">${rest?`<button data-gdep="${g.id}">${I('piggy',15)} Zurücklegen</button>`:`<button data-gbuy="${g.id}">Jetzt bewusst kaufen</button>`}<button data-gdrop="${g.id}" style="color:var(--muted)">Aufgeben</button></div>
    </div></div>`}).join('')||'<div class="empty">Noch keine Sparziele. Wähle bei einem Wunsch nach der Wartezeit „Als Sparziel“.</div>'}</div>
@@ -1197,7 +1199,7 @@ let wishV='Wünsche';
 const GEF=['neutral','gestresst','gelangweilt','Belohnung','traurig','euphorisch'],TRIG=['Instagram','TikTok','Newsletter','Werbung','Freunde','Im Laden','Scrollen','Bedarf','Sonstiges'];
 const tod=t=>{const h=new Date(t).getHours();return h<11?'Morgens':h<15?'Mittags':h<19?'Nachmittags':h<23?'Abends':'Nachts'};
 function wishRow(w,i){const left=w.t+wait(w.p)-Date.now(),d=Math.ceil(left/864e5),pc=Math.min(1,1-left/wait(w.p));
-  return `<div class="wrow"><div class="wrow-h"><div class="t"><div><b>${esc(w.n)}</b></div><div class="hours">${std(w.p)}</div>
+  return `<div class="wrow"><div class="wrow-h"><div class="t"><div style="display:flex;align-items:center;gap:6px"><b>${esc(w.n)}</b><button class="ed-ic" data-wed="${i}" aria-label="Wunsch bearbeiten">${I('pen',14)}</button></div><div class="hours">${std(w.p)}</div>
    <div class="s">${esc(w.g)}${w.tr?' · '+esc(w.tr):''}${w.w?' · „'+esc(w.w)+'“':''}${w.l?` · <a href="${esc(w.l)}" target="_blank" rel="noopener" style="color:var(--blue)">Link</a>`:''}</div></div><div class="v"><b>${eur(w.p)}</b></div></div>
    <div class="bar" style="height:6px"><i style="width:${(pc*100).toFixed(0)}%;background:${left>0?'var(--muted)':'var(--ok)'}"></i></div>
    ${left>0?`<div class="s" style="display:flex;gap:4px;align-items:center">${I('hourglass',13)} Noch ${d} Tag${d>1?'e':''} Sperre · frei ab ${new Date(w.t+wait(w.p)).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}</div>
@@ -1253,6 +1255,24 @@ function openRec(i){const r=i>=0?Object.assign({},S.rec[i]):{id:uid(),type:'out'
      if(r.type!='tr'){delete r.to;delete r.alloc}else r.c='';if(!r.end)delete r.end;if(!r.paused)delete r.paused;
      const s=JSON.stringify(S.rec);if(i>=0)S.rec[i]=r;else S.rec.push(r);save();applyRec();$('sheetRoot').innerHTML='';render();toast(i>=0?'Wiederkehrende Buchung geändert.':'Wiederkehrende Buchung angelegt.',()=>{S.rec=JSON.parse(s);save();render()})};
    if($('rDel'))$('rDel').onclick=()=>{const b=$('rDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(S.rec);S.rec.splice(i,1);save();$('sheetRoot').innerHTML='';render();toast('Gelöscht. Bereits gebuchte Einträge bleiben.',()=>{S.rec=JSON.parse(s);save();render()})}};draw();renderAsst()}
+function openGoalEdit(gid){const g=S.goals.find(x=>x.id==gid);if(!g)return;const D=g.dep.map(d=>({...d,v:String(d.a).replace('.',','),del:false}));let n=g.n,z=String(g.ziel).replace('.',','),w=g.w||'';
+  const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Sparziel bearbeiten"><div class="sheet-h"><button id="geX">Abbrechen</button><b>Sparziel bearbeiten</b><button id="geS" style="font-weight:600">Sichern</button></div>
+   <div class="sheet-b"><div class="group"><div class="cell plain"><label for="geN">Name</label><input id="geN" value="${esc(n)}"></div>
+    <div class="cell plain"><label for="geZ">Ziel</label><input id="geZ" inputmode="decimal" value="${esc(z)}"></div>
+    <div class="cell plain"><label for="geW">Warum?</label><input id="geW" value="${esc(w)}" placeholder="optional"></div></div>
+   <div class="sh" style="padding:0">Einzahlungen</div>
+   <div class="group">${D.map((d,k)=>`<div class="cell plain" style="${d.del?'opacity:.45':''}"><div class="t"><div>${fd(d.t)}</div><div class="s">${d.src?'aus '+esc(d.src):''}${d.eid?' · als Umbuchung gebucht':''}</div></div>
+     <input data-gev="${k}" inputmode="decimal" value="${esc(d.v)}" ${d.del?'disabled':''} style="width:84px;text-align:right;background:var(--fill);border-radius:8px;padding:6px 8px"><span>€</span>
+     <button class="ed-ic" data-gex="${k}" aria-label="${d.del?'Wiederherstellen':'Einzahlung löschen'}" style="color:${d.del?'var(--blue)':'var(--bad)'}">${I(d.del?'undo':'trash',16)}</button></div>`).join('')||'<div class="empty">Noch keine Einzahlungen.</div>'}</div>
+   <div class="note" style="padding:0">Änderst oder löschst du eine Einzahlung, wird die zugehörige Umbuchung mit angepasst.</div><div class="note" id="geE" style="padding:0;color:var(--bad)"></div></div></div>`;
+   const keep=()=>{n=$('geN').value;z=$('geZ').value;w=$('geW').value;document.querySelectorAll('[data-gev]').forEach(i=>D[+i.dataset.gev].v=i.value)};
+   $('scrim').onclick=$('geX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
+   document.querySelectorAll('[data-gex]').forEach(b=>b.onclick=()=>{keep();const d=D[+b.dataset.gex];d.del=!d.del;draw()});
+   $('geS').onclick=()=>{keep();const zz=pNum(z);if(!n.trim()||!zz){$('geE').textContent='Bitte Name und Zielbetrag eintragen.';return}
+     for(const d of D)if(!d.del&&!(pNum(d.v)>0)){$('geE').textContent='Jede Einzahlung braucht einen Betrag. Zum Entfernen den Papierkorb nutzen.';return}
+     const sn=snap(),gs=JSON.stringify(S.goals);g.n=n.trim();g.ziel=zz;g.w=w.trim()||undefined;
+     const keepD=[];D.forEach(d=>{const e=d.eid&&S.exp.find(x=>x.id==d.eid);if(d.del){if(e)S.exp.splice(S.exp.indexOf(e),1);return}const a=Math.round(pNum(d.v)*100)/100;if(e){e.a=a;e.n='Sparziel: '+g.n}keepD.push({a,t:d.t,src:d.src,eid:d.eid})});
+     g.dep=keepD;save();$('sheetRoot').innerHTML='';render();toast('Sparziel geändert.',()=>{restore(sn);S.goals=JSON.parse(gs);save();render()})}};draw();renderAsst()}
 function openDeposit(gid){const g=S.goals.find(x=>x.id==gid);if(!g)return;const tgt=g.acct&&ALL.includes(g.acct)?g.acct:(ALL.includes('Sinking Funds')?'Sinking Funds':ALL[0]);
   const srcs=ALL.filter(a=>!isTabu(a));let src=S.lastDepSrc&&srcs.includes(S.lastDepSrc)?S.lastDepSrc:(srcs.find(a=>a=='Gönn dir')||srcs[0]),amt='';
   const saved=g.dep.reduce((s,d)=>s+d.a,0),rest=Math.max(g.ziel-saved,0);
@@ -1311,8 +1331,8 @@ function openContract(i){const c=i>=0?JSON.parse(JSON.stringify(S.contracts[i]))
     c.term=rp('cT');c.renew=rp('cR');c.notice=rp('cF');c.auto=$('cA').checked;c.state=$('cC').checked?'cancelled':'active';c.note=$('cNo').value.trim();
     S.contracts=S.contracts||[];const s=JSON.stringify(S.contracts);if(i>=0)S.contracts[i]=c;else S.contracts.push(c);S.dismTips=(S.dismTips||[]).filter(k=>!k.includes(c.n));save();$('sheetRoot').innerHTML='';render();toast('Vertrag gesichert.',()=>{S.contracts=JSON.parse(s);save();render()})};
   if($('cDel'))$('cDel').onclick=()=>{const b=$('cDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(S.contracts);S.contracts.splice(i,1);save();$('sheetRoot').innerHTML='';render();toast('Vertrag gelöscht.',()=>{S.contracts=JSON.parse(s);save();render()})};renderAsst()}
-function openWish(){const W={n:'',p:'',l:'',w:'',g:'neutral',tr:''};const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Neuer Wunsch">
-  <div class="sheet-h"><button id="wCancel">Abbrechen</button><b>Neuer Wunsch</b><button id="wSave" style="font-weight:600">Merken</button></div>
+function openWish(ei){const E=ei!=null?S.wish[ei]:null;const W=E?{n:E.n,p:String(E.p).replace('.',','),l:E.l||'',w:E.w||'',g:E.g||'neutral',tr:E.tr||''}:{n:'',p:'',l:'',w:'',g:'neutral',tr:''};const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Neuer Wunsch">
+  <div class="sheet-h"><button id="wCancel">Abbrechen</button><b>${E?'Wunsch bearbeiten':'Neuer Wunsch'}</b><button id="wSave" style="font-weight:600">${E?'Sichern':'Merken'}</button></div>
   <div class="sheet-b"><div class="group">
    <div class="cell plain"><label for="wname">Was?</label><input id="wname" placeholder="z. B. Kletterschuhe" value="${esc(W.n)}"></div>
    <div class="cell plain"><label for="wpreis">Preis</label><input id="wpreis" inputmode="decimal" placeholder="0,00 €" value="${esc(W.p)}"></div>
@@ -1321,12 +1341,14 @@ function openWish(){const W={n:'',p:'',l:'',w:'',g:'neutral',tr:''};const draw=(
    <div class="hours" id="wstd" style="padding-inline:4px"></div>
    <div class="sh" style="padding:0">Wie fühle ich mich gerade?</div><div class="chips wrap">${GEF.map(x=>`<button class="chip ${W.g==x?'on':''}" data-wg="${x}">${x}</button>`).join('')}</div>
    <div class="sh" style="padding:0">Wo kam der Wunsch her?</div><div class="chips wrap">${TRIG.map(x=>`<button class="chip ${W.tr==x?'on':''}" data-wt="${x}">${x}</button>`).join('')}</div>
-   <div class="note" style="padding:0">Der Wunsch kommt für 14 Tage auf die Wunschliste. Gekauft wird nicht impulsiv.</div><div class="note" id="wErr" style="padding:0;color:var(--bad)"></div></div></div>`;
+   <div class="note" style="padding:0">${E?'Die Sperre läuft weiter wie bisher. Ein niedrigerer Preis verkürzt sie nicht.':'Der Wunsch kommt für 14 Tage auf die Wunschliste. Gekauft wird nicht impulsiv.'}</div>${E?'<button class="btn danger" id="wDel">Wunsch löschen</button>':''}<div class="note" id="wErr" style="padding:0;color:var(--bad)"></div></div></div>`;
   const keep=()=>{if($('eMore'))0;W.n=$('wname').value;W.p=$('wpreis').value;W.l=$('wlink').value;W.w=$('wwarum').value};
   const hrs=()=>{const v=pNum($('wpreis').value);$('wstd').textContent=v?'Das sind '+std(v)+'.':''};hrs();$('wpreis').oninput=hrs;
   $('scrim').onclick=$('wCancel').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
+  if($('wDel'))$('wDel').onclick=()=>{const b=$('wDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(S.wish);S.wish.splice(ei,1);save();$('sheetRoot').innerHTML='';render();toast('Wunsch gelöscht.',()=>{S.wish=JSON.parse(s);save();render()})};
   document.querySelectorAll('[data-wg]').forEach(b=>b.onclick=()=>{keep();W.g=b.dataset.wg;draw()});document.querySelectorAll('[data-wt]').forEach(b=>b.onclick=()=>{keep();W.tr=W.tr==b.dataset.wt?'':b.dataset.wt;draw()});
   $('wSave').onclick=()=>{keep();const v=pNum(W.p);if(!W.n.trim()||!v){$('wErr').textContent='Bitte Name und Preis eintragen.';return}
+    if(E){const un=E.t+wait(E.p),old=JSON.stringify(E);Object.assign(E,{n:W.n.trim(),p:v,l:W.l.trim(),w:W.w.trim(),g:W.g,tr:W.tr});if(E.t+wait(v)<un)E.t=un-wait(v);save();$('sheetRoot').innerHTML='';render();toast('Wunsch geändert.',()=>{Object.assign(E,JSON.parse(old));save();render()});return}
     S.wish.unshift({n:W.n.trim(),p:v,l:W.l.trim(),w:W.w.trim(),g:W.g,tr:W.tr,t:Date.now(),s:'offen'});save();$('sheetRoot').innerHTML='';wishV='Wünsche';render();toast('Auf der Wunschliste. Frei ab '+new Date(Date.now()+wait(v)).toLocaleDateString('de-DE',{day:'numeric',month:'long'})+'.')}};draw()}
 function openKaufCheck(i){const w=S.wish[i],g=calc('Gönn dir'),goal=S.goals.find(x=>!x.done&&!x.dropped&&x.n==w.n),gs=goal?goal.dep.reduce((a,d)=>a+d.a,0):0,A=[null,null,null];
   const draw=()=>{const fromG=g.rest>=w.p,fromS=gs>=w.p,ok=A.every(x=>x===true)&&(fromG||fromS);
@@ -1790,7 +1812,7 @@ function bind(){bindSwipe();{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=
   on('toYear2',()=>{drill={k:'year'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
   document.querySelectorAll('#repK button').forEach(b=>b.onclick=()=>{repK=b.dataset.f;render()});
   document.querySelectorAll('#repV button').forEach(b=>b.onclick=()=>{repV=b.dataset.f;drill=null;yOff=0;render();scrollTo(0,0)});
-  on('wishNew',openWish);document.querySelectorAll('#wishV button').forEach(b=>b.onclick=()=>{wishV=b.dataset.f;render();scrollTo(0,0)});
+  on('wishNew',()=>openWish());document.querySelectorAll('[data-wed]').forEach(b=>b.onclick=()=>openWish(+b.dataset.wed));document.querySelectorAll('[data-ged]').forEach(b=>b.onclick=()=>openGoalEdit(b.dataset.ged));document.querySelectorAll('#wishV button').forEach(b=>b.onclick=()=>{wishV=b.dataset.f;render();scrollTo(0,0)});
   document.querySelectorAll('[data-kc]').forEach(b=>b.onclick=()=>openKaufCheck(+b.dataset.kc));
   document.querySelectorAll('.choices button[data-s]').forEach(b=>b.onclick=()=>decideWish(+b.dataset.i,b.dataset.s));
   document.querySelectorAll('[data-gdep]').forEach(b=>b.onclick=()=>openDeposit(b.dataset.gdep));
