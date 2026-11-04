@@ -546,6 +546,9 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .arow-t{flex:1;min-width:0;display:flex;flex-direction:column}.arow-t b{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.arow-t small{font-size:11.5px;color:var(--muted)}.arow-v{font-weight:600;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .aq-in{display:flex;gap:6px;padding:8px 10px;border-top:.5px solid var(--sep)}.aq-in input{flex:1;min-width:0;border:0;background:var(--fill);border-radius:999px;padding:9px 14px;font:inherit;font-size:15px;color:var(--fg)}
 .aq-mic,.aq-go{width:38px;height:38px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;flex:none}.aq-mic{background:var(--fill);color:var(--accent)}.aq-go{background:var(--accent);color:#fff}
+#fab,#vfab,#asstRoot .abub{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s ease}
+body.navving #fab,body.navving #vfab,body.navving #asstRoot .abub{transform:scale(.72);opacity:.38}
+body.navving #fab:hover,body.navving #vfab:hover,body.navving #asstRoot .abub:hover{transform:none;opacity:1}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -961,7 +964,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='80 (04.11.)';
+const APP_VER='81 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -3317,6 +3320,10 @@ function applyTheme(){const t=S.theme||'system';if(t=='system')document.document
 applyTheme();
 if(/^#(sync|einrichtung)$/i.test(location.hash)){history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync'}
 if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_token=/.test(location.hash);history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync';setTimeout(()=>toast(ok?'E-Mail bestätigt. Jetzt unten „Anmelden“ tippen.':'Der Bestätigungslink ist abgelaufen oder wurde schon benutzt. Versuch einfach „Anmelden“.'),600)}
+
+/* floating bubbles fade/shrink while scrolling */
+(()=>{let t=null;const on=()=>{if(asstOpen)return;document.body.classList.add('navving');clearTimeout(t);t=setTimeout(()=>document.body.classList.remove('navving'),650)};
+  addEventListener('scroll',on,{passive:true,capture:true});addEventListener('touchmove',e=>{if(!e.target.closest||!e.target.closest('#asstRoot,.sheet'))on()},{passive:true})})();
 closeMonths();render();lock();setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
 if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
 </script>
