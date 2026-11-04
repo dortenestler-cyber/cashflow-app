@@ -504,6 +504,10 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .carw{position:relative}.carbtn{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:var(--card);color:var(--accent);display:none;place-items:center;cursor:pointer;z-index:4;padding:0;box-shadow:0 4px 14px rgba(30,20,60,.18)}.carbtn:hover{background:var(--accent);color:#fff}.carbtn.prev{left:-20px}.carbtn.next{right:-20px}.cdots i{cursor:pointer}
 @media (hover:hover) and (pointer:fine){.carbtn{display:grid}}
 @media (min-width:1000px){body[data-tab] .view>.carw{grid-column:1/-1}}
+.dep{display:grid;grid-template-columns:36px minmax(0,1.6fr) minmax(0,1fr) minmax(0,1.1fr);gap:12px;align-items:center;width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:12px 14px;cursor:pointer;font-variant-numeric:tabular-nums}.dep+.dep{border-top:.5px solid var(--sep)}.dep .ico{width:36px;height:36px}.dep .t,.dep-k,.dep-v{display:flex;flex-direction:column;min-width:0}.dep .t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dep small{font-size:12px;color:var(--muted)}.dep small.in{color:var(--in)}.dep small.out{color:var(--out)}.dep-k,.dep-v{align-items:flex-end;text-align:right}
+@media (max-width:520px){.dep{grid-template-columns:32px minmax(0,1fr) auto}.dep-k{display:none}}
+.kpi small{display:block;font-size:11px}
+@media (max-width:600px){.kpis.k4{grid-template-columns:repeat(2,1fr)!important}.kpis.k4 .kpi:nth-child(3){border-left:0}.kpis.k4 .kpi:nth-child(n+3){border-top:.5px solid var(--sep)}}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -529,7 +533,7 @@ const swL=()=>BN.includes(curB)?BN:ALL;
 const DEFCATS={"Flow":[["Lebensmittel","cart"],["Drogerie","bottle"],["Friseur","scissors"],["Haushalt","home"],["Gesundheit","pill"],["Mobilität","bus"],["Kleidung","shirt"],["Sonstiges","dot"]],
  "Gönn dir":[["Restaurant","fork"],["Café","cup"],["Freizeit","ticket"],["Shopping","bag"],["Beauty","sparkle"],["Hobby","palette"],["Geschenke","gift"],["Sonstiges","dot"]],
  "Sinking Funds":[["Sparziel","target"],["Technik","headphones"],["Reise","plane"],["Möbel","sofa"],["Sonstiges","dot"]]};
-const IC={mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',cart:'<path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
+const IC={chart:'<path d="M4 19V5M4 19h16"/><path d="M7 15l4-4 3 3 5-6"/>',mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',cart:'<path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
 bottle:'<path d="M10 3h4v3l2 3v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-3z"/><path d="M8 12h8"/>',
 scissors:'<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5 20 18M8 15.5 20 6"/>',
 home:'<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>',
@@ -884,7 +888,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='41 (04.11.)';
+const APP_VER='42 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1193,8 +1197,8 @@ function forecastHtml(){const N=6,pa=pufAcc(),mn=o=>period(o).s.toLocaleDateStri
   ${B.length?`<div class="sec"><div class="sh">Budgets im Schnitt</div><div class="group">${B.map(r=>`<div class="cell plain"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${I('wallet')}</div><div class="t"><div>${esc(SHORT[r.b]||r.b)}</div><div class="s">Budget ${eur0(r.bud)} · erwartet Ø ${eur0(r.exp)}/Monat</div></div><div class="v ${r.d<0?'out':'in'}">${r.d<0?'−':'+'}${eur0(Math.abs(r.d*N))}<div class="s">in 6 Monaten</div></div></div>`).join('')}</div><div class="note">Minus heißt: Bleibt es beim bisherigen Tempo, reicht das Budget nicht.</div></div>`:''}
   ${sav.length||over?`<div class="sec"><div class="sh">Sparen bis ${M[N-1].l}</div><div class="group">${sav.map(x=>`<div class="cell plain"><div class="t">${esc(SHORT[x.n]||x.n)}<div class="s">feste Sparraten</div></div><div class="v in">+${eur0(x.s)}</div></div>`).join('')}${over?`<div class="cell plain"><div class="t">Puffer-Überschuss<div class="s">geht in den Vermögensaufbau</div></div><div class="v in">+${eur0(over)}</div></div>`:''}</div></div>`:''}
   <div class="sec"><div class="sh">Kommt auf dich zu</div><div class="group">${big.slice(0,15).map(it=>`<div class="cell plain"><div class="t"><div>${esc(it.n)}</div><div class="s">${it.d.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${esc(SHORT[it.b]||it.b)}${it.plan?' · geplant':it.every>1?` · alle ${it.every} Monate`:''}</div></div><div class="v ${it.end?'':'out'}">${it.end?'':'−'+eur(it.a)}</div></div>`).join('')||'<div class="empty">Keine besonderen Posten in den nächsten 6 Monaten.</div>'}</div></div>`}
-function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?TOT:[repB],col=repB=='Alle'?'var(--blue)':COL[repB],kf=repK,kseg=`<div class="seg kseg" id="repK">${[['Alle','Alle'],['Einmalig','Einmalig'],['Wiederkehrend','Wiederkehrend']].map(([v,l])=>`<button class="${repK==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`,seg=`<div class="seg" id="repV">${['Analyse','Monat','Verlauf','Prognose','Verträge'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
-  const head=appbar({title:'Auswertung',big:repV=='Prognose'?'Nächste 6 Monate':repV=='Verträge'?'Verträge':'Bericht',month:repV!='Verträge'&&repV!='Prognose'&&(repV!='Bericht'||rpP=='Monat'),right:repV=='Analyse'||repV=='Prognose'||repV=='Verträge'?'':`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repV',cur:repV,items:['Analyse','Monat','Verlauf','Prognose','Verträge'].map(x=>[x,x=='Monat'?'Ausgaben':x])}});
+function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?TOT:[repB],col=repB=='Alle'?'var(--blue)':COL[repB],kf=repK,kseg=`<div class="seg kseg" id="repK">${[['Alle','Alle'],['Einmalig','Einmalig'],['Wiederkehrend','Wiederkehrend']].map(([v,l])=>`<button class="${repK==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`,seg=`<div class="seg" id="repV">${['Analyse','Monat','Verlauf','Prognose','Vermögen','Verträge'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
+  const head=appbar({title:'Auswertung',big:repV=='Prognose'?'Nächste 6 Monate':repV=='Verträge'?'Verträge':repV=='Vermögen'?'Depot':'Bericht',month:repV!='Verträge'&&repV!='Prognose'&&repV!='Vermögen'&&(repV!='Bericht'||rpP=='Monat'),right:repV=='Analyse'||repV=='Prognose'||repV=='Verträge'||repV=='Vermögen'?'':`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repV',cur:repV,items:['Analyse','Monat','Verlauf','Prognose','Vermögen','Verträge'].map(x=>[x,x=='Monat'?'Ausgaben':x])}});
   if(repV=='Monat'){const{v}=dayVals(bs,off,kf),KL=kindLim(bs,off,kf),lim=KL?KL.v:0;
     const parts=[];bs.forEach(b=>{const by={};S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&e.type=='out'&&e.b==b&&kOk(e,kf)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
       Object.entries(by).sort((x,y)=>y[1]-x[1]).forEach(([k,val],i)=>parts.push({b,c:k,k:repB=='Alle'?k+' · '+SHORT[b]:k,v:val,ico:icoOf(b,k),col:`color-mix(in srgb,${HEX[b]} ${100-i*14}%,var(--card))`}))});
@@ -1216,6 +1220,7 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
   if(repV=='Bericht'||repV=='Jahr0')repV='Analyse';
   if(repV=='Prognose')return head+forecastHtml();
   if(repV=='Bericht')return viewReport(bs,head);
+  if(repV=='Vermögen')return head+depotHtml();
   if(repV=='Verträge')return head+contractsHtml();
   if(repV=='Jahr'){drill={k:'year'};return viewYear(bs)}
   if(repV=='Budget'){const B=bs.filter(b=>!isK(b));const rows=B.map(b=>{const c=calc(b,off);let y=0,yb=0;for(let o=off-11;o<=off;o++){const cc=calc(b,o);y+=cc.used;yb+=cc.total}return{b,c,y,yb}});
@@ -1912,7 +1917,7 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
   document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){bindSwipe();bindVault();bindVaultSet();bindSync();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
@@ -2347,6 +2352,99 @@ function bindSync(){if(setView!='sync')return;const on=(id,f)=>{const el=$(id);i
   on('syOut',()=>syLogout(false));on('syWipe',()=>{const b=$('syWipe');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich? Nochmal tippen';return}syLogout(true)});
   on('syCopy',()=>{const t=$('sySql');t.select();try{navigator.clipboard.writeText(SYSQL).then(()=>toast('SQL kopiert.'))}catch(e){document.execCommand('copy');toast('SQL kopiert.')}})}
 
+/* ---------- Vermögen: ETFs, Aktien, Krypto ---------- */
+let depShow=false,depBusy=false,depMsg='';const DT={etf:['ETF','#4F6BED','chart'],aktie:['Aktie','#22A699','up'],krypto:['Krypto','#D4A23A','bolt'],sonst:['Sonstiges','#9A93AD','dot']};
+const depot=()=>(S.depot=S.depot||[]);
+const KURS_FN=`// Supabase Edge Function "kurse": holt Kurse für ETFs und Aktien (ISIN oder Ticker)
+Deno.serve(async (req) => {
+  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  const H = { "User-Agent": "Mozilla/5.0" };
+  const chart = async (s) => (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(s) + "?range=5d&interval=1d", { headers: H })).json()).chart.result[0].meta;
+  const { q = [] } = await req.json().catch(() => ({}));
+  const out = {}; const fx = {};
+  for (const s of q.slice(0, 40)) {
+    try {
+      let sym = s;
+      if (/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(s)) {
+        const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=8&q=" + s, { headers: H })).json();
+        const qs = j.quotes || [];
+        const p = qs.find((x) => /\\.DE$/.test(x.symbol)) || qs.find((x) => /\\.(F|AS|MI|PA|SW|L)$/.test(x.symbol)) || qs[0];
+        if (p) sym = p.symbol;
+      }
+      const m = await chart(sym);
+      let k = 1, cur = m.currency;
+      if (cur === "GBp") { k = 0.01; cur = "GBP"; }
+      if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
+      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime };
+    } catch (e) { out[s] = { error: String(e) }; }
+  }
+  return new Response(JSON.stringify(out), { headers: { ...cors, "Content-Type": "application/json" } });
+});`;
+async function cryptoPrice(sym){sym=sym.toUpperCase().trim();
+  try{const r=await fetch('https://api.coinbase.com/v2/prices/'+sym+'-EUR/spot');if(r.ok){const j=await r.json();const p=+j.data.amount;if(p)return{price:p}}}catch(e){}
+  try{const s=await (await fetch('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(sym))).json();const c=(s.coins||[]).find(x=>x.symbol.toUpperCase()==sym)||(s.coins||[])[0];if(c){const j=await (await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+c.id+'&vs_currencies=eur&include_24hr_change=true')).json();const v=j[c.id];if(v)return{price:v.eur,prev:v.eur_24h_change!=null?v.eur/(1+v.eur_24h_change/100):null}}}catch(e){}
+  return null}
+async function depRefresh(force){if(depBusy)return;const D=depot();if(!D.length)return;const fresh=D.every(h=>h.manual||(h.pt&&Date.now()-h.pt<15*60000));if(fresh&&!force)return;
+  depBusy=true;depMsg='Aktualisiere Kurse …';if(tab=='rep'&&repV=='Vermögen')render();let ok=0,fail=0;
+  for(const h of D.filter(h=>h.type=='krypto'&&!h.manual)){const r=await cryptoPrice(h.sym);if(r){h.price=r.price;if(r.prev)h.prev=r.prev;h.pt=Date.now();ok++}else fail++}
+  const st=D.filter(h=>h.type!='krypto'&&!h.manual&&h.sym);
+  if(st.length){if(syOn()){try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({q:st.map(h=>h.sym.trim().toUpperCase())})});
+      if(r.ok){const j=await r.json();st.forEach(h=>{const x=j[h.sym.trim().toUpperCase()];if(x&&x.price){h.price=x.price;h.prev=x.prev;h.pt=Date.now();if(!h.n||h.n==h.sym)h.n=x.name;h.ysym=x.symbol;ok++}else fail++})}else{fail+=st.length;S.kursFn=false}}catch(e){fail+=st.length;S.kursFn=false}}else fail+=st.length}
+  depApplyPlans();save();depBusy=false;depMsg=(ok?'Kurse aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'')+(fail?(ok?' · ':'')+fail+' ohne automatischen Kurs':'');if(ok&&st.length&&!fail)S.kursFn=true;if(tab=='rep'&&repV=='Vermögen')render()}
+function depApplyPlans(){const td=today();depot().forEach(h=>{if(!h.rate||!h.plan||!h.next)return;let n=0;while(h.next<=td&&n<24){if(!h.price)break;h.qty=Math.round(((h.qty||0)+h.rate/h.price)*1e6)/1e6;h.inv=Math.round(((h.inv||0)+h.rate)*100)/100;const d=new Date(h.next+'T12:00');d.setMonth(d.getMonth()+1);h.next=ymd(d.getTime());n++}})}
+function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
+  const val=h=>(h.qty||0)*(h.price||0),tot=D.reduce((s,h)=>s+val(h),0),inv=D.reduce((s,h)=>s+(h.inv||0),0),g=tot-inv,mon=D.reduce((s,h)=>s+(h.rate||0),0),day=D.reduce((s,h)=>s+(h.prev&&h.price?(h.price-h.prev)*(h.qty||0):0),0);
+  const byT={};D.forEach(h=>byT[h.type]=(byT[h.type]||0)+val(h));const parts=Object.entries(byT).filter(x=>x[1]>0).map(([t,v])=>({k:DT[t][0],v,col:DT[t][1]}));
+  const pc=(a,b)=>b?((a-b)/b*100):0,sg=v=>v>0?'+':'';
+  if(!D.length)return `<div class="mmcard"><div class="srow" style="padding:18px"><b style="font-size:17px">Dein Depot</b><div class="s" style="color:var(--muted);font-size:14px;margin-top:6px">Trag hier deine ETFs, Aktien und Kryptowährungen ein. Kryptokurse kommen automatisch, ETF- und Aktienkurse mit einem kleinen Zusatz in Supabase (Anleitung unten) oder von Hand.</div></div></div><button class="btn" id="depAdd">${I('plus',16)} Erste Position anlegen</button>${depSetupHtml()}`;
+  return `<div class="kpis k4"><div class="kpi">Depotwert<b>${V(eur0(tot))}</b></div><div class="kpi">Gewinn/Verlust<b class="${g<0?'out':'in'}">${V(sg(g)+eur0(g))}</b><small style="color:var(--muted)">${inv?sg(g)+pc(tot,inv).toFixed(1).replace('.',',')+' %':''}</small></div><div class="kpi">Heute<b class="${day<0?'out':'in'}">${V(sg(day)+eur0(day))}</b></div><div class="kpi">Monatlich<b>${eur0(mon)}</b></div></div>
+   ${!S.showWealth?`<button class="btn soft" id="depEye">${depShow?'Werte wieder verbergen':'Werte für diesen Besuch anzeigen'}</button>`:''}
+   <div class="note" style="padding:0 4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>${esc(depMsg||'')}</span><button class="ed-link" id="depRef" style="color:var(--accent)">${I('repeat',13)} Kurse aktualisieren</button></div>
+   <div class="sec"><div class="sh">Aufteilung</div><div class="chartbox">${parts.length&&(S.showWealth||depShow)?donut(parts).replace('>Ausgaben<','>Depot<'):`<div class="ana-flow">${Object.keys(byT).map(t=>`<span>${DT[t][0]}</span><b>${tot?Math.round(byT[t]/tot*100):0} %</b>`).join('')}</div>`}
+    <div class="legend" style="justify-content:center;margin-top:8px">${parts.map(p=>`<span><i style="background:${p.col}"></i>${p.k} ${tot?Math.round(p.v/tot*100):0} %</span>`).join('')}</div></div></div>
+   <div class="sec"><div class="sh">Sparpläne</div><div class="mmcard">${D.filter(h=>h.rate).map(h=>`<div class="srow"><div class="srow-h"><span>${esc(h.n||h.sym)}</span><span class="s" style="font-size:12px;color:var(--muted)">am ${h.day||1}.${h.plan?' · auto':''}</span><b>${eur(h.rate)}</b></div></div>`).join('')||'<div class="srow"><span style="color:var(--muted);font-size:13px">Noch keine Sparrate eingetragen.</span></div>'}
+    <div class="srow"><div class="srow-h"><span><b>Pro Monat</b></span><span class="s" style="font-size:12px;color:var(--muted)">${eur0(mon*12)} im Jahr</span><b>${eur(mon)}</b></div></div></div></div>
+   <div class="sec" style="grid-column:1/-1"><div class="sh"><span>Positionen</span><button class="link" id="depAdd">+ Position</button></div><div class="mmcard">${D.map((h,i)=>{const v=val(h),gg=v-(h.inv||0),d=h.prev&&h.price?pc(h.price,h.prev):null;return `<button class="dep" data-dep="${i}"><span class="ico" style="background:color-mix(in srgb,${DT[h.type][1]} 15%,transparent);color:${DT[h.type][1]}">${I(DT[h.type][2],18)}</span>
+     <span class="t"><b>${esc(h.n||h.sym)}</b><small>${DT[h.type][0]} · ${esc(h.ysym||h.sym||'')}${h.qty?' · '+(+h.qty).toLocaleString('de-DE',{maximumFractionDigits:6})+' Stk.':''}</small></span>
+     <span class="dep-k">${h.price?eur(h.price):'<i style="color:var(--muted)">kein Kurs</i>'}<small class="${d<0?'out':d>0?'in':''}">${d!=null?sg(d)+d.toFixed(2).replace('.',',')+' % heute':h.manual?'von Hand':h.pt?'':'–'}</small></span>
+     <span class="dep-v"><b>${V(eur(v))}</b><small class="${gg<0?'out':'in'}">${h.inv?V(sg(gg)+eur0(gg))+' · '+sg(gg)+pc(v,h.inv).toFixed(1).replace('.',',')+' %':''}</small></span></button>`}).join('')}</div>
+    <div class="note">Kurse in Euro. Krypto über Coinbase/CoinGecko, ETFs und Aktien über deine Supabase-Funktion. Sparpläne werden zum aktuellen Kurs fortgeschrieben, die Stückzahl ist daher ein Näherungswert. Gleiche sie ab und zu mit deinem Depot ab.</div></div>
+   ${S.kursFn?'':depSetupHtml()}`}
+function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)</div><div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
+  <li>In Supabase links auf <b>Edge Functions</b> (Blitz-Symbol), dann <b>Deploy a new function</b> › <b>Via Editor</b>.</li>
+  <li>Als Namen genau <b>kurse</b> eintragen.</li><li>Den Beispielcode im Editor komplett löschen, hier <b>Code kopieren</b> tippen und einfügen.</li><li>Unten rechts <b>Deploy function</b>. Fertig, hier dann „Kurse aktualisieren“.</li></ol>
+  <div class="srow"><button class="btn soft" id="depFnCopy">Code kopieren</button><div class="s" style="font-size:12px;color:var(--muted)">${syOn()?'Funktioniert mit deinem Online-Sync-Konto.':'Dafür muss Online-Sync eingerichtet sein. Ohne trägst du Kurse von Hand ein.'}</div></div></div></div>`}
+const qNum=s=>{s=String(s||'').trim().replace(/\s|€/g,'');if(!s)return NaN;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return parseFloat(s)};
+function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',sym:'',qty:'',inv:'',rate:'',day:1,plan:true,manual:false,price:''};
+  const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Position"><div class="sheet-h"><button id="dpX">Abbrechen</button><b>${i>=0?'Position bearbeiten':'Neue Position'}</b><button id="dpS" style="font-weight:600">Sichern</button></div>
+   <div class="sheet-b"><div class="seg" id="dpT">${Object.entries(DT).map(([k,v])=>`<button class="${h.type==k?'on':''}" data-v="${k}">${v[0]}</button>`).join('')}</div>
+   <div class="group"><div class="cell plain"><label for="dpN">Name</label><input id="dpN" value="${esc(h.n||'')}" placeholder="${h.type=='krypto'?'z. B. Bitcoin':'z. B. Vanguard FTSE All-World'}"></div>
+    <div class="cell plain"><label for="dpY">${h.type=='krypto'?'Kürzel':'ISIN oder Ticker'}</label><input id="dpY" value="${esc(h.sym||'')}" autocapitalize="characters" placeholder="${h.type=='krypto'?'BTC, ETH, SOL …':'IE00BK5BQT80 oder VWCE.DE'}"></div>
+    <div class="cell plain"><label for="dpQ">Stückzahl</label><input id="dpQ" inputmode="decimal" value="${h.qty!==''&&h.qty!=null?String(h.qty).replace('.',','):''}" placeholder="z. B. 12,345"></div>
+    <div class="cell plain"><label for="dpI">Investiert gesamt</label><input id="dpI" inputmode="decimal" value="${h.inv?String(h.inv).replace('.',','):''}" placeholder="Einstand in €"></div></div>
+   <div class="sh" style="padding:0">Sparplan</div><div class="group">
+    <div class="cell plain"><label for="dpR">Sparrate pro Monat</label><input id="dpR" inputmode="decimal" value="${h.rate?String(h.rate).replace('.',','):''}" placeholder="€"></div>
+    <div class="cell plain"><label for="dpD">Ausführung am</label><select id="dpD">${Array.from({length:28},(_,k)=>`<option value="${k+1}" ${(h.day||1)==k+1?'selected':''}>${k+1}.</option>`).join('')}</select></div>
+    <div class="cell plain"><div class="t"><div>Automatisch fortschreiben</div><div class="s">Jeden Monat Rate und Stückzahl erhöhen</div></div><input type="checkbox" class="switch" id="dpP" ${h.plan?'checked':''}></div></div>
+   <div class="sh" style="padding:0">Kurs</div><div class="group">
+    <div class="cell plain"><div class="t"><div>Kurs von Hand eintragen</div><div class="s">Wenn es keinen automatischen Kurs gibt</div></div><input type="checkbox" class="switch" id="dpM" ${h.manual?'checked':''}></div>
+    ${h.manual?`<div class="cell plain"><label for="dpK">Aktueller Kurs</label><input id="dpK" inputmode="decimal" value="${h.price?String(h.price).replace('.',','):''}" placeholder="€ pro Stück"></div>`:''}</div>
+   <div class="note" id="dpE" style="padding:0;color:var(--bad)"></div>${i>=0?'<button class="btn danger" id="dpDel">Position löschen</button>':''}</div></div>`;
+   const keep=()=>{h.n=$('dpN').value.trim();h.sym=$('dpY').value.trim();h.qty=qNum($('dpQ').value);h.inv=pNum($('dpI').value)||0;h.rate=pNum($('dpR').value)||0;h.day=+$('dpD').value;h.plan=$('dpP').checked;h.manual=$('dpM').checked;if($('dpK'))h.price=qNum($('dpK').value)||null};
+   $('scrim').onclick=$('dpX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
+   document.querySelectorAll('#dpT button').forEach(b=>b.onclick=()=>{keep();h.type=b.dataset.v;draw()});$('dpM').onchange=()=>{keep();draw()};
+   if($('dpDel'))$('dpDel').onclick=()=>{const b=$('dpDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(D);D.splice(i,1);save();$('sheetRoot').innerHTML='';render();toast('Position gelöscht.',()=>{S.depot=JSON.parse(s);save();render()})};
+   $('dpS').onclick=()=>{keep();if(!h.n&&!h.sym){$('dpE').textContent='Bitte Name oder Kürzel eintragen.';return}if(isNaN(h.qty))h.qty=0;
+     if(h.rate&&h.plan){const d=new Date();let n=new Date(d.getFullYear(),d.getMonth(),h.day,12);if(n<=d)n=new Date(d.getFullYear(),d.getMonth()+1,h.day,12);if(!h.next||i<0||D[i].day!=h.day||!D[i].plan)h.next=ymd(n.getTime())}
+     if(h.manual)h.pt=Date.now();if(i>=0&&D[i].sym!=h.sym){h.pt=0;h.ysym=null}
+     if(i>=0)D[i]=h;else D.push(h);save();$('sheetRoot').innerHTML='';render();toast(i>=0?'Position gesichert.':'Position angelegt.');depRefresh(true)}};draw();renderAsst()}
+function bindDepot(){if(!(tab=='rep'&&repV=='Vermögen'))return;document.querySelectorAll('#depAdd').forEach(b=>b.onclick=()=>openDep(-1));
+  document.querySelectorAll('[data-dep]').forEach(b=>b.onclick=()=>openDep(+b.dataset.dep));
+  if($('depRef'))$('depRef').onclick=()=>depRefresh(true);if($('depEye'))$('depEye').onclick=()=>{depShow=!depShow;render()};
+  if($('depFnCopy'))$('depFnCopy').onclick=()=>{try{navigator.clipboard.writeText(KURS_FN).then(()=>toast('Code kopiert. Jetzt in Supabase einfügen.'))}catch(e){toast('Kopieren ging nicht.')}};
+  setTimeout(()=>depRefresh(false),50)}
+
 /* ---------- Puffer verschieben & Tresor ---------- */
 const vaultAccs=()=>S.accts.filter(a=>a.vault!=null?a.vault:(a.verm||isTabu(a.n)||/etf/i.test(a.n))).map(a=>a.n);
 function pufExcess(){return Math.max(Math.round((pufVal()-1000)*100)/100,0)}
@@ -2405,7 +2503,7 @@ const accIn=l=>{let best=null;ALL.forEach(a=>{const n=a.toLowerCase(),s=(SHORT[a
 const amtIn=l=>{const m=spoken(l).match(/(\d+(?:[.,]\d{1,2})?)/);return m?pNum(m[1]):null};
 function vNav(l){if(!/^(zeig|zeige|öffne|öffnen|geh|gehe|wechsel|wechsle|bring mich|navigier)/.test(l))return false;
   const go=(t,o)=>{$('sheetRoot').innerHTML='';tab=t;curB=null;setView=null;drill=null;Object.assign(window,{});if(o)o();render();scrollTo(0,0)};
-  const M=[[/prognose|vorschau|zukunft/,()=>go('rep',()=>{repV='Prognose'})],[/vertr[aä]g/,()=>go('rep',()=>{repV='Verträge'})],[/verlauf/,()=>go('rep',()=>{repV='Verlauf'})],
+  const M=[[/prognose|vorschau|zukunft/,()=>go('rep',()=>{repV='Prognose'})],[/vertr[aä]g/,()=>go('rep',()=>{repV='Verträge'})],[/vermögen|depot|etf|krypto|aktie/,()=>go('rep',()=>{repV='Vermögen'})],[/verlauf/,()=>go('rep',()=>{repV='Verlauf'})],
     [/analyse|monatsanalyse|rückblick/,()=>go('rep',()=>{repV='Analyse'})],[/bericht/,()=>{go('more');setView='report';render()}],[/ausgaben|auswertung|statistik/,()=>go('rep',()=>{repV='Monat'})],[/sparziel/,()=>go('wish',()=>{wishV='Sparziele'})],[/verzicht/,()=>go('wish',()=>{wishV='Verzicht'})],[/wunsch|wünsche|impuls/,()=>go('wish',()=>{wishV='Wünsche'})],
     [/einkauf|zettel/,()=>{$('sheetRoot').innerHTML='';prevTab=tab;setView='shop';render();scrollTo(0,0)}],[/kalender/,()=>go('cal')],[/buchungen|liste|umsätze/,()=>go('list')],[/einstellung/,()=>go('more')],
     [/assistent|hinweis/,()=>{$('sheetRoot').innerHTML='';asstOpen=true;renderAsst()}],[/übersicht|start|home/,()=>go('dash')]];
