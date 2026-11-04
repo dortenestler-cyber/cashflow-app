@@ -467,26 +467,38 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 .sstep{display:flex;gap:12px;align-items:flex-start}.sstep-n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;flex:none;margin-top:2px}.sstep-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.sstep-b>b{font-size:17px}.sstep-b .s{font-size:14px;color:var(--muted);line-height:1.45}.sstep-b ol{margin:0;padding-left:20px;font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:3px}.sstep-b code{background:var(--fill);border-radius:4px;padding:0 4px;font-size:12px}.sstat{font-size:13px;font-weight:600}.sstat:empty{display:none}
 
 /* ===== Desktop ===== */
+.tb-new{display:none!important}
 @media (min-width:1000px){
- body.mm .tabbar{top:0;bottom:0;left:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:4px;padding:28px 12px;border-top:0;border-right:.5px solid var(--sep);box-shadow:none}
- body.mm .tabbar::before{content:"CashFlow";font-family:var(--round);font-weight:800;font-size:22px;color:var(--accent);padding:0 14px 18px}
- body.mm .tabbar button{flex:none;flex-direction:row;gap:12px;font-size:15px!important;letter-spacing:0;padding:11px 14px;border-radius:12px;justify-content:flex-start;width:100%}
+ body.mm .tabbar{top:0;bottom:0;left:0;right:auto;width:76px;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:4px;padding:20px 12px;border-top:0;border-right:.5px solid var(--sep);box-shadow:none;overflow:hidden;transition:width .22s ease,box-shadow .22s;z-index:30}
+ body.mm .tabbar:hover,body.mm .tabbar:focus-within{width:232px;box-shadow:12px 0 40px rgba(30,20,60,.14)}
+ body.mm .tabbar button{flex:none;flex-direction:row;gap:14px;font-size:15px!important;letter-spacing:0;padding:12px 14px;border-radius:12px;justify-content:flex-start;width:100%;white-space:nowrap;min-height:46px}
+ body.mm .tabbar button svg{flex:none}
+ body.mm .tabbar button span{opacity:0;transition:opacity .15s}
+ body.mm .tabbar:hover button span,body.mm .tabbar:focus-within button span{opacity:1}
  body.mm .tabbar button.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
  body.mm .tabbar button:hover{background:var(--fill)}
- .view{max-width:1120px!important;margin:0 auto 0 max(250px,calc((100vw - 1120px)/2 + 110px))!important;padding:24px 32px 120px!important}
- body[data-tab="dash"] .view,body[data-tab="rep"] .view,body[data-tab="more"] .view,body[data-tab="wish"] .view{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;align-items:start;grid-auto-flow:row dense}
- body[data-tab] .view>.hcard,body[data-tab] .view>header,body[data-tab] .view>.car,body[data-tab] .view>.cdots,body[data-tab] .view>.seg,body[data-tab] .view>.quick,body[data-tab] .view>.minis,body[data-tab] .view>.kpis,body[data-tab] .view>.note,body[data-tab] .view>.anchor,body[data-tab] .view>.btn,body[data-tab] .view>.chartbox,body[data-tab] .view>.mmcard,body[data-tab="rep"] .view>.sec,body[data-tab="wish"] .view>*{grid-column:1/-1}
- body[data-tab="rep"] .view{grid-template-columns:repeat(2,minmax(0,1fr))}
- body[data-tab="dash"] .car .slide{min-height:220px}
- .minis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important}
+ body.mm .tabbar .tb-new{display:flex!important;background:var(--accent)!important;color:#fff!important;margin-bottom:14px;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+ body.mm .tabbar .tb-new svg{stroke:#fff}
+ .fab,.vfab{display:none!important}
+ .view{max-width:1120px!important;margin:0 auto 0 calc(76px + max(0px,(100vw - 76px - 1120px)/2))!important;padding:28px 40px 120px!important;box-sizing:border-box}
+ body[data-tab="dash"] .view,body[data-tab="rep"] .view,body[data-tab="more"] .view{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;align-items:start;grid-auto-flow:row dense}
+ body[data-tab] .view>.hcard,body[data-tab] .view>header,body[data-tab] .view>.car,body[data-tab] .view>.cdots,body[data-tab] .view>.seg,body[data-tab] .view>.quick,body[data-tab] .view>.minis,body[data-tab] .view>.kpis,body[data-tab] .view>.note,body[data-tab] .view>.anchor,body[data-tab] .view>.btn,body[data-tab] .view>.mmcard,body[data-tab] .view>.bcheck,body[data-tab] .view>.mmsum{grid-column:1/-1}
+ body[data-tab="rep"] .view>.sec:has(.mmcard>.srow .ana-acc),body[data-tab="rep"] .view>.sec:has(.cats){grid-column:1/-1}
+ .chartbox svg{max-height:340px}
+ body[data-tab="dash"] .car .slide{min-height:210px}
+ .minis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))!important}
+ .days{columns:2 420px;column-gap:24px}.days>*{break-inside:avoid;margin-bottom:16px;display:block}
+ .days .mmrow{grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) auto}
+ body[data-tab="list"] .fpanel{grid-column:1/-1}
  .sheet{top:50%;bottom:auto;left:50%;right:auto;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:88vh;border-radius:22px!important;animation:fade .2s ease!important;box-shadow:0 30px 80px rgba(0,0,0,.35)}
- #asstRoot{left:250px!important}.vfab{left:250px}.fab{right:max(32px,calc((100vw - 1120px)/2 - 60px))}
- #toastRoot{left:220px}
- .apop{width:380px}
+ #asstRoot{left:96px!important;bottom:24px!important}
+ #toastRoot{left:76px;bottom:28px}
+ .apop{width:400px}
  .pad{max-width:300px!important}
- body.mm .view.detail{max-width:900px!important}
+ body.mm .view.detail{max-width:980px!important}
+ .vault,.group,.mmcard{transition:box-shadow .15s}
+ button.cell:hover,.mmrow:hover,.ctr:hover,.mrow:hover{background:color-mix(in srgb,var(--accent) 5%,transparent)}
 }
-@media (min-width:1000px){body[data-tab="rep"] .view>.sec:has(.ana-flow),body[data-tab="rep"] .view>.sec:has(.vault){grid-column:auto}}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -800,8 +812,8 @@ let tab='dash',curB=null,off=0,flt='Alle',q='',repB='Alle',repV='Analyse',setVie
 const TABS=[["dash","Übersicht",'<path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/>'],["list","Buchungen",'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'],
  ["cal","Kalender",'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>'],["rep","Auswertung",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["wish","Impulse",'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'],["more","Einstellungen",IC.gear]];
 let prevTab='dash',showF=false,showPuf=false;
-function renderTabs(){$('tabbar').innerHTML=TABS.map(t=>`<button class="${tab==t[0]?'on':''}" data-t="${t[0]}"><svg viewBox="0 0 24 24">${t[2]}</svg>${t[1]}</button>`).join('');
-  $('tabbar').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
+function renderTabs(){$('tabbar').innerHTML=`<button class="tb-new" id="tbNew" aria-label="Neue Buchung" title="Neue Buchung (N)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Neue Buchung</span></button>`+TABS.map(t=>`<button class="${tab==t[0]?'on':''}" data-t="${t[0]}" title="${t[1]}"><svg viewBox="0 0 24 24">${t[2]}</svg><span>${t[1]}</span></button>`).join('');
+  $('tabbar').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
 function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class="${o.tabs.cur==v?'on':''}" data-f="${esc(v)}">${l}${n?` <span class="cnt">${n}</span>`:''}</button>`).join(''):'';
   return `<header class="hcard" style="${bgStyle(o.bg||'Gesamt')}"><div class="hc-row">${o.back?`<button class="hc-ic" id="${o.back}" aria-label="Zurück">${I('back',20)}</button>`:(o.left||'')}<h1 class="hc-t">${o.title}</h1>
    <div class="hc-r">${o.right||''}</div></div>
@@ -867,7 +879,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='36 (04.11.)';
+const APP_VER='38 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1026,7 +1038,7 @@ function viewList(){const p=period(off);let L=S.exp.filter(e=>inP(e,p));
     <div class="mmcard">${rows.map(r=>`<button class="mrow" data-mo="${r.o}"><span class="mlab"><b>${r.pp.s.toLocaleDateString('de-DE',{month:'short'})}</b><small>${r.pp.s.getFullYear()}</small></span>
      <span class="mbars"><i class="in" style="width:${(r.i/mx*100).toFixed(1)}%"></i><i class="out" style="width:${(r.x/mx*100).toFixed(1)}%"></i></span>
      <span class="mval"><span class="in">${eur0(r.i)}</span><span class="out">${eur0(r.x)}</span><span class="${r.i-r.x<0?'out':''}" style="font-weight:600">${eur0(r.i-r.x)}</span></span></button>`).join('')}</div>`}
-  return head+sum(inc,out)+filt+dayBlocks(LW)}
+  return head+sum(inc,out)+filt+`<div class="days">${dayBlocks(LW)}</div>`}
 function donut(parts){const tot=parts.reduce((s,x)=>s+x.v,0);if(!tot)return '<div class="empty">Keine Ausgaben in diesem Zeitraum.</div>';
   let a=-Math.PI/2,paths='';const R=70,r=44,c=90;
   parts.forEach(x=>{const f=x.v/tot,a2=a+f*Math.PI*2-.0001,lg=f>.5?1:0;
@@ -2186,6 +2198,8 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     try{localStorage.setItem('dodo4',JSON.stringify(S));syDirty()}catch(e){if(rec.img){delete rec.img;save();}}
     close();render();toast(E.id?'Änderung gesichert.':(rec.type=='tr'?'Umbuchung gesichert: ':rec.type=='in'?'Einnahme gesichert: ':'Ausgabe gesichert: ')+eur(a),()=>restore(sn))}}
 $('fab').onclick=()=>openSheet();
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tbNew'))openSheet()});
+document.addEventListener('keydown',e=>{if(e.target.matches&&e.target.matches('input,textarea,select'))return;if(e.key=='Escape'&&$('sheetRoot').innerHTML){$('sheetRoot').innerHTML='';renderAsst();return}if((e.key=='n'||e.key=='N')&&!e.metaKey&&!e.ctrlKey&&!$('sheetRoot').innerHTML&&matchMedia('(min-width:1000px)').matches){e.preventDefault();openSheet()}});
 $('vfab').innerHTML=I('mic',24);
 $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.webkitSpeechRecognition,shop=setView=='shop';
   if(vf.classList.contains('rec')&&curSR){try{curSR.stop()}catch(e){}return}
