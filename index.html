@@ -841,7 +841,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='26 (04.11.)';
+const APP_VER='27 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -894,7 +894,7 @@ function miniCum(){const{p,v}=dayVals(TOT,0),lim=budOf(TOT),n=p.len,W=300,H=54;l
   const ideal=`M0 ${H-4} L${W} 4`,d=pts.length?'M0 '+(H-4)+' L'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L'):'';const L=pts[pts.length-1]||[0,H-4];
   return `<svg viewBox="-4 0 ${W+8} ${H}" width="100%" height="54" aria-label="Ausgaben im Monatsverlauf" role="img" style="margin-top:6px"><path d="${ideal}" stroke="currentColor" stroke-opacity=".45" stroke-dasharray="3 4" fill="none"/>${d?`<path d="${d} L${L[0]} ${H-4}Z" fill="currentColor" fill-opacity=".18"/><path d="${d}" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linejoin="round"/><circle cx="${L[0]}" cy="${L[1]}" r="4" fill="currentColor"/>`:''}</svg>
    <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.8"><span>${p.s.getDate()}.${p.s.getMonth()+1}.</span><span>Linie: so viel ausgegeben · gestrichelt: Plan</span><span>${new Date(p.e-864e5).getDate()}.</span></div>`}
-function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear:true})}<div class="mmcard"><div class="empty">${esc(b)} ist tabu und dein Vermögen ist ausgeblendet. Einblenden unter Einstellungen › Notgroschen.</div></div>`;const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);const cs=Object.entries(by).sort((x,y)=>y[1]-x[1]);
+function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear:true})}<div class="mmcard"><div class="empty">${esc(b)} ist tabu und dein Vermögen ist ausgeblendet. Einblenden unter Einstellungen › Tresor.</div></div>`;const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);const cs=Object.entries(by).sort((x,y)=>y[1]-x[1]);
   const hist=[];for(let o=-5;o<=0;o++)hist.push(calc(b,o).rest);
   return `<div class="hero onbg ${swipeDir}" style="${bgStyle(b)};align-items:flex-start"><button class="hback" id="back" aria-label="Zurück zur Übersicht">‹</button>
    <div class="lbl" style="font-size:17px;font-weight:700;margin-left:40px">${esc(b)}</div><div class="bal">${eur(c.rest)}</div><div class="gsub">Kontostand heute</div>
@@ -1636,18 +1636,32 @@ function viewYplan(){const it=yplanItems().map(x=>{const d=yplanNext(x),mo=Math.
 function ngTarget(){if(S.ng&&S.ng.target)return S.ng.target;let s=0;for(let o=-6;o<0;o++){const p=period(o);s+=S.exp.filter(e=>inP(e,p)&&e.type=='out'&&!isTabu(e.b)).reduce((q,e)=>q+e.a,0)}return Math.round(s/6*3/50)*50}
 function ngVal(){const v=S.accts.find(a=>a.verm||a.n=='Vermögensaufbau');const auto=v?Math.max(calc(v.n).rest,0):0;return S.ng&&S.ng.manual!=null&&S.ng.manual!==''?+S.ng.manual:auto}
 const WH=n=>!S.showWealth&&isTabu(n);const MASK='•••• €';
-function viewNg(){if(!S.showWealth)return `${appbar({title:'Notgroschen',back:'setBack',noGear:true})}
-  <div class="mmcard"><div class="srow"><b>Vermögen ist ausgeblendet</b><div class="s" style="font-size:14px;color:var(--muted)">Notgroschen, Vermögensaufbau und alle Tabu-Konten zeigen keine Beträge. So verleitet dich ein großer Kontostand nicht zu Käufen.</div></div></div>
-  <div class="group"><div class="cell plain"><div class="t"><div>Vermögen & Notgroschen anzeigen</div><div class="s">Optional, jederzeit wieder ausblendbar</div></div><input type="checkbox" class="switch" id="wealthOn"></div></div>`;const t=ngTarget(),v=ngVal(),pc=t?Math.min(v/t,1):0,mo=(S.ng&&S.ng.rate)||150,left=Math.max(t-v,0),n=Math.ceil(left/mo);
-  return `${appbar({title:'Notgroschen',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>Stand</span><b>${eur0(v)}</b></div><div class="hc-line">Ziel ${eur0(t)} · ${Math.round(pc*100)} %</div>`})}
-  <div class="mmcard"><div class="srow"><div class="bar" style="height:12px"><i style="width:${(pc*100).toFixed(0)}%;background:var(--ok)"></i></div>
-   <div class="srow-h" style="font-size:13px"><span>${left?`noch ${eur0(left)}`:'Ziel erreicht!'}</span><span></span><span>${left?`bei ${eur0(mo)}/Monat ca. ${n} Monat${n>1?'e':''}`:''}</span></div></div></div>
-  <div class="group"><div class="cell plain"><label for="ngT">Ziel</label><input id="ngT" inputmode="decimal" placeholder="${eur0(ngTarget())} vorgeschlagen" value="${S.ng&&S.ng.target?S.ng.target:''}"></div>
-   <div class="cell plain"><label for="ngV">Aktueller Stand</label><input id="ngV" inputmode="decimal" placeholder="aus Vermögensaufbau" value="${S.ng&&S.ng.manual!=null?S.ng.manual:''}"></div>
-   <div class="cell plain"><label for="ngR">Sparrate pro Monat</label><input id="ngR" inputmode="decimal" value="${mo}"></div></div>
-  <div class="anchor">${I('lock',16)}<span>Der Notgroschen ist für echte Notfälle, nicht für Wünsche. Das Konto bleibt tabu.</span></div>
-  <div class="group"><div class="cell plain"><div class="t"><div>Vermögen & Notgroschen anzeigen</div><div class="s">Ausschalten, wenn dich der Stand zu Käufen verleitet</div></div><input type="checkbox" class="switch" id="wealthOn" checked></div></div>
-  <div class="note">Vorschlag: drei Monatsausgaben, berechnet aus deinen letzten sechs Monaten.</div>`}
+function viewNg(){const V=vaultAccs(),tot=V.reduce((s,n)=>s+calc(n).rest,0),P=period(0),pa=pufAcc();
+  const into=e=>(e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b)),mon=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0);
+  const recs=(S.rec||[]).map((r,i)=>[r,i]).filter(([r])=>r.type=='tr'&&V.includes(r.to)),recM=recs.filter(([r])=>!r.paused).reduce((s,[r])=>s+r.a/(r.every||1),0);
+  const autoGoal=Math.round((recM||275)*12/100)*100,RH={1:'monatlich',2:'alle 2 Monate',3:'vierteljährlich',6:'halbjährlich',12:'jährlich'};
+  const sw=(id,on,l,s)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" ${id} ${on?'checked':''}></div>`;
+  return `${appbar({title:'Tresor',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${S.showWealth?'Stand':'Diesen Monat eingezahlt'}</span><b>${S.showWealth?eur0(tot):'+'+eur0(mon)}</b></div><div class="hc-line">${recM?eur0(recM)+' feste Sparraten pro Monat':'Noch keine feste Sparrate'}</div>`})}
+  <div class="anchor">${I('lock',16)}<span>Der Tresor ist für dein Vermögen und echte Notfälle, nicht für Wünsche. Hier geht nur Geld hinein.</span></div>
+  <div class="sec"><div class="sh">Anzeige</div><div class="group">
+   ${sw('id="vaultShow"',!S.vaultHide,'Tresor-Karte in der Übersicht','Zeigt Einzahlungen, Jahresziel und Polster, aber keinen Stand')}
+   ${sw('id="wealthOn"',!!S.showWealth,'Stand immer anzeigen','Aus: Stand nur durch langes Drücken auf die Karte, für 10 Sekunden')}</div></div>
+  <div class="sec"><div class="sh">Konten im Tresor</div><div class="group">${S.accts.filter(a=>!pa||a.n!=pa.n).map(a=>sw(`data-vacc="${esc(a.n)}"`,V.includes(a.n),`<span class="dotc" style="--c:${a.col};display:inline-block;margin-right:6px"></span>${esc(a.n)}`,V.includes(a.n)?(a.untabu?'Tabu wird gerade freigegeben':'Tabu · nur Einzahlungen'):(a.kind=='budget'?'Budget':'Konto'))).join('')}</div>
+   <div class="note">Konten im Tresor werden automatisch tabu. Herausnehmen dauert 24 Stunden (Einstellungen › Regeln).</div></div>
+  <div class="sec"><div class="sh">Regelmäßige Einzahlungen</div><div class="group">${recs.map(([r,i])=>`<button class="cell" data-vrec="${i}"><div class="ico" style="background:color-mix(in srgb,#1F9D6B 14%,transparent);color:#1F9D6B">${I('repeat')}</div><div class="t"><div>${esc(r.n||'Sparrate')}</div><div class="s">${esc(r.b)} → ${esc(r.to)} · am ${r.day}. · ${RH[r.every||1]||'alle '+r.every+' Monate'}${r.paused?' · pausiert':''}</div></div><div class="v in">${eur(r.a)}</div><span class="chev">›</span></button>`).join('')||'<div class="empty">Noch keine regelmäßige Einzahlung.</div>'}</div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn soft" id="vRecNew">${I('plus',16)} Sparrate</button><button class="btn soft" id="vOnce">Einmal einzahlen</button></div>
+   <div class="note">Sparraten können aus jedem Konto kommen, zum Beispiel aus Comdirect oder einem Budget.</div></div>
+  <div class="sec"><div class="sh">Ziele</div><div class="group">
+   <div class="cell plain"><label for="vGoal">Jahresziel Einzahlungen</label><input id="vGoal" inputmode="decimal" placeholder="${eur0(autoGoal)} aus Sparraten" value="${S.vaultGoal||''}"></div>
+   <div class="cell plain"><label for="ngT">Notfall-Polster</label><input id="ngT" inputmode="decimal" placeholder="${eur0(ngTarget())} vorgeschlagen" value="${S.ng&&S.ng.target?S.ng.target:''}"></div></div>
+   <div class="note">Polster-Vorschlag: drei Monatsausgaben aus deinen letzten sechs Monaten.</div></div>`}
+function bindVaultSet(){if(setView!='ng')return;
+  if($('vaultShow'))$('vaultShow').onchange=()=>{S.vaultHide=!$('vaultShow').checked;save();render()};
+  document.querySelectorAll('[data-vacc]').forEach(c=>c.onchange=()=>{const a=acc(c.dataset.vacc);a.vault=c.checked;if(c.checked){a.tabu=true;delete a.untabu}save();render();toast(c.checked?a.n+' liegt jetzt im Tresor und ist tabu.':a.n+' ist nicht mehr im Tresor. Es bleibt tabu, bis du es unter Regeln freigibst.')});
+  document.querySelectorAll('[data-vrec]').forEach(b=>b.onclick=()=>openRec(+b.dataset.vrec));
+  if($('vRecNew'))$('vRecNew').onclick=()=>{const pa=pufAcc();openRec(-1,{type:'tr',b:pa?pa.n:ALL[0],to:vaultAccs()[0]||vermAcc(),c:'',n:'Sparrate',every:1})};
+  if($('vOnce'))$('vOnce').onclick=()=>{const pa=pufAcc();openSheet(null,{type:'tr',b:pa?pa.n:ALL[0],to:vaultAccs()[0]||vermAcc(),n:'Einzahlung Tresor'})};
+  if($('vGoal'))$('vGoal').onchange=()=>{S.vaultGoal=pNum($('vGoal').value)||null;save();render()}}
 function reviewData(o){const p=period(o),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e)),bs=BUDG.map(b=>({b,c:calc(b,o)})),by={};L.filter(e=>e.type=='out'&&TOT.includes(e.b)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
   const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,3),big=L.filter(e=>e.type=='out'&&TOT.includes(e.b)).sort((a,b)=>b.a-a.a)[0];
   const ws=S.wish.filter(w=>w.dt&&inP({t:w.dt},p)),gone=ws.filter(w=>w.s=='verworfen'),bought=ws.filter(w=>w.s=='gekauft'),ov=(S.ovrLog||[]).filter(x=>inP({t:x.t},p));
@@ -1691,7 +1705,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
    nav('month','calendar','Finanzmonat','Beginnt am '+S.start+'.',c1))}
   ${sec('Planen & Sparen','',
    nav('yplan','calendar','Jahresplaner','Sonderausgaben, monatliche Rücklage',c2)+
-   nav('ng','lifebuoy','Notgroschen',S.showWealth?eur0(ngVal())+' von '+eur0(ngTarget()):'Optional · Vermögen ausgeblendet',c2)+
+   nav('ng','lock','Tresor',(S.vaultHide?'Karte ausgeblendet · ':'')+vaultAccs().length+' Konten · Sparraten, Anzeige, Ziele',c2)+
    nav('debts','target','Schuldenfrei',(S.debts||[]).length?((S.debts||[]).map(d=>eur0(debtInfo(d).rest)+' offen').join(' · ')):'Kredite und Raten abbauen',c2)+
    nav('abos','repeat','Abo-Radar',eur0(aboList().reduce((s,x)=>s+x.year,0))+' im Jahr · Kündigungsfristen',c2)+
    nav('shop','cart','Einkaufszettel',(S.shop&&S.shop.items.length?S.shop.items.length+' Artikel · ':'')+'mit Budget-Check',c2))}
@@ -1763,7 +1777,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    <div class="sec"><div class="sh">Notfallbremse · kein Nachschub</div><div class="group">${S.accts.filter(a=>a.kind=='budget').map(a=>sw('lock:'+a.n,a.lock,esc(a.n),a.lock?'Umbuchungen hinein gesperrt':'Umbuchungen hinein erlaubt')).join('')}</div></div>
    <div class="sec"><div class="sh">Protokoll · Notfallbremse gelöst</div><div class="mmcard">${(S.ovrLog||[]).slice().reverse().map(x=>`<div class="srow"><div class="srow-h"><span>${new Date(x.t).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${esc(x.from)} → ${esc(x.to)}</span><span></span><b class="out">${eur(x.a)}</b></div><div class="s" style="font-size:13px;color:var(--muted)">„${esc(x.reason)}“</div></div>`).join('')||'<div class="empty">Noch nie gelöst. Stark!</div>'}</div></div>
    <div class="sec"><div class="sh">Tabu-Konten</div><div class="group">${S.accts.map(a=>sw('tabu:'+a.n,a.tabu&&!a.untabu,esc(a.n),a.untabu?'Wird freigegeben am '+new Date(a.untabu).toLocaleString('de-DE',{weekday:'short',hour:'2-digit',minute:'2-digit'})+' · Schalter wieder an = abbrechen':a.tabu?'Nur Einzahlungen. Freigabe dauert 24 Stunden.':'')).join('')}</div>
-    <div class="note">Vermögensaufbau, ETFs und Notgroschen sind tabu. Der Vermögensaufbau wird als ausgeblendetes Konto angelegt, sobald du den Puffer-Überschuss zum ersten Mal umbuchst.</div></div>
+    <div class="note">Vermögensaufbau, ETFs und alle Tresor-Konten sind tabu. Der Vermögensaufbau wird als ausgeblendetes Konto angelegt, sobald du den Puffer-Überschuss zum ersten Mal umbuchst.</div></div>
    <div class="sec"><div class="sh">Wunschliste</div><div class="group"><div class="cell plain"><div class="t"><div>Mindest-Wartezeit</div><div class="s">Für jeden neuen Wunsch, unabhängig vom Preis</div></div><b>14 Tage</b></div></div></div>
    <div class="sec"><div class="sh">Monatsabschluss</div><div class="group">
     <div class="cell plain"><label for="rollTo">Restgeld wandert nach</label><select id="rollTo"><option value="">nirgends</option>${S.accts.filter(a=>a.kind=='budget').map(a=>`<option ${S.rollTo==a.n?'selected':''}>${esc(a.n)}</option>`).join('')}</select></div>
@@ -1805,7 +1819,7 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
   document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){bindSwipe();bindVault();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){bindSwipe();bindVault();bindVaultSet();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
@@ -2104,7 +2118,7 @@ $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.we
     openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))};
 
 /* ---------- Puffer verschieben & Tresor ---------- */
-const vaultAccs=()=>S.accts.filter(a=>a.verm||isTabu(a.n)||/etf/i.test(a.n)).map(a=>a.n);
+const vaultAccs=()=>S.accts.filter(a=>a.vault!=null?a.vault:(a.verm||isTabu(a.n)||/etf/i.test(a.n))).map(a=>a.n);
 function pufExcess(){return Math.max(Math.round((pufVal()-1000)*100)/100,0)}
 function pufMoveDo(parts,label){const p=pufAcc();if(!p)return;const sn=snap(),gs=JSON.stringify(S.goals),done=[];
   parts.forEach(([t,a])=>{a=Math.round(a*100)/100;if(!a)return;const g=t.startsWith('goal:')?S.goals.find(x=>x.id==t.slice(5)):null;
@@ -2139,7 +2153,7 @@ function maybeAskPuf(){const p=pufAcc();if(!p||$('sheetRoot').innerHTML||$('lock
     ...(sk?[['Halb Vermögensaufbau, halb Sinking Funds',()=>{mark();pufMoveDo([[v,h1],[sk,ex-h1]])}]]:[]),
     ['Selbst aufteilen',()=>{mark();openPufMove()}],['Bleibt im Puffer',()=>{mark();toast('Alles klar, der Überschuss bleibt im Puffer.')}]]);
   $('ansX').onclick=$('scrim').onclick=()=>{mark();$('sheetRoot').innerHTML='';renderAsst()}}
-function vaultHtml(){const V=vaultAccs();if(!V.length)return '';const P=period(0),ys=new Date(new Date().getFullYear(),0,1).getTime();
+function vaultHtml(){const V=vaultAccs();if(!V.length||S.vaultHide)return '';const P=period(0),ys=new Date(new Date().getFullYear(),0,1).getTime();
   const into=(e)=>(e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b));
   const mon=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0),yr=S.exp.filter(e=>e.t>=ys&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0);
   const recM=(S.rec||[]).filter(r=>!r.paused&&r.type=='tr'&&V.includes(r.to)).reduce((s,r)=>s+r.a/(r.every||1),0),goal=S.vaultGoal||Math.round((recM||275)*12/100)*100;
