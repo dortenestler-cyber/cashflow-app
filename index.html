@@ -524,6 +524,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .bar,.sbar{cursor:pointer}
 .shedit{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;max-width:100%}.shedit span{overflow:hidden;text-overflow:ellipsis}.shedit .i{color:var(--muted);flex:none;opacity:.7}
 .shunk{width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.sw-edit{background:var(--accent)}.swr>.shrow{position:relative;background:var(--card);transition:transform .2s ease;z-index:1}.swr+.swr>.shrow{border-top:.5px solid var(--sep)}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -908,7 +909,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='65 (04.11.)';
+const APP_VER='66 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1669,11 +1670,11 @@ function viewPdb(){const sh=shopS(),q=pdbQ.toLowerCase();
   <div class="note">Preise mit Bon-Symbol stammen aus deinen Kassenbons, die übrigen sind Richtwerte für Discounter in Deutschland, Stand Herbst 2026. Supermarkt rechnet mit plus 18 %, Bio mit plus 65 %. Eigene Preise aus deinen Einkäufen ersetzen die Richtwerte automatisch.</div>`}
 function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.done),done=sh.items.filter(x=>x.done);
   const sug=Object.entries(sh.hist||{}).filter(([n])=>!sh.items.some(x=>x.n.toLowerCase()==n)).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const row=x=>`<div class="shrow ${x.done?'done':''}"><button class="shck" data-shd="${x.id}" aria-label="${x.done?'Nicht gekauft':'Gekauft'}">${x.done?I('check',16):''}</button>
-    <div class="t"><button class="shedit" data-she="${x.id}" aria-label="${esc(x.n)} bearbeiten"><span>${esc(x.n)}</span>${I('pen',14)}</button><div class="s">${x.p?(x.est?'ca. ':'')+eur(x.p*(x.q||1)):(sh.unk&&sh.unk[x.n.toLowerCase()]?'noch unbekannt · kein Preis':'ohne Preis')}${(x.q||1)>1&&x.p?' · je '+eur(x.p):''}${x.unit?' · '+esc(x.unit):''}${x.est?' · Richtwert':''}</div>
+  const row=x=>`<div class="swr" data-sw="${x.id}"><div class="swa"><button class="sw-edit" data-she="${x.id}">${I('pen',18)}<span>Bearbeiten</span></button><button class="sw-del" data-shx="${x.id}">${I('close',18)}<span>Entfernen</span></button></div><div class="shrow ${x.done?'done':''}"><button class="shck" data-shd="${x.id}" aria-label="${x.done?'Nicht gekauft':'Gekauft'}">${x.done?I('check',16):''}</button>
+    <div class="t"><button class="shedit" data-she="${x.id}" aria-label="${esc(x.n)} bearbeiten"><span>${esc(x.n)}</span></button><div class="s">${x.p?(x.est?'ca. ':'')+eur(x.p*(x.q||1)):(sh.unk&&sh.unk[x.n.toLowerCase()]?'noch unbekannt · kein Preis':'ohne Preis')}${(x.q||1)>1&&x.p?' · je '+eur(x.p):''}${x.unit?' · '+esc(x.unit):''}${x.est?' · Richtwert':''}</div>
      <div class="shmeta"><span class="qty" role="group" aria-label="Menge ${esc(x.n)}"><button data-shq="${x.id}|-1" aria-label="Weniger" ${(x.q||1)<=1?'disabled':''}>−</button><b>${x.q||1}</b><button data-shq="${x.id}|1" aria-label="Mehr">+</button></span>
      <button class="shopt ${x.opt?'kann':'muss'}" data-sho="${x.id}">${x.opt?'Kann':'Muss'}</button></div></div>
-    <button class="del" data-shx="${x.id}" aria-label="Entfernen">${I('minus',20)}</button></div>`;
+    </div></div>`;
   return `${appbar({title:'Einkaufszettel',back:'shopBack',noGear:true,stats:`<div class="hc-big"><span>Geschätzt</span><b>${eur(ck.est)}</b></div><div class="hc-line">${esc(sh.acct)} noch frei: ${eur(ck.rest)} · ${eur(ck.c.tag)} pro Tag</div>`})}
   <div class="seg" id="shLevel">${Object.entries(PLEVEL).map(([k,v])=>`<button class="${(sh.level||'disc')==k?'on':''}" data-f="${k}">${v[1]}</button>`).join('')}</div>
   <div class="seg" id="shopAcc">${BUDG.map(b=>`<button class="${sh.acct==b?'on':''}" data-f="${esc(b)}">${esc(SHORT[b])}</button>`).join('')}</div>
@@ -1684,6 +1685,7 @@ function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),o
    ${sug.length?`<div class="chips" style="padding:0 12px 10px">${sug.map(([n])=>`<button class="chip" data-shs="${esc(n)}">${esc(n.charAt(0).toUpperCase()+n.slice(1))}${sh.prices[n]?' '+eur(sh.prices[n]):''}</button>`).join('')}</div>`:''}</div>
   ${(()=>{const U=Object.keys(sh.unk||{});return U.length?`<div class="mmcard" style="margin-top:10px"><button class="cell shunk" id="shUnk"><div class="ico" style="background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)">${I('alert',18)}</div><div class="t"><div>${U.length} Artikel ohne Preis</div><div class="s">${U.slice(0,4).map(k=>esc(sh.unk[k].n)).join(', ')}${U.length>4?' …':''} · Abgleich ${sh.lastSync?'zuletzt '+new Date(sh.lastSync).toLocaleDateString('de-DE'):'wöchentlich'}</div></div><span class="chev">›</span></button></div>`:''})()}
   ${open.length?`<div class="sec"><div class="sh">Noch zu kaufen · ${open.length}</div><div class="mmcard">${open.map(row).join('')}</div></div>`:''}
+  ${sh.items.length?`<div class="note" style="padding:4px 4px 0">Nach links wischen zum Bearbeiten oder Entfernen · Name antippen öffnet ebenfalls die Bearbeitung.</div>`:''}
   ${done.length?`<div class="sec"><div class="sh">Im Wagen · ${done.length}</div><div class="mmcard">${done.map(row).join('')}</div></div>`:''}
   ${!sh.items.length?'<div class="mmcard"><div class="empty">Dein Zettel ist leer. Tipp oben einen Artikel ein, die App merkt sich Preise für das nächste Mal.</div></div>':''}
   ${sh.items.length?`<button class="btn" id="shBook">${I('cart',18)} Einkauf buchen</button><button class="btn soft" id="shClear">Zettel leeren</button>`:''}
