@@ -444,6 +444,7 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .qty button{border:0;background:none;color:var(--blue);font:inherit;font-size:18px;font-weight:600;width:34px;height:30px;cursor:pointer;display:grid;place-items:center;padding:0}
 .qty button:disabled{color:var(--muted);opacity:.4}.qty b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
 .pdbrow small.bon{color:var(--ok);display:flex;gap:3px;align-items:center}
+.tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button svg{width:23px;height:23px}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -747,7 +748,7 @@ function openBg(k){const draw=()=>{const x=S.bg[k]||{g:0};$('sheetRoot').innerHT
 let swipeDir='';
 let tab='dash',curB=null,off=0,flt='Alle',q='',repB='Alle',repV='Monat',setView=null;
 const TABS=[["dash","Übersicht",'<path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/>'],["list","Buchungen",'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'],
- ["cal","Kalender",'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>'],["rep","Auswertung",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["wish","Impulse",'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>']];
+ ["cal","Kalender",'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>'],["rep","Auswertung",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["wish","Impulse",'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'],["more","Einstellungen",IC.gear]];
 let prevTab='dash',showF=false;
 function renderTabs(){$('tabbar').innerHTML=TABS.map(t=>`<button class="${tab==t[0]?'on':''}" data-t="${t[0]}"><svg viewBox="0 0 24 24">${t[2]}</svg>${t[1]}</button>`).join('');
   $('tabbar').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
@@ -1571,7 +1572,7 @@ function celebrate(msg,big){const r=$('modalRoot'),C=['#2fb36b','#0f7b8a','#ff8a
   r.innerHTML=`<div class="cele ${big?'big':''}" role="status">${conf?`<div class="confetti">${conf}</div>`:''}<div class="cele-ring">${I(big?'target':'piggy',34)}</div><b>${esc(msg)}</b>${big?'<span>Du hast es geschafft. Jetzt darfst du bewusst kaufen.</span>':''}</div>`;
   setTimeout(()=>{if(r.querySelector('.cele'))r.innerHTML=''},big?3200:1700)}
 function viewMore(){const nav=(k,ico,l,s)=>`<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue)">${I(ico)}</div><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><span class="chev">›</span></button>`;
-  return `${appbar({title:'Einstellungen',back:'moreBack',noGear:true})}
+  return `${appbar({title:'Einstellungen',noGear:true})}
   <div class="sec"><div class="sh">Budgets</div><div class="group">
    ${nav('accts','wallet','Konten',ALL.length+' Konten · '+S.accts.filter(a=>!a.vis).length+' ausgeblendet')}
    ${nav('budgets','gauge','Monatsbudgets',BUDG.map(b=>eur0(S.budgets[b]||0)).join(' · '))}
