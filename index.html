@@ -523,6 +523,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 #tcPill .th{font-size:11px;opacity:.7;font-weight:500}#tcPill .tr{display:flex;align-items:center;gap:6px;white-space:nowrap}#tcPill .tr b{font-weight:700;margin-left:auto;padding-left:8px}#tcPill .tr b:only-child{margin-left:0;padding-left:0}#tcPill .tr i{width:8px;height:8px;border-radius:50%;flex:none}
 .bar,.sbar{cursor:pointer}
 .shedit{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;max-width:100%}.shedit span{overflow:hidden;text-overflow:ellipsis}.shedit .i{color:var(--muted);flex:none;opacity:.7}
+.shunk{width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -899,6 +900,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   const k=pkey(P),up=S.rec.map(r=>({r,d:recDue(r,P)})).filter(x=>x.d&&!S.exp.some(e=>e.rid==x.r.id&&e.pk==k)&&x.d-now<3*864e5);
   if(up.length)t.push({sev:'info',ttl:'Bald fällig',txt:up.map(x=>`${esc(x.r.n)} am ${x.d.getDate()}.${x.d.getMonth()+1}. (${eur(x.r.a)})`).join(', ')});
   (S.debts||[]).forEach(d=>{const x=debtInfo(d);if(x.rest)t.push({sev:'ok',ttl:'Schuldenfrei im '+x.last.toLocaleDateString('de-DE',{month:'long',year:'numeric'}),txt:`${esc(d.n)}: noch ${eur0(x.rest)} in ${x.n} Raten. Keine neuen Ratenkäufe, dann klappt das.`})});
+  if(S.shop&&S.shop.unk&&Object.keys(S.shop.unk).length&&Date.now()-(S.shop.unkTip||0)>7*864e5){const U=Object.keys(S.shop.unk);t.push({sev:'info',act:'shopP',ttl:'Wochen-Abgleich Einkaufszettel',txt:U.length+' Artikel ohne Preis: '+U.slice(0,3).map(k=>esc(S.shop.unk[k].n)).join(', ')+(U.length>3?' …':'')+'. Trag die Preise vom Bon ein, dann rechnet die App künftig damit.'})}
   if(S.shop&&S.shop.items.length){const ck=shopCheck();if(ck.k=='bad'||ck.k=='warn')t.push({sev:ck.k=='bad'?'warn':'info',act:'shop',ttl:'Einkaufszettel: '+(ck.k=='bad'?'passt nicht':'wird knapp'),txt:ck.txt})}
   (S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(x.kd){const dl=Math.ceil((x.kd-now)/864e5);if(dl>0&&dl<=30)t.push({sev:'warn',act:'ctr',cid:c.id,ttl:`Kündigungsfrist ${c.n}`,txt:`Noch ${dl} Tage bis ${x.kd.toLocaleDateString('de-DE')}. Willst du verlängern?`})}});
   if(P.idx<=5){const R=reviewData(-1);if(R.bs.some(x=>x.c.used>0))t.push({sev:'info',act:'review',ttl:'Dein Monatsrückblick '+period(-1).label,txt:`${R.good.length} Dinge liefen gut${R.bad.length?', '+R.bad.length+' nicht so gut':''}. Schau ihn dir an.`})}
@@ -906,7 +908,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='64 (04.11.)';
+const APP_VER='65 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -914,7 +916,7 @@ function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hid
   r.innerHTML=`<button class="abub ${top}" id="abub" aria-label="Assistent, ${t.length} Hinweise" aria-expanded="${asstOpen}">${ROBO}${n?`<span class="acnt">${n}</span>`:''}</button>
    ${asstOpen?`<div class="apop" role="dialog" aria-label="Hinweise"><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${ROBO}</span>Dein Assistent</b><button id="aClose" aria-label="Schließen">${I('close',20)}</button></div>
     <div class="apop-b">${t.map((x,i)=>`<div class="atip ${x.sev}" data-tk="${esc(tkey(x))}"><div class="atip-t">${asstNew.includes(tkey(x))?'<span class="newdot">Neu</span>':''}${I(x.sev=='bad'?'alert':x.sev=='warn'?'up':x.sev=='ok'?'check':'sparkle',15)}<b>${esc(x.ttl)}</b></div><div class="atip-x">${x.txt}</div>
-     ${x.b||x.tab||x.act?`<div class="choices" style="margin-top:6px">${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}</div>
+     ${x.b||x.tab||x.act?`<div class="choices" style="margin-top:6px">${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='shopP'?`<button data-ashopp="${i}">Preise nachtragen</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}</div>
     <div class="apop-f">Tippe außerhalb, um zu schließen.</div></div>`:''}`;
   $('abub').onclick=e=>{e.stopPropagation();asstOpen=!asstOpen;if(asstOpen){asstNew=t.filter(x=>!(S.seenTips||[]).includes(tkey(x))).map(tkey);S.seenTips=[...new Set([...(S.seenTips||[]),...t.map(tkey)])];save()}renderAsst()};
   if(asstOpen){r.querySelectorAll('.atip .choices button').forEach(b=>b.addEventListener('click',()=>{const k=b.closest('.atip').dataset.tk;S.dismTips=[...new Set([...(S.dismTips||[]),k])];save()},true));$('aClose').onclick=()=>{asstOpen=false;renderAsst()};r.querySelector('.apop').onclick=e=>e.stopPropagation();
@@ -924,6 +926,7 @@ function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hid
     r.querySelectorAll('[data-actv]').forEach(b=>b.onclick=()=>{asstOpen=false;tab='rep';repV='Verträge';drill=null;curB=null;setView=null;render();scrollTo(0,0)});
     r.querySelectorAll('[data-abak]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='export';render();scrollTo(0,0)});
     r.querySelectorAll('[data-arev]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='review';S.revOff=-1;render();scrollTo(0,0)});
+    r.querySelectorAll('[data-ashopp]').forEach(b=>b.onclick=()=>{asstOpen=false;S.shop.unkTip=Date.now();save();prevTab=tab;setView='shop';render();scrollTo(0,0);setTimeout(openShopPrices,50)});
     r.querySelectorAll('[data-ashop]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;setView='shop';render();scrollTo(0,0)});
     r.querySelectorAll('[data-achk]').forEach(b=>b.onclick=()=>{asstOpen=false;renderAsst();openCheckin()})}}
 document.addEventListener('click',()=>{if(asstOpen){asstOpen=false;renderAsst()}});
@@ -1634,6 +1637,18 @@ const PDB={};PRICEDB.forEach(([g,L])=>L.forEach(([n,u,p,s])=>PDB[n.toLowerCase()
 const PLEVEL={disc:[1,"Discounter"],super:[1.18,"Supermarkt"],bio:[1.65,"Bio"]};
 function dbFind(t){const k=t.toLowerCase().trim();if(PDB[k])return PDB[k];const c=Object.values(PDB).filter(x=>x.n.toLowerCase().startsWith(k)||k.startsWith(x.n.toLowerCase()));if(c.length)return c.sort((a,b)=>a.n.length-b.n.length)[0];
   const w=Object.values(PDB).find(x=>x.n.toLowerCase().split(/[\s-]/).some(p=>p.length>3&&k.includes(p)));return w||null}
+function dbExact(t){const k=String(t||'').toLowerCase().trim();if(!k)return null;if(PDB[k])return PDB[k];const st=w=>w.replace(/(en|n|e|s)$/,'');const ks=st(k);return Object.values(PDB).find(x=>{const n=x.n.toLowerCase();return st(n)==ks&&ks.length>=3})||null}
+function shopKnown(k){const sh=shopS();k=k.toLowerCase().trim();if(sh.prices[k])return{p:sh.prices[k],est:false};const d=dbExact(k);return d?{p:dbPrice(d),est:!d.s||(sh.level&&sh.level!='disc'),unit:d.u+(d.s&&!(sh.level&&sh.level!='disc')?' · Bon '+d.s:'')}:null}
+function shopMatch(){const sh=shopS();sh.unk=sh.unk||{};let n=0;sh.items.forEach(x=>{if(x.p)return;const k=x.n.toLowerCase(),f=shopKnown(k);if(f){x.p=f.p;x.est=f.est;if(f.unit&&!x.unit)x.unit=f.unit;x.unk=false;n++}});
+  Object.keys(sh.unk).forEach(k=>{if(shopKnown(k))delete sh.unk[k]});return n}
+function shopWeekly(){const sh=shopS();sh.unk=sh.unk||{};if(Date.now()-(sh.lastSync||0)<7*864e5)return;sh.lastSync=Date.now();const n=shopMatch();if(n){save();toast(n+' Preis'+(n>1?'e':'')+' auf dem Einkaufszettel ergänzt.')}else save()}
+function openShopPrices(){const sh=shopS(),K=Object.keys(sh.unk||{});if(!K.length){toast('Alle Artikel haben einen Preis.');return}const close=()=>{$('sheetRoot').innerHTML='';render()};
+  $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Preise nachtragen"><div class="sheet-h"><button id="spX">Abbrechen</button><b>Preise nachtragen</b><button id="spS" style="font-weight:600">Sichern</button></div>
+   <div class="sheet-b"><div class="note" style="padding:0">Diese Artikel kennt die App noch nicht. Trag den Preis vom Kassenbon ein. Er wird gemerkt und künftig automatisch verwendet. Leere Felder bleiben in der Liste.</div>
+   <div class="group">${K.map((k,i)=>`<div class="cell plain"><label for="spP${i}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(sh.unk[k].n)}</label><input id="spP${i}" inputmode="decimal" placeholder="€" style="max-width:100px;text-align:right"><button class="del" data-spd="${esc(k)}" aria-label="${esc(sh.unk[k].n)} vergessen">${I('minus',20)}</button></div>`).join('')}</div></div></div>`;
+  $('scrim').onclick=$('spX').onclick=close;
+  document.querySelectorAll('[data-spd]').forEach(b=>b.onclick=()=>{delete sh.unk[b.dataset.spd];save();b.closest('.cell').remove();if(!Object.keys(sh.unk).length)close()});
+  $('spS').onclick=()=>{K.forEach((k,i)=>{const el=$('spP'+i);if(!el)return;const v=pNum(el.value);if(!isNaN(v)&&v>0){sh.prices[k]=v;delete sh.unk[k]}});const n=shopMatch();save();close();toast(n?n+' Artikel auf dem Zettel aktualisiert.':'Preise gemerkt.')}}
 function dbPrice(x){const lv=PLEVEL[(S.shop&&S.shop.level)||'disc'][0];return Math.round(x.p*lv*100)/100}
 /* ---------- Einkaufszettel mit Budget-Check ---------- */
 function shopS(){if(!S.shop)S.shop={items:[],acct:BUDG.includes('Flow')?'Flow':BUDG[0],prices:{},hist:{}};return S.shop}
@@ -1652,10 +1667,10 @@ function viewPdb(){const sh=shopS(),q=pdbQ.toLowerCase();
   ${PRICEDB.map(([g,L])=>{const f=L.filter(([n])=>!q||n.toLowerCase().includes(q));return f.length?`<div class="sec"><div class="sh">${g}</div><div class="mmcard">${f.map(([n,u,p])=>{const k=n.toLowerCase(),own=sh.prices[k],on=sh.items.some(x=>x.n.toLowerCase()==k);
     const src=(PDB[k]||{}).s;return `<button class="pdbrow" data-pdb="${esc(n)}"><span class="t"><span>${esc(n)}</span><small>${esc(u)}</small></span><span class="v">${own?`<b>${eur(own)}</b><small>dein Preis</small>`:src&&(sh.level||'disc')=='disc'?`<b>${eur(p)}</b><small class="bon">${I('receipt',11)} Bon ${esc(src)}</small>`:`<b>ca. ${eur(dbPrice({p}))}</b>`}</span><span class="pdbadd ${on?'on':''}">${I(on?'check':'plus',16)}</span></button>`}).join('')}</div></div>`:''}).join('')}
   <div class="note">Preise mit Bon-Symbol stammen aus deinen Kassenbons, die übrigen sind Richtwerte für Discounter in Deutschland, Stand Herbst 2026. Supermarkt rechnet mit plus 18 %, Bio mit plus 65 %. Eigene Preise aus deinen Einkäufen ersetzen die Richtwerte automatisch.</div>`}
-function viewShop(){const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.done),done=sh.items.filter(x=>x.done);
+function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.done),done=sh.items.filter(x=>x.done);
   const sug=Object.entries(sh.hist||{}).filter(([n])=>!sh.items.some(x=>x.n.toLowerCase()==n)).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const row=x=>`<div class="shrow ${x.done?'done':''}"><button class="shck" data-shd="${x.id}" aria-label="${x.done?'Nicht gekauft':'Gekauft'}">${x.done?I('check',16):''}</button>
-    <div class="t"><button class="shedit" data-she="${x.id}" aria-label="${esc(x.n)} bearbeiten"><span>${esc(x.n)}</span>${I('pen',14)}</button><div class="s">${x.p?(x.est?'ca. ':'')+eur(x.p*(x.q||1)):'ohne Preis'}${(x.q||1)>1&&x.p?' · je '+eur(x.p):''}${x.unit?' · '+esc(x.unit):''}${x.est?' · Richtwert':''}</div>
+    <div class="t"><button class="shedit" data-she="${x.id}" aria-label="${esc(x.n)} bearbeiten"><span>${esc(x.n)}</span>${I('pen',14)}</button><div class="s">${x.p?(x.est?'ca. ':'')+eur(x.p*(x.q||1)):(sh.unk&&sh.unk[x.n.toLowerCase()]?'noch unbekannt · kein Preis':'ohne Preis')}${(x.q||1)>1&&x.p?' · je '+eur(x.p):''}${x.unit?' · '+esc(x.unit):''}${x.est?' · Richtwert':''}</div>
      <div class="shmeta"><span class="qty" role="group" aria-label="Menge ${esc(x.n)}"><button data-shq="${x.id}|-1" aria-label="Weniger" ${(x.q||1)<=1?'disabled':''}>−</button><b>${x.q||1}</b><button data-shq="${x.id}|1" aria-label="Mehr">+</button></span>
      <button class="shopt ${x.opt?'kann':'muss'}" data-sho="${x.id}">${x.opt?'Kann':'Muss'}</button></div></div>
     <button class="del" data-shx="${x.id}" aria-label="Entfernen">${I('minus',20)}</button></div>`;
@@ -1667,6 +1682,7 @@ function viewShop(){const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.d
    <div class="s" style="font-size:12px;margin-top:4px">${Math.round(ck.rest?ck.est/ck.rest*100:100)} % vom freien ${esc(sh.acct)}-Budget</div></div>`:`<div class="note">${ck.txt}</div>`}
   <div class="mmcard"><div class="shadd"><input id="shN" list="pdbList" placeholder="Artikel, z. B. Milch" aria-label="Artikel"><datalist id="pdbList">${Object.values(PDB).map(x=>`<option value="${esc(x.n)}">${esc(x.u)} · ca. ${eur(dbPrice(x))}</option>`).join('')}</datalist><input id="shP" inputmode="decimal" placeholder="€" aria-label="Preis" style="width:70px;text-align:right"><button class="btn" id="shAdd" style="width:auto;padding:9px 14px">${I('plus',18)}</button><button class="btn soft" id="shMic" aria-label="Artikel sprechen" style="width:auto;padding:9px 12px">${I('mic',18)}</button></div>
    ${sug.length?`<div class="chips" style="padding:0 12px 10px">${sug.map(([n])=>`<button class="chip" data-shs="${esc(n)}">${esc(n.charAt(0).toUpperCase()+n.slice(1))}${sh.prices[n]?' '+eur(sh.prices[n]):''}</button>`).join('')}</div>`:''}</div>
+  ${(()=>{const U=Object.keys(sh.unk||{});return U.length?`<div class="mmcard" style="margin-top:10px"><button class="cell shunk" id="shUnk"><div class="ico" style="background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)">${I('alert',18)}</div><div class="t"><div>${U.length} Artikel ohne Preis</div><div class="s">${U.slice(0,4).map(k=>esc(sh.unk[k].n)).join(', ')}${U.length>4?' …':''} · Abgleich ${sh.lastSync?'zuletzt '+new Date(sh.lastSync).toLocaleDateString('de-DE'):'wöchentlich'}</div></div><span class="chev">›</span></button></div>`:''})()}
   ${open.length?`<div class="sec"><div class="sh">Noch zu kaufen · ${open.length}</div><div class="mmcard">${open.map(row).join('')}</div></div>`:''}
   ${done.length?`<div class="sec"><div class="sh">Im Wagen · ${done.length}</div><div class="mmcard">${done.map(row).join('')}</div></div>`:''}
   ${!sh.items.length?'<div class="mmcard"><div class="empty">Dein Zettel ist leer. Tipp oben einen Artikel ein, die App merkt sich Preise für das nächste Mal.</div></div>':''}
@@ -1682,7 +1698,7 @@ function shopVoice(v){let t=' '+v+' ';t=t.replace(/\b(setze?|schreibe?|packe?|f�
     if(m&&!/^\d+\s*(g|kg|ml|l|liter|gramm|kilo)\b/i.test(s)){q=+m[1];s=s.slice(m[0].length)}
     else{const ws=s.split(/\s+/),w=ws[0].toLowerCase();if(NUMW[w]&&ws.length>1){q=NUMW[w];s=ws.slice(1).join(' ')}}
     s=s.replace(/^(die|der|das|den)\s+/i,'').trim();if(!s||s.length<2)return;s=s.charAt(0).toUpperCase()+s.slice(1);
-    const d=dbFind(s),names=[s.toLowerCase(),d&&s.length<=d.n.length+1?d.n.toLowerCase():null].filter(Boolean),ex=sh.items.find(x=>!x.done&&names.includes(x.n.toLowerCase()));
+    const names=[s.toLowerCase()],ex=sh.items.find(x=>!x.done&&names.includes(x.n.toLowerCase()));
     if(ex)ex.q=(ex.q||1)+q;else shopAdd((q>1?q+'x ':'')+s,'');added.push((q>1?q+'× ':'')+(ex?ex.n:sh.items[sh.items.length-1].n))});save();return added}
 let curSR=null;
 function listen(onText,field,ph,onEnd){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1704,8 +1720,8 @@ function listen(onText,field,ph,onEnd){const SR=window.SpeechRecognition||window
 function shopVoiceDone(added){if(!added.length){toast('Nichts erkannt. Sag z. B. „Milch, 2 Brot und Eier“.');return}toast('Auf dem Einkaufszettel: '+added.join(', '));renderAsst&&setTimeout(renderAsst,0)}
 function shopAdd(txt,price){const sh=shopS();let t=txt.trim();if(!t)return;let q=1,p=pNum(price);const mq=t.match(/^(\d+)\s*[x×]\s*/i);if(mq){q=+mq[1];t=t.slice(mq[0].length)}
   const mp=t.match(/\s(\d+(?:[.,]\d{1,2})?)\s*€?$/);if(mp&&isNaN(p)){p=pNum(mp[1]);t=t.slice(0,mp.index)}t=t.trim();const k=t.toLowerCase();
-  let est=false,unit='';if(isNaN(p)){if(sh.prices[k])p=sh.prices[k];else{const d=dbFind(t);if(d){p=dbPrice(d);est=!d.s||(S.shop&&S.shop.level&&S.shop.level!='disc');unit=d.u+(d.s&&!est?' · Bon '+d.s:'');if(t.length<=d.n.length+1)t=d.n}else p=0}}else sh.prices[k]=p;
-  sh.items.push({id:uid(),n:t.charAt(0).toUpperCase()+t.slice(1),p,q,opt:false,done:false,est,unit});save()}
+  let est=false,unit='',unk=false;sh.unk=sh.unk||{};if(isNaN(p)){const f=shopKnown(k);if(f){p=f.p;est=f.est;unit=f.unit||''}else{p=0;unk=true;if(k)sh.unk[k]=sh.unk[k]||{n:t.charAt(0).toUpperCase()+t.slice(1),t:Date.now()}}}else{sh.prices[k]=p;delete sh.unk[k]}
+  sh.items.push({id:uid(),n:t.charAt(0).toUpperCase()+t.slice(1),p,q,opt:false,done:false,est,unit,unk});save()}
 function openShopBook(){const sh=shopS(),items=sh.items.filter(x=>x.done).length?sh.items.filter(x=>x.done):sh.items,est=items.reduce((s,x)=>s+(x.p||0)*(x.q||1),0),cs=cats(sh.acct)||[['Sonstiges','dot']];
   const defc=(cs.find(c=>/lebensmittel/i.test(c[0]))||cs[0])[0];
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Einkauf buchen"><div class="sheet-h"><button id="sbX">Abbrechen</button><b>Einkauf buchen</b><button id="sbS" style="font-weight:600">Buchen</button></div>
@@ -1735,18 +1751,19 @@ function openShopEdit(id){const sh=shopS(),x=sh.items.find(i=>i.id==id);if(!x)re
   $('seDel').onclick=()=>{const ss=JSON.stringify(sh.items);sh.items=sh.items.filter(i=>i.id!=id);save();close();toast('Entfernt.',()=>{sh.items=JSON.parse(ss);save();render()})};
   $('seS').onclick=()=>{const n=$('seN').value.trim();if(!n){$('seN').focus();return}const pv=pNum($('seP').value),k=n.toLowerCase(),renamed=n!=x.n;
     x.n=n.charAt(0).toUpperCase()+n.slice(1);x.q=Math.max(1,Math.min(99,parseInt($('seQ').value)||1));x.unit=$('seU').value.trim();x.opt=opt;
-    if(!isNaN(pv)&&pv>0){if(pv!==x.p||renamed){x.p=pv;x.est=false;sh.prices[k]=pv}}else if(renamed){const d=dbFind(n);x.p=sh.prices[k]||(d?dbPrice(d):0);x.est=!sh.prices[k]&&!!d}else if($('seP').value.trim()===''){x.p=0;x.est=false}
+    if(!isNaN(pv)&&pv>0){if(pv!==x.p||renamed){x.p=pv;x.est=false;sh.prices[k]=pv;if(sh.unk)delete sh.unk[k];shopMatch()}}else if(renamed){const f=shopKnown(k);x.p=f?f.p:0;x.est=f?f.est:false;sh.unk=sh.unk||{};if(!f)sh.unk[k]={n:x.n,t:Date.now()}}else if($('seP').value.trim()===''){x.p=0;x.est=false}
     save();close();toast('Gespeichert.')};
   setTimeout(()=>{const i=$('seN');if(i&&!matchMedia('(pointer:coarse)').matches){i.focus();i.select()}},50)}
 function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const sh=shopS();
   on('pdbOpen',()=>{setView='pdb';pdbQ='';render();scrollTo(0,0)});
-  document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbFind(x.n);if(d)x.p=dbPrice(d)}});save();render()});
+  document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbExact(x.n);if(d)x.p=dbPrice(d)}});save();render()});
   on('shopBack',()=>{setView=null;tab=prevTab&&prevTab!='more'?prevTab:'dash';render();scrollTo(0,0)});
   const add=()=>{shopAdd($('shN').value,$('shP').value);render();setTimeout(()=>$('shN')&&$('shN').focus(),0)};on('shAdd',add);on('shMic',()=>listen(v=>{const a=shopVoice(v);render();shopVoiceDone(a)},$('shN'),'Sag z. B. „Milch, 2 Brot und Eier“'));
   if($('shN'))$('shN').onkeydown=e=>{if(e.key=='Enter')add()};if($('shP'))$('shP').onkeydown=e=>{if(e.key=='Enter')add()};
   document.querySelectorAll('[data-shs]').forEach(b=>b.onclick=()=>{shopAdd(b.dataset.shs,'');render()});
   document.querySelectorAll('[data-shd]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.shd);x.done=!x.done;save();render()});
   document.querySelectorAll('[data-shq]').forEach(b=>b.onclick=()=>{const[id,d]=b.dataset.shq.split('|'),x=sh.items.find(i=>i.id==id);if(!x)return;x.q=Math.max(1,Math.min(99,(x.q||1)+ +d));save();render()});
+  on('shUnk',openShopPrices);
   document.querySelectorAll('[data-she]').forEach(b=>b.onclick=()=>openShopEdit(b.dataset.she));
   document.querySelectorAll('[data-sho]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.sho);x.opt=!x.opt;save();render()});
   document.querySelectorAll('[data-shx]').forEach(b=>b.onclick=()=>{const ss=JSON.stringify(sh.items);sh.items=sh.items.filter(i=>i.id!=b.dataset.shx);save();render();toast('Entfernt.',()=>{sh.items=JSON.parse(ss);save();render()})});
