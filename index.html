@@ -891,7 +891,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='48 (04.11.)';
+const APP_VER='49 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2418,7 +2418,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const H = { "User-Agent": "Mozilla/5.0" };
   const chart = async (s) => (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(s) + "?range=5d&interval=1d", { headers: H })).json()).chart.result[0].meta;
-  const { q = [] } = await req.json().catch(() => ({}));
+  const { q = [], hist = false } = await req.json().catch(() => ({}));
   const out = {}; const fx = {};
   for (const s of q.slice(0, 40)) {
     try {
@@ -2433,7 +2433,12 @@ Deno.serve(async (req) => {
       let k = 1, cur = m.currency;
       if (cur === "GBp") { k = 0.01; cur = "GBP"; }
       if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
-      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime };
+      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 2 };
+      if (hist) {
+        const r = (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?range=ytd&interval=1d", { headers: H })).json()).chart.result[0];
+        const c = r.indicators.quote[0].close;
+        out[s].hist = r.timestamp.map((t, i) => [t * 1000, c[i] == null ? null : c[i] * k]).filter((x) => x[1] != null);
+      }
     } catch (e) { out[s] = { error: String(e) }; }
   }
   return new Response(JSON.stringify(out), { headers: { ...cors, "Content-Type": "application/json" } });
@@ -2448,7 +2453,7 @@ async function depRefresh(force){if(depBusy)return;const D=depot();if(!D.length)
   for(const h of D.filter(h=>h.type=='krypto'&&!h.manual)){const r=await cryptoPrice(h.sym);if(r){h.price=r.price;if(r.prev)h.prev=r.prev;h.pt=Date.now();ok++}else fail++}
   const st=D.filter(h=>h.type!='krypto'&&!h.manual&&h.sym);
   if(st.length){if(syOn()){try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({q:st.map(h=>h.sym.trim().toUpperCase())})});
-      if(r.ok){const j=await r.json();st.forEach(h=>{const x=j[h.sym.trim().toUpperCase()];if(x&&x.price){h.price=x.price;h.prev=x.prev;h.pt=Date.now();if(!h.n||h.n==h.sym)h.n=x.name;h.ysym=x.symbol;ok++}else fail++})}else{fail+=st.length;S.kursFn=false}}catch(e){fail+=st.length;S.kursFn=false}}else fail+=st.length}
+      if(r.ok){const j=await r.json();st.forEach(h=>{const x=j[h.sym.trim().toUpperCase()];if(x&&x.price){if(!x.v)S.kursFnOld=true;else S.kursFnOld=false;h.price=x.price;h.prev=x.prev;h.pt=Date.now();if(!h.n||h.n==h.sym)h.n=x.name;h.ysym=x.symbol;ok++}else fail++})}else{fail+=st.length;S.kursFn=false}}catch(e){fail+=st.length;S.kursFn=false}}else fail+=st.length}
   for(const h of D.filter(h=>h.manual&&h.mprice&&h.cur&&h.cur!='EUR')){const r=await fxLoad(h.cur);if(r)h.price=h.mprice*r}
   depApplyPlans();save();depBusy=false;depMsg=(ok?'Kurse aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'')+(fail?(ok?' · ':'')+fail+' ohne automatischen Kurs':'');if(ok&&st.length&&!fail)S.kursFn=true;if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
 function depApplyPlans(){const td=today();depot().forEach(h=>{if(!h.rate||!h.plan||!h.next)return;let n=0;while(h.next<=td&&n<24){if(!h.price)break;h.qty=Math.round(((h.qty||0)+h.rate/h.price)*1e6)/1e6;h.inv=Math.round(((h.inv||0)+h.rate)*100)/100;if(h.qty)h.avg=Math.round(h.inv/h.qty/((h.cur||'EUR')=='EUR'?1:(h.fx||1))*10000)/10000;const d=new Date(h.next+'T12:00');d.setMonth(d.getMonth()+1);h.next=ymd(d.getTime());n++}})}
@@ -2460,17 +2465,18 @@ function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
   return `<div class="kpis k4"><div class="kpi">Depotwert<b>${V(eur0(tot))}</b></div><div class="kpi">Gewinn/Verlust<b class="${g<0?'out':'in'}">${V(sg(g)+eur0(g))}</b><small style="color:var(--muted)">${inv?sg(g)+pc(tot,inv).toFixed(1).replace('.',',')+' %':''}</small></div><div class="kpi">Heute<b class="${day<0?'out':'in'}">${V(sg(day)+eur0(day))}</b></div><div class="kpi">Monatlich<b>${eur0(mon)}</b></div></div>
    ${!S.showWealth?`<button class="btn soft" id="depEye">${depShow?'Werte wieder verbergen':'Werte für diesen Besuch anzeigen'}</button>`:''}
    <div class="note" style="padding:0 4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>${esc(depMsg||'')}</span><button class="ed-link" id="depRef" style="color:var(--accent)">${I('repeat',13)} Kurse aktualisieren</button></div>
+   ${depPerfHtml(S.showWealth||depShow)}
    <div class="sec"><div class="sh">Aufteilung</div><div class="chartbox">${parts.length&&(S.showWealth||depShow)?donut(parts).replace('>Ausgaben<','>Depot<'):`<div class="ana-flow">${Object.keys(byT).map(t=>`<span>${DT[t][0]}</span><b>${tot?Math.round(byT[t]/tot*100):0} %</b>`).join('')}</div>`}
     <div class="legend" style="justify-content:center;margin-top:8px">${parts.map(p=>`<span><i style="background:${p.col}"></i>${p.k} ${tot?Math.round(p.v/tot*100):0} %</span>`).join('')}</div></div></div>
    <div class="sec"><div class="sh">Sparpläne</div><div class="mmcard">${D.filter(h=>h.rate).map(h=>`<div class="srow"><div class="srow-h"><span>${esc(h.n||h.sym)}</span><span class="s" style="font-size:12px;color:var(--muted)">am ${h.day||1}.${h.rid&&(S.rec||[]).some(r=>r.id==h.rid)?' · '+I('repeat',11)+' gebucht von '+esc(SHORT[h.from]||h.from||''):''}</span><b>${eur(h.rate)}</b></div></div>`).join('')||'<div class="srow"><span style="color:var(--muted);font-size:13px">Noch keine Sparrate eingetragen.</span></div>'}
     <div class="srow"><div class="srow-h"><span><b>Pro Monat</b></span><span class="s" style="font-size:12px;color:var(--muted)">${eur0(mon*12)} im Jahr</span><b>${eur(mon)}</b></div></div></div></div>
    <div class="sec" style="grid-column:1/-1"><div class="sh"><span>Positionen</span><button class="link" id="depAdd">+ Position</button></div><div class="mmcard">${D.map((h,i)=>{const v=val(h),gg=v-(h.inv||0),d=h.prev&&h.price?pc(h.price,h.prev):null;return `<button class="dep" data-dep="${i}"><span class="ico" style="background:color-mix(in srgb,${DT[h.type][1]} 15%,transparent);color:${DT[h.type][1]}">${I(DT[h.type][2],18)}</span>
-     <span class="t"><b>${esc(h.n||h.sym)}</b><small>${DT[h.type][0]} · ${esc(h.ysym||h.sym||'')}${h.qty?' · '+(+h.qty).toLocaleString('de-DE',{maximumFractionDigits:6})+' Stk.':''}${h.qty&&h.inv?' · Ø '+eur(h.inv/h.qty)+((h.cur||'EUR')!='EUR'&&h.avg?' (gekauft in '+h.cur+')':''):''}</small></span>
+     <span class="t"><b>${esc(h.n||h.sym)}</b><small>${DT[h.type][0]} · ${esc(h.ysym||h.sym||'')}${h.qty?' · '+(+h.qty).toLocaleString('de-DE',{maximumFractionDigits:6})+' Stk.':''}${h.bd?' · '+(h.bd=='pre'?'vor '+new Date().getFullYear():'seit '+new Date(h.bd+'T12:00').toLocaleDateString('de-DE',{month:'short',year:'numeric'})):''}${h.qty&&h.inv?' · Ø '+eur(h.inv/h.qty)+((h.cur||'EUR')!='EUR'&&h.avg?' (gekauft in '+h.cur+')':''):''}</small></span>
      <span class="dep-k">${h.price?eur(h.price):'<i style="color:var(--muted)">kein Kurs</i>'}<small class="${d<0?'out':d>0?'in':''}">${d!=null?sg(d)+d.toFixed(2).replace('.',',')+' % heute':h.manual?'von Hand':h.pt?'':'–'}</small></span>
      <span class="dep-v"><b>${V(eur(v))}</b><small class="${gg<0?'out':'in'}">${h.inv?V(sg(gg)+eur0(gg))+' · '+sg(gg)+pc(v,h.inv).toFixed(1).replace('.',',')+' %':''}</small></span></button>`}).join('')}</div>
     <div class="note">Kurse in Euro. Krypto über Coinbase/CoinGecko, ETFs und Aktien über deine Supabase-Funktion. Sparpläne werden zum aktuellen Kurs fortgeschrieben, die Stückzahl ist daher ein Näherungswert. Gleiche sie ab und zu mit deinem Depot ab.</div></div>
-   ${S.kursFn?'':depSetupHtml()}`}
-function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)</div><div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
+   ${S.kursFn&&!S.kursFnOld?'':depSetupHtml()}`}
+function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">${S.kursFnOld?'Kursfunktion aktualisieren (für den Kursverlauf)':'ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)'}</div>${S.kursFnOld?'<div class="note" style="padding:0 4px 6px">Deine Funktion „kurse“ ist von gestern. Für die Wertentwicklung bitte in Supabase die Funktion „kurse“ öffnen, den Code ersetzen und neu deployen.</div>':''}<div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
   <li>In Supabase links auf <b>Edge Functions</b> (Blitz-Symbol), dann <b>Deploy a new function</b> › <b>Via Editor</b>.</li>
   <li>Als Namen genau <b>kurse</b> eintragen.</li><li>Den Beispielcode im Editor komplett löschen, hier <b>Code kopieren</b> tippen und einfügen.</li><li>Unten rechts <b>Deploy function</b>. Fertig, hier dann „Kurse aktualisieren“.</li></ol>
   <div class="srow"><button class="btn soft" id="depFnCopy">Code kopieren</button><div class="s" style="font-size:12px;color:var(--muted)">${syOn()?'Funktioniert mit deinem Online-Sync-Konto.':'Dafür muss Online-Sync eingerichtet sein. Ohne trägst du Kurse von Hand ein.'}</div></div></div></div>`}
@@ -2489,6 +2495,9 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
     <div class="cell plain"><label for="dpY">${h.type=='krypto'?'Kürzel':'ISIN oder Ticker'}</label><input id="dpY" value="${esc(h.sym||'')}" autocapitalize="characters" placeholder="${h.type=='krypto'?'BTC, ETH, SOL …':'IE00BK5BQT80 oder VWCE.DE'}"></div>
     <div class="cell plain"><label for="dpQ">Stückzahl</label><input id="dpQ" inputmode="decimal" value="${h.qty!==''&&h.qty!=null?String(h.qty).replace('.',','):''}" placeholder="z. B. 12,345"></div>
     <div class="cell plain"><label for="dpI">Ø Kaufpreis</label><input id="dpI" inputmode="decimal" value="${h.avg?String(h.avg).replace('.',','):h.inv&&h.qty?String(Math.round(h.inv/h.qty/((h.cur||'EUR')=='EUR'?1:(h.fx||1))*10000)/10000).replace('.',','):''}" placeholder="pro Stück"><select id="dpCur" class="cursel" aria-label="Währung">${CURS.map(c=>`<option ${(h.cur||'EUR')==c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="cell plain"><label for="dpBd">Kaufdatum</label>${h.bd=='pre'?`<span style="flex:1;text-align:right">vor ${new Date().getFullYear()}</span>`:`<input id="dpBd" type="date" value="${h.bd&&h.bd!='pre'?h.bd:''}" max="${today()}">`}</div>
+    <div class="cell plain" style="flex-wrap:wrap;gap:6px"><span class="s" style="flex:1;min-width:150px;color:var(--muted);font-size:13px">Datum unbekannt? Bei mehreren Käufen das erste Kaufdatum.</span><button class="chip ${h.bd=='pre'?'on':''}" id="dpPre">vor ${new Date().getFullYear()}</button><button class="chip" id="dpEst">Aus Kaufpreis schätzen</button></div>
+    <div class="note" id="dpEstMsg" style="padding:0 16px 8px"></div>
     <div class="cell plain"><div class="t"><div>Investiert gesamt</div><div class="s" id="dpFx">${(h.cur||'EUR')=='EUR'?'Stückzahl × Ø Kaufpreis':'umgerechnet zum aktuellen Kurs'}</div></div><b id="dpIT">${h.inv?eur(h.inv):'–'}</b></div></div>
    <div class="sh" style="padding:0">Sparplan</div><div class="group">
     <div class="cell plain"><label for="dpR">Sparrate pro Monat</label><input id="dpR" inputmode="decimal" value="${h.rate?String(h.rate).replace('.',','):''}" placeholder="€"></div>
@@ -2501,11 +2510,14 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
     <div class="cell plain"><div class="t"><div>Kurs von Hand eintragen</div><div class="s">Wenn es keinen automatischen Kurs gibt</div></div><input type="checkbox" class="switch" id="dpM" ${h.manual?'checked':''}></div>
     ${h.manual?`<div class="cell plain"><label for="dpK">Aktueller Kurs</label><input id="dpK" inputmode="decimal" value="${h.mprice!=null?String(h.mprice).replace('.',','):h.price?String(h.price).replace('.',','):''}" placeholder="${h.cur||'EUR'} pro Stück"><span class="s" style="color:var(--muted);margin-left:4px">${h.cur||'EUR'}</span></div>`:''}</div>
    <div class="note" id="dpE" style="padding:0;color:var(--bad)"></div>${i>=0?'<button class="btn danger" id="dpDel">Position löschen</button>':''}</div></div>`;
-   const keep=()=>{h.n=$('dpN').value.trim();h.sym=$('dpY').value.trim();h.qty=qNum($('dpQ').value);{const av=qNum($('dpI').value);h.cur=$('dpCur').value;h.fx=h.cur=='EUR'?1:(fxGet(h.cur)||h.fx||1);h.avg=av||null;h.inv=av&&h.qty?Math.round(av*h.qty*h.fx*100)/100:0}h.rate=pNum($('dpR').value)||0;h.day=+$('dpD').value;h.plan=$('dpP').checked;h.book=$('dpBk').checked;if($('dpFr'))h.from=$('dpFr').value;if($('dpTo'))h.to=$('dpTo').value=='__new'?null:$('dpTo').value;h.manual=$('dpM').checked;if($('dpK')){h.mprice=qNum($('dpK').value)||null;h.price=h.mprice?h.mprice*(h.cur=='EUR'?1:(fxGet(h.cur)||h.fx||1)):null}};
+   const keep=()=>{h.n=$('dpN').value.trim();if($('dpBd'))h.bd=$('dpBd').value||null;h.sym=$('dpY').value.trim();h.qty=qNum($('dpQ').value);{const av=qNum($('dpI').value);h.cur=$('dpCur').value;h.fx=h.cur=='EUR'?1:(fxGet(h.cur)||h.fx||1);h.avg=av||null;h.inv=av&&h.qty?Math.round(av*h.qty*h.fx*100)/100:0}h.rate=pNum($('dpR').value)||0;h.day=+$('dpD').value;h.plan=$('dpP').checked;h.book=$('dpBk').checked;if($('dpFr'))h.from=$('dpFr').value;if($('dpTo'))h.to=$('dpTo').value=='__new'?null:$('dpTo').value;h.manual=$('dpM').checked;if($('dpK')){h.mprice=qNum($('dpK').value)||null;h.price=h.mprice?h.mprice*(h.cur=='EUR'?1:(fxGet(h.cur)||h.fx||1)):null}};
    $('scrim').onclick=$('dpX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
    const upT=()=>{const q=qNum($('dpQ').value),a=qNum($('dpI').value),c=$('dpCur').value,fx=c=='EUR'?1:fxGet(c);$('dpIT').textContent=q&&a?(c=='EUR'?eur(q*a):(fx?'≈ '+eur(q*a*fx):(q*a).toLocaleString('de-DE',{maximumFractionDigits:2})+' '+c)):'–';$('dpFx').textContent=c=='EUR'?'Stückzahl × Ø Kaufpreis':fx?'1 '+c+' = '+fx.toLocaleString('de-DE',{maximumFractionDigits:4})+' € (aktueller Kurs)':'Wechselkurs wird geladen …'};$('dpQ').oninput=upT;$('dpI').oninput=upT;
    $('dpCur').onchange=()=>{const c=$('dpCur').value;upT();if(c!='EUR'&&!fxGet(c))fxLoad(c).then(upT)};if($('dpCur').value!='EUR')fxLoad($('dpCur').value).then(upT);
-   document.querySelectorAll('#dpT button').forEach(b=>b.onclick=()=>{keep();h.type=b.dataset.v;draw()});$('dpM').onchange=()=>{keep();draw()};$('dpBk').onchange=()=>{keep();draw()};if($('dpFr'))$('dpFr').onchange=()=>{keep();draw()};
+   document.querySelectorAll('#dpT button').forEach(b=>b.onclick=()=>{keep();h.type=b.dataset.v;draw()});$('dpM').onchange=()=>{keep();draw()};$('dpBk').onchange=()=>{keep();draw()};
+   $('dpPre').onclick=()=>{keep();h.bd=h.bd=='pre'?null:'pre';draw()};
+   $('dpEst').onclick=async()=>{keep();if(!h.sym){$('dpEstMsg').textContent='Bitte zuerst ISIN, Ticker oder Kürzel eintragen.';return}$('dpEstMsg').textContent='Suche im Kursverlauf …';const tmp=[...depot()];if(!depot().includes(h))S.depot.push(h);let r;try{r=await estimateBuy(h)}finally{S.depot=tmp}
+     if(r.err){$('dpEstMsg').textContent=r.err;return}if(r.pre)h.bd='pre';else h.bd=r.date;draw();$('dpEstMsg').textContent=r.msg+' Du kannst das Datum jederzeit ändern.'};if($('dpFr'))$('dpFr').onchange=()=>{keep();draw()};
    if($('dpDel'))$('dpDel').onclick=()=>{const b=$('dpDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(D),sr=JSON.stringify(S.rec);const rid=D[i].rid;D.splice(i,1);if(rid)S.rec=S.rec.filter(r=>r.id!=rid);save();$('sheetRoot').innerHTML='';render();toast('Position gelöscht'+(rid?', Sparplan-Buchung auch.':'.'),()=>{S.depot=JSON.parse(s);S.rec=JSON.parse(sr);save();render()})};
    $('dpS').onclick=()=>{keep();if(!h.n&&!h.sym){$('dpE').textContent='Bitte Name oder Kürzel eintragen.';return}if(isNaN(h.qty))h.qty=0;
      if(h.rate&&h.plan){const d=new Date();let n=new Date(d.getFullYear(),d.getMonth(),h.day,12);if(n<=d)n=new Date(d.getFullYear(),d.getMonth()+1,h.day,12);if(!h.next||i<0||D[i].day!=h.day||!D[i].plan)h.next=ymd(n.getTime())}
@@ -2519,9 +2531,54 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
      if(i>=0)D[i]=h;else D.push(h);save();$('sheetRoot').innerHTML='';render();toast((i>=0?'Position gesichert.':'Position angelegt.')+note,()=>{S.rec=JSON.parse(sr);S.accts=JSON.parse(sa);S.depot=JSON.parse(sd);refreshA();save();render()});depRefresh(true)}};draw();renderAsst()}
 function bindDepot(){if(!(tab=='rep'&&repV=='Vermögen'))return;document.querySelectorAll('#depAdd').forEach(b=>b.onclick=()=>openDep(-1));
   document.querySelectorAll('[data-dep]').forEach(b=>b.onclick=()=>openDep(+b.dataset.dep));
-  if($('depRef'))$('depRef').onclick=()=>depRefresh(true);if($('depEye'))$('depEye').onclick=()=>{depShow=!depShow;render()};
+  if($('depRef'))$('depRef').onclick=()=>depRefresh(true).then(()=>loadHist(true));if($('depEye'))$('depEye').onclick=()=>{depShow=!depShow;render()};
   if($('depFnCopy'))$('depFnCopy').onclick=()=>{try{navigator.clipboard.writeText(KURS_FN).then(()=>toast('Code kopiert. Jetzt in Supabase einfügen.'))}catch(e){toast('Kopieren ging nicht.')}};
-  setTimeout(()=>depRefresh(false),50)}
+  setTimeout(()=>{depRefresh(false).then(()=>loadHist(false))},50)}
+
+/* ---------- Depot: Wertentwicklung ---------- */
+const HK='cf_hist';let HC=(()=>{try{return JSON.parse(localStorage.getItem(HK))||{}}catch(e){return{}}})();const hcSave=()=>{try{localStorage.setItem(HK,JSON.stringify(HC))}catch(e){}};
+let histBusy=false,histMsg='';const yStart=()=>new Date(new Date().getFullYear(),0,1).getTime();
+const hkey=h=>(h.type=='krypto'?'c:':'s:')+String(h.sym||'').trim().toUpperCase();
+async function cryptoHist(sym){sym=sym.toUpperCase().trim();const days=Math.ceil((Date.now()-yStart())/864e5)+1;
+  try{const s=await (await fetch('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(sym))).json();const c=(s.coins||[]).find(x=>x.symbol.toUpperCase()==sym)||(s.coins||[])[0];
+    if(c){const j=await (await fetch('https://api.coingecko.com/api/v3/coins/'+c.id+'/market_chart?vs_currency=eur&interval=daily&days='+days)).json();if(j.prices&&j.prices.length)return j.prices.map(([t,p])=>[t,p])}}catch(e){}
+  try{const st=new Date(yStart()).toISOString(),r=await (await fetch('https://api.exchange.coinbase.com/products/'+sym+'-EUR/candles?granularity=86400&start='+st+'&end='+new Date().toISOString())).json();if(Array.isArray(r)&&r.length)return r.map(x=>[x[0]*1000,x[4]]).sort((a,b)=>a[0]-b[0])}catch(e){}
+  return null}
+async function loadHist(force){if(histBusy)return;const D=depot().filter(h=>h.sym&&!h.manual);const need=D.filter(h=>{const x=HC[hkey(h)];return force||!x||Date.now()-x.t>12*36e5});if(!need.length)return;
+  histBusy=true;histMsg='Lade Kursverlauf …';let miss=0;
+  for(const h of need.filter(h=>h.type=='krypto')){const pts=await cryptoHist(h.sym);if(pts){HC[hkey(h)]={t:Date.now(),pts}}else miss++}
+  const st=need.filter(h=>h.type!='krypto');
+  if(st.length){if(syOn()){try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({q:st.map(h=>h.sym.trim().toUpperCase()),hist:true})});const j=r.ok?await r.json():{};
+      st.forEach(h=>{const x=j[h.sym.trim().toUpperCase()];if(x&&x.hist&&x.hist.length)HC[hkey(h)]={t:Date.now(),pts:x.hist};else{miss++;if(x&&x.price&&!x.hist)S.kursFnOld=true}})}catch(e){miss+=st.length}}else miss+=st.length}
+  hcSave();histBusy=false;histMsg=miss?miss+' Position'+(miss>1?'en':'')+' ohne Kursverlauf':'';if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
+function priceAt(h,t){const x=HC[hkey(h)];if(!x||!x.pts||!x.pts.length)return h.price||0;let p=x.pts[0][1];for(const [tt,v] of x.pts){if(tt>t+12*36e5)break;if(v!=null)p=v}return p}
+function depSeries(){const D=depot(),y0=yStart(),days=Math.floor((Date.now()-y0)/864e5),out=[];
+  const plans=D.map(h=>{const bd=h.bd&&h.bd!='pre'?new Date(h.bd+'T12:00').getTime():null,ev=[];
+    if(h.rate&&h.plan){const from=Math.max(bd||y0,y0);let d=new Date(new Date(from).getFullYear(),new Date(from).getMonth(),h.day||1,12);if(d.getTime()<from)d.setMonth(d.getMonth()+1);
+      while(d.getTime()<=Date.now()){const p=priceAt(h,d.getTime());if(p)ev.push({t:d.getTime(),q:h.rate/p,a:h.rate});d=new Date(d.getFullYear(),d.getMonth()+1,h.day||1,12)}}
+    return{h,bd,ev}});
+  for(let i=0;i<=days;i+=1){const t=y0+i*864e5+12*36e5;let v=0,inv=0;
+    plans.forEach(({h,bd,ev})=>{if(bd&&t<bd)return;const after=ev.filter(e=>e.t>t),q=Math.max((h.qty||0)-after.reduce((s,e)=>s+e.q,0),0),iv=Math.max((h.inv||0)-after.reduce((s,e)=>s+e.a,0),0);v+=q*priceAt(h,t);inv+=iv});
+    out.push({t,v,inv})}
+  return out}
+function depChart(S0,show){if(S0.length<2)return '';const W=330,H=170,top=12,bot=22,l=show?36:6,mx=Math.max(...S0.map(x=>Math.max(x.v,x.inv)),1),mn=Math.min(...S0.map(x=>Math.min(x.v,x.inv))),lo=Math.max(0,mn-(mx-mn)*.15),rng=(mx-lo)||1;
+  const X=i=>l+(W-l-4)*i/(S0.length-1),Y=v=>top+(H-top-bot)*(1-(v-lo)/rng),pv=S0.map((x,i)=>`${X(i).toFixed(1)},${Y(x.v).toFixed(1)}`).join(' '),pi=S0.map((x,i)=>`${X(i).toFixed(1)},${Y(x.inv).toFixed(1)}`).join(' ');
+  const MN=['J','F','M','A','M','J','J','A','S','O','N','D'];let ticks='';S0.forEach((x,i)=>{const d=new Date(x.t);if(d.getDate()==1)ticks+=`<text x="${X(i).toFixed(1)}" y="${H-6}" font-size="10" text-anchor="middle" style="fill:var(--muted)">${MN[d.getMonth()]}</text>`});
+  const grid=[lo,lo+rng/2,mx].map(v=>`<line x1="${l}" x2="${W}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--sep)"/>${show?`<text x="${l-4}" y="${(Y(v)+3).toFixed(1)}" font-size="9" text-anchor="end" style="fill:var(--muted)">${kfmt(v)}</text>`:''}`).join('');
+  const last=S0[S0.length-1],up=last.v>=last.inv;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Wertentwicklung seit Jahresbeginn">${grid}<polygon points="${X(0)},${Y(lo)} ${pv} ${X(S0.length-1)},${Y(lo)}" fill="color-mix(in srgb,var(--accent) 12%,transparent)"/><polyline points="${pi}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3"/><polyline points="${pv}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/><circle cx="${X(S0.length-1)}" cy="${Y(last.v)}" r="3.5" fill="${up?'var(--in)':'var(--out)'}"/>${ticks}</svg>`}
+function depPerfHtml(show){const D=depot();if(!D.length)return '';const S0=depSeries(),f=S0[0],l=S0[S0.length-1];if(!l)return '';
+  const contrib=(l.inv-f.inv),gain=(l.v-f.v)-contrib,base=f.v+contrib/2,pc=base>0?gain/base*100:0,sg=v=>v>0?'+':'',V=x=>show?x:'•••';
+  const noHist=D.filter(h=>!h.manual&&h.sym&&!HC[hkey(h)]).length,noBd=D.filter(h=>!h.bd).length;
+  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Wertentwicklung seit 1. Januar</span><span class="${gain<0?'out':'in'}" style="text-transform:none">${V(sg(gain)+eur0(gain))} · ${sg(pc)}${pc.toFixed(1).replace('.',',')} %</span></div>
+   <div class="chartbox">${depChart(S0,show)}<div class="legend"><span><i style="background:var(--accent)"></i>Depotwert</span><span><i style="background:var(--muted)"></i>Eingezahlt</span>${show?`<span>1. Jan: ${eur0(f.v)}</span><span>Einzahlungen: ${eur0(contrib)}</span>`:''}</div>
+   ${histMsg||noHist||noBd?`<div class="note" style="padding:6px 4px 0">${[histMsg,noHist&&!histBusy&&!histMsg?noHist+' ohne Kursverlauf: dort zählt der heutige Kurs für das ganze Jahr':'',noBd?noBd+' ohne Kaufdatum: werden so gerechnet, als hättest du sie schon vor dem 1. Januar gehabt':''].filter(Boolean).join(' · ')}</div>`:''}</div></div>`}
+async function estimateBuy(h){const k=hkey(h);if(!HC[k]){if(h.type=='krypto'){const pts=await cryptoHist(h.sym);if(pts){HC[k]={t:Date.now(),pts};hcSave()}}else await loadHist(true)}
+  const x=HC[k];const av=h.inv&&h.qty?h.inv/h.qty:null;if(!x||!av)return{err:!av?'Bitte zuerst Stückzahl und Ø Kaufpreis eintragen.':'Für diese Position gibt es keinen Kursverlauf.'};
+  const P=x.pts.filter(p=>p[1]),mn=Math.min(...P.map(p=>p[1])),mx=Math.max(...P.map(p=>p[1]));
+  if(av<mn*0.97||av>mx*1.03)return{pre:true,msg:`Dein Ø Kaufpreis (${eur(av)}) lag dieses Jahr nie im Kursbereich (${eur0(mn)} bis ${eur0(mx)}). Vermutlich hast du vor dem 1. Januar gekauft.`};
+  let best=P[0],bd=1e18;P.forEach(p=>{const d=Math.abs(p[1]-av);if(d<bd){bd=d;best=p}});const hits=P.filter(p=>Math.abs(p[1]-av)/av<0.02).length;
+  return{date:ymd(best[0]),msg:`Am ${new Date(best[0]).toLocaleDateString('de-DE')} lag der Kurs bei ${eur(best[1])}, am nächsten an deinem Ø Kaufpreis.${hits>3?' Der Kurs war an mehreren Tagen ähnlich, das Datum ist also nur eine Schätzung.':''}`}}
 
 /* ---------- Puffer verschieben & Tresor ---------- */
 const vaultAccs=()=>S.accts.filter(a=>a.vault!=null?a.vault:(a.verm||isTabu(a.n)||/etf/i.test(a.n))).map(a=>a.n);
