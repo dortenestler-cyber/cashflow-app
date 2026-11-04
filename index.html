@@ -501,6 +501,9 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 }
 kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monospace,monospace;background:var(--fill);border:1px solid var(--sep);border-bottom-width:2px;border-radius:6px;padding:2px 6px;margin-right:8px;color:var(--fg)}.kbh span{display:block;padding:4px 0;color:var(--fg)}
 @media (min-width:1000px){.kbhint{display:flex!important}}.kbhint{display:none}
+.carw{position:relative}.carbtn{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:var(--card);color:var(--accent);display:none;place-items:center;cursor:pointer;z-index:4;padding:0;box-shadow:0 4px 14px rgba(30,20,60,.18)}.carbtn:hover{background:var(--accent);color:#fff}.carbtn.prev{left:-20px}.carbtn.next{right:-20px}.cdots i{cursor:pointer}
+@media (hover:hover) and (pointer:fine){.carbtn{display:grid}}
+@media (min-width:1000px){body[data-tab] .view>.carw{grid-column:1/-1}}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -794,7 +797,7 @@ function carousel(tot,P){const sl=[`<div class="slide" data-k="Gesamt" style="${
    <div class="lbl">${b} <span style="opacity:.7">›</span></div>${badge(stat(c),1)}<div class="bal">${eur(c.rest)}</div><div style="font-size:13px;opacity:.9">übrig von ${eur0(c.total)}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.tag)} / Tag</span><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.woche)} / Woche</span></div>
    <div class="sbar"><i style="width:${Math.min(c.pct*100,100).toFixed(0)}%;background:${stat(c).k=='bad'?'#ff6b61':stat(c).k=='warn'?'#ffd36a':'#fff'}"></i></div><div style="font-size:12px;opacity:.85;margin-top:4px">${Math.round(c.pct*100)} % verbraucht · ${eur(c.used)}</div></div>`})];
-  return `<div class="car" id="car">${sl.join('')}</div><div class="cdots" id="cdots">${sl.map((_,i)=>`<i class="${i==carIdx?'on':''}"></i>`).join('')}</div>`}
+  return `<div class="carw"><div class="car" id="car">${sl.join('')}</div><button class="carbtn prev" id="carP" aria-label="Vorherige Karte">${I('back',20)}</button><button class="carbtn next" id="carN" aria-label="Nächste Karte">${I('fwd',20)}</button></div><div class="cdots" id="cdots">${sl.map((_,i)=>`<i class="${i==carIdx?'on':''}" data-ci="${i}" title="Karte ${i+1}"></i>`).join('')}</div>`}
 function openBg(k){const draw=()=>{const x=S.bg[k]||{g:0};$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Hintergrund">
   <div class="sheet-h"><span style="width:70px"></span><b>Hintergrund</b><button id="bgDone" style="font-weight:600">Fertig</button></div>
   <div class="sheet-b"><div class="bgprev" style="${bgStyle(k)}">${k=='Gesamt'?'Alle Budgets':k}</div>
@@ -881,7 +884,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='40 (04.11.)';
+const APP_VER='41 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1931,7 +1934,10 @@ function bind(){bindSwipe();bindVault();bindVaultSet();bindSync();{const pm=$('p
   on('umBtn',()=>openSheet(null,{type:'tr'}));on('shopBtn2',()=>{prevTab=tab;setView='shop';render();scrollTo(0,0)});on('umBtn2',()=>openSheet(null,{type:'tr',b:curB}));on('accBtn',()=>{tab='more';setView='accts';render();scrollTo(0,0)});
   document.querySelectorAll('[data-bg]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();openBg(b.dataset.bg)});
   document.querySelectorAll('.slide[data-k]').forEach(s=>{if(s.dataset.k=='Gesamt')return;const go=()=>{curB=s.dataset.k;swipeDir='';render();scrollTo(0,0)};s.onclick=go;s.onkeydown=e=>{if(e.key=='Enter')go()}});
-  const car=$('car');if(car){const w=()=>car.clientWidth+10;car.scrollLeft=carIdx*w();car.onscroll=()=>{const i=Math.round(car.scrollLeft/w());if(i!=carIdx){carIdx=i;$('cdots').querySelectorAll('i').forEach((d,j)=>d.classList.toggle('on',j==i))}}}
+  const car=$('car');if(car){const w=()=>car.clientWidth+10;car.scrollLeft=carIdx*w();const n=car.children.length,go=i=>{i=(i+n)%n;car.scrollTo({left:i*w(),behavior:'smooth'})};
+   const upd=()=>{if($('carP'))$('carP').style.visibility=carIdx>0?'visible':'hidden';if($('carN'))$('carN').style.visibility=carIdx<n-1?'visible':'hidden'};upd();
+   if($('carP'))$('carP').onclick=e=>{e.stopPropagation();go(carIdx-1)};if($('carN'))$('carN').onclick=e=>{e.stopPropagation();go(carIdx+1)};
+   $('cdots').querySelectorAll('[data-ci]').forEach(d=>d.onclick=()=>go(+d.dataset.ci));car.addEventListener('scroll',()=>setTimeout(upd,60));car.onscroll=()=>{const i=Math.round(car.scrollLeft/w());if(i!=carIdx){carIdx=i;$('cdots').querySelectorAll('i').forEach((d,j)=>d.classList.toggle('on',j==i))}}}
   document.querySelectorAll('#accSw button').forEach(b=>b.onclick=()=>{const ni=swL().indexOf(b.dataset.f),oi=swL().indexOf(curB);swipeDir=ni>oi?'swl':'swr';curB=b.dataset.f;render()});
   if(curB){const v=document.querySelector('.view');let x0=null,y0=null;v.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
     v.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
@@ -2202,7 +2208,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     close();render();toast(E.id?'Änderung gesichert.':(rec.type=='tr'?'Umbuchung gesichert: ':rec.type=='in'?'Einnahme gesichert: ':'Ausgabe gesichert: ')+eur(a),()=>restore(sn))}}
 $('fab').onclick=()=>openSheet();
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tbNew'))openSheet()});
-function kbHelp(){showAnswer('Tastatur',`<div class="vhelp kbh">${[['N','Neue Buchung'],['1 – 6','Übersicht, Buchungen, Kalender, Auswertung, Impulse, Einstellungen'],['← →','Monat zurück / vor'],['/','Suchen in Buchungen'],['Esc','Fenster schließen, zurück'],['?','Diese Hilfe']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}
+function kbHelp(){showAnswer('Tastatur',`<div class="vhelp kbh">${[['N','Neue Buchung'],['1 – 6','Übersicht, Buchungen, Kalender, Auswertung, Impulse, Einstellungen'],['← →','Monat zurück / vor'],['/','Suchen in Buchungen'],['Esc','Fenster schließen, zurück'],['[ ]','Budget-Karte wechseln (Übersicht)'],['?','Diese Hilfe']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}
   <b>In der Buchung</b>${[['0–9 , ⌫','Betrag tippen'],['+ − =','Rechnen'],['Buchstaben','springt ins Suchfeld (z. B. „rewe“)'],['Tab','durch Kategorien und Felder'],['Enter','Sichern'],['A / E / U','Ausgabe, Einnahme, Umbuchung (mit Alt)']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}</div>`)}
 document.addEventListener('keydown',e=>{if($('lockRoot')&&$('lockRoot').innerHTML){const k=/^[0-9]$/.test(e.key)?e.key:e.key=='Backspace'?'⌫':null;if(k){e.preventDefault();const b=document.querySelector(`.lock .pad [data-k="${k}"]`);if(b)b.click()}return}
   const tgt=e.target,inField=tgt.matches&&tgt.matches('input,textarea,select,[contenteditable]'),sheet=$('sheetRoot').innerHTML,entry=!!document.querySelector('#sheetRoot .sheet[aria-label="Buchung"]');
@@ -2222,6 +2228,7 @@ document.addEventListener('keydown',e=>{if($('lockRoot')&&$('lockRoot').innerHTM
   if(e.key=='?'){e.preventDefault();kbHelp();return}
   const T=['dash','list','cal','rep','wish','more'];if(/^[1-6]$/.test(e.key)){e.preventDefault();tab=T[+e.key-1];setView=null;curB=null;drill=null;if(off>0)off=0;render();scrollTo(0,0);return}
   if(e.key=='ArrowLeft'&&$('prevM')){e.preventDefault();$('prevM').click();return}if(e.key=='ArrowRight'&&$('nextM')&&!$('nextM').disabled){e.preventDefault();$('nextM').click();return}
+  if((e.key=='['||e.key==']')&&$('car')){e.preventDefault();$(e.key=='['?'carP':'carN').click();return}
   if(e.key=='/'){e.preventDefault();tab='list';setView=null;showF=true;render();setTimeout(()=>$('q')&&$('q').focus(),30);return}});
 $('vfab').innerHTML=I('mic',24);
 $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.webkitSpeechRecognition,shop=setView=='shop';
