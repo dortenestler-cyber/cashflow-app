@@ -445,6 +445,7 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .qty button:disabled{color:var(--muted);opacity:.4}.qty b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
 .pdbrow small.bon{color:var(--ok);display:flex;gap:3px;align-items:center}
 .tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button svg{width:23px;height:23px}
+.pufl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.pufl b{color:var(--fg);font-weight:500;text-align:right}.pufl span b{font-weight:700}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -669,7 +670,12 @@ function closeMonths(){if(!S.rollTo||!ALL.includes(S.rollTo))return;const done=[
       S.exp.push({id:uid(),type:'tr',b:a.n,to:S.rollTo,c:'',a:v,n:'Monatsabschluss',t:p.e.getTime()-60000,roll:true});done.push([a.n,v,p.label])}});S.closed.push(k)}
   if(done.length)S.lastClose={t:Date.now(),items:done};save()}
 const pufAcc=()=>S.accts.find(a=>a.puffer);
-const pufVal=()=>{const a=pufAcc();return a?calc(a.n).rest:(S.puffer||0)};
+function pufOpen(){const a=pufAcc();if(!a)return{list:[],sum:0};const P=period(0),k=pkey(P),L=[];
+  (S.rec||[]).forEach(r=>{if(r.paused||r.b!=a.n||r.type=='in')return;const d=recDue(r,P);if(!d)return;if(S.exp.some(e=>e.rid==r.id&&e.pk==k))return;L.push({n:r.n,a:r.a,d})});
+  S.exp.forEach(e=>{if(e.b==a.n&&isPlan(e)&&inP(e,P)&&(e.type=='out'||e.type=='tr')&&!L.some(x=>x.n==e.n&&Math.abs(x.a-e.a)<.01))L.push({n:e.n||e.c,a:e.a,d:new Date(e.t)})});
+  L.sort((x,y)=>x.d-y.d);return{list:L,sum:L.reduce((s,x)=>s+x.a,0)}}
+const pufBal=()=>{const a=pufAcc();return a?calc(a.n).rest:(S.puffer||0)};
+const pufVal=()=>pufAcc()?pufBal()-pufOpen().sum:(S.puffer||0);
 function vermAcc(){let a=S.accts.find(x=>x.verm);if(!a){a=S.accts.find(x=>x.n=='Vermögensaufbau');if(!a){a={n:'Vermögensaufbau',kind:'konto',col:'#2fb36b',vis:false,tot:false,start:0};S.accts.push(a);S.cats[a.n]=[["Sparen","target"],["Sonstiges","dot"]];S.bg=S.bg||{};S.bg[a.n]={g:5}}a.verm=true;a.tabu=true;refreshA();save()}return a.n}
 function streak(){const bs=TOT;if(!bs.length)return 0;let n=0;
   for(let i=1;i<=90;i++){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),t=d.getTime();if(t<S.since&&!S.ex)break;
@@ -749,7 +755,7 @@ let swipeDir='';
 let tab='dash',curB=null,off=0,flt='Alle',q='',repB='Alle',repV='Monat',setView=null;
 const TABS=[["dash","Übersicht",'<path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/>'],["list","Buchungen",'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'],
  ["cal","Kalender",'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>'],["rep","Auswertung",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["wish","Impulse",'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'],["more","Einstellungen",IC.gear]];
-let prevTab='dash',showF=false;
+let prevTab='dash',showF=false,showPuf=false;
 function renderTabs(){$('tabbar').innerHTML=TABS.map(t=>`<button class="${tab==t[0]?'on':''}" data-t="${t[0]}"><svg viewBox="0 0 24 24">${t[2]}</svg>${t[1]}</button>`).join('');
   $('tabbar').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
 function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class="${o.tabs.cur==v?'on':''}" data-f="${esc(v)}">${l}${n?` <span class="cnt">${n}</span>`:''}</button>`).join(''):'';
@@ -802,7 +808,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
     else if(c.used>0&&c.pct<soll-.15)t.push({sev:'ok',b,ttl:b+': gut unter Plan',txt:`Du liegst ${eur(soll*c.total-c.used)} unter deinem Plan. Weiter so!`})});
   const st=S.wish.filter(w=>w.g=='gestresst'&&w.s=='offen').length;if(st)t.push({sev:'warn',tab:'wish',ttl:'Impulse',txt:`${st} offene${st>1?'':'r'} Wunsch entstand unter Stress. Kurz durchatmen, bevor du entscheidest.`});
   const due=S.wish.filter(w=>w.s=='offen'&&Date.now()>=w.t+wait(w.p)).length;if(due)t.push({sev:'info',tab:'wish',ttl:'Wartezeit vorbei',txt:`Bei ${due} Wunsch${due>1?'en':''} kannst du jetzt entscheiden: kaufen, sparen oder verwerfen.`});
-  const pv=pufVal();if(pufAcc()&&pv>1000)t.push({sev:'info',act:'puf',ttl:'Puffer über 1.000 €',txt:`${eur(pv-1000)} über dem Ziel. Der Überschuss gehört in den Vermögensaufbau.`});
+  const pv=pufVal();if(pufAcc()&&pv<0)t.push({sev:'bad',ttl:'Puffer reicht nicht für die Fixkosten',txt:`Nach allen offenen Fixkosten fehlen auf ${pufAcc().n} ${eur(-pv)}. Prüfe, ob alles stimmt, oder plane eine Umbuchung.`});if(pufAcc()&&pv>1000)t.push({sev:'info',act:'puf',ttl:'Puffer über 1.000 €',txt:`${eur(pv-1000)} über dem Ziel. Der Überschuss gehört in den Vermögensaufbau.`});
   const sk=streak();if(sk>=3)t.push({sev:'ok',ttl:`${sk} Tage in Folge im Tagesbudget`,txt:'Deine Serie läuft. Heute zählt mit.'});
   if(S.lastClose&&Date.now()-S.lastClose.t<5*864e5)t.push({sev:'ok',ttl:'Monatsabschluss erledigt',txt:S.lastClose.items.map(x=>`${eur(x[1])} aus ${esc(x[0])}`).join(', ')+` sind in ${esc(S.rollTo||'')} gewandert.`});
   const lc=S.checkins[S.checkins.length-1];if(!lc||Date.now()-lc.t>6*864e5)t.push({sev:'info',act:'chk',ttl:'Wochen-Check-in',txt:'Fünf Minuten: Wie lief die Woche, was nimmst du dir vor?'});else if(lc.note)t.push({sev:'ok',ttl:'Dein Vorsatz',txt:'„'+esc(lc.note)+'“'});
@@ -853,7 +859,8 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   ${(S.debts||[]).filter(d=>!d.done).map(debtCard).join('')}
   ${BN.filter(isK).length?`<div class="sec"><div class="sh">Konten</div><div class="group">${BN.filter(isK).map(b=>{const c=calc(b);return `<button class="cell" data-b="${b}"><div class="ico" style="background:color-mix(in srgb,${COL[b]} 16%,transparent);color:${COL[b]}">${I('wallet')}</div><div class="t"><div>${esc(b)}</div><div class="s">Kontostand · nicht im Gesamtbudget</div></div><div class="v"><b>${WH(b)?MASK:eur(c.rest)}</b></div><span class="chev">›</span></button>`}).join('')}</div></div>`:''}
   <div class="sec"><div class="sh">Zusammen</div><div class="group">
-    <div class="cell plain"><div class="t"><div>Puffer ${esc(pufAcc()?pufAcc().n:'')}</div><div class="bar"><i style="width:${Math.max(0,Math.min(pufVal()/10,100))}%;background:var(--ok)"></i></div><div class="s">${pufAcc()?(()=>{const o1=usedSum([pufAcc().n],0,'Einmalig');return 'Kontostand · ab 1.000 € geht der Rest in den Vermögensaufbau'+(o1?` · ${eur0(o1)} einmalige Ausgaben diesen Monat gehen vom Puffer ab`:'')})():'Kein Eingangskonto festgelegt (Mehr › Konten)'}</div></div><div class="v">${eur0(pufVal())}</div></div>
+    <button class="cell plain" id="pufBtn" style="border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%"><div class="t"><div>Puffer ${esc(pufAcc()?pufAcc().n:'')}</div><div class="bar"><i style="width:${Math.max(0,Math.min(pufVal()/10,100))}%;background:${pufVal()<0?'var(--bad)':'var(--ok)'}"></i></div><div class="s">${pufAcc()?(()=>{const o=pufOpen(),o1=usedSum([pufAcc().n],0,'Einmalig');return `Kontostand ${eur0(pufBal())} − offene Fixkosten ${eur0(o.sum)}`+(o1?` · ${eur0(o1)} Einmaliges diesen Monat`:'')})():'Kein Eingangskonto festgelegt (Einstellungen › Konten)'}</div>
+   ${showPuf&&pufAcc()?`<div class="pufl">${pufOpen().list.map(x=>`<span>${x.d.getDate()}.${x.d.getMonth()+1}. ${esc(x.n)}</span><b>−${eur(x.a)}</b>`).join('')||'<span>Alle Fixkosten dieses Monats sind schon gebucht.</span><b></b>'}<span><b>Puffer nach Fixkosten</b></span><b>${eur(pufVal())}</b></div>`:''}</div><div class="v ${pufVal()<0?'out':''}">${eur0(pufVal())}<div class="s">${showPuf?'weniger':'Details'}</div></div></button>
   </div></div>
   ${up.length?`<div class="sec"><div class="sh">Demnächst geplant</div><div class="group">${up.map((x,ui)=>`<button class="cell" data-up="${ui}"><div class="ico" style="background:color-mix(in srgb,${COL[x.r.b]} 16%,transparent);color:${COL[x.r.b]}">${icoOf(x.r.b,x.r.c)}</div><div class="t"><div>${esc(x.r.n)}</div><div class="s">${x.d.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} · ${SHORT[x.r.b]}</div></div><div class="v ${x.r.type=='in'?'in':''}">${x.r.type=='in'?'+':x.r.type=='tr'?'':'−'}${eur(x.r.a)}</div><span class="chev">›</span></button>`).join('')}</div></div>`:''}
   <div class="sec"><div class="sh"><span>Letzte Buchungen</span><button class="link" id="allTx">Alle</button></div><div class="group">${S.exp.filter(e=>inP(e,P)).sort((a,b)=>b.t-a.t).slice(0,4).map(e=>rowOf(e,true)).join('')||'<div class="empty">Noch nichts gebucht. Tippe auf +.</div>'}</div></div>
@@ -1654,7 +1661,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     ${S.rollTo?sw('carry:'+S.rollTo,acc(S.rollTo).carry,esc(S.rollTo)+' sammelt an','Rest wird in den nächsten Monat mitgenommen'):''}</div>
     <div class="note">Stand heute würden am Monatsende ${pv.map(x=>eur(x[1])+' aus '+esc(x[0])).join(' und ')||'0 €'} nach ${esc(S.rollTo||'–')} wandern. Gebucht wird automatisch, sobald der neue Monat beginnt.</div></div>
    <div class="sec"><div class="sh">Puffer</div><div class="group"><div class="cell plain"><label for="pufA">Eingangskonto</label><select id="pufA"><option value="">keins</option>${S.accts.filter(a=>a.kind=='konto').map(a=>`<option ${a.puffer?'selected':''}>${esc(a.n)}</option>`).join('')}</select></div>
-    <div class="cell plain"><div class="t">Aktueller Puffer</div><b>${eur(pufVal())}</b></div></div><div class="note">Ziel bis 1.000 €. Darüber schlägt der Assistent eine Umbuchung in den Vermögensaufbau vor.</div></div>
+    <div class="cell plain"><div class="t">Puffer nach offenen Fixkosten</div><b>${eur(pufVal())}</b></div></div><div class="note">Puffer = Kontostand minus alle Fixkosten, die in diesem Monat noch abgehen. Ziel bis 1.000 €. Darüber schlägt der Assistent eine Umbuchung in den Vermögensaufbau vor.</div></div>
    <button class="btn soft" id="onbAgain">Einrichtung erneut starten</button>`}
   if(k=='pin')return back+`<h1 class="lt">PIN-Schutz</h1></div><div class="group"><div class="cell plain"><label for="pinin">Vierstellige PIN</label><input id="pinin" inputmode="numeric" maxlength="4" placeholder="${S.pin?'••••':'nicht gesetzt'}"></div></div>
    <button class="btn" id="pinSave">PIN speichern</button>${S.pin?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Im Dummy schützt die PIN nur vor neugierigen Blicken. Die echte App nutzt später Face ID.</div>`;
@@ -1687,7 +1694,7 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
   document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){bindSwipe();{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){bindSwipe();{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
