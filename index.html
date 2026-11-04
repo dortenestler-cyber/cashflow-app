@@ -894,7 +894,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='52 (04.11.)';
+const APP_VER='53 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2432,7 +2432,12 @@ Deno.serve(async (req) => {
         const p = qs.find((x) => /\\.DE$/.test(x.symbol)) || qs.find((x) => /\\.(F|AS|MI|PA|SW|L)$/.test(x.symbol)) || qs[0];
         if (p) sym = p.symbol;
       }
-      const m = await chart(sym);
+      let m;
+      try { m = await chart(sym); } catch (e) {
+        const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=8&q=" + encodeURIComponent(s), { headers: H })).json();
+        const qs = j.quotes || []; const p = qs.find((x) => /\.DE$/.test(x.symbol)) || qs.find((x) => /\.(F|AS|MI|PA|SW|L)$/.test(x.symbol)) || qs[0];
+        if (!p) throw e; sym = p.symbol; m = await chart(sym);
+      }
       let k = 1, cur = m.currency;
       if (cur === "GBp") { k = 0.01; cur = "GBP"; }
       if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
@@ -2448,21 +2453,29 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify(out), { headers: { ...cors, "Content-Type": "application/json" } });
 });`;
 async function cryptoPrice(sym){sym=sym.toUpperCase().trim();
-  try{const r=await fetch('https://api.coinbase.com/v2/prices/'+sym+'-EUR/spot');if(r.ok){const j=await r.json();const p=+j.data.amount;if(p)return{price:p}}}catch(e){}
+  try{const r=await fetch('https://api.coinbase.com/v2/prices/'+sym+'-EUR/spot');if(r.ok){const j=await r.json();const p=+j.data.amount;if(p){let prev=null;
+    try{const s=await (await fetch('https://api.exchange.coinbase.com/products/'+sym+'-EUR/stats')).json();if(+s.open)prev=+s.open}catch(e){}
+    if(!prev){try{const q=await (await fetch('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(sym))).json();const c=(q.coins||[]).find(x=>x.symbol.toUpperCase()==sym);if(c){const j2=await (await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+c.id+'&vs_currencies=eur&include_24hr_change=true')).json();const v=j2[c.id];if(v&&v.eur_24h_change!=null)prev=p/(1+v.eur_24h_change/100)}}catch(e){}}
+    return{price:p,prev}}}}catch(e){}
   try{const s=await (await fetch('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(sym))).json();const c=(s.coins||[]).find(x=>x.symbol.toUpperCase()==sym)||(s.coins||[])[0];if(c){const j=await (await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+c.id+'&vs_currencies=eur&include_24hr_change=true')).json();const v=j[c.id];if(v)return{price:v.eur,prev:v.eur_24h_change!=null?v.eur/(1+v.eur_24h_change/100):null}}}catch(e){}
   return null}
 let depTry=0;
 async function depRefresh(force){if(depBusy)return;const D=depot();if(!D.length)return;const fresh=D.every(h=>h.manual||(h.pt&&Date.now()-h.pt<15*60000));if(!force&&(fresh||Date.now()-depTry<5*60000))return;depTry=Date.now();
   depBusy=true;depMsg='Aktualisiere Kurse …';let ok=0,fail=0;
-  for(const h of D.filter(h=>h.type=='krypto'&&!h.manual)){const r=await cryptoPrice(h.sym);if(r){h.price=r.price;if(r.prev)h.prev=r.prev;h.pt=Date.now();ok++}else fail++}
+  for(const h of D.filter(h=>h.type=='krypto'&&!h.manual)){const r=await cryptoPrice(h.sym);if(r){h.price=r.price;h.prev=r.prev||null;h.pt=Date.now();ok++}else fail++}
   const st=D.filter(h=>h.type!='krypto'&&!h.manual&&h.sym);
   if(st.length){if(syOn()){try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({q:st.map(h=>h.sym.trim().toUpperCase())})});
-      if(r.ok){const j=await r.json();st.forEach(h=>{const x=j[h.sym.trim().toUpperCase()];if(x&&x.price){S.kursFnOld=!x.v||x.v<3;h.price=x.price;h.prev=x.prev;h.pt=Date.now();if(!h.n||h.n==h.sym)h.n=x.name;h.ysym=x.symbol;ok++}else fail++})}else{fail+=st.length;S.kursFn=false}}catch(e){fail+=st.length;S.kursFn=false}}else fail+=st.length}
+      if(r.ok){const j=await r.json();const miss=[];st.forEach(h=>{const x=j[h.sym.trim().toUpperCase()];if(x&&x.price){S.kursFnOld=!x.v||x.v<3;h.price=x.price;h.prev=x.prev;h.pt=Date.now();if(!h.n||h.n==h.sym)h.n=x.name;h.ysym=x.symbol;ok++}else miss.push(h)});
+        const alt=miss.filter(h=>!/\./.test(h.sym)&&!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/i.test(h.sym.trim()));
+        if(alt.length){const qs=[];alt.forEach(h=>['.DE','.F','.AS','.L','.MI','.PA','.SW'].forEach(s=>qs.push(h.sym.trim().toUpperCase()+s)));
+          try{const r2=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({q:qs})});const j2=r2.ok?await r2.json():{};
+            alt.forEach(h=>{const hit=['.DE','.F','.AS','.L','.MI','.PA','.SW'].map(s=>j2[h.sym.trim().toUpperCase()+s]).find(x=>x&&x.price);if(hit){h.price=hit.price;h.prev=hit.prev;h.pt=Date.now();h.ysym=hit.symbol;h.sym=hit.symbol;ok++;miss.splice(miss.indexOf(h),1)}})}catch(e){}}
+        fail+=miss.length;miss.forEach(h=>h.nofound=true);st.filter(h=>!miss.includes(h)).forEach(h=>delete h.nofound)}else{fail+=st.length;S.kursFn=false}}catch(e){fail+=st.length;S.kursFn=false}}else fail+=st.length}
   for(const h of D.filter(h=>h.manual&&h.mprice&&h.cur&&h.cur!='EUR')){const r=await fxLoad(h.cur);if(r)h.price=h.mprice*r}
   depApplyPlans();save();depBusy=false;depMsg=(ok?'Kurse aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'')+(fail?(ok?' · ':'')+fail+' ohne automatischen Kurs':'');if(ok&&st.length&&!fail)S.kursFn=true;if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
 function depApplyPlans(){const td=today();depot().forEach(h=>{if(!h.rate||!h.plan||!h.next)return;let n=0;while(h.next<=td&&n<24){if(!h.price)break;h.qty=Math.round(((h.qty||0)+h.rate/h.price)*1e6)/1e6;h.inv=Math.round(((h.inv||0)+h.rate)*100)/100;if(h.qty)h.avg=Math.round(h.inv/h.qty/((h.cur||'EUR')=='EUR'?1:(h.fx||1))*10000)/10000;const d=new Date(h.next+'T12:00');d.setMonth(d.getMonth()+1);h.next=ymd(d.getTime());n++}})}
 function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
-  const val=h=>(h.qty||0)*(h.price||0),tot=D.reduce((s,h)=>s+val(h),0),inv=D.reduce((s,h)=>s+(h.inv||0),0),g=tot-inv,mon=D.reduce((s,h)=>s+(h.rate||0),0),day=D.reduce((s,h)=>s+(h.prev&&h.price?(h.price-h.prev)*(h.qty||0):0),0);
+  const val=h=>(h.qty||0)*(h.price||(h.inv&&h.qty?h.inv/h.qty:0)),tot=D.reduce((s,h)=>s+val(h),0),inv=D.reduce((s,h)=>s+(h.inv||0),0),g=tot-inv,mon=D.reduce((s,h)=>s+(h.rate||0),0),day=D.reduce((s,h)=>s+(h.prev&&h.price?(h.price-h.prev)*(h.qty||0):0),0);
   const byT={};D.forEach(h=>byT[h.type]=(byT[h.type]||0)+val(h));const parts=Object.entries(byT).filter(x=>x[1]>0).map(([t,v])=>({k:DT[t][0],v,col:DT[t][1]}));
   const pc=(a,b)=>b?((a-b)/b*100):0,sg=v=>v>0?'+':'';
   if(!D.length)return `${vaultSecHtml(S.showWealth||depShow)}${!S.showWealth?`<button class="btn soft" id="depEye">${depShow?'Werte wieder verbergen':'Werte für diesen Besuch anzeigen'}</button>`:''}<div class="mmcard"><div class="srow" style="padding:18px"><b style="font-size:17px">Dein Depot</b><div class="s" style="color:var(--muted);font-size:14px;margin-top:6px">Trag hier deine ETFs, Aktien und Kryptowährungen ein. Kryptokurse kommen automatisch, ETF- und Aktienkurse mit einem kleinen Zusatz in Supabase (Anleitung unten) oder von Hand.</div></div></div><button class="btn" id="depAdd">${I('plus',16)} Erste Position anlegen</button>${depSetupHtml()}`;
@@ -2478,8 +2491,8 @@ function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
     <div class="srow"><div class="srow-h"><span><b>Pro Monat</b></span><span class="s" style="font-size:12px;color:var(--muted)">${eur0(mon*12)} im Jahr</span><b>${eur(mon)}</b></div></div></div></div>
    <div class="sec" style="grid-column:1/-1"><div class="sh"><span>Positionen</span><button class="link" id="depAdd">+ Position</button></div><div class="mmcard">${D.map((h,i)=>{const v=val(h),gg=v-(h.inv||0),d=h.prev&&h.price?pc(h.price,h.prev):null;return `<button class="dep" data-dep="${i}"><span class="ico" style="background:color-mix(in srgb,${DT[h.type][1]} 15%,transparent);color:${DT[h.type][1]}">${I(DT[h.type][2],18)}</span>
      <span class="t"><b>${esc(h.n||h.sym)}</b><small>${DT[h.type][0]} · ${esc(h.ysym||h.sym||'')}${h.qty?' · '+(+h.qty).toLocaleString('de-DE',{maximumFractionDigits:6})+' Stk.':''}${h.bd?' · '+(h.bd=='pre'?'vor '+new Date().getFullYear():'seit '+new Date(h.bd+'T12:00').toLocaleDateString('de-DE',{month:'short',year:'numeric'})):''}${h.qty&&h.inv?' · Ø '+eur(h.inv/h.qty)+((h.cur||'EUR')!='EUR'&&h.avg?' (gekauft in '+h.cur+')':''):''}</small></span>
-     <span class="dep-k">${h.price?eur(h.price):'<i style="color:var(--muted)">kein Kurs</i>'}<small class="${d<0?'out':d>0?'in':''}">${d!=null?sg(d)+d.toFixed(2).replace('.',',')+' % heute':h.manual?'von Hand':h.pt?'':'–'}</small></span>
-     <span class="dep-v"><b>${V(eur(v))}</b><small class="${gg<0?'out':'in'}">${h.inv?V(sg(gg)+eur0(gg))+' · '+sg(gg)+pc(v,h.inv).toFixed(1).replace('.',',')+' %':''}</small></span></button>`}).join('')}</div>
+     <span class="dep-k">${h.price?eur(h.price):`<i style="color:var(--bad)">kein Kurs</i>`}<small class="${d<0?'out':d>0?'in':''}">${d!=null?sg(d)+d.toFixed(2).replace('.',',')+' % heute':h.manual?'von Hand':!h.price?(h.nofound?'Kürzel nicht gefunden':'noch nicht geladen'):h.pt?'':'–'}</small></span>
+     <span class="dep-v"><b>${V(eur(v))}</b><small class="${gg<0?'out':'in'}">${!h.price?'<span style="color:var(--muted)">Wert zum Kaufpreis</span>':h.inv?V(sg(gg)+eur0(gg))+' · '+sg(gg)+pc(v,h.inv).toFixed(1).replace('.',',')+' %':''}</small></span></button>`}).join('')}</div>
     <div class="note">Kurse in Euro. Krypto über Coinbase/CoinGecko, ETFs und Aktien über deine Supabase-Funktion. Sparpläne werden zum aktuellen Kurs fortgeschrieben, die Stückzahl ist daher ein Näherungswert. Gleiche sie ab und zu mit deinem Depot ab.</div></div>
    ${S.kursFn&&!S.kursFnOld?'':depSetupHtml()}`}
 function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">${S.kursFnOld?'Kursfunktion aktualisieren (für den Kursverlauf)':'ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)'}</div>${S.kursFnOld?'<div class="note" style="padding:0 4px 6px">Deine Funktion „kurse“ ist von gestern. Für die Wertentwicklung bitte in Supabase die Funktion „kurse“ öffnen, den Code ersetzen und neu deployen.</div>':''}<div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
@@ -2499,6 +2512,7 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
    <div class="sheet-b"><div class="seg" id="dpT">${Object.entries(DT).map(([k,v])=>`<button class="${h.type==k?'on':''}" data-v="${k}">${v[0]}</button>`).join('')}</div>
    <div class="group"><div class="cell plain"><label for="dpN">Name</label><input id="dpN" value="${esc(h.n||'')}" placeholder="${h.type=='krypto'?'z. B. Bitcoin':'z. B. Vanguard FTSE All-World'}"></div>
     <div class="cell plain"><label for="dpY">${h.type=='krypto'?'Kürzel':'ISIN oder Ticker'}</label><input id="dpY" value="${esc(h.sym||'')}" autocapitalize="characters" placeholder="${h.type=='krypto'?'BTC, ETH, SOL …':'IE00BK5BQT80 oder VWCE.DE'}"></div>
+    ${h.type!='krypto'?`<div class="cell plain"><span class="s" style="color:var(--muted);font-size:12px">Am sichersten ist die ISIN. Beim Ticker die Börse anhängen, z. B. .DE für Xetra.${h.nofound?' <b style="color:var(--bad)">Dieses Kürzel wurde nicht gefunden.</b>':''}</span></div>`:''}
     <div class="cell plain"><label for="dpQ">Stückzahl</label><input id="dpQ" inputmode="decimal" value="${h.qty!==''&&h.qty!=null?String(h.qty).replace('.',','):''}" placeholder="z. B. 12,345"></div>
     <div class="cell plain"><label for="dpI">Ø Kaufpreis</label><input id="dpI" inputmode="decimal" value="${h.avg?String(h.avg).replace('.',','):h.inv&&h.qty?String(Math.round(h.inv/h.qty/((h.cur||'EUR')=='EUR'?1:(h.fx||1))*10000)/10000).replace('.',','):''}" placeholder="pro Stück"><select id="dpCur" class="cursel" aria-label="Währung">${CURS.map(c=>`<option ${(h.cur||'EUR')==c?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="cell plain"><label for="dpBd">Kaufdatum</label>${h.bd=='pre'?`<span style="flex:1;text-align:right">vor ${new Date().getFullYear()}</span>`:`<input id="dpBd" type="date" value="${h.bd&&h.bd!='pre'?h.bd:''}" max="${today()}">`}</div>
