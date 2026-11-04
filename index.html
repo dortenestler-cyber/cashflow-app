@@ -944,7 +944,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='75 (04.11.)';
+const APP_VER='76 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2670,28 +2670,37 @@ Deno.serve(async (req) => {
   const { q = [], hist = false, news = null } = await req.json().catch(() => ({}));
   if (Array.isArray(news)) {
     const items = []; const diag = {};
-    const dec = (x) => x.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    const dec = (x) => x.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/<[^>]+>/g, "").trim();
+    const rss = async (url, q, defSrc) => {
+      const xml = await (await fetch(url, { headers: { ...H, "Accept-Language": "de-DE,de;q=0.9", Cookie: "CONSENT=YES+cb.20240101-00-p0.de+FX+000; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmRlIAEaBgiA_LyaBg" } })).text();
+      const out = [];
+      for (const it of (xml.match(/<item>[\\s\\S]*?<\\/item>/g) || []).slice(0, 12)) {
+        const g = (t) => { const m = it.match(new RegExp("<" + t + "[^>]*>([\\\\s\\\\S]*?)<\\\\/" + t + ">")); return m ? dec(m[1]) : ""; };
+        const src = g("source") || g("News:Source") || defSrc; let title = g("title"); if (src && title.endsWith(" - " + src)) title = title.slice(0, -(src.length + 3));
+        if (title) out.push({ q, id: g("guid") || g("link"), t: title, p: src, u: g("link"), ts: Date.parse(g("pubDate")) || 0 });
+      }
+      return out;
+    };
     for (const n0 of news.slice(0, 15)) {
       const n = typeof n0 === "string" ? { q: n0, y: n0 } : n0; let c = 0;
       if (n.g) {
-        try {
-          const xml = await (await fetch("https://news.google.com/rss/search?hl=de&gl=DE&ceid=DE:de&q=" + encodeURIComponent(n.g + " when:7d"), { headers: H })).text();
-          for (const it of (xml.match(/<item>[\\s\\S]*?<\\/item>/g) || []).slice(0, 12)) {
-            const g = (t) => { const m = it.match(new RegExp("<" + t + "[^>]*>([\\\\s\\\\S]*?)<\\\\/" + t + ">")); return m ? dec(m[1]) : ""; };
-            const src = g("source"); let title = g("title"); if (src && title.endsWith(" - " + src)) title = title.slice(0, -(src.length + 3));
-            items.push({ q: n.q, id: g("guid") || g("link"), t: title, p: src || "Google News", u: g("link"), ts: Date.parse(g("pubDate")) || 0 }); c++;
-          }
-        } catch (e) { diag[n.q + ":g"] = String(e); }
+        try { const r = await rss("https://news.google.com/rss/search?hl=de&gl=DE&ceid=DE:de&q=" + encodeURIComponent(n.g + " when:7d"), n.q, "Google News"); items.push(...r); c += r.length; diag[n.q + ":g"] = r.length; } catch (e) { diag[n.q + ":g"] = String(e); }
+        if (!diag[n.q + ":g"]) { try { const r = await rss("https://www.bing.com/news/search?format=rss&setlang=de&cc=DE&q=" + encodeURIComponent(n.g), n.q, "Bing News"); items.push(...r); c += r.length; diag[n.q + ":b"] = r.length; } catch (e) { diag[n.q + ":b"] = String(e); } }
       }
       if (n.y) {
         try {
-          const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=0&newsCount=10&q=" + encodeURIComponent(n.y), { headers: H })).json();
-          for (const x of j.news || []) { items.push({ q: n.q, id: x.uuid, t: x.title, p: x.publisher, u: x.link, ts: (x.providerPublishTime || 0) * 1000 }); c++; }
+          const base = n.y.split(/[.-]/)[0].toUpperCase(); const words = (n.w || []).map((w) => w.toLowerCase());
+          const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=0&newsCount=12&q=" + encodeURIComponent(n.y), { headers: H })).json();
+          for (const x of j.news || []) {
+            const rel = (x.relatedTickers || []).map((t) => t.split(/[.-]/)[0].toUpperCase()), tl = String(x.title || "").toLowerCase();
+            if (!(rel.includes(base) || tl.includes(base.toLowerCase()) || words.some((w) => w.length > 3 && tl.includes(w)))) continue;
+            items.push({ q: n.q, id: x.uuid, t: x.title, p: x.publisher, u: x.link, ts: (x.providerPublishTime || 0) * 1000 }); c++;
+          }
         } catch (e) { diag[n.q + ":y"] = String(e); }
       }
       diag[n.q] = c;
     }
-    return new Response(JSON.stringify({ __news: items, diag, v: 5 }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ __news: items, diag, v: 6 }), { headers: { ...cors, "Content-Type": "application/json" } });
   }
   const out = {}; const fx = {};
   for (const s of q.slice(0, 40)) {
@@ -2712,7 +2721,7 @@ Deno.serve(async (req) => {
       let k = 1, cur = m.currency;
       if (cur === "GBp") { k = 0.01; cur = "GBP"; }
       if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
-      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 5 };
+      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 6 };
       if (hist) {
         const rg = { d: "range=1y&interval=1d", h: "range=5d&interval=60m", i: "range=1d&interval=5m" }[hist === true ? "d" : hist] || "range=1y&interval=1d";
         const r = (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?" + rg, { headers: H })).json()).chart.result[0];
@@ -2767,7 +2776,7 @@ function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
     <div class="note">Kurse in Euro. Krypto über Coinbase/CoinGecko, ETFs und Aktien über deine Supabase-Funktion. Sparpläne werden zum aktuellen Kurs fortgeschrieben, die Stückzahl ist daher ein Näherungswert. Gleiche sie ab und zu mit deinem Depot ab.</div></div>
    ${newsHtml()}
    ${S.kursFn&&!S.kursFnOld?'':depSetupHtml()}`}
-let NEWSDIAG=null,NEWS=null,newsBusy=false,newsMsg='',newsAll=false;try{NEWS=JSON.parse(localStorage.getItem('cf_news')||'null')}catch(e){}
+let NEWSDIAG=(()=>{try{return JSON.parse(localStorage.getItem('cf_newsdiag')||'null')}catch(e){return null}})(),NEWS=null,newsBusy=false,newsMsg='',newsAll=false;try{NEWS=JSON.parse(localStorage.getItem('cf_news')||'null')}catch(e){}
 const nWords=t=>new Set(String(t||'').toLowerCase().replace(/[^a-z0-9äöüß ]+/g,' ').split(/\s+/).filter(w=>w.length>2&&!/^(the|and|for|with|from|this|that|der|die|das|und|mit|für|von|auf|ist|des|den|dem|eine|einer|ein|its|are|was|has|have|will|stock|stocks|aktie|aktien)$/.test(w)));
 const CRN={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',XRP:'XRP Ripple',ADA:'Cardano',DOGE:'Dogecoin',DOT:'Polkadot',LINK:'Chainlink',AVAX:'Avalanche',LTC:'Litecoin',MATIC:'Polygon',POL:'Polygon',BNB:'BNB',TRX:'Tron',SHIB:'Shiba Inu',ATOM:'Cosmos',XLM:'Stellar',SUI:'Sui',TON:'Toncoin'};
 function newsG(h){if(h.type=='krypto'){const k=h.sym.trim().toUpperCase();return (CRN[k]||h.n||k)+' Kurs'}let n=String(h.n||h.sym||'').replace(/\b(UCITS|ETF|EUR|USD|Acc|Dist|Inc|\(Acc\)|\(Dist\)|Shares|Class|plc|SE|AG|Inc\.?|Corp\.?|Ltd\.?|N\.V\.|S\.A\.)\b/gi,' ').replace(/\s+/g,' ').trim();
@@ -2781,10 +2790,10 @@ function newsClean(raw){const T=newsTerms(),byQ={};T.forEach(x=>{(byQ[x.q]=byQ[x
   out.forEach(o=>{const age=(Date.now()-o.ts)/36e5;o.score=o.src.length*2+o.tags.length*1.5-Math.min(age,168)/24});
   const top=out.slice().sort((a,b)=>b.score-a.score).slice(0,3).filter(o=>o.src.length>1||o.tags.length>1),ids=new Set(top.map(o=>o.id));
   return{top,rest:out.filter(o=>!ids.has(o.id)).sort((a,b)=>b.ts-a.ts)}}
-async function newsLoad(force){const T=newsTerms();if(!T.length||newsBusy)return;if(!force&&NEWS&&Date.now()-NEWS.t<30*6e4&&NEWS.k==T.map(x=>x.q).join()+'|5'&&(NEWS.raw||[]).length)return;
+async function newsLoad(force){const T=newsTerms();if(!T.length||newsBusy)return;if(!force&&NEWS&&Date.now()-NEWS.t<30*6e4&&NEWS.k==T.map(x=>x.q).join()+'|6'&&(NEWS.raw||[]).length)return;
   if(!syOn()){newsMsg='Für News brauchst du die Online-Synchronisierung mit der Funktion „kurse“.';return}
-  newsBusy=true;newsMsg='';try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:T.filter((x,i)=>T.findIndex(y=>y.q==x.q)==i).map(x=>({q:x.q,y:/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x.q)?'':x.q,g:x.g}))})});const j=r.ok?await r.json():{};
-    if(Array.isArray(j.__news)&&(j.v||0)>=5){S.newsFnOld=false;NEWSDIAG=j.diag||null;if(!j.__news.length)newsMsg='Die Funktion hat keine Meldungen gefunden ('+Object.entries(j.diag||{}).filter(([k])=>!k.includes(':')).map(([k,v])=>k+': '+v).join(', ')+').';NEWS={t:Date.now(),k:T.map(x=>x.q).join()+'|5',raw:j.__news.map(n=>({q:n.q,id:n.id,t:n.t,p:n.p,u:n.u,ts:n.ts}))};try{localStorage.setItem('cf_news',JSON.stringify(NEWS))}catch(e){}}
+  newsBusy=true;newsMsg='';try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:T.filter((x,i)=>T.findIndex(y=>y.q==x.q)==i).map(x=>({q:x.q,y:/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x.q)?'':x.q,g:x.g,w:String(x.h.n||'').split(/\s+/).filter(w=>w.length>3&&!/^(ucits|etf|acc|dist|inc|msci|shares|global|world)$/i.test(w)).slice(0,2)}))})});const j=r.ok?await r.json():{};
+    if(Array.isArray(j.__news)&&(j.v||0)>=6){S.newsFnOld=false;NEWSDIAG=j.diag||null;if(!j.__news.length)newsMsg='Die Funktion hat keine Meldungen gefunden ('+Object.entries(j.diag||{}).filter(([k])=>!k.includes(':')).map(([k,v])=>k+': '+v).join(', ')+').';try{localStorage.setItem('cf_newsdiag',JSON.stringify(j.diag||{}))}catch(e){}NEWS={t:Date.now(),k:T.map(x=>x.q).join()+'|6',raw:j.__news.map(n=>({q:n.q,id:n.id,t:n.t,p:n.p,u:n.u,ts:n.ts}))};try{localStorage.setItem('cf_news',JSON.stringify(NEWS))}catch(e){}}
     else{S.newsFnOld=true;newsMsg=r.ok?'':'Die Funktion antwortet mit Fehler '+r.status+'.'}}catch(e){newsMsg='News konnten gerade nicht geladen werden ('+(e.message||e)+').'}newsBusy=false;if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
 const agoTxt=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<60?'vor '+Math.max(1,m)+' Min.':m<1440?'vor '+Math.round(m/60)+' Std.':m<2880?'gestern':'vor '+Math.round(m/1440)+' Tagen'};
 function newsHtml(){if(!newsTerms().length)return '';const C=NEWS?newsClean(NEWS.raw||[]):{top:[],rest:[]},all=[...C.top,...C.rest];
@@ -2795,6 +2804,7 @@ function newsHtml(){if(!newsTerms().length)return '';const C=NEWS?newsClean(NEWS
    ${newsMsg?`<div class="note" style="padding:0 4px 8px">${esc(newsMsg)}</div>`:''}
    ${all.length?`<div class="mmcard">${C.top.length?`<div class="nws-h">Wichtig</div>${C.top.map(o=>item(o,1)).join('')}${rest.length?'<div class="nws-h">Neueste</div>':''}`:''}${rest.map(o=>item(o)).join('')}</div>
    ${C.rest.length>8?`<button class="link" id="newsMore" style="display:block;margin:8px auto 0">${newsAll?'Weniger anzeigen':'Alle '+all.length+' Meldungen'}</button>`:''}
+   ${NEWSDIAG?`<div class="note" style="padding:2px 4px 0">Treffer: ${newsTerms().filter((x,i,a)=>a.findIndex(y=>y.q==x.q)==i).map(x=>esc((x.h.n||x.q).slice(0,16))+' '+(typeof NEWSDIAG[x.q]=='number'?NEWSDIAG[x.q]:'–')).join(' · ')}</div>`:''}
    <div class="note">Letzte 7 Tage, gleiche Meldungen aus mehreren Quellen sind zusammengefasst (+n). Quellen: Google News (deutsch) und Yahoo Finance. ${NEWS?'Stand '+new Date(NEWS.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'.':''}</div>`
    :`<div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">${newsBusy?'News werden geladen …':S.newsFnOld?'Noch keine News.':'Keine aktuellen Meldungen der letzten 7 Tage.'}</div></div>`}</div>`}
 function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">${S.kursFnOld?'Kursfunktion aktualisieren (für den Kursverlauf)':'ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)'}</div>${S.kursFnOld?'<div class="note" style="padding:0 4px 6px">Deine Funktion „kurse“ ist von gestern. Für die Wertentwicklung bitte in Supabase die Funktion „kurse“ öffnen, den Code ersetzen und neu deployen.</div>':''}<div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
