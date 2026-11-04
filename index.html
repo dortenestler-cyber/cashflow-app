@@ -773,7 +773,7 @@ function openBg(k){const draw=()=>{const x=S.bg[k]||{g:0};$('sheetRoot').innerHT
     cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);const prev=S.bg[k];S.bg[k]={img:cv.toDataURL('image/jpeg',.72)};
     try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){S.bg[k]=prev;$('bgMsg').textContent='Das Foto ist zu groß für den Speicher. Bitte ein anderes wählen.';return}draw()};im.src=rd.result};rd.readAsDataURL(f)}};draw()}
 let swipeDir='';
-let tab='dash',curB=null,off=0,flt='Alle',q='',repB='Alle',repV='Monat',setView=null;
+let tab='dash',curB=null,off=0,flt='Alle',q='',repB='Alle',repV='Analyse',setView=null;
 const TABS=[["dash","Übersicht",'<path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/>'],["list","Buchungen",'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'],
  ["cal","Kalender",'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>'],["rep","Auswertung",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["wish","Impulse",'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'],["more","Einstellungen",IC.gear]];
 let prevTab='dash',showF=false,showPuf=false;
@@ -844,7 +844,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='29 (04.11.)';
+const APP_VER='30 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1153,8 +1153,8 @@ function forecastHtml(){const N=6,pa=pufAcc(),mn=o=>period(o).s.toLocaleDateStri
   ${B.length?`<div class="sec"><div class="sh">Budgets im Schnitt</div><div class="group">${B.map(r=>`<div class="cell plain"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${I('wallet')}</div><div class="t"><div>${esc(SHORT[r.b]||r.b)}</div><div class="s">Budget ${eur0(r.bud)} · erwartet Ø ${eur0(r.exp)}/Monat</div></div><div class="v ${r.d<0?'out':'in'}">${r.d<0?'−':'+'}${eur0(Math.abs(r.d*N))}<div class="s">in 6 Monaten</div></div></div>`).join('')}</div><div class="note">Minus heißt: Bleibt es beim bisherigen Tempo, reicht das Budget nicht.</div></div>`:''}
   ${sav.length||over?`<div class="sec"><div class="sh">Sparen bis ${M[N-1].l}</div><div class="group">${sav.map(x=>`<div class="cell plain"><div class="t">${esc(SHORT[x.n]||x.n)}<div class="s">feste Sparraten</div></div><div class="v in">+${eur0(x.s)}</div></div>`).join('')}${over?`<div class="cell plain"><div class="t">Puffer-Überschuss<div class="s">geht in den Vermögensaufbau</div></div><div class="v in">+${eur0(over)}</div></div>`:''}</div></div>`:''}
   <div class="sec"><div class="sh">Kommt auf dich zu</div><div class="group">${big.slice(0,15).map(it=>`<div class="cell plain"><div class="t"><div>${esc(it.n)}</div><div class="s">${it.d.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${esc(SHORT[it.b]||it.b)}${it.plan?' · geplant':it.every>1?` · alle ${it.every} Monate`:''}</div></div><div class="v ${it.end?'':'out'}">${it.end?'':'−'+eur(it.a)}</div></div>`).join('')||'<div class="empty">Keine besonderen Posten in den nächsten 6 Monaten.</div>'}</div></div>`}
-function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?TOT:[repB],col=repB=='Alle'?'var(--blue)':COL[repB],kf=repK,kseg=`<div class="seg kseg" id="repK">${[['Alle','Alle'],['Einmalig','Einmalig'],['Wiederkehrend','Wiederkehrend']].map(([v,l])=>`<button class="${repK==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`,seg=`<div class="seg" id="repV">${['Monat','Budget','Verlauf','Prognose','Verträge','Bericht'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
-  const head=appbar({title:'Auswertung',big:repV=='Prognose'?'Nächste 6 Monate':repV=='Verträge'?'Verträge':'Bericht',month:repV!='Verträge'&&repV!='Prognose'&&(repV!='Bericht'||rpP=='Monat'),right:`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repV',cur:repV,items:['Monat','Budget','Verlauf','Prognose','Verträge','Bericht'].map(x=>[x,x])}});
+function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?TOT:[repB],col=repB=='Alle'?'var(--blue)':COL[repB],kf=repK,kseg=`<div class="seg kseg" id="repK">${[['Alle','Alle'],['Einmalig','Einmalig'],['Wiederkehrend','Wiederkehrend']].map(([v,l])=>`<button class="${repK==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`,seg=`<div class="seg" id="repV">${['Analyse','Monat','Verlauf','Prognose','Verträge'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
+  const head=appbar({title:'Auswertung',big:repV=='Prognose'?'Nächste 6 Monate':repV=='Verträge'?'Verträge':'Bericht',month:repV!='Verträge'&&repV!='Prognose'&&(repV!='Bericht'||rpP=='Monat'),right:repV=='Analyse'||repV=='Prognose'||repV=='Verträge'?'':`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repV',cur:repV,items:['Analyse','Monat','Verlauf','Prognose','Verträge'].map(x=>[x,x=='Monat'?'Ausgaben':x])}});
   if(repV=='Monat'){const{v}=dayVals(bs,off,kf),KL=kindLim(bs,off,kf),lim=KL?KL.v:0;
     const parts=[];bs.forEach(b=>{const by={};S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&e.type=='out'&&e.b==b&&kOk(e,kf)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
       Object.entries(by).sort((x,y)=>y[1]-x[1]).forEach(([k,val],i)=>parts.push({b,c:k,k:repB=='Alle'?k+' · '+SHORT[b]:k,v:val,ico:icoOf(b,k),col:`color-mix(in srgb,${HEX[b]} ${100-i*14}%,var(--card))`}))});
@@ -1171,6 +1171,9 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
      ${parts.length?`<div class="group">${parts.map(x=>`<button class="cell" data-dc="${esc(x.b)}|${esc(x.c)}"><div class="ico" style="background:${x.col};color:#fff">${x.ico}</div><div class="t"><div>${esc(x.k)}</div><div class="bar"><i style="width:${(x.v/tot*100).toFixed(0)}%;background:${x.col}"></i></div></div><div class="v">${eur(x.v)}<div class="s">${Math.round(x.v/tot*100)} %</div></div><span class="chev">›</span></button>`).join('')}</div>`:''}</div>
     ${topN.length?`<div class="sec"><div class="sh">Größte Ausgaben</div><div class="mmcard">${topN.map(([k,x],i)=>`<div class="srow"><div class="srow-h"><span>${i+1}. ${esc(k)}</span><span class="s" style="color:var(--muted);font-size:12px">${x.n}×</span><span class="out">${eur(x.v)}</span></div></div>`).join('')}</div></div>`:''}
     ${Object.keys(pBy).length?`<div class="sec"><div class="sh">Mit Personen</div><div class="group">${Object.entries(pBy).map(([k,val])=>`<div class="cell plain"><div class="t">${esc(k)}</div><div class="v">${eur(val)}</div></div>`).join('')}</div></div>`:''}`}
+  if(repV=='Analyse'){S.revOff=off;let bud='';{const sv=repV;repV='Budget';const s=viewRep();repV=sv;const i=s.indexOf('<div class="sec"><div class="sh">Budget gegen Ist');if(i>=0)bud=s.slice(i)}
+    return head+reviewBody(off).replace('<div class="sec"><div class="sh">Was gut lief</div>',bud+'<div class="sec"><div class="sh">Was gut lief</div>')}
+  if(repV=='Bericht'||repV=='Jahr0')repV='Analyse';
   if(repV=='Prognose')return head+forecastHtml();
   if(repV=='Bericht')return viewReport(bs,head);
   if(repV=='Verträge')return head+contractsHtml();
@@ -1696,9 +1699,10 @@ function anaData(o){const p=period(o),pp=period(o-1),V=vaultAccs(),pa=pufAcc(),L
   const ws=S.wish,nw=ws.filter(w=>inP({t:w.t},p)).length,gone=ws.filter(w=>w.dt&&inP({t:w.dt},p)&&w.s=='verworfen'),bought=ws.filter(w=>w.dt&&inP({t:w.dt},p)&&w.s=='gekauft');
   const I1=inc(L),O1=out(L),I0=inc(LP),O0=out(LP);
   return{p,I1,O1,I0,O0,saved,goalDep,fix,oneK,budUsed,accs,cats,rec,wd,wmax,kons,varOut,recOut,cnt:outs.length,days:p.len||30,nw,gone,bought,quote:I1?saved/I1:0}}
-function viewReview(){const o=S.revOff??-1,R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]||{};
-  return `${appbar({title:'Monatsanalyse',back:'setBack',noGear:true,stats:`<div class="hc-month"><button class="hc-ic" id="rvP" aria-label="Voriger Monat">${I('back',18)}</button><b>${R.p.label}</b><button class="hc-ic" id="rvN" ${o>=0?'disabled':''} aria-label="Nächster Monat">${I('fwd',18)}</button></div>`})}
-  <div class="minis">${R.bs.map(x=>{const s=stat(x.c);return `<div class="mini st-${s.k}" style="--c:${COL[x.b]};cursor:default"><div class="mini-n"><span class="dotc"></span>${esc(SHORT[x.b])}</div>${gauge(x.c.pct,COL[x.b],0,0,s.col)}<div class="mini-r ${x.c.rest<0?'out':''}">${eur0(x.c.rest)}</div><div class="mini-s">${eur0(x.c.used)} von ${eur0(x.c.total)}</div></div>`}).join('')}</div>
+function viewReview(){const o=S.revOff??-1,R=reviewData(o);
+  return `${appbar({title:'Monatsanalyse',back:'setBack',noGear:true,stats:`<div class="hc-month"><button class="hc-ic" id="rvP" aria-label="Voriger Monat">${I('back',18)}</button><b>${R.p.label}</b><button class="hc-ic" id="rvN" ${o>=0?'disabled':''} aria-label="Nächster Monat">${I('fwd',18)}</button></div>`})}${reviewBody(o)}`}
+function reviewBody(o){const R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]||{};
+  return `<div class="minis">${R.bs.map(x=>{const s=stat(x.c);return `<div class="mini st-${s.k}" style="--c:${COL[x.b]};cursor:default"><div class="mini-n"><span class="dotc"></span>${esc(SHORT[x.b])}</div>${gauge(x.c.pct,COL[x.b],0,0,s.col)}<div class="mini-r ${x.c.rest<0?'out':''}">${eur0(x.c.rest)}</div><div class="mini-s">${eur0(x.c.used)} von ${eur0(x.c.total)}</div></div>`}).join('')}</div>
   ${(()=>{const A=anaData(o),WD=['So','Mo','Di','Mi','Do','Fr','Sa'],pc=(a,b)=>b?Math.round((a-b)/b*100):0,cmax=A.cats.length?A.cats[0][1].v:1,dO=pc(A.O1,A.O0);
    const flow=[['Einnahmen',A.I1,'in'],['Fixkosten '+(pufAcc()?esc(pufAcc().n):''),-A.fix,''],['Einmaliges '+(pufAcc()?esc(pufAcc().n):''),-A.oneK,''],['Budgets verbraucht',-A.budUsed,''],['In den Tresor',-A.saved,'']].filter(x=>x[1]);
    const rest=flow.reduce((s,x)=>s+x[1],0);
@@ -1761,7 +1765,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
    nav('puffer','hourglass','Stundenlohn',eur(S.lohn)+' pro Std. · für „so viele Stunden Arbeit“',c3)+
    nav('pin','lock','PIN-Schutz',S.pin?'Aktiv':'Aus',c3))}
   ${sec('Rückblick & Hilfe','',
-   nav('review','book','Monatsanalyse','Einnahmen, Ausgaben, Konten, Sparraten, Verhalten',c4)+
+   nav('report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
    btn('vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst',c4))}
   ${sec('Aussehen','',
@@ -1800,7 +1804,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
   if(k=='month')return back+`<h1 class="lt">Finanzmonat</h1></div><div class="group"><div class="cell plain"><label for="mstart">Beginnt am</label><select id="mstart">${Array.from({length:28},(_,i)=>`<option ${S.start==i+1?'selected':''} value="${i+1}">${i+1}. des Monats</option>`).join('')}</select></div></div><div class="note">Stell hier den Tag ein, an dem dein Gehalt kommt. Budgets, Tagesbudget und Auswertungen richten sich danach.</div>`;
   if(k=='puffer')return back+`<h1 class="lt">Stundenlohn</h1></div><div class="group"><div class="cell plain"><label for="lohn">Netto pro Stunde</label><input id="lohn" type="number" step="0.1" inputmode="decimal" value="${S.lohn}"></div></div><div class="note">3.200 € netto ÷ rund 165 Stunden ≈ 19,40 €. Damit rechnet die App Preise in Arbeitszeit um. Der Puffer ergibt sich jetzt aus dem Kontostand deines Eingangskontos.</div>`;
   if(k=='pdb')return viewPdb();
-  if(k=='shop')return viewShop();if(k=='abos')return viewAbos();if(k=='yplan')return viewYplan();if(k=='ng')return viewNg();if(k=='review')return viewReview();
+  if(k=='shop')return viewShop();if(k=='abos')return viewAbos();if(k=='yplan')return viewYplan();if(k=='ng')return viewNg();if(k=='report')return viewReport(TOT,appbar({title:'Finanzbericht',back:'setBack',noGear:true,month:rpP=='Monat'}));if(k=='review')return viewReview();
   if(k=='bgs')return `<div><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Kartenhintergründe</h1></div>
    <div class="note" style="padding:0 4px">Tippe auf eine Karte, um Farbe oder Foto zu ändern.</div>
    <div class="bgl">${['Gesamt',...BN].map(b=>`<button class="bgcard" data-bg="${esc(b)}" style="${bgStyle(b)}"><span>${b=='Gesamt'?'Alle Budgets':esc(b)}</span><small>${S.bg[b]&&S.bg[b].img?'Eigenes Foto':esc((GR[(S.bg[b]||{g:0}).g||0]||GR[0])[0])} ›</small></button>`).join('')}</div>`;
@@ -1915,7 +1919,7 @@ function bind(){bindSwipe();bindVault();bindVaultSet();{const pm=$('pufMove');if
   on('toYear',()=>{drill={k:'year'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
   on('drBack',()=>{if(drill&&drill.sc){drill=Object.assign({},drill);delete drill.sc}else{drill=null;if(repV=='Jahr')repV='Monat'}render()});
   on('yPrev',()=>{yOff--;render()});on('yNext',()=>{if(yOff<0){yOff++;render()}});
-  document.querySelectorAll('[data-ym]').forEach(b=>b.onclick=()=>{off=+b.dataset.ym;drill=null;repV='Bericht';rpP='Monat';render();scrollTo(0,0)});
+  document.querySelectorAll('[data-ym]').forEach(b=>b.onclick=()=>{off=+b.dataset.ym;drill=null;repV='Analyse';render();scrollTo(0,0)});
   document.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{off=+b.dataset.cm;tab='list';listV='Täglich';flt=drill.b;q=drill.sc||drill.c;tflt=drill.type;wk=null;drill=null;render();scrollTo(0,0)});
   document.querySelectorAll('#rpP button').forEach(b=>b.onclick=()=>{rpP=b.dataset.f;render()});
   if($('rpFrom'))$('rpFrom').onchange=()=>{rpFrom=$('rpFrom').value;render()};if($('rpTo'))$('rpTo').onchange=()=>{rpTo=$('rpTo').value;render()};
@@ -2223,8 +2227,8 @@ const accIn=l=>{let best=null;ALL.forEach(a=>{const n=a.toLowerCase(),s=(SHORT[a
 const amtIn=l=>{const m=spoken(l).match(/(\d+(?:[.,]\d{1,2})?)/);return m?pNum(m[1]):null};
 function vNav(l){if(!/^(zeig|zeige|öffne|öffnen|geh|gehe|wechsel|wechsle|bring mich|navigier)/.test(l))return false;
   const go=(t,o)=>{$('sheetRoot').innerHTML='';tab=t;curB=null;setView=null;drill=null;Object.assign(window,{});if(o)o();render();scrollTo(0,0)};
-  const M=[[/prognose|vorschau|zukunft/,()=>go('rep',()=>{repV='Prognose'})],[/vertr[aä]g/,()=>go('rep',()=>{repV='Verträge'})],[/bericht/,()=>go('rep',()=>{repV='Bericht'})],[/verlauf/,()=>go('rep',()=>{repV='Verlauf'})],
-    [/auswertung|statistik|analyse/,()=>go('rep',()=>{repV='Monat'})],[/sparziel/,()=>go('wish',()=>{wishV='Sparziele'})],[/verzicht/,()=>go('wish',()=>{wishV='Verzicht'})],[/wunsch|wünsche|impuls/,()=>go('wish',()=>{wishV='Wünsche'})],
+  const M=[[/prognose|vorschau|zukunft/,()=>go('rep',()=>{repV='Prognose'})],[/vertr[aä]g/,()=>go('rep',()=>{repV='Verträge'})],[/verlauf/,()=>go('rep',()=>{repV='Verlauf'})],
+    [/analyse|monatsanalyse|rückblick/,()=>go('rep',()=>{repV='Analyse'})],[/bericht/,()=>{go('more');setView='report';render()}],[/ausgaben|auswertung|statistik/,()=>go('rep',()=>{repV='Monat'})],[/sparziel/,()=>go('wish',()=>{wishV='Sparziele'})],[/verzicht/,()=>go('wish',()=>{wishV='Verzicht'})],[/wunsch|wünsche|impuls/,()=>go('wish',()=>{wishV='Wünsche'})],
     [/einkauf|zettel/,()=>{$('sheetRoot').innerHTML='';prevTab=tab;setView='shop';render();scrollTo(0,0)}],[/kalender/,()=>go('cal')],[/buchungen|liste|umsätze/,()=>go('list')],[/einstellung/,()=>go('more')],
     [/assistent|hinweis/,()=>{$('sheetRoot').innerHTML='';asstOpen=true;renderAsst()}],[/übersicht|start|home/,()=>go('dash')]];
   for(const[re,f] of M)if(re.test(l)){f();return true}
