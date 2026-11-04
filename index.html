@@ -787,15 +787,18 @@ function stat(c){const P=c.p,soll=c.total*Math.min((P.idx||P.len)/P.len,1),over=
   return{k:'ok',col:'var(--ok)',txt:'Im Plan',over}}
 const badge=(s,onbg)=>s.k=='ok'?'':`<span class="badge ${s.k}${onbg?' onb':''}">${I(s.k=='bad'?'alert':'up',13)}${s.txt}</span>`;
 
-function gauge(pct,col,big,max,sc){const P=period(0),soll=(P.idx-.5)/P.len,r=78,cx=100,cy=92,a=p=>Math.PI*(1-Math.max(0,Math.min(p,1)));
+function gData(b,c,o=0){let cc=0;const{v}=dayVals([b],o);return{t:Math.round(c.total*100)/100,u:Math.round(c.used*100)/100,s:c.p.s.getTime(),len:c.p.len,idx:c.p.idx,cum:v.map(x=>Math.round((cc+=x)*100)/100)}}
+function gTip(g,d){const today=g.idx>0&&g.idx<=g.len?g.idx:0,dt=new Date(g.s+(d-1)*864e5),soll=g.t*d/g.len,fut=today&&d>today,spent=fut||!g.cum.length?g.u:g.cum[Math.min(d,g.cum.length)-1],diff=soll-spent;
+  return tcHead((d==today?'Heute · ':'Bis ')+dt.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})+` · Tag ${d}/${g.len}`)+tcRow('Ausgeben erlaubt',soll,'')+tcRow(fut?'Ausgegeben bis heute':'Ausgegeben',spent,'')+`<span class="tr" style="color:color-mix(in srgb,${diff>=0?'var(--ok)':'var(--bad)'} 80%,var(--bg))">${diff>=0?'Noch im Plan':'Über Plan'} <b>${eur(Math.abs(diff))}</b></span>`+(fut&&soll>g.u?`<span class="tr">Ab heute pro Tag <b>${eur(Math.max(0,(soll-g.u)/(d-today+1)))}</b></span>`:'')}
+function gauge(pct,col,big,max,sc,gd){const P=gd?{idx:gd.idx,len:gd.len}:period(0),soll=(P.idx-.5)/P.len,r=78,cx=100,cy=92,a=p=>Math.PI*(1-Math.max(0,Math.min(p,1)));
   const pt=(p,rr)=>[cx+rr*Math.cos(a(p)),cy-rr*Math.sin(a(p))];
   const arc=(p0,p1,c)=>{const[x1,y1]=pt(p0,r),[x2,y2]=pt(p1,r);return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${c}" stroke-width="14" fill="none" stroke-linecap="round"/>`};
   const[s1x,s1y]=pt(soll,r-12),[s2x,s2y]=pt(soll,r+12),[nx,ny]=pt(pct,r-24);
-  return `<svg viewBox="0 0 200 ${big?120:104}" width="100%" role="img" aria-label="${Math.round(pct*100)} Prozent verbraucht">
+  return `<svg viewBox="0 0 200 ${big?120:104}" width="100%" role="img" aria-label="${Math.round(pct*100)} Prozent verbraucht"${gd?` class="gg" data-g="${esc(JSON.stringify(gd))}" style="cursor:pointer"`:''}>
    ${arc(0,1,'var(--fill)')}${pct>0.005?arc(0,Math.min(pct,1),sc||zone(pct)):''}
    <line x1="${s1x.toFixed(1)}" y1="${s1y.toFixed(1)}" x2="${s2x.toFixed(1)}" y2="${s2y.toFixed(1)}" stroke="var(--fg)" stroke-width="2.5" stroke-linecap="round"/>
    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="var(--fg)" stroke-width="3.5" stroke-linecap="round"/>
-   <circle cx="${cx}" cy="${cy}" r="6" fill="${col}"/>
+   <circle cx="${cx}" cy="${cy}" r="6" fill="${col}"/>${gd?`<line class="gmk" x1="0" y1="0" x2="0" y2="0" stroke="${col=='#fff'?'#fff':'var(--accent)'}" stroke-width="4" stroke-linecap="round" style="display:none"/>`:''}
    ${big?`<text x="22" y="114" text-anchor="middle" font-size="10" style="fill:var(--muted)">0 €</text><text x="178" y="114" text-anchor="middle" font-size="10" style="fill:var(--muted)">${eur0(max)}</text>`:''}</svg>`}
 
 /* ---------- navigation ---------- */
@@ -902,7 +905,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='61 (04.11.)';
+const APP_VER='62 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -935,7 +938,7 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   <div class="quick"><button class="btn soft" id="shopBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('cart',18)}Einkauf${(S.shop&&S.shop.items.length)?` <span class="cnt">${S.shop.items.length}</span>`:''}</button><button class="btn soft" id="umBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Umbuchen</button><button class="btn soft" id="accBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('wallet',18)}Konten</button></div>
 
   <div class="minis">${BUDG.map(b=>{const c=calc(b),s=stat(c);return `<button class="mini st-${s.k}" data-b="${b}" style="--c:${COL[b]}">
-    <div class="mini-n"><span class="dotc"></span>${esc(SHORT[b])}</div>${gauge(c.pct,COL[b],0,0,s.col)}<div class="mini-r ${s.k=='bad'?'out':''}">${eur0(c.rest)}</div>
+    <div class="mini-n"><span class="dotc"></span>${esc(SHORT[b])}</div>${gauge(c.pct,COL[b],0,0,s.col,gData(b,c))}<div class="mini-r ${s.k=='bad'?'out':''}">${eur0(c.rest)}</div>
     <div class="mini-s">${s.k=='bad'?'aufgebraucht':s.k=='warn'?eur0(s.over)+' über Plan':eur(c.tag)+'/Tag'}</div></button>`}).join('')}</div>
   ${(()=>{const sk=streak();return sk>=2?`<div class="streak">${I('check',15)} ${sk} Tage in Folge im Tagesbudget</div>`:''})()}
   ${(S.debts||[]).filter(d=>!d.done).map(debtCard).join('')}
@@ -969,7 +972,7 @@ function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear
 function viewDetail(b){if(isK(b))return viewKonto(b);const c=calc(b),byCat={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>byCat[e.c]=(byCat[e.c]||0)+e.a);
   const cs=Object.entries(byCat).sort((x,y)=>y[1]-x[1]);
   return `<div class="hero onbg ${swipeDir} ${stat(c).k=="bad"?"sl-bad":""}" style="${bgStyle(b)}"><button class="hback" id="back" aria-label="Zurück zur Übersicht">‹</button>
-   <div class="lbl" style="font-size:17px;font-weight:700;align-self:flex-start;margin-left:40px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${b}${badge(stat(c),1)}</div>${gauge(c.pct,'#fff',true,c.total,stat(c).k=='bad'?'#fff':stat(c).k=='warn'?'#ffd36a':'#7dfca8')}<div class="grest" style="${stat(c).k=='bad'?'color:#ffd9d6':''}">${eur(c.rest)}</div><div class="gsub">übrig · ${Math.round(c.pct*100)} % verbraucht · Strich = Plan</div>
+   <div class="lbl" style="font-size:17px;font-weight:700;align-self:flex-start;margin-left:40px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${b}${badge(stat(c),1)}</div>${gauge(c.pct,'#fff',true,c.total,stat(c).k=='bad'?'#fff':stat(c).k=='warn'?'#ffd36a':'#7dfca8',gData(b,c))}<div class="grest" style="${stat(c).k=='bad'?'color:#ffd9d6':''}">${eur(c.rest)}</div><div class="gsub">übrig · ${Math.round(c.pct*100)} % verbraucht · Strich = Plan · Tacho antippen</div>
    <div style="font-size:12px;opacity:.75;margin-top:4px">‹ Wischen zum Kontowechsel ›</div></div>
   <div class="seg" id="accSw">${swL().map(x=>`<button class="${x==b?'on':''}" data-f="${x}">${esc(SHORT[x])}</button>`).join('')}</div>
   <div class="kpis"><div class="kpi">Budget<b>${eur0(c.total)}</b></div><div class="kpi">Ausgegeben<b>${eur0(c.used)}</b></div><div class="kpi">Pro Tag<b>${eur(c.tag)}</b></div><div class="kpi">Pro Woche<b>${eur0(c.woche)}</b></div></div>
@@ -1080,8 +1083,8 @@ const TCR={};let tcN=0,tcCur=null,tcDrag=false;
 const tcHead=t=>t?`<span class="th">${t}</span>`:'',tcRow=(n,v,c,mask)=>`<span class="tr">${c?`<i style="background:${c}"></i>`:''}${n?esc(n)+' ':''}<b>${mask?'•••':(typeof v=='number'?eur(v):v)}</b></span>`;
 function tcWrap(svg,o){const id='tc'+(++tcN);TCR[id]=o;const k=Object.keys(TCR);if(k.length>400)delete TCR[k[0]];return `<div class="tc" data-tc="${id}">${svg}<div class="tc-g"></div></div>`}
 function tcPill(){let p=document.getElementById('tcPill');if(!p){p=document.createElement('div');p.id='tcPill';p.setAttribute('role','status');document.body.appendChild(p)}return p}
-function tcPlace(html,x,y){const p=tcPill();p.innerHTML=html;p.style.display='flex';const w=p.offsetWidth,h=p.offsetHeight;let l=Math.max(8,Math.min(innerWidth-w-8,x-w/2)),t=y-h-10;if(t<8)t=y+18;p.style.left=l+'px';p.style.top=t+'px'}
-function tcHide(){const p=document.getElementById('tcPill');if(p)p.style.display='none';document.querySelectorAll('.tc-g').forEach(g=>g.style.display='none');tcCur=null}
+function tcPlace(html,x,y,yb){const p=tcPill();p.innerHTML=html;p.style.display='flex';const w=p.offsetWidth,h=p.offsetHeight;let l=Math.max(8,Math.min(innerWidth-w-8,x-w/2)),t=y-h-10;if(t<8)t=(yb||y)+(yb?8:18);p.style.left=l+'px';p.style.top=t+'px'}
+function tcHide(){const p=document.getElementById('tcPill');if(p)p.style.display='none';document.querySelectorAll('.gmk').forEach(k=>k.style.display='none');document.querySelectorAll('.tc-g').forEach(g=>g.style.display='none');tcCur=null}
 function tcShow(el,cx,cy){const o=TCR[el.dataset.tc];if(!o)return;const svg=el.querySelector('svg');if(!svg)return;const r=svg.getBoundingClientRect(),sc=Math.min(r.width/o.W,r.height/o.H),ox=r.left+(r.width-o.W*sc)/2,oy=r.top+(r.height-o.H*sc)/2,vx=(cx-ox)/sc,vy=(cy-oy)/sc,P=o.ys||o.xs,vv=o.ys?vy:vx;
   let bi=-1,bd=1e9;P.forEach((x,i)=>{if(o.tips[i]==null)return;const d=Math.abs(x-vv);if(d<bd){bd=d;bi=i}});if(bi<0){tcHide();return}
   document.querySelectorAll('.tc-g').forEach(g=>{if(!el.contains(g))g.style.display='none'});
@@ -1097,9 +1100,15 @@ function barTip(bar){if(bar.dataset.tip)return bar.dataset.tip;const row=bar.clo
 function tcInit(){if(window.__tc)return;window.__tc=1;
   const hit=(x,y)=>{for(const dy of [0,-7,7,-13,13]){const e=document.elementFromPoint(x,y+dy);const b=e&&e.closest&&e.closest('.bar,.sbar');if(b)return b}return null};
   document.addEventListener('pointerdown',e=>{const t=e.target.closest&&e.target.closest('.tc');if(t){tcDrag=true;tcShow(t,e.clientX,e.clientY);return}
+    const gg=e.target.closest&&e.target.closest('svg.gg');if(gg){const g=JSON.parse(gg.dataset.g),m=gg.getScreenCTM().inverse(),pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m),dx=pt.x-100,dy=92-pt.y,rr=Math.hypot(dx,dy);
+      const again=window.__gOpen===gg&&document.getElementById('tcPill')&&document.getElementById('tcPill').style.display!='none';
+      let f=rr<38?null:Math.max(0,Math.min(1,1-Math.atan2(Math.max(dy,0),dx)/Math.PI));const today=g.idx>0&&g.idx<=g.len?g.idx:g.len,d=f==null?today:Math.max(1,Math.min(g.len,Math.ceil(f*g.len)));
+      if(again&&f==null){window.__gOpen=null;window.__tcBar=null;tcHide();return}
+      tcHide();const k=gg.querySelector('.gmk');if(k){const a=Math.PI*(1-(d-.5)/g.len),r1=60,r2=96;k.setAttribute('x1',(100+r1*Math.cos(a)).toFixed(1));k.setAttribute('y1',(92-r1*Math.sin(a)).toFixed(1));k.setAttribute('x2',(100+r2*Math.cos(a)).toFixed(1));k.setAttribute('y2',(92-r2*Math.sin(a)).toFixed(1));k.style.display=''}
+      const br=gg.getBoundingClientRect();tcPlace(gTip(g,d),br.left+br.width/2,br.top+4,br.bottom);tcCur=gg;window.__gOpen=gg;window.__tcBar=gg;return}
     const d=e.target.closest&&e.target.closest('[data-tip]:not(.bar)');if(d&&d.closest('svg')){tcHide();tcPlace(d.dataset.tip,e.clientX,e.clientY);tcCur=d;return}
     const b=hit(e.clientX,e.clientY);if(b){const r=b.getBoundingClientRect();tcHide();tcPlace(barTip(b),Math.max(r.left,Math.min(r.right,e.clientX)),r.top);tcCur=b;window.__tcBar=b;return}tcHide()},true);
-  document.addEventListener('click',e=>{if(window.__tcBar&&hit(e.clientX,e.clientY)){e.stopPropagation();e.preventDefault()}window.__tcBar=null},true);
+  document.addEventListener('click',e=>{if(window.__tcBar&&(window.__tcBar.classList.contains('gg')?e.target.closest&&e.target.closest('svg.gg'):hit(e.clientX,e.clientY))){e.stopPropagation();e.preventDefault()}window.__tcBar=null},true);
   document.addEventListener('pointermove',e=>{const t=e.target.closest&&e.target.closest('.tc');if(t&&(tcDrag||e.pointerType=='mouse'))tcShow(t,e.clientX,e.clientY);else if(e.pointerType=='mouse'&&tcCur&&tcCur.classList&&tcCur.classList.contains('tc')&&!tcDrag)tcHide()},{passive:true});
   document.addEventListener('pointerup',()=>tcDrag=false);document.addEventListener('pointercancel',()=>tcDrag=false);
   addEventListener('scroll',()=>{if(tcCur)tcHide()},{passive:true,capture:true});addEventListener('resize',tcHide)}
@@ -1852,7 +1861,7 @@ function anaData(o){const p=period(o),pp=period(o-1),V=vaultAccs(),pa=pufAcc(),L
 function viewReview(){const o=S.revOff??-1,R=reviewData(o);
   return `${appbar({title:'Monatsanalyse',back:'setBack',noGear:true,stats:`<div class="hc-month"><button class="hc-ic" id="rvP" aria-label="Voriger Monat">${I('back',18)}</button><b>${R.p.label}</b><button class="hc-ic" id="rvN" ${o>=0?'disabled':''} aria-label="Nächster Monat">${I('fwd',18)}</button></div>`})}${reviewBody(o)}`}
 function reviewBody(o){const R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]||{};
-  return `<div class="minis">${R.bs.map(x=>{const s=stat(x.c);return `<div class="mini st-${s.k}" style="--c:${COL[x.b]};cursor:default"><div class="mini-n"><span class="dotc"></span>${esc(SHORT[x.b])}</div>${gauge(x.c.pct,COL[x.b],0,0,s.col)}<div class="mini-r ${x.c.rest<0?'out':''}">${eur0(x.c.rest)}</div><div class="mini-s">${eur0(x.c.used)} von ${eur0(x.c.total)}</div></div>`}).join('')}</div>
+  return `<div class="minis">${R.bs.map(x=>{const s=stat(x.c);return `<div class="mini st-${s.k}" style="--c:${COL[x.b]};cursor:default"><div class="mini-n"><span class="dotc"></span>${esc(SHORT[x.b])}</div>${gauge(x.c.pct,COL[x.b],0,0,s.col,gData(x.b,x.c,o))}<div class="mini-r ${x.c.rest<0?'out':''}">${eur0(x.c.rest)}</div><div class="mini-s">${eur0(x.c.used)} von ${eur0(x.c.total)}</div></div>`}).join('')}</div>
   ${(()=>{const A=anaData(o),WD=['So','Mo','Di','Mi','Do','Fr','Sa'],pc=(a,b)=>b?Math.round((a-b)/b*100):0,cmax=A.cats.length?A.cats[0][1].v:1,dO=pc(A.O1,A.O0);
    const flow=[['Einnahmen',A.I1,'in'],['Fixkosten '+(pufAcc()?esc(pufAcc().n):''),-A.fix,''],['Einmaliges '+(pufAcc()?esc(pufAcc().n):''),-A.oneK,''],['Budgets verbraucht',-A.budUsed,''],['In den Tresor',-A.saved,'']].filter(x=>x[1]);
    const rest=flow.reduce((s,x)=>s+x[1],0);
