@@ -845,7 +845,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='34 (04.11.)';
+const APP_VER='35 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2215,9 +2215,10 @@ async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(
 async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim(),email=$('syE').value.trim(),pw=$('syP').value,pass=$('syX').value,keep=$('syR').checked;
   if(!url||!key||!email||!pw||!pass){$('syErr').textContent='Bitte alle Felder ausfüllen.';return}if(pass.length<8){$('syErr').textContent='Das Sync-Passwort braucht mindestens 8 Zeichen.';return}
   $('syErr').textContent='Verbinde …';SY.url=url;SY.key=key;
-  try{const r=await fetch(url+'/auth/v1/'+(signup?'signup':'token?grant_type=password'),{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+  try{const appUrl=/^https:/.test(location.href)&&!/claude/.test(location.host)?location.origin+location.pathname:'https://dortenestler-cyber.github.io/cashflow-app/';
+    const r=await fetch(url+'/auth/v1/'+(signup?'signup?redirect_to='+encodeURIComponent(appUrl):'token?grant_type=password'),{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
     const j=await r.json().catch(()=>({}));if(signup&&r.ok&&!j.access_token){$('syErr').textContent='Konto angelegt. Bestätige den Link in deiner E-Mail und tippe dann auf „Anmelden“.';sySave();return}
-    if(!r.ok)throw new Error(j.error_description||j.msg||j.error||('Fehler '+r.status));await syAuthSet(j);
+    if(!r.ok){const m=j.error_description||j.msg||j.error||('Fehler '+r.status);throw new Error(/not confirmed/i.test(m)?'Deine E-Mail ist noch nicht bestätigt. Siehe Hinweis „Bestätigungslink geht nicht“ unten.':/invalid login/i.test(m)?'E-Mail oder Passwort stimmt nicht.':/already registered/i.test(m)?'Für diese E-Mail gibt es schon ein Konto. Tippe auf „Anmelden“.':m)}await syAuthSet(j);
     const row=await syGet();SY.salt=row?row.salt:b64(crypto.getRandomValues(new Uint8Array(16)));syKey=await syDerive(pass,SY.salt);
     if(row){try{await syDec(row)}catch(e){syKey=null;SY.refresh=null;sySave();$('syErr').textContent='Sync-Passwort passt nicht zu den gespeicherten Daten.';return}}
     SY.k=keep?b64(await crypto.subtle.exportKey('raw',syKey)):null;SY.rev=null;SY.at=0;SY.base=null;sySave();
@@ -2255,6 +2256,7 @@ function viewSync(){const on=syOn(),need=on&&!SY.k&&!syKey;
    <div class="sstep"><div class="sstep-n">4</div><div class="sstep-b"><b>Anmelden</b><span class="s">Mit E-Mail, Passwort und Sync-Passwort von oben. Auf jedem weiteren Gerät (PC, Browser) einfach die App-Adresse öffnen, Schlüssel aus Schritt 2 und die drei Angaben eintragen und anmelden.</span>
     <button class="btn" id="syIn">Anmelden</button></div></div>
    <div class="note" id="syErr" style="color:var(--bad)"></div>
+   <div class="note"><b>Bestätigungslink geht nicht</b> (Fehlerseite „localhost“)? In Supabase links <b>Authentication</b> › <b>Sign In / Providers</b> › <b>Email</b> › „Confirm email“ ausschalten und speichern. Dann unter <b>Authentication › Users</b> dein Konto über die drei Punkte löschen und hier nochmal „Konto erstellen“. Alternativ unter <b>Authentication › URL Configuration</b> als Site URL <code>https://dortenestler-cyber.github.io/cashflow-app/</code> eintragen.</div>
    <div class="note">Tipp, wenn alles läuft: In Supabase unter Authentication › Sign In / Providers „Allow new users to sign up“ ausschalten. Dann kann sich niemand sonst in deinem Projekt registrieren.</div>`}`}
 let syChk={};const SYDEF='https://yyltagrgzrjteltnkolw.supabase.co';
 async function syCheck(){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim();if(!url||!key){$('syC').textContent='Bitte URL und Key eintragen.';return}
@@ -2433,6 +2435,7 @@ if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(
 if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
 function applyTheme(){const t=S.theme||'system';if(t=='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);document.body.classList.toggle('bigcal',!!S.bigCal)}
 applyTheme();
+if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_token=/.test(location.hash);history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync';setTimeout(()=>toast(ok?'E-Mail bestätigt. Jetzt unten „Anmelden“ tippen.':'Der Bestätigungslink ist abgelaufen oder wurde schon benutzt. Versuch einfach „Anmelden“.'),600)}
 closeMonths();render();lock();if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
 if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
 </script>
