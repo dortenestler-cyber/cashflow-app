@@ -447,6 +447,7 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button svg{width:23px;height:23px}
 .pufl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.pufl b{color:var(--fg);font-weight:500;text-align:right}.pufl span b{font-weight:700}
 .ed-ic{border:0;background:none;color:var(--muted);padding:4px;cursor:pointer;display:inline-flex;border-radius:6px}.ed-ic:hover{background:var(--fill)}.ed-link{border:0;background:none;padding:0;color:var(--blue);font:inherit;cursor:pointer;text-align:left}
+.sheet.noanim{animation:none}.es{display:flex;flex-direction:column;gap:12px}.ctx{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.pill{border:0;background:var(--card);color:var(--fg);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;font-weight:500;display:inline-flex;gap:5px;align-items:center;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}.pill.on{box-shadow:0 0 0 2px var(--blue)}.pill .caret{color:var(--muted);font-size:10px}.impact{text-align:center;font-size:14px;font-weight:500;margin-top:-8px;color:var(--muted)}.es .chips:empty{display:none}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -1905,30 +1906,58 @@ function openOverride(a,done){const ans=[null,null,null],P1=period(1).s,Q=[
    if($('ovWish'))$('ovWish').onclick=()=>{$('modalRoot').innerHTML='';$('sheetRoot').innerHTML='';openWish()};
    $('ovGo').onclick=()=>{if(!ok)return;E.ovr={reason:reason.trim(),ans:ans.slice(),t:Date.now()};$('modalRoot').innerHTML='';done()}};draw()}
 function evalAmt(s){return (s||'').replace(/[+−]$/,'').split(/(?=[+−])/).reduce((t,x)=>t+(x[0]=='−'?-1:1)*(parseFloat(x.replace(/^[+−]/,''))||0),0)}
-function openSheet(ex,pre){E=ex?{id:ex.id,type:ex.type,b:ex.b,to:ex.to||ALL.find(x=>x!=ex.b),c:ex.c,amt:String(ex.a),n:ex.n||'',p:ex.p||'',sc:ex.sc||'',tg:(ex.tg||[]).map(t=>'#'+t).join(' '),dt:ymd(ex.t),t:ex.t,img:ex.img||'',rid:ex.rid,pk:ex.pk,rep:false,fav:false}
-  :{type:'out',b:curB||(flt!='Alle'?flt:BN[0]||ALL[0]),to:ALL.includes('Sinking Funds')?'Sinking Funds':ALL[1],c:null,amt:'',n:'',p:'',dt:today(),img:'',rep:false,fav:false};if(pre)Object.assign(E,pre);if(E.to==E.b)E.to=ALL.find(x=>x!=E.b);drawSheet()}
-function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\./g,','):'0',tr=E.type=='tr',favs=S.fav.filter(f=>E.type=='out');
-  $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Buchung">
-  <div class="sheet-h"><button id="cancel">Abbrechen</button><b>${E.id?'Buchung bearbeiten':'Neue Buchung'}</b><button id="ok" style="font-weight:600">Sichern</button></div>
-  <div class="sheet-b">
-   ${E.id?'':`<div class="search"><span style="color:var(--muted)">${I('sparkle',16)}</span><input id="equick" placeholder="Schnell: „12,50 DM Flow“ oder diktieren" value=""></div>`}
-   <div class="seg" id="typ">${[['out','Ausgabe'],['in','Einnahme'],['tr','Umbuchung']].map(t=>`<button class="${E.type==t[0]?'on':''}" data-v="${t[0]}">${t[1]}</button>`).join('')}</div>
-   ${!E.id&&favs.length?`<div class="chips">${favs.map((f,i)=>`<button class="chip" data-fav="${S.fav.indexOf(f)}" style="display:inline-flex;align-items:center;gap:5px">${I((cats(f.b).find(x=>x[0]==f.c)||[0,'dot'])[1],15)}${esc(f.n||f.c)}${f.a?' '+eur(f.a):''}</button>`).join('')}</div>`:''}
-   <div class="note" style="padding:0">${tr?'Von':'Konto'}</div>
-   <div class="seg" id="accB">${ALL.map(b=>`<button class="${E.b==b?'on':''}" data-v="${b}">${SHORT[b]}</button>`).join('')}</div>
-   ${tr?`<div class="note" style="padding:0">Nach</div><div class="seg" id="accT">${ALL.map(b=>`<button class="${E.to==b?'on':''}" data-v="${b}" ${b==E.b?'disabled style="opacity:.35"':''}>${isLock(b)?I('lock',12)+' ':''}${SHORT[b]}</button>`).join('')}</div>
-   ${isLock(E.to)?`<div class="tip bad">${I('lock',14)} <b>Notfallbremse ${esc(E.to)}.</b> ${E.ovr?'Übersteuert mit Begründung: „'+esc(E.ovr.reason)+'“':'Nachschub nur im echten Notfall, mit Begründung und drei Fragen.'}</div>`:ALL.some(isLock)?`<div class="note" style="padding:0">${I('lock',12)} Notfallbremse: ${ALL.filter(isLock).map(esc).join(', ')} bekommt keinen Nachschub.</div>`:''}`:''}
-   ${E.type!='in'&&isTabu(E.b)?`<div class="tip bad">${I('lock',14)} <b>${esc(E.b)} ist tabu.</b> Von hier wird nichts ausgegeben oder umgebucht.</div>`:''}
-   ${E.type=='out'&&!['Gönn dir','Sinking Funds'].includes(E.b)&&!isTabu(E.b)?(KONSUM.includes(E.c)?`<div class="tip">${esc(E.c)} ist Konsum. Konsum zahlst du nur aus Gönn dir oder angesparten Sinking Funds.</div>`:''):''}
-   <div class="amount ${E.type=='in'?'in':''}">${E.type=='in'?'+':''}${shown}<small> €</small>${/[+−]/.test(E.amt)?`<div class="calcres">= ${eur(evalAmt(E.amt))}</div>`:''}</div>
-   ${tr?'':`<div class="cats">${cats(E.b).map(c=>`<button class="cat ${E.c==c[0]?'on':''}" data-c="${esc(c[0])}"><span class="ico" style="background:color-mix(in srgb,${COL[E.b]} 16%,transparent);color:${COL[E.b]}">${I(c[1],20)}</span>${esc(c[0])}</button>`).join('')}</div>`}
-   <div class="pad pad4">${['7','8','9','⌫','4','5','6','+','1','2','3','−',',','0','00','='].map(k=>`<button data-k="${k}" class="${'+−=⌫'.includes(k)?'op':''}" aria-label="${k=='⌫'?'Löschen':k}">${k=='⌫'?I('backspace',22):k}</button>`).join('')}</div>
-   <button class="btn" id="ok2">Sichern</button>
-   <div class="group"><div class="cell plain"><label for="enote">Notiz</label><input id="enote" placeholder="z. B. Rewe" value="${esc(E.n)}"></div>
-    <div class="cell plain"><label for="edate">Datum</label><input id="edate" type="date" value="${E.dt}"></div>
-    <button class="cell plain" id="eMore" style="color:var(--blue)" aria-expanded="${!!E.more}">${E.more?'Weniger Details':'Mehr Details: Unterkategorie, Tags, Person, Beleg, Wiederholen'}<span style="flex:1"></span><span class="chev" style="transform:rotate(${E.more?'-90':'90'}deg)">›</span></button></div>
+function openSheet(ex,pre){E=ex?{id:ex.id,type:ex.type,b:ex.b,to:ex.to||ALL.find(x=>x!=ex.b),c:ex.c,amt:String(ex.a),n:ex.n||'',p:ex.p||'',sc:ex.sc||'',tg:(ex.tg||[]).map(t=>'#'+t).join(' '),dt:ymd(ex.t),t:ex.t,img:ex.img||'',rid:ex.rid,pk:ex.pk,rep:false,fav:false,accManual:true,orig:{b:ex.b,a:ex.a,type:ex.type}}
+  :{type:'out',b:curB||(flt!='Alle'?flt:(S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0]||ALL[0])),to:ALL.includes('Sinking Funds')?'Sinking Funds':ALL[1],c:null,amt:'',n:'',p:'',dt:today(),img:'',rep:false,fav:false,accManual:!!curB||flt!='Alle'};
+  if(pre){Object.assign(E,pre);if(pre.b)E.accManual=true}if(E.to==E.b)E.to=ALL.find(x=>x!=E.b);E.pick=null;drawSheet()}
+function catStats(){const since=Date.now()-120*864e5,M={};S.exp.forEach(e=>{if(e.type!='out'||!e.c||e.t<since||isPlan(e))return;const m=M[e.c]=M[e.c]||{n:0,acc:{}};m.n++;m.acc[e.b]=(m.acc[e.b]||0)+1});return M}
+function catList(){const seen=new Map();const add=b=>(cats(b)||[]).forEach(c=>{if(!seen.has(c[0]))seen.set(c[0],{c:c[0],ico:c[1],home:b})});
+  add(E.b);BUDG.forEach(add);ALL.filter(b=>!isTabu(b)).forEach(add);return [...seen.values()]}
+function bestAcc(c){const m=catStats()[c];if(m){const top=Object.entries(m.acc).filter(([b])=>ALL.includes(b)&&!isTabu(b)).sort((a,b)=>b[1]-a[1])[0];if(top)return top[0]}
+  if((cats(E.b)||[]).some(x=>x[0]==c))return E.b;const h=ALL.find(b=>!isTabu(b)&&(cats(b)||[]).some(x=>x[0]==c));return h||E.b}
+function sugList(q){q=(q||'').trim().toLowerCase();const out=[],key=new Set();
+  S.fav.forEach((f,i)=>{const k=(f.n||f.c).toLowerCase();if(key.has(k))return;key.add(k);out.push({n:f.n||f.c,b:f.b,c:f.c,a:f.a,fav:i})});
+  const since=Date.now()-180*864e5,by={};S.exp.forEach(e=>{if(e.type!='out'||!e.n||e.t<since||isPlan(e)||isRecE(e))return;const k=e.n.trim().toLowerCase();if(!k||key.has(k))return;const o=by[k]=by[k]||{n:e.n.trim(),b:e.b,c:e.c,cnt:0};o.cnt++});
+  Object.values(by).sort((a,b)=>b.cnt-a.cnt).forEach(o=>out.push(o));
+  if(!q)return out.slice(0,4);const sc=o=>{const n=o.n.toLowerCase();return n.startsWith(q)?0:n.includes(q)?1:(o.c||'').toLowerCase().startsWith(q)?2:3};return out.filter(o=>sc(o)<3).sort((x,y)=>sc(x)-sc(y)).slice(0,6)}
+function drawSug(){const box=$('sugBox');if(!box)return;const q=$('equick').value,L=sugList(q.replace(/\d+([.,]\d+)?/g,''));
+  box.innerHTML=L.map((s,i)=>`<button class="chip" data-sug="${i}" style="display:inline-flex;align-items:center;gap:5px">${I((cats(s.b).find(x=>x[0]==s.c)||[0,'dot'])[1],15)}${esc(s.n)}${s.a?' '+eur(s.a):''}</button>`).join('')||(q.trim()?`<span class="note" style="padding:4px 2px">Enter drücken übernimmt „${esc(q.trim())}“</span>`:'');
+  box.querySelectorAll('[data-sug]').forEach(b=>b.onclick=()=>{const s=L[+b.dataset.sug];keepS();const num=(q.match(/(\d+(?:[.,]\d{1,2})?)/)||[])[1];Object.assign(E,{b:s.b,c:s.c,n:s.n,accManual:true});if(s.a)E.amt=String(s.a);if(num)E.amt=num.replace(',','.');$('equick').value='';drawSheet()})}
+let keepS=()=>{};
+function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\./g,','):'0',tr=E.type=='tr',inc=E.type=='in',a=Math.round((evalAmt(E.amt)||0)*100)/100;
+  const back=E.orig&&E.orig.b==E.b&&E.orig.type==E.type?E.orig.a:0,P=period(0),c0=calc(E.b),after=inc?c0.rest+a-back:c0.rest-a+back,days=Math.max(P.left||1,1);
+  const typL={out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[E.type],dtL=E.dt==today()?'heute':new Date(E.dt+'T12:00').toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+  const pill=(k,label,ico)=>`<button class="pill ${E.pick==k?'on':''}" data-pick="${k}">${ico?I(ico,14):''}${label}<span class="caret">▾</span></button>`;
+  const CL=catList(),st=catStats();let top=[...CL].sort((x,y)=>((st[y.c]||{}).n||0)-((st[x.c]||{}).n||0)).slice(0,4);if(E.c&&!top.some(x=>x.c==E.c)){const s=CL.find(x=>x.c==E.c)||{c:E.c,ico:'dot',home:E.b};top=[...top.slice(0,3),s]}
+  const catBtn=x=>{const b=E.c==x.c?E.b:(E.accManual?E.b:(st[x.c]?bestAcc(x.c):x.home)),col=COL[b]||'var(--blue)';return `<button class="cat ${E.c==x.c?'on':''}" data-c="${esc(x.c)}"><span class="ico" style="background:color-mix(in srgb,${col} 16%,transparent);color:${col}">${I(x.ico,20)}</span>${esc(x.c)}</button>`};
+  const detN=[E.n&&'Notiz',E.p&&'Person',E.tg&&'Tags',E.sc&&'Unterkategorie',E.img&&'Beleg',E.rep&&'monatlich',E.fav&&'Favorit'].filter(Boolean);
+  let impact='';if(a||E.c){if(tr){const ct=calc(E.to);impact=`${esc(SHORT[E.b])} danach ${eur0(after)} · ${esc(SHORT[E.to])} danach ${eur0(ct.rest+a-(E.orig&&E.orig.type=='tr'?E.orig.a:0))}`}
+    else if(isK(E.b)||inc)impact=`${esc(SHORT[E.b])} danach: ${eur0(after)}`;
+    else impact=`<span style="color:${after<0?'var(--bad)':after/days<5?'var(--warn)':'var(--ok)'}">${esc(SHORT[E.b])} danach: ${after<0?'−'+eur0(-after)+' überzogen':eur0(after)+' übrig · '+eur0(after/days)+' pro Tag'}</span>`}
+  const prevB=document.querySelector('#sheetRoot .sheet[aria-label="Buchung"] .sheet-b'),sTop=prevB?prevB.scrollTop:0;
+  $('sheetRoot').innerHTML=`<div class="scrim" ${prevB?'style="animation:none"':''} id="scrim"></div><div class="sheet ${prevB?'noanim':''}" role="dialog" aria-label="Buchung">
+  <div class="sheet-h"><button id="cancel">Abbrechen</button><b>${E.id?'Buchung bearbeiten':'Neue Buchung'}</b><span style="min-width:70px"></span></div>
+  <div class="sheet-b es">
+   ${E.id?'':`<div class="search"><span style="color:var(--muted)">${I('search',16)}</span><input id="equick" placeholder="Rewe, Kaffee … oder „12,50 DM Flow“" autocomplete="off" enterkeyhint="done"></div><div class="chips" id="sugBox"></div>`}
+   <div class="amount ${inc?'in':''}">${inc?'+':''}${shown}<small> €</small>${/[+−]/.test(E.amt)?`<div class="calcres">= ${eur(evalAmt(E.amt))}</div>`:''}</div>
+   ${impact?`<div class="impact">${impact}</div>`:''}
+   <div class="ctx">${pill('type',typL)}${pill('acc',(tr?'von ':inc?'auf ':'von ')+esc(SHORT[E.b]),isLock(E.b)||isTabu(E.b)?'lock':'wallet')}${tr?pill('to','nach '+esc(SHORT[E.to]),isLock(E.to)?'lock':null):''}${pill('date',dtL,null)}</div>
+   ${E.pick=='type'?`<div class="seg" id="typ">${[['out','Ausgabe'],['in','Einnahme'],['tr','Umbuchung']].map(t=>`<button class="${E.type==t[0]?'on':''}" data-v="${t[0]}">${t[1]}</button>`).join('')}</div>`:''}
+   ${E.pick=='acc'?`<div class="seg" id="accB">${ALL.map(b=>`<button class="${E.b==b?'on':''}" data-v="${esc(b)}">${isLock(b)||isTabu(b)?I('lock',12)+' ':''}${esc(SHORT[b])}</button>`).join('')}</div>`:''}
+   ${E.pick=='to'?`<div class="seg" id="accT">${ALL.map(b=>`<button class="${E.to==b?'on':''}" data-v="${esc(b)}" ${b==E.b?'disabled style="opacity:.35"':''}>${isLock(b)?I('lock',12)+' ':''}${esc(SHORT[b])}</button>`).join('')}</div>`:''}
+   ${E.pick=='date'?`<div class="group"><div class="cell plain"><label for="edate">Datum</label><input id="edate" type="date" value="${E.dt}"></div></div>`:''}
+   ${!E.accManual&&E.c&&!tr?`<div class="note" style="padding:0;text-align:center">Konto passend zu ${esc(E.c)} gewählt. Tippe auf „von ${esc(SHORT[E.b])}“, um zu wechseln.</div>`:''}
+   ${tr&&isLock(E.to)?`<div class="tip bad">${I('lock',14)} <b>Notfallbremse ${esc(E.to)}.</b> ${E.ovr?'Übersteuert mit Begründung: „'+esc(E.ovr.reason)+'“':'Nachschub nur im echten Notfall, mit Begründung und drei Fragen.'}</div>`:''}
+   ${!inc&&isTabu(E.b)?`<div class="tip bad">${I('lock',14)} <b>${esc(E.b)} ist tabu.</b> Von hier wird nichts ausgegeben oder umgebucht.</div>`:''}
+   ${E.type=='out'&&isLock(E.b)&&a&&after<0?`<div class="tip bad">${I('lock',14)} <b>Notfallbremse:</b> ${esc(E.b)} reicht dafür nicht. Ist es leer, ist es leer.</div>`:''}
+   ${E.type=='out'&&!['Gönn dir','Sinking Funds'].includes(E.b)&&!isTabu(E.b)&&KONSUM.includes(E.c)?`<div class="tip">${esc(E.c)} ist Konsum. Konsum zahlst du nur aus Gönn dir oder angesparten Sinking Funds.</div>`:''}
+   ${tr?'':`<div class="cats">${(E.allCats?CL:top).map(catBtn).join('')}</div>${CL.length>4?`<button class="ed-link" id="allCats" style="align-self:center;color:var(--blue);font-size:14px">${E.allCats?'Weniger Kategorien':'Alle Kategorien ('+CL.length+')'}</button>`:''}`}
+   <div class="pad ${E.calc?'pad4':''}" style="width:100%;max-width:340px;margin:0 auto">${(E.calc?['7','8','9','⌫','4','5','6','+','1','2','3','−',',','0','=','✕']:['7','8','9','4','5','6','1','2','3',',','0','⌫']).map(k=>`<button data-k="${k}" class="${'+−=⌫✕'.includes(k)?'op':''}" aria-label="${k=='⌫'?'Löschen':k=='✕'?'Rechner schließen':k}">${k=='⌫'?I('backspace',22):k}</button>`).join('')}</div>
+   ${E.calc?'':`<button class="ed-link" id="calcOn" style="align-self:center;color:var(--muted);font-size:13px">+ − Rechnen</button>`}
+   <button class="btn" id="ok">${a?eur(a)+' '+(tr?'umbuchen':inc?'als Einnahme sichern':'sichern'):'Sichern'}</button>
+   <div class="note" id="eerr" style="color:var(--bad);padding:0"></div>
+   <div class="group"><button class="cell plain" id="eMore" style="color:var(--blue)" aria-expanded="${!!E.more}">${E.more?'Details einklappen':'Details hinzufügen'}${!E.more&&detN.length?`<span class="s" style="color:var(--muted);margin-left:6px">${detN.join(', ')}</span>`:''}<span style="flex:1"></span><span class="chev" style="transform:rotate(${E.more?'-90':'90'}deg)">›</span></button></div>
    <div class="group" ${E.more?'':'hidden'}>
-    <div class="cell plain" hidden><label for="enote_old">Notiz</label></div>
+    <div class="cell plain"><label for="enote">Notiz</label><input id="enote" placeholder="z. B. Rewe" value="${esc(E.n)}"></div>
     ${tr?'':`<div class="cell plain"><label for="esub">Unterkategorie</label><input id="esub" list="subs" placeholder="optional" value="${esc(E.sc||'')}"><datalist id="subs">${[...new Set(S.exp.filter(e=>e.b==E.b&&e.c==E.c&&e.sc).map(e=>e.sc))].map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>`}
     <div class="cell plain"><label for="etags">Tags</label><input id="etags" placeholder="#urlaub #geschenk" value="${esc(E.tg||'')}"></div>
     ${tr?'':`<div class="cell plain"><label for="eperson">Person</label><input id="eperson" placeholder="optional" value="${esc(E.p)}"></div>`}
@@ -1937,23 +1966,26 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     ${E.rep&&E.type=='out'&&!isK(E.b)?`<div class="cell plain"><div class="s" style="font-size:12px;color:color-mix(in srgb,var(--warn) 75%,var(--fg))">Wiederkehrend aus ${esc(E.b)} belastet jeden Monat dein Budget. Fixkosten besser aufs Eingangskonto buchen.</div></div>`:''}
     ${tr?'':`<div class="cell plain"><label for="efav">Als Favorit merken</label><span style="flex:1"></span><input id="efav" type="checkbox" class="switch" ${E.fav?'checked':''}></div>`}`}
    </div>
-   <div class="note" id="eerr" style="color:var(--bad)"></div>
-   ${E.id&&E.t>Date.now()?`<button class="btn" id="nowE">${I('check',18)} Heute buchen statt am ${new Date(E.t).toLocaleDateString('de-DE')}</button>`:''}
+   ${E.id&&E.t>Date.now()?`<button class="btn soft" id="nowE">${I('check',18)} Heute buchen statt am ${new Date(E.t).toLocaleDateString('de-DE')}</button>`:''}
    ${E.id?'<button class="btn danger" id="delE">Buchung löschen</button>':''}
   </div></div>`;
-  const keep=()=>{if($('equick')&&$('equick').value.trim())quickParse($('equick').value);E.n=$('enote').value;E.tg=$('etags').value;if($('esub'))E.sc=$('esub').value;E.dt=$('edate').value;if($('eperson'))E.p=$('eperson').value;if($('erep')){const was=E.rep;E.rep=$('erep').checked;if(was!==E.rep)setTimeout(drawSheet,0)}if($('efav'))E.fav=$('efav').checked};
+  if(sTop)document.querySelector('#sheetRoot .sheet-b').scrollTop=sTop;
+  const keep=keepS=()=>{if($('edate'))E.dt=$('edate').value||E.dt;E.n=$('enote').value;E.tg=$('etags').value;if($('esub'))E.sc=$('esub').value;if($('eperson'))E.p=$('eperson').value;if($('erep')){const was=E.rep;E.rep=$('erep').checked;if(was!==E.rep)setTimeout(drawSheet,0)}if($('efav'))E.fav=$('efav').checked};
   const close=()=>$('sheetRoot').innerHTML='';
   $('scrim').onclick=$('cancel').onclick=close;
   $('eMore').onclick=()=>{keep();E.more=!E.more;drawSheet()};
-  $('ok2').onclick=()=>$('ok').click();
-  document.querySelectorAll('#typ button').forEach(b=>b.onclick=()=>{keep();E.type=b.dataset.v;drawSheet()});
-  document.querySelectorAll('#accB button').forEach(b=>b.onclick=()=>{keep();E.b=b.dataset.v;E.c=null;if(E.to==E.b)E.to=ALL.find(x=>x!=E.b);drawSheet()});
-  document.querySelectorAll('#accT button').forEach(b=>b.onclick=()=>{keep();E.to=b.dataset.v;drawSheet()});
-  document.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{keep();E.c=b.dataset.c;drawSheet()});
-  document.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>{const f=S.fav[b.dataset.fav];keep();Object.assign(E,{b:f.b,c:f.c,n:f.n||'',amt:f.a?String(f.a):E.amt});drawSheet()});
+  document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{keep();E.pick=E.pick==b.dataset.pick?null:b.dataset.pick;drawSheet()});
+  if($('edate'))$('edate').onchange=()=>{keep();E.pick=null;drawSheet()};
+  document.querySelectorAll('#typ button').forEach(b=>b.onclick=()=>{keep();E.type=b.dataset.v;E.pick=null;drawSheet()});
+  document.querySelectorAll('#accB button').forEach(b=>b.onclick=()=>{keep();E.b=b.dataset.v;E.accManual=true;if(E.to==E.b)E.to=ALL.find(x=>x!=E.b);E.pick=null;drawSheet()});
+  document.querySelectorAll('#accT button').forEach(b=>b.onclick=()=>{keep();E.to=b.dataset.v;E.pick=null;drawSheet()});
+  document.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{keep();E.c=b.dataset.c;if(!E.accManual&&E.type=='out')E.b=bestAcc(E.c);E.allCats=false;drawSheet()});
+  if($('allCats'))$('allCats').onclick=()=>{keep();E.allCats=!E.allCats;drawSheet()};
+  if($('calcOn'))$('calcOn').onclick=()=>{keep();E.calc=true;drawSheet()};
   document.querySelectorAll('.pad button').forEach(b=>b.onclick=()=>{keep();const k=b.dataset.k;
     const seg=E.amt.split(/[+−]/).pop();
-    if(k=='⌫')E.amt=E.amt.slice(0,-1);
+    if(k=='✕'){const v=evalAmt(E.amt);E.amt=v?String(Math.round(v*100)/100):'';E.calc=false}
+    else if(k=='⌫')E.amt=E.amt.slice(0,-1);
     else if(k=='='){const v=evalAmt(E.amt);E.amt=v?String(Math.round(v*100)/100):''}
     else if(k=='+'||k=='−'){if(!E.amt)return;E.amt=/[+−]$/.test(E.amt)?E.amt.slice(0,-1)+k:E.amt+k}
     else if(k==','){if(!seg.includes('.'))E.amt+=(seg?'':'0')+'.'}
@@ -1961,9 +1993,9 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     drawSheet()});
   $('eimg').onchange=ev=>{const f=ev.target.files[0];if(!f)return;keep();const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,500/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);E.img=cv.toDataURL('image/jpeg',.6);drawSheet()};im.src=rd.result};rd.readAsDataURL(f)};
   if($('imgDel'))$('imgDel').onclick=()=>{keep();E.img='';drawSheet()};
-  if($('nowE'))$('nowE').onclick=()=>{$('edate').value=today();E.t=Date.now();$('ok').click()};
+  if($('nowE'))$('nowE').onclick=()=>{E.dt=today();E.t=Date.now();if($('edate'))$('edate').value=E.dt;$('ok').click()};
   if($('delE'))$('delE').onclick=()=>{const s=snap();S.exp=S.exp.filter(e=>e.id!=E.id);save();close();render();toast('Buchung gelöscht.',()=>restore(s))};
-  if($('equick'))$('equick').onchange=()=>{quickParse($('equick').value);$('equick').value='';drawSheet()};
+  if($('equick')){drawSug();$('equick').oninput=drawSug;$('equick').onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();const v=$('equick').value;if(!v.trim())return;keep();const b0=E.b;quickParse(v);if(E.b!=b0)E.accManual=true;if(E.c&&!E.accManual&&E.type=='out')E.b=bestAcc(E.c);$('equick').value='';drawSheet()}}}
   $('ok').onclick=()=>{keep();const a=Math.round(evalAmt(E.amt)*100)/100;
     if(E.type!='in'&&isTabu(E.b)){$('eerr').textContent=E.b+' ist tabu. Wähle ein anderes Konto.';return}
     if(E.type=='tr'&&isLock(E.to)&&!E.id&&!E.ovr){if(!a){$('eerr').textContent='Bitte zuerst den Betrag eingeben.';return}openOverride(a,()=>{drawSheet();$('ok').click()});return}
@@ -1973,6 +2005,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     const rec={id:E.id||uid(),type:E.type,b:E.b,c:E.type=='tr'?'':E.c,a,n:E.n,t};
     if(E.type=='tr'){rec.to=E.to;if(E.ovr)rec.ovr=E.ovr;if(E.alloc)rec.alloc=true}else{if(E.p)rec.p=E.p.trim();if(E.sc&&E.sc.trim())rec.sc=E.sc.trim()}const tg=(E.tg||'').split(/[\s,]+/).map(x=>x.replace(/^#/,'')).filter(Boolean);if(tg.length)rec.tg=tg;if(E.img)rec.img=E.img;if(E.rid){rec.rid=E.rid;rec.pk=E.pk}
     if(E.rep&&!E.id){const r={id:uid(),type:E.type,b:E.b,c:rec.c,a,n:E.n||E.c||'Umbuchung',day:dd};if(E.type=='tr')r.to=E.to;S.rec.push(r);rec.rid=r.id;rec.pk=pkey(period(0))}
+    if(E.type=='out'&&!E.id)S.lastAcc=E.b;
     if(E.fav&&!E.id&&E.type=='out')S.fav.push({b:E.b,c:E.c,n:E.n,a});
     if(rec.ovr&&!E.id){S.ovrLog=S.ovrLog||[];S.ovrLog.push({id:rec.id,t:rec.t,from:rec.b,to:rec.to,a,reason:rec.ovr.reason,ans:rec.ovr.ans})}
     const sn=snap();if(E.id)S.exp=S.exp.map(e=>e.id==E.id?rec:e);else S.exp.push(rec);
