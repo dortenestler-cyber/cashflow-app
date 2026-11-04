@@ -531,6 +531,10 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .nws-m em{font-style:normal;font-weight:600;font-size:11px;padding:2px 7px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
 .nws-h{padding:10px 14px 2px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.nws-h:not(:first-child){border-top:.5px solid var(--sep);margin-top:2px}
 .atip{position:relative}.atip-x0{position:absolute;top:6px;right:6px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}.atip-x0:hover{background:var(--sep)}.atip-t{padding-right:24px}
+.wk{background:linear-gradient(135deg,color-mix(in srgb,var(--ok) 16%,var(--card)),var(--card));border-radius:22px;padding:14px 16px;margin-top:10px;border:.5px solid color-mix(in srgb,var(--ok) 30%,transparent)}
+.wk-h{display:flex;align-items:center;gap:6px;color:var(--ok);font-size:13px}.wk-big{font-size:30px;font-weight:800;margin:6px 0 10px;display:flex;flex-direction:column;line-height:1.1}.wk-big small{font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
+.wk-g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.wk-g div{background:var(--fill);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column}.wk-g b{font-size:18px}.wk-g span{font-size:11.5px;color:var(--muted)}.wk-f{font-size:12px;color:var(--muted);margin-top:10px}
+.rkcode{font:700 20px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-align:center;padding:16px;border-radius:16px;background:var(--fill);word-break:break-all;user-select:all;-webkit-user-select:all}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -940,11 +944,13 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(P.idx<=5){const R=reviewData(-1);if(R.bs.some(x=>x.c.used>0))t.push({sev:'info',act:'review',ttl:'Dein Monatsrückblick '+period(-1).label,txt:`${R.good.length} Dinge liefen gut${R.bad.length?', '+R.bad.length+' nicht so gut':''}. Schau ihn dir an.`})}
   if(CANFILE&&S.exp.length&&(!S.lastBak||Date.now()-S.lastBak>7*864e5))t.push({sev:'info',act:'bak',ttl:'Zeit für eine Sicherung',txt:S.lastBak?'Deine letzte Sicherung ist über eine Woche alt.':'Du hast noch nie eine Sicherung gespeichert. Leg sie in iCloud Drive ab.'});
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
+  if(syOn()&&!S.rkAt)t.push({sev:'warn',act:'rk',ttl:'Notfall-Schlüssel fehlt',txt:'Vergisst du das Sync-Passwort, sind deine Online-Daten nicht mehr lesbar. Ein Notfall-Schlüssel und eine automatische Monats-Sicherung verhindern das.'});
+  if(abgleichAccs().length&&S.exp.length&&Date.now()-(S.lastAbg||0)>14*864e5)t.push({sev:'info',act:'abg',ttl:'Kontostand abgleichen',txt:'Seit zwei Wochen nicht mit der Bank verglichen. Dauert 30 Sekunden und hält Puffer und Prognosen genau.'});
   catOutliers().forEach(x=>t.push({sev:'info',ttl:`Ungewöhnlich viel: ${x.k}`,txt:`Diesen Monat schon ${eur(x.v)} für ${esc(x.k)}, sonst im Schnitt ${eur(x.a)} im ganzen Monat. Ist das geplant oder schleicht sich da etwas ein?`}));
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='77 (04.11.)';
+const APP_VER='78 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -952,7 +958,7 @@ function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hid
   r.innerHTML=`<button class="abub ${top}" id="abub" aria-label="Assistent, ${t.length} Hinweise" aria-expanded="${asstOpen}">${ROBO}${n?`<span class="acnt">${n}</span>`:''}</button>
    ${asstOpen?`<div class="apop" role="dialog" aria-label="Hinweise"><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${ROBO}</span>Dein Assistent</b><button id="aClose" aria-label="Schließen">${I('close',20)}</button></div>
     <div class="apop-b">${t.map((x,i)=>`<div class="atip ${x.sev}" data-tk="${esc(tkey(x))}"><button class="atip-x0" data-adis="${i}" aria-label="Hinweis ausblenden" title="Ausblenden">${I('close',14)}</button><div class="atip-t">${asstNew.includes(tkey(x))?'<span class="newdot">Neu</span>':''}${I(x.sev=='bad'?'alert':x.sev=='warn'?'up':x.sev=='ok'?'check':'sparkle',15)}<b>${esc(x.ttl)}</b></div><div class="atip-x">${x.txt}</div>
-     ${x.b||x.tab||x.act?`<div class="choices" style="margin-top:6px">${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='shopP'?`<button data-ashopp="${i}">Preise nachtragen</button>`:''}${x.act=='sub'?`<button data-asub="${i}">Ins Abo-Radar</button><button data-asubn="${i}">Kein Abo</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}</div>
+     ${x.b||x.tab||x.act?`<div class="choices" style="margin-top:6px">${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='shopP'?`<button data-ashopp="${i}">Preise nachtragen</button>`:''}${x.act=='rk'?`<button data-ark="${i}">Jetzt einrichten</button>`:''}${x.act=='abg'?`<button data-aabg="${i}">Jetzt abgleichen</button>`:''}${x.act=='sub'?`<button data-asub="${i}">Ins Abo-Radar</button><button data-asubn="${i}">Kein Abo</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}</div>
     <div class="apop-f">Wichtiges meldet sich sofort, Infos gesammelt ab 18 Uhr, nachts ist Ruhe.${(S.dismTips||[]).length?` · <button class="link" id="aUndis" style="font-size:11px">${S.dismTips.length} ausgeblendet, zeigen</button>`:''}</div></div>`:''}`;
   $('abub').onclick=e=>{e.stopPropagation();asstOpen=!asstOpen;if(asstOpen){asstNew=t.filter(x=>!(S.seenTips||[]).includes(tkey(x))).map(tkey);S.seenTips=[...new Set([...(S.seenTips||[]),...t.map(tkey)])];save()}renderAsst()};
   if(asstOpen){r.querySelectorAll('.atip .choices button').forEach(b=>b.addEventListener('click',()=>{const k=b.closest('.atip').dataset.tk;S.dismTips=[...new Set([...(S.dismTips||[]),k])];save()},true));$('aClose').onclick=()=>{asstOpen=false;renderAsst()};r.querySelectorAll('[data-adis]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=t[b.dataset.adis];S.dismTips=[...new Set([...(S.dismTips||[]),tkey(x)])];save();renderAsst()});if($('aUndis'))$('aUndis').onclick=e=>{e.stopPropagation();S.dismTips=[];save();renderAsst()};r.querySelector('.apop').onclick=e=>e.stopPropagation();
@@ -962,6 +968,8 @@ function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hid
     r.querySelectorAll('[data-actv]').forEach(b=>b.onclick=()=>{asstOpen=false;tab='rep';repV='Verträge';drill=null;curB=null;setView=null;render();scrollTo(0,0)});
     r.querySelectorAll('[data-abak]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='export';render();scrollTo(0,0)});
     r.querySelectorAll('[data-arev]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='review';S.revOff=-1;render();scrollTo(0,0)});
+    r.querySelectorAll('[data-ark]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='export';render();scrollTo(0,0);setTimeout(openRkSetup,100)});
+    r.querySelectorAll('[data-aabg]').forEach(b=>b.onclick=()=>{asstOpen=false;renderAsst();openAbgleich()});
     r.querySelectorAll('[data-asub]').forEach(b=>b.onclick=()=>{const x=t[b.dataset.asub];asstOpen=false;renderAsst();subAdopt(x.sk)});
     r.querySelectorAll('[data-asubn]').forEach(b=>b.onclick=()=>{const x=t[b.dataset.asubn];S.subNo=[...new Set([...(S.subNo||[]),x.sk])];save();renderAsst();toast('Alles klar, wird nicht mehr vorgeschlagen.')});
     r.querySelectorAll('[data-ashopp]').forEach(b=>b.onclick=()=>{asstOpen=false;S.shop.unkTip=Date.now();save();prevTab=tab;setView='shop';render();scrollTo(0,0);setTimeout(openShopPrices,50)});
@@ -1007,6 +1015,7 @@ function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear
    <div style="width:100%;color:#fff">${lineChart({n:6,series:[{pts:hist,col:'#fff',area:true,dot:true}],labels:hist.map((_,i)=>({i,t:period(i-5).s.toLocaleDateString('de-DE',{month:'short'}),on:i==5})),h:120,tipLab:i=>period(i-5).s.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}</div>
    <div style="font-size:12px;opacity:.75">‹ Wischen zum Kontowechsel ›</div></div>
   <div class="seg" id="accSw">${swL().map(x=>`<button class="${x==b?'on':''}" data-f="${x}">${esc(SHORT[x])}</button>`).join('')}</div>
+  <button class="btn soft" id="kAbg" data-kb="${esc(b)}" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('check',18)}Kontostand mit Bank abgleichen</button>
   <div class="kpis"><div class="kpi">Rein<b class="in">${eur0(c.inc)}</b></div><div class="kpi">Raus<b>${eur0(c.out)}</b></div><div class="kpi">Umb. rein<b>${eur0(c.trI)}</b></div><div class="kpi">Umb. raus<b>${eur0(c.trO)}</b></div></div>
   <button class="btn soft" id="umBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Von ${esc(b)} umbuchen</button>
   ${cs.length?`<div class="sec"><div class="sh">Ausgaben nach Kategorie</div><div class="group">${cs.map(([k,v])=>`<button class="cell" data-cat="${esc(k)}"><div class="ico" style="background:color-mix(in srgb,${COL[b]} 16%,transparent);color:${COL[b]}">${icoOf(b,k)}</div><div class="t"><div>${esc(k)}</div><div class="bar"><i style="width:${(v/c.out*100).toFixed(0)}%;background:${COL[b]}"></i></div></div><div class="v">${eur(v)}</div></button>`).join('')}</div></div>`:''}
@@ -1362,6 +1371,17 @@ function goalsHtml(){const act=S.goals.filter(g=>!g.done&&!g.dropped),fin=S.goal
    </div></div>`}).join('')||'<div class="empty">Noch keine Sparziele. Wähle bei einem Wunsch nach der Wartezeit „Als Sparziel“.</div>'}</div>
    <div class="note">Das Geld liegt in deinem Sinking-Funds-Pocket. Hier siehst du, wofür es verplant ist.</div></div>
   ${fin.length?`<div class="sec"><div class="sh">Erreichte Sparziele</div><div class="group">${fin.map(g=>`<div class="cell plain"><div class="t"><div>${esc(g.n)}</div><div class="s">Angelegt ${fd(g.t)} · gekauft ${fd(g.done)}</div></div><div class="v in" style="display:flex;align-items:center;gap:4px">${I('check',16)}${eur(g.ziel)}</div></div>`).join('')}</div></div>`:''}`}
+/* ---------- Wirkung der Impulsbremsen ---------- */
+function wirkung(from){const W=S.wish||[],f=x=>(x||0)>=from;
+  const dropped=W.filter(w=>w.s=='verworfen'&&f(w.dt||w.t)),saved=W.filter(w=>w.s=='Sparziel'&&f(w.dt||w.t)),bought=W.filter(w=>w.s=='gekauft'&&f(w.dt||w.t)),open=W.filter(w=>w.s=='offen');
+  const goalsDone=(S.goals||[]).filter(g=>g.done&&f(g.done)),ovr=(S.ovrLog||[]).filter(x=>f(x.t)),blocked={length:Math.max(0,(S.brakeAtt||[]).filter(t=>f(t)).length-ovr.length)};
+  const decided=dropped.length+saved.length+bought.length;
+  return{dropV:dropped.reduce((s,w)=>s+(w.p||0),0),drop:dropped.length,saveV:saved.reduce((s,w)=>s+(w.p||0),0),save:saved.length,buy:bought.length,buyV:bought.reduce((s,w)=>s+(w.p||0),0),open:open.length,goals:goalsDone.length,ovr:ovr.length,blocked:blocked.length,rate:decided?Math.round((dropped.length+saved.length)/decided*100):null}}
+function wirkungHtml(){const y=new Date(new Date().getFullYear(),0,1).getTime(),m=period(0).s.getTime(),Y=wirkung(y),M=wirkung(m);if(!Y.drop&&!Y.save&&!Y.buy&&!Y.ovr&&!Y.blocked)return '';
+  return `<div class="wk"><div class="wk-h">${I('sparkle',16)}<b>Deine Impulsbremse wirkt</b></div>
+   <div class="wk-big">${eur0(Y.dropV+Y.saveV)}<small>${new Date().getFullYear()} nicht spontan ausgegeben</small></div>
+   <div class="wk-g"><div><b>${Y.drop}</b><span>Wünsche losgelassen</span></div><div><b>${Y.save}</b><span>in Sparziele umgewandelt</span></div><div><b>${Y.rate==null?'–':Y.rate+' %'}</b><span>Verzichtsquote</span></div><div><b>${Y.blocked}</b><span>Notfallbremse hat gestoppt</span></div></div>
+   <div class="wk-f">Diesen Monat: ${eur0(M.dropV+M.saveV)} gespart durch Warten${M.ovr?` · Bremse ${M.ovr}× gelöst`:''}${Y.buy?` · gekauft nach Wartezeit: ${Y.buy} (${eur0(Y.buyV)})`:''}</div></div>`}
 function notBoughtHtml(){const nb=[...S.wish.filter(w=>w.s=='verworfen').map(w=>({n:w.n,p:w.p,t:w.dt||w.t,g:w.g,w:w.w,k:'Wunsch verworfen'})),
    ...S.goals.filter(g=>g.dropped).map(g=>({n:g.n,p:g.ziel,t:g.dropped,g:g.g,w:g.w,k:'Sparziel aufgegeben'}))].sort((a,b)=>b.t-a.t);
   const bought=S.wish.filter(w=>w.s=='gekauft'),bySt={};nb.forEach(x=>bySt[x.g||'–']=(bySt[x.g||'–']||0)+x.p);
@@ -1388,6 +1408,7 @@ function musterHtml(){const W=S.wish;if(!W.length)return '';const grp=f=>{const 
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   return `${appbar({title:'Impulse',big:open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden',left:`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`,tabs:{id:'wishV',cur:wishV,items:[['Wünsche','Wünsche',open.length],['Sparziele','Sparziele',act],['Verzicht','Verzicht',S.wish.filter(w=>w.s=='verworfen').length]]}})}
   <div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div>
+  ${wirkungHtml()}
   ${wishV=='Wünsche'?`<div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine offenen Wünsche. Neue Wünsche kommen zuerst für 14 Tage hierher.</div>'}</div>
     <div class="note">Regel: Jeder Wunsch wartet mindestens 14 Tage. Danach prüft der Kauf-Check, ob Gönn dir oder ein Sparziel ihn deckt.</div>`
    :wishV=='Sparziele'?goalsHtml():notBoughtHtml()+musterHtml()}`}
@@ -1550,20 +1571,32 @@ function decideWish(i,s){const w=S.wish[i],prev=JSON.stringify({w,g:S.goals,gs:S
   if(s=='Sparziel'&&!S.goals.some(g=>g.n==w.n&&!g.done&&!g.dropped))S.goals.unshift({id:uid(),n:w.n,ziel:w.p,t:Date.now(),from:"Wunsch",g:w.g,w:w.w,l:w.l,dep:[]});save();render();
   if(s=='verworfen'&&S.cele!==false)celebrate(eur(w.p)+' gespart');
   toast(s=='verworfen'?`Losgelassen: ${eur(w.p)} gespart.`:'Als Sparziel angelegt.',()=>{const o=JSON.parse(prev);Object.assign(S.wish[i],o.w);S.goals=o.g;S.gespart=o.gs;save();render()})}
+/* ---------- Kontostand-Abgleich ---------- */
+function abgleichAccs(){return S.accts.filter(a=>a.kind=='konto'&&!isTabu(a.n)&&!depot().some(h=>h.to==a.n)).map(a=>a.n)}
+function corrBook(b,real){const cur=calc(b).rest,d=Math.round((real-cur)*100)/100;if(Math.abs(d)<0.01)return 0;S.exp.push({id:uid(),type:d>0?'in':'out',b,c:'Korrektur',a:Math.abs(d),n:'Kontoabgleich',t:Date.now(),corr:true});S.lastAbg=Date.now();return d}
+function openAbgleich(only){const L=only?[only]:abgleichAccs();if(!L.length){toast('Kein Konto zum Abgleichen.');return}
+  $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kontostand abgleichen"><div class="sheet-h"><button id="agX">Abbrechen</button><b>Kontostand abgleichen</b><button id="agS" style="font-weight:600">Übernehmen</button></div>
+   <div class="sheet-b"><div class="note" style="padding:0">Schau in deine Banking-App und trag den echten Stand ein. Weicht er ab, bucht die App den Unterschied als „Kontoabgleich“. Leere Felder bleiben unverändert.</div>
+   <div class="group">${L.map((b,i)=>`<div class="cell plain"><div class="t" style="flex:1;min-width:0"><div>${esc(b)}</div><div class="s">In der App: ${eur(calc(b).rest)}</div></div><input id="agV${i}" inputmode="decimal" placeholder="echter Stand" style="max-width:120px;text-align:right"><span>€</span></div>`).join('')}</div>
+   ${S.lastAbg?`<div class="note" style="padding:0">Letzter Abgleich: ${new Date(S.lastAbg).toLocaleDateString('de-DE')}</div>`:''}</div></div>`;
+  $('scrim').onclick=$('agX').onclick=()=>{$('sheetRoot').innerHTML=''};
+  $('agS').onclick=()=>{const res=[];L.forEach((b,i)=>{const v=pNum($('agV'+i).value);if(!isNaN(v)){const d=corrBook(b,v);if(d)res.push(b+' '+(d>0?'+':'−')+eur(Math.abs(d)))}});S.lastAbg=Date.now();save();$('sheetRoot').innerHTML='';render();toast(res.length?'Korrigiert: '+res.join(', '):'Alles stimmt überein. 👍')}}
 function openCheckin(){const ws=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7)).getTime(),L=S.exp.filter(e=>e.t>=ws&&e.type=='out'&&TOT.includes(e.b));
   const sp=L.reduce((s,e)=>s+e.a,0),p=period(0),plan=budOf(TOT)/p.len*(Math.floor((Date.now()-ws)/864e5)+1),by={};L.forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
   const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,3),newW=S.wish.filter(w=>w.t>=ws).length,dec=S.wish.filter(w=>(w.dt||0)>=ws&&w.s=='verworfen');let mood=null;
-  const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Wochen-Check-in"><div class="sheet-h"><button id="ciX">Später</button><b>Wochen-Check-in</b><span style="width:60px"></span></div>
+  const draw=()=>{const kv=abgleichAccs().map((b,i)=>$('ciK'+i)?$('ciK'+i).value:'');$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Wochen-Check-in"><div class="sheet-h"><button id="ciX">Später</button><b>Wochen-Check-in</b><span style="width:60px"></span></div>
    <div class="sheet-b"><div class="mmsum"><div>Ausgegeben<b class="${sp>plan?'out':''}">${eur0(sp)}</b></div><div>Plan bis heute<b>${eur0(plan)}</b></div><div>Serie<b>${streak()} Tage</b></div></div>
    <div class="mmcard">${BUDG.map(b=>{const c=calc(b),s=stat(c);return `<div class="srow"><div class="srow-h"><span>${esc(b)}</span>${badge(s)||'<span class="badge ok">im Plan</span>'}<span>${eur0(c.rest)} übrig</span></div></div>`}).join('')}</div>
    ${top.length?`<div class="note" style="padding:0">Am meisten diese Woche: ${top.map(([k,v])=>esc(k)+' '+eur0(v)).join(', ')}.</div>`:''}
+   ${(()=>{const Y=wirkung(new Date(new Date().getFullYear(),0,1).getTime());return Y.dropV+Y.saveV>0?`<div class="note" style="padding:0">Seit Jahresbeginn hat dich das Warten ${eur0(Y.dropV+Y.saveV)} gespart.</div>`:''})()}
    <div class="note" style="padding:0">${newW} neue Wünsche, ${dec.length} losgelassen${dec.length?' ('+eur0(dec.reduce((s,w)=>s+w.p,0))+' gespart)':''}.</div>
+   ${abgleichAccs().length?`<div class="sh" style="padding:0">Stimmt der Kontostand?</div><div class="group">${abgleichAccs().map((b,i)=>`<div class="cell plain"><div class="t" style="flex:1;min-width:0"><div>${esc(b)}</div><div class="s">In der App: ${eur(calc(b).rest)}</div></div><input id="ciK${i}" inputmode="decimal" placeholder="echter Stand" style="max-width:120px;text-align:right"><span>€</span></div>`).join('')}</div><div class="note" style="padding:0">Optional. Weicht der echte Stand ab, bucht die App den Unterschied als Kontoabgleich.</div>`:''}
    <div class="sh" style="padding:0">Wie lief die Woche?</div><div class="chips wrap">${['Gut im Griff','Okay','Schwierig'].map(x=>`<button class="chip ${mood==x?'on':''}" data-cm="${x}">${x}</button>`).join('')}</div>
    <div class="group"><div class="cell plain"><label for="ciNote">Mein Vorsatz</label><input id="ciNote" placeholder="z. B. Keine Shopping-Apps abends"></div></div>
    <button class="btn" id="ciDone">Check-in abschließen</button></div></div>`;
    $('scrim').onclick=$('ciX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
-   document.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const n=$('ciNote').value;mood=b.dataset.cm;draw();$('ciNote').value=n});
-   $('ciDone').onclick=()=>{if(S.cele!==false)setTimeout(()=>celebrate('Check-in geschafft'),50);S.checkins.push({t:Date.now(),note:$('ciNote').value.trim(),mood,sp});save();$('sheetRoot').innerHTML='';render();toast('Check-in gespeichert. Bis nächste Woche!')}};draw();renderAsst()}
+   document.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const n=$('ciNote').value,kv=abgleichAccs().map((x,i)=>$('ciK'+i)?$('ciK'+i).value:'');mood=b.dataset.cm;draw();$('ciNote').value=n;kv.forEach((v,i)=>{if($('ciK'+i))$('ciK'+i).value=v})});
+   $('ciDone').onclick=()=>{const kr=[];abgleichAccs().forEach((b,i)=>{const el=$('ciK'+i);const v=el?pNum(el.value):NaN;if(!isNaN(v)){const d=corrBook(b,v);if(d)kr.push(b)}});if(kr.length)setTimeout(()=>toast('Kontostand korrigiert: '+kr.join(', ')),1600);if(S.cele!==false)setTimeout(()=>celebrate('Check-in geschafft'),50);S.checkins.push({t:Date.now(),note:$('ciNote').value.trim(),mood,sp});save();$('sheetRoot').innerHTML='';render();toast('Check-in gespeichert. Bis nächste Woche!')}};draw();renderAsst()}
 function renameAcct(o,n){const a=acc(o);a.n=n;S.exp.forEach(e=>{if(e.b==o)e.b=n;if(e.to==o)e.to=n});S.rec.forEach(e=>{if(e.b==o)e.b=n;if(e.to==o)e.to=n});S.fav.forEach(e=>{if(e.b==o)e.b=n});
   ['cats','budgets','bg'].forEach(k=>{if(S[k]&&o in S[k]){S[k][n]=S[k][o];delete S[k][o]}});if(catB==o)catB=n;if(flt==o)flt=n;if(repB==o)repB=n;refreshA();save()}
 /* ---------- CSV import (MoneyControl export and similar) ---------- */
@@ -2100,6 +2133,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     <div class="note" style="padding:8px 0 0">Auf dem iPhone geht das nur, wenn die App vom Home-Bildschirm geöffnet wird (ab iOS 16.4).</div></div></div>`}
   if(k=='pin')return back+`<h1 class="lt">PIN-Schutz</h1></div><div class="group"><div class="cell plain"><label for="pinin">Vierstellige PIN</label><input id="pinin" inputmode="numeric" maxlength="4" placeholder="${S.pin?'••••':'nicht gesetzt'}"></div></div>
    <button class="btn" id="pinSave">PIN speichern</button>${S.pin?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Die PIN schützt vor neugierigen Blicken und ist immer der Ersatz, falls ${bioName()} mal nicht klappt.</div>
+   ${S.pin?`<div class="sec"><div class="sh">Automatisch sperren</div><div class="seg" id="lockAf">${[[0,'Sofort'],[1,'1 Min.'],[5,'5 Min.'],[15,'15 Min.'],[-1,'Nur Neustart']].map(([v,l])=>`<button class="${(S.lockAfter==null?5:S.lockAfter)==v?'on':''}" data-v="${v}">${l}</button>`).join('')}</div><div class="note">Wie lange die App im Hintergrund sein darf, bevor sie wieder ${bioGet()?bioName()+' oder ':''}die PIN verlangt.</div></div>`:''}
    <div class="sec"><div class="sh">${bioName()}</div><div class="group" id="bioBox"><div class="cell plain"><div class="t"><div>Mit ${bioName()} entsperren</div><div class="s" id="bioSub">${!S.pin?'Lege zuerst eine PIN fest.':bioGet()?'Aktiv auf diesem Gerät':'Wird geprüft …'}</div></div><input type="checkbox" class="switch" id="bioSw" ${bioGet()?'checked':''} ${S.pin?'':'disabled'}></div></div>
    ${bioGet()?`<button class="btn soft" id="bioTest">${bioName()} jetzt testen</button>`:''}<div class="note">Wird nur auf diesem Gerät eingerichtet, nicht über den Sync. Am Arbeits-PC also einfach ausgeschaltet lassen.</div></div>`;
   if(k=='bg')return back+`<h1 class="lt">Hintergründe</h1></div><div class="note">Tippe auf eine Karte, um Farbverlauf oder Foto zu ändern.</div>${['Gesamt',...ALL].map(x=>`<button class="bgprev" data-bg="${x}" style="${bgStyle(x)};border:0;width:100%;cursor:pointer;font:inherit;font-weight:700;font-size:20px;text-align:left">${x=='Gesamt'?'Alle Budgets':x}</button>`).join('')}`;
@@ -2112,6 +2146,11 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     <label class="btn soft" for="bakIn" style="text-align:center;box-sizing:border-box">Sicherung aus Datei wiederherstellen</label><input id="bakIn" type="file" accept=".json,application/json" hidden>`:''}
    <button class="btn soft" id="bakBtn">Sicherung als Text kopieren</button><div class="note">Den Text z. B. in einer Notiz aufheben.</div>
     <textarea class="box" id="restore" placeholder="Zum Wiederherstellen eine Sicherung hier einfügen"></textarea><button class="btn soft" id="resBtn">Wiederherstellen</button></div>
+   <div class="sec"><div class="sh">Notfall-Schlüssel & Monats-Sicherung</div>${!syOn()?'<div class="note">Braucht die Online-Synchronisierung.</div>':`<div class="group"><div class="cell plain"><div class="t"><div>Notfall-Schlüssel</div><div class="s">${SY.rk?'Auf diesem Gerät eingerichtet'+(S.rkAt?' am '+new Date(S.rkAt).toLocaleDateString('de-DE'):''):S.rkAt?'Auf einem anderen Gerät eingerichtet':'Noch keiner'}</div></div>${SY.rk?I('check',18):''}</div>
+     <div class="cell plain"><div class="t"><div>Monats-Sicherung online</div><div class="s">${SY.bakErr=='table'?'<span style="color:var(--bad)">Tabelle fehlt noch, siehe unten</span>':SY.bakAt?'Zuletzt '+new Date(SY.bakAt).toLocaleDateString('de-DE')+' · die letzten 6 Monate werden aufbewahrt':SY.rk?'Folgt beim nächsten Sync':'Startet mit dem Notfall-Schlüssel'}</div></div></div></div>
+    ${SY.rk?`<button class="btn soft" id="bakCloud">Jetzt online sichern</button><button class="btn soft" id="rkNew">Neuen Notfall-Schlüssel erstellen</button>`:`<button class="btn" id="rkNew">Notfall-Schlüssel erstellen</button>`}
+    <div class="note">Einmal im Monat legt die App automatisch eine verschlüsselte Sicherung online ab, die nur mit dem Notfall-Schlüssel lesbar ist. Vergisst du das Sync-Passwort, stellst du damit unter Online-Sync alles wieder her.</div>
+    <div class="note">Einmalig in Supabase: SQL Editor › New query › <button class="link" id="bakSql">SQL kopieren</button> › Run.</div>`}</div>
    <div class="note" id="expMsg"></div><textarea class="box" id="expOut" hidden readonly></textarea>
    <div class="sec"><div class="sh">Zurücksetzen</div>${S.ex?'<button class="btn danger" id="clearEx">Beispieldaten löschen</button>':''}<button class="btn danger" id="resetAll">Alles auf Anfang</button><div class="note" id="resetMsg"></div></div>
    <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}${navigator.serviceWorker?` · <button class="ed-link" id="updNow" style="color:var(--blue);font-size:13px">Nach Update suchen</button>`:''}</div>`;
@@ -2132,7 +2171,7 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
   document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){{const e=$('eyeH');if(e)e.onclick=()=>{depShow=!depShow;render()}}bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();bindAbos();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){{const k=$('kAbg');if(k)k.onclick=()=>openAbgleich(k.dataset.kb)}{const e=$('eyeH');if(e)e.onclick=()=>{depShow=!depShow;render()}}bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();bindAbos();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
@@ -2251,11 +2290,13 @@ function bind(){{const e=$('eyeH');if(e)e.onclick=()=>{depShow=!depShow;render()
   if($('pushFnCopy'))$('pushFnCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_FN).then(()=>toast('Code kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   on('pinSave',()=>{const v=$('pinin').value;if(!/^\d{4}$/.test(v)){$('pinMsg').textContent='Bitte genau vier Ziffern eingeben.';return}S.pin=v;save();render();$('pinMsg').textContent='PIN gespeichert. Beim nächsten Öffnen wird sie abgefragt.'});
   on('pinOff',()=>{S.pin='';try{localStorage.removeItem(BIOK)}catch(e){}save();render()});
+  document.querySelectorAll('#lockAf button').forEach(b=>b.onclick=()=>{S.lockAfter=+b.dataset.v;save();render()});
   if($('bioSw')){bioAvail().then(ok=>{const sub=$('bioSub');if(!ok&&!bioGet()){if(sub)sub.textContent=CANFILE?'Auf diesem Gerät oder Browser nicht verfügbar.':'Nur in der installierten App, nicht in dieser Vorschau.';$('bioSw').disabled=true}else if(sub&&S.pin&&!bioGet())sub.textContent='Aus'});
     if($('bioTest'))$('bioTest').onclick=async()=>{try{toast(await bioCheck()?bioName()+' funktioniert.':bioName()+' wurde nicht bestätigt.')}catch(e){toast('Test fehlgeschlagen ('+(e.name||e.message)+').')}};
     $('bioSw').onchange=async()=>{const sw=$('bioSw');if(sw.checked){try{await bioSetup();toast(bioName()+' ist eingerichtet. Beim nächsten Start der App wird danach gefragt.')}catch(e){try{localStorage.removeItem(BIOK)}catch(_){}toast(e&&e.name=='NotAllowedError'?'Abgebrochen oder nicht erlaubt.':bioName()+' konnte nicht eingerichtet werden ('+((e&&(e.name||e.message))||'Fehler')+').')}}else{try{localStorage.removeItem(BIOK)}catch(e){}toast(bioName()+' ausgeschaltet.')}render()}}
   on('csvBtn',()=>{const rows=[['Datum','Typ','Konto','Nach','Kategorie','Notiz','Person','Betrag']].concat(S.exp.slice().sort((a,b)=>a.t-b.t).map(e=>[new Date(e.t).toLocaleDateString('de-DE'),{out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[e.type],e.b,e.to||'',e.c||'',e.n||'',e.p||'',e.a.toFixed(2).replace('.',',')]));
     copy(rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n'),$('expMsg'),$('expOut'))});
+  on('rkNew',openRkSetup);on('bakCloud',async()=>{const r=await bakNow(true);render();toast(r?'Online gesichert.':SY.bakErr=='table'?'Tabelle fehlt noch. SQL in Supabase ausführen.':'Sicherung ging nicht ('+(SY.bakErr||'offline')+').')});on('bakSql',()=>{try{navigator.clipboard.writeText(BAKSQL).then(()=>toast('SQL kopiert.'))}catch(e){toast('Kopieren ging nicht.')}});
   on('bakFileBtn',async()=>{const b=JSON.stringify(Object.assign({},S,{backup:'cashflow-1'})),name='CashFlow-Sicherung-'+ymd(Date.now())+'.json',f=new File([b],name,{type:'application/json'});
     try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'CashFlow-Sicherung'})}else{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove()}
       S.lastBak=Date.now();save();render();toast('Sicherung erstellt.')}catch(e){if(e&&e.name!='AbortError')toast('Sicherung konnte nicht gespeichert werden.')}});
@@ -2298,7 +2339,7 @@ function quickParse(t){let s=spoken(t.trim());if(!s)return;const sd=spokenDate(s
   if(ct)E.c=ct[0];
   let rest=s.replace(m?m[0]:'','').replace(/euro|€|einnahme|ausgabe|bekommen/gi,'');[ac,ct&&ct[0],ac&&SHORT[ac]].filter(Boolean).forEach(w=>rest=rest.replace(new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),''));
   rest=rest.replace(/\s+/g,' ').replace(/^(ein|eine|einen|der|die|das)\s+/i,'').trim();if(rest)E.n=rest.charAt(0).toUpperCase()+rest.slice(1)}
-function openOverride(a,done){const ans=[null,null,null],P1=period(1).s,Q=[
+function openOverride(a,done){S.brakeAtt=[...(S.brakeAtt||[]),Date.now()].slice(-200);save();const ans=[null,null,null],P1=period(1).s,Q=[
    ['Ist das ein echter Notfall, kein Wunsch?','Ja, ein Notfall','Eher ein Wunsch',true],
    [`Kann es nicht bis zum Neustart am ${P1.getDate()}.${P1.getMonth()+1}. warten?`,'Nein, es kann nicht warten','Doch, es kann warten',true],
    [`Fehlt das Geld danach nirgends, auch nicht bei Fixkosten, Sparzielen oder deiner Kreditrate?`,'Ja, es fehlt nirgends','Doch, es fehlt woanders',true]];let reason='';
@@ -2549,6 +2590,47 @@ function pushItems(){const O=S.pushOpt||{},A=!!O.amt,E=v=>A?' ('+eur(v)+')':'',n
 let pushT=null,pushLast='';async function pushPlan(force){if(!pushOn()||!syOn())return;try{const items=pushItems(),h=JSON.stringify(items);if(!force&&h==pushLast)return;await pushCall('plan',{items});pushLast=h;S.pushAt=Date.now()}catch(e){}}
 function pushSoon(){clearTimeout(pushT);pushT=setTimeout(()=>pushPlan(false),4000)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){clearTimeout(pushT);pushPlan(false)}});
+/* ---------- Notfall-Schlüssel & Monats-Sicherung ---------- */
+const BAKSQL=`create table if not exists public.cashflow_backup (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  ym text not null,
+  data text not null,
+  iv text not null,
+  salt text not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, ym)
+);
+alter table public.cashflow_backup enable row level security;
+create policy "nur eigene Sicherungen" on public.cashflow_backup
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
+const RKA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rkNorm=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/O/g,'0').replace(/I/g,'1');
+function rkGen(){const b=crypto.getRandomValues(new Uint8Array(20));let t='';b.forEach(x=>t+=RKA[x%32]);return t.match(/.{4}/g).join('-')}
+let rkKey=null;async function rkLoad(){if(rkKey)return rkKey;if(SY.rk){rkKey=await crypto.subtle.importKey('raw',ub64(SY.rk),'AES-GCM',true,['encrypt','decrypt']);return rkKey}return null}
+async function rkSet(code){SY.rs=b64(crypto.getRandomValues(new Uint8Array(16)));rkKey=await syDerive(rkNorm(code),SY.rs);SY.rk=b64(await crypto.subtle.exportKey('raw',rkKey));SY.bym=null;sySave();S.rkAt=Date.now();save()}
+async function bakNow(force){if(!syOn()||!navigator.onLine)return false;const k=await rkLoad();if(!k)return false;const ym=ymd(Date.now()).slice(0,7);if(!force&&SY.bym==ym)return true;
+  const iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(S)));
+  const r=await syFetch('/rest/v1/cashflow_backup',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:SY.uid,ym,data:b64big(ct),iv:b64(iv),salt:SY.rs,created_at:new Date().toISOString()})});
+  if(!r.ok){SY.bakErr=r.status==404||r.status==400?'table':'Fehler '+r.status;sySave();return false}
+  SY.bakErr=null;SY.bym=ym;SY.bakAt=Date.now();sySave();const d=new Date();d.setMonth(d.getMonth()-6);syFetch('/rest/v1/cashflow_backup?user_id=eq.'+SY.uid+'&ym=lt.'+ymd(d.getTime()).slice(0,7),{method:'DELETE'}).catch(()=>{});return true}
+function openRkSetup(){const code=rkGen();let ok=false;const draw=()=>{$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Notfall-Schlüssel"><div class="sheet-h"><button id="rkX">Abbrechen</button><b>Notfall-Schlüssel</b><button id="rkS" style="font-weight:600" ${ok?'':'disabled'}>Fertig</button></div>
+   <div class="sheet-b"><div class="note" style="padding:0">Mit diesem Schlüssel kommst du an deine Daten, falls du das Sync-Passwort vergisst. Er wird nur jetzt angezeigt.</div>
+   <div class="rkcode" id="rkCode">${code}</div><button class="btn soft" id="rkCopy">Kopieren</button>
+   <div class="anchor">${I('lock',16)}<span>Am besten in der iPhone-App „Passwörter“ als Notiz speichern oder auf Papier aufschreiben. Nicht im selben Ort wie das Sync-Passwort.</span></div>
+   <label class="cell plain" style="border-radius:14px;background:var(--card)"><input type="checkbox" id="rkOk" ${ok?'checked':''} style="width:20px;height:20px"><span style="flex:1">Ich habe den Schlüssel sicher notiert.</span></label></div></div>`;
+   $('scrim').onclick=$('rkX').onclick=()=>{$('sheetRoot').innerHTML=''};$('rkCopy').onclick=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Kopiert.'))}catch(e){}};
+   $('rkOk').onchange=()=>{ok=$('rkOk').checked;draw()};
+   $('rkS').onclick=async()=>{if(!ok)return;await rkSet(code);$('sheetRoot').innerHTML='';const r=await bakNow(true);render();toast(r?'Notfall-Schlüssel gespeichert, erste Sicherung liegt online.':SY.bakErr=='table'?'Schlüssel gespeichert. Jetzt noch die Tabelle in Supabase anlegen (Schritt unten).':'Schlüssel gespeichert. Sicherung folgt beim nächsten Sync.')}};draw()}
+function openRecover(){$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Wiederherstellen"><div class="sheet-h"><button id="rcX">Abbrechen</button><b>Wiederherstellen</b><button id="rcS" style="font-weight:600">Los</button></div>
+   <div class="sheet-b"><div class="note" style="padding:0">Gib deinen Notfall-Schlüssel ein und lege ein neues Sync-Passwort fest. Die App holt die letzte Monats-Sicherung und verschlüsselt alles neu.</div>
+   <div class="group"><div class="cell plain"><label for="rcC">Notfall-Schlüssel</label><input id="rcC" placeholder="XXXX-XXXX-…" autocapitalize="characters" style="flex:1;text-align:right"></div>
+   <div class="cell plain"><label for="rcP">Neues Sync-Passwort</label><input id="rcP" type="password" placeholder="mind. 8 Zeichen" style="flex:1;text-align:right"></div></div><div class="note" id="rcE" style="padding:0;color:var(--bad)"></div></div></div>`;
+  $('scrim').onclick=$('rcX').onclick=()=>{$('sheetRoot').innerHTML=''};
+  $('rcS').onclick=async()=>{const code=$('rcC').value,np=$('rcP').value,E=$('rcE');if(rkNorm(code).length<20){E.textContent='Der Schlüssel hat 20 Zeichen.';return}if(np.length<8){E.textContent='Das Sync-Passwort braucht mindestens 8 Zeichen.';return}
+    E.textContent='Hole Sicherung …';try{const r=await syFetch('/rest/v1/cashflow_backup?select=*&user_id=eq.'+SY.uid+'&order=ym.desc&limit=1');if(!r.ok)throw new Error('Keine Sicherungen gefunden ('+r.status+').');const row=(await r.json())[0];if(!row)throw new Error('Es gibt noch keine Monats-Sicherung.');
+      const k=await syDerive(rkNorm(code),row.salt);let data;try{data=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub64(row.iv)},k,ub64(row.data))))}catch(e){throw new Error('Der Notfall-Schlüssel passt nicht.')}
+      const main=await syGet();S=data;S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}
+      SY.salt=b64(crypto.getRandomValues(new Uint8Array(16)));syKey=await syDerive(np,SY.salt);SY.k=b64(await crypto.subtle.exportKey('raw',syKey));rkKey=k;SY.rk=b64(await crypto.subtle.exportKey('raw',k));SY.rs=row.salt;SY.lost=false;SY.rev=main?main.rev:null;SY.at=0;SY.base=null;sySave();refreshA();
+      $('sheetRoot').innerHTML='';await sync(false);render();toast('Wiederhergestellt (Stand '+row.ym+'). Neues Sync-Passwort ist aktiv.')}catch(e){E.textContent=e.message||String(e)}}}
 const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
 const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
 let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts'];
@@ -2588,7 +2670,7 @@ async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(
       else r=await syFetch('/rest/v1/cashflow?user_id=eq.'+SY.uid+'&rev=eq.'+row.rev,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
       const j=await r.json().catch(()=>[]);if(r.ok&&Array.isArray(j)&&j.length){SY.rev=nr;SY.base=syBase(S);SY.at=Date.now();SY.h=syHash();sySave();syMsg='Gespeichert · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
       if(!r.ok&&r.status!=409)throw new Error('Speichern fehlgeschlagen ('+r.status+')')}
-  }catch(e){syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(setView=='sync')render()}}
+  }catch(e){syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(setView=='sync')render();setTimeout(()=>bakNow(false).catch(()=>{}),1500)}}
 async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim(),email=$('syE').value.trim(),pw=$('syP').value,pass=$('syX').value,keep=$('syR').checked;
   if(!url||!key||!email||!pw||!pass){$('syErr').textContent='Bitte alle Felder ausfüllen.';return}if(pass.length<8){$('syErr').textContent='Das Sync-Passwort braucht mindestens 8 Zeichen.';return}
   $('syErr').textContent='Verbinde …';SY.url=url;SY.key=key;
@@ -2597,7 +2679,7 @@ async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,'')
     const j=await r.json().catch(()=>({}));if(signup&&r.ok&&!j.access_token){$('syErr').textContent='Konto angelegt. Bestätige den Link in deiner E-Mail und tippe dann auf „Anmelden“.';sySave();return}
     if(!r.ok){const m=j.error_description||j.msg||j.error||('Fehler '+r.status);throw new Error(/not confirmed/i.test(m)?'Deine E-Mail ist noch nicht bestätigt. Siehe Hinweis „Bestätigungslink geht nicht“ unten.':/invalid login/i.test(m)?'E-Mail oder Passwort stimmt nicht.':/already registered/i.test(m)?'Für diese E-Mail gibt es schon ein Konto. Tippe auf „Anmelden“.':m)}await syAuthSet(j);
     const row=await syGet();SY.salt=row?row.salt:b64(crypto.getRandomValues(new Uint8Array(16)));syKey=await syDerive(pass,SY.salt);
-    if(row){try{await syDec(row)}catch(e){syKey=null;SY.refresh=null;sySave();$('syErr').textContent='Sync-Passwort passt nicht zu den gespeicherten Daten.';return}}
+    if(row){try{await syDec(row)}catch(e){syKey=null;SY.k=null;SY.lost=true;sySave();render();setTimeout(()=>{if($('syErr'))$('syErr').textContent='Sync-Passwort passt nicht zu den gespeicherten Daten.'},50);return}}SY.lost=false;
     SY.k=keep?b64(await crypto.subtle.exportKey('raw',syKey)):null;SY.rev=null;SY.at=0;SY.base=null;sySave();
     if(row){const rem=await syDec(row);const hasLocal=S.exp&&S.exp.length&&!S.ex;
       if(hasLocal&&!confirmMerge){S=syMerge(S,rem,{});S._m=Date.now()}else S=rem;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);SY.at=hasLocal?0:Date.now();if(!hasLocal)SY.h=syHash();sySave();refreshA();}
@@ -2614,7 +2696,7 @@ function viewSync(){const on=syOn(),need=on&&!SY.k&&!syKey;
    <button class="btn" id="syNow">Jetzt synchronisieren</button>
    <div class="anchor">${I('lock',16)}<span>Deine Daten werden auf diesem Gerät mit deinem Sync-Passwort verschlüsselt, bevor sie hochgeladen werden. Online liegt nur unlesbarer Datensalat.</span></div>
    <div class="sec"><div class="sh">Abmelden</div><button class="btn soft" id="syOut">Abmelden, Daten auf diesem Gerät behalten</button><button class="btn danger" id="syWipe">Abmelden und Daten von diesem Gerät löschen</button><div class="note">Auf einem fremden oder dienstlichen Rechner immer die zweite Variante nutzen. Online bleibt alles erhalten.</div></div>`
-  :`${need?`<div class="tip">Du bist angemeldet, aber das Sync-Passwort ist auf diesem Gerät nicht gespeichert. Bitte melde dich unten neu an.</div>`:''}
+  :`${need?`<div class="tip">${SY.lost?'Das Sync-Passwort passt nicht. Versuch es unten nochmal oder stelle deine Daten mit dem Notfall-Schlüssel wieder her.':'Du bist angemeldet, aber das Sync-Passwort ist auf diesem Gerät nicht gespeichert. Bitte melde dich unten neu an.'}</div><button class="btn soft" id="syRec">Sync-Passwort vergessen? Mit Notfall-Schlüssel wiederherstellen</button>`:''}
    <div class="note" style="padding:0 4px">Einmal auf <b>einem</b> Gerät einrichten (Schritte 1 bis 3), danach auf jedem weiteren Gerät nur noch Schritt 4.</div>
    <div class="sstep"><div class="sstep-n">1</div><div class="sstep-b"><b>Tabelle in Supabase anlegen</b><span class="s">Am PC auf supabase.com in deinem Projekt:</span>
     <ol><li>Links in der Leiste auf <b>SQL Editor</b> klicken (Symbol <code>&gt;_</code>).</li><li>Oben auf <b>+ New query</b> bzw. „New SQL snippet“.</li><li>Hier auf <b>SQL kopieren</b> tippen und dort ins große Feld einfügen.</li><li>Unten rechts auf <b>Run</b> klicken. Es erscheint „Success. No rows returned“.</li></ol>
@@ -2654,7 +2736,7 @@ alter table public.cashflow enable row level security;
 create policy "nur eigene Daten" on public.cashflow
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
 function bindSync(){if(setView!='sync')return;const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
-  on('syIn',()=>syLogin(false));on('syChk',()=>syCheck());on('syUp',()=>syLogin(true));on('syNow',()=>{syMsg='Synchronisiere …';render();S._m=Math.max(S._m||0,(SY.at||0)+1);sync(false)});
+  on('syIn',()=>syLogin(false));on('syRec',openRecover);on('syChk',()=>syCheck());on('syUp',()=>syLogin(true));on('syNow',()=>{syMsg='Synchronisiere …';render();S._m=Math.max(S._m||0,(SY.at||0)+1);sync(false)});
   on('syOut',()=>syLogout(false));on('syWipe',()=>{const b=$('syWipe');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich? Nochmal tippen';return}syLogout(true)});
   on('syCopy',()=>{const t=$('sySql');t.select();try{navigator.clipboard.writeText(SYSQL).then(()=>toast('SQL kopiert.'))}catch(e){document.execCommand('copy');toast('SQL kopiert.')}})}
 
@@ -3134,7 +3216,8 @@ async function bioSetup(){const rnd=n=>crypto.getRandomValues(new Uint8Array(n))
   localStorage.setItem(BIOK,JSON.stringify({id:waE(c.rawId),t:Date.now()}))}
 async function bioCheck(){const b=bioGet();if(!b)return false;const r=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:waD(b.id),transports:['internal','hybrid']}],userVerification:'required',timeout:60000}});
   if(!r||!r.response||!r.response.authenticatorData)return false;const f=new Uint8Array(r.response.authenticatorData)[32];return !!(f&4)}
-function lock(){if(!S.pin)return;let v='',bioBusy=false;const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential;
+let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hidAt=Date.now();else if(hidAt&&S.pin&&!$('lockRoot').innerHTML){const m=S.lockAfter==null?5:S.lockAfter;if(m>=0&&Date.now()-hidAt>=m*6e4)lock()}});
+function lock(){if(!S.pin)return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='',bioBusy=false;const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential;
   const tryBio=async(auto)=>{if(bioBusy||!hasBio)return;bioBusy=true;try{if(await bioCheck()){$('lockRoot').innerHTML='';return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen. PIN eingeben oder nochmal tippen.')}finally{bioBusy=false}};const t0=Date.now();
   const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock">${hasBio?`<button class="biobtn" id="bioGo" aria-label="Mit ${bioName()} entsperren">${I('face',44)}<span>Mit ${bioName()} entsperren</span></button>`:''}<div style="font-size:17px;font-weight:600">${hasBio?'oder PIN eingeben':'PIN eingeben'}</div><div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
   <div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div><div class="note" style="min-height:18px;color:var(--bad)">${msg||''}</div>
