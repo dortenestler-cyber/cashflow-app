@@ -514,6 +514,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .dlg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}.dlg-i{display:grid;grid-template-columns:10px 1fr;grid-template-rows:auto auto auto;column-gap:7px;align-items:center;border:0;background:var(--fill);border-radius:10px;padding:7px 9px;font:inherit;color:inherit;text-align:left;cursor:pointer;font-variant-numeric:tabular-nums}.dlg-i i{width:10px;height:10px;border-radius:3px;grid-row:1}.dlg-i span{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dlg-i b,.dlg-i small{grid-column:2;font-size:13px}.dlg-i small{font-size:11px;color:var(--muted)}.dlg-i small.in{color:var(--in)}.dlg-i small.out{color:var(--out)}.dlg-i.off{opacity:.4}.dlg-i.off i{background:var(--muted)!important}
 .rgseg{margin-bottom:8px}.rgseg button{font-size:12px}
 .wtot,.vtot{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 10px}.wtot span,.vtot span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.wtot b{font-family:var(--round);font-size:30px;font-weight:800}.vtot b{font-size:22px;font-weight:700}.wtot small{font-size:12px;color:var(--muted)}.wtot{grid-column:1/-1}
+.ztag{font-size:13px;color:var(--in);background:color-mix(in srgb,var(--in) 9%,transparent);border-radius:10px;padding:8px 10px;margin-top:10px;line-height:1.6}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -763,7 +764,7 @@ const inP=(e,p)=>e.t>=p.s.getTime()&&e.t<p.e.getTime();
 const NOWT=Date.now(),isPlan=e=>e.t>Date.now();
 function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e));
   if(isK(b)){const A=S.exp.filter(e=>e.t<p.e.getTime()&&!isPlan(e)),sm=(f)=>A.filter(f).reduce((s,e)=>s+e.a,0);
-    const bal=(acc(b).start||0)+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);
+    const bal=(typeof zinsAt=='function'?zinsAt(b,Math.min(p.e.getTime(),Date.now())):0)+(acc(b).start||0)+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);
     const ps=(f)=>L.filter(f).reduce((s,e)=>s+e.a,0);
     return{p,konto:true,list:L.filter(e=>e.b==b||e.to==b),out:ps(e=>e.type=='out'&&e.b==b),inc:ps(e=>e.type=='in'&&e.b==b),trO:ps(e=>e.type=='tr'&&e.b==b),trI:ps(e=>e.type=='tr'&&e.to==b),total:bal,used:0,rest:bal,tag:0,woche:0,pct:0}}
   const out=L.filter(e=>e.type=='out'&&e.b==b).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&e.b==b).reduce((s,e)=>s+e.a,0);
@@ -894,7 +895,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='55 (04.11.)';
+const APP_VER='56 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1771,7 +1772,7 @@ function viewNg(){const V=vaultAccs(),tot=V.reduce((s,n)=>s+calc(n).rest,0),P=pe
    ${sw('id="wealthOn"',!!S.showWealth,'Stand immer anzeigen','Aus: Stand nur durch langes Drücken auf die Karte, für 10 Sekunden')}</div></div>
   <div class="sec"><div class="sh">Konten im Tresor</div><div class="group">${S.accts.filter(a=>!pa||a.n!=pa.n).map(a=>sw(`data-vacc="${esc(a.n)}"`,V.includes(a.n),`<span class="dotc" style="--c:${a.col};display:inline-block;margin-right:6px"></span>${esc(a.n)}`,V.includes(a.n)?(a.untabu?'Tabu wird gerade freigegeben':'Tabu · nur Einzahlungen'):(a.kind=='budget'?'Budget':'Konto'))).join('')}</div>
    <div class="note">Konten im Tresor werden automatisch tabu. Herausnehmen dauert 24 Stunden (Einstellungen › Regeln).</div></div>
-  <div class="sec"><div class="sh">Ausgangswert</div><div class="group"><button class="cell" id="vbSet"><div class="ico" style="background:color-mix(in srgb,#1F9D6B 14%,transparent);color:#1F9D6B">${I('wallet')}</div><div class="t"><div>Bestand festlegen</div><div class="s">Tatsächlichen Stand je Tresor-Konto eintragen, ab dem die App weiterrechnet</div></div><span class="chev">›</span></button></div></div>
+  <div class="sec"><div class="sh">Ausgangswert</div><div class="group"><button class="cell" id="vbSet"><div class="ico" style="background:color-mix(in srgb,#1F9D6B 14%,transparent);color:#1F9D6B">${I('wallet')}</div><div class="t"><div>Bestand & Zinsen</div><div class="s">Stichtag, Startbestand und Zinssatz je Tresor-Konto${vaultCash().some(n=>rateNow(n))?' · '+vaultCash().filter(n=>rateNow(n)).map(n=>String(rateNow(n)).replace('.',',')+' %').join(', '):''}</div></div><span class="chev">›</span></button></div></div>
   <div class="sec"><div class="sh">Regelmäßige Einzahlungen</div><div class="group">${recs.map(([r,i])=>`<button class="cell" data-vrec="${i}"><div class="ico" style="background:color-mix(in srgb,#1F9D6B 14%,transparent);color:#1F9D6B">${I('repeat')}</div><div class="t"><div>${esc(r.n||'Sparrate')}</div><div class="s">${esc(r.b)} → ${esc(r.to)} · am ${r.day}. · ${RH[r.every||1]||'alle '+r.every+' Monate'}${r.paused?' · pausiert':''}</div></div><div class="v in">${eur(r.a)}</div><span class="chev">›</span></button>`).join('')||'<div class="empty">Noch keine regelmäßige Einzahlung.</div>'}</div>
    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn soft" id="vRecNew">${I('plus',16)} Sparrate</button><button class="btn soft" id="vOnce">Einmal einzahlen</button></div>
    <div class="note">Sparraten können aus jedem Konto kommen, zum Beispiel aus Comdirect oder einem Budget.</div></div>
@@ -2617,9 +2618,22 @@ async function estimateBuy(h){const k=hk2(h,'d');if(!HC[k]){if(h.type=='krypto')
   let best=P[0],bd=1e18;P.forEach(p=>{const d=Math.abs(p[1]-av);if(d<bd){bd=d;best=p}});const hits=P.filter(p=>Math.abs(p[1]-av)/av<0.02).length;
   return{date:ymd(best[0]),msg:`Am ${new Date(best[0]).toLocaleDateString('de-DE')} lag der Kurs bei ${eur(best[1])}, am nächsten an deinem Ø Kaufpreis.${hits>3?' Der Kurs war an mehreren Tagen ähnlich, das Datum ist also nur eine Schätzung.':''}`}}
 
+/* ---------- Tresor: Stichtag & Zinsen ---------- */
+const dayStart=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+function rawBal(n,t){const a=acc(n);let b=a.start||0;S.exp.forEach(e=>{if(e.t>t||isPlan(e))return;if((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))b+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==n)b-=e.a});return b}
+const ZM={};
+function zinsAt(n,t){const a=acc(n),R=(a.rates||[]).filter(r=>r.p>0).sort((x,y)=>x.from<y.from?-1:1);if(!R.length)return 0;
+  const k=n+'|'+dayStart(t)+'|'+S.exp.length+'|'+JSON.stringify(R)+'|'+(a.start||0)+'|'+(a.baseD||0);if(ZM[k]!=null)return ZM[k];
+  const r0=new Date(R[0].from+'T00:00').getTime(),from=Math.max(r0,a.baseD||0),end=dayStart(t);if(from>=end)return ZM[k]=0;
+  const ev=S.exp.filter(e=>!isPlan(e)&&e.t<end&&(e.b==n||e.to==n)).map(e=>[e.t,((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))?e.a:-e.a]).sort((x,y)=>x[0]-y[0]);
+  let p=a.start||0,i=0,z=0;for(;i<ev.length&&ev[i][0]<from;i++)p+=ev[i][1];
+  for(let d=from;d<end;d+=864e5){const de=d+864e5;while(i<ev.length&&ev[i][0]<de){p+=ev[i][1];i++}const ds=ymd(d+12*36e5);let rate=0;for(const r of R)if(r.from<=ds)rate=r.p;z+=(p+z)*rate/36500}
+  return ZM[k]=Math.round(z*100)/100}
+const rateNow=n=>{const R=(acc(n).rates||[]).filter(r=>r.from<=today()).sort((x,y)=>x.from<y.from?-1:1);return R.length?R[R.length-1].p:0};
+
 /* ---------- Vermögen: Tresor ---------- */
 const vaultCash=()=>vaultAccs().filter(n=>!depot().some(h=>h.to==n));
-function balAt(n,t){const a=acc(n);let b=a.start||0;S.exp.forEach(e=>{if(e.t>t||isPlan(e))return;if((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))b+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==n)b-=e.a});return b}
+function balAt(n,t){const a=acc(n);if(a.baseD&&t<a.baseD)return 0;return rawBal(n,t)+zinsAt(n,t)}
 function vaultSeries(){const V=vaultCash(),y0=rStart(dRange),days=Math.max(1,Math.ceil((Date.now()-y0)/864e5)),out=[];
   for(let i=0;i<=days;i++){const t=i==days?Date.now():Math.min(y0+i*864e5,Date.now());const per=V.map(n=>balAt(n,t));out.push({t,v:per.reduce((s,x)=>s+x,0),per})}return out}
 let vOff={};
@@ -2627,23 +2641,36 @@ function vaultChart(S0,V,show){if(S0.length<2)return '';const W=340,H=180,top=12
   const mx0=Math.max(...all,1),st=nice(mx0/4),mx=Math.ceil(mx0/st)*st,rng=mx||1,X=i=>l+(W-l-r)*i/(S0.length-1),Y=v=>top+(H-top-bot)*(1-v/rng),line=f=>S0.map((x,i)=>`${X(i).toFixed(1)},${Y(f(x)).toFixed(1)}`).join(' ');
   let grid='';for(let v=0;v<=mx+0.01;v+=st)grid+=`<line x1="${l}" x2="${W-r}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--sep)"/>${show?`<text x="${l-5}" y="${(Y(v)+3).toFixed(1)}" font-size="9" text-anchor="end" style="fill:var(--muted)">${Math.round(v).toLocaleString('de-DE')} €</text>`:''}`;
   const MN=['J','F','M','A','M','J','J','A','S','O','N','D'];let ticks='';const sp=S0.length;S0.forEach((x,i)=>{const d=new Date(x.t);if(sp>40?d.getDate()==1:(sp>8?i%7==0&&i>0:i>0))ticks+=`<text x="${X(i).toFixed(1)}" y="${H-6}" font-size="10" text-anchor="middle" style="fill:var(--muted)">${sp>40?MN[d.getMonth()]:d.getDate()+'.'+(d.getMonth()+1)+'.'}</text>`});
-  const per=V.map((n,k)=>vOff[n]?'':`<polyline points="${line(x=>x.per[k])}" fill="none" stroke="${acc(n).col||PCOL[k%PCOL.length]}" stroke-width="1.6" opacity=".9"/>`).join('');
+  const per=V.length<2?'':V.map((n,k)=>vOff[n]?'':`<polyline points="${line(x=>x.per[k])}" fill="none" stroke="${acc(n).col||PCOL[k%PCOL.length]}" stroke-width="1.6" opacity=".9"/>`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:400px" role="img" aria-label="Tresor-Verlauf">${grid}${per}${vOff.__tot?'':`<polyline points="${line(x=>x.v)}" fill="none" stroke="#1F9D6B" stroke-width="2.6" stroke-linejoin="round"/><circle cx="${X(S0.length-1)}" cy="${Y(S0[S0.length-1].v)}" r="3.5" fill="#1F9D6B"/>`}${ticks}</svg>`}
 function openVaultBase(){const V=vaultCash();if(!V.length){toast('Noch keine Tresor-Konten. Unter Einstellungen › Tresor festlegen.');return}
-  $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Ausgangswert"><div class="sheet-h"><button id="vbX">Abbrechen</button><b>Tresor-Bestand</b><button id="vbS" style="font-weight:600">Sichern</button></div>
-   <div class="sheet-b"><div class="note" style="padding:0">Trag ein, wie viel heute tatsächlich auf jedem Konto liegt, z. B. laut Banking-App. Ab diesem Stand rechnet die App mit deinen Buchungen weiter.</div>
-   <div class="group">${V.map((n,i)=>{const a=acc(n);return `<div class="cell plain"><div class="t"><div>${esc(n)}</div><div class="s">${a.baseAt?'Zuletzt festgelegt am '+new Date(a.baseAt).toLocaleDateString('de-DE'):'App-Stand: '+eur(calc(n).rest)}</div></div><input data-vb="${i}" inputmode="decimal" value="${String(Math.round(calc(n).rest*100)/100).replace('.',',')}" style="max-width:130px"><span>€</span></div>`}).join('')}</div>
-   <div class="note" style="padding:0">Frühere Buchungen bleiben erhalten. Der Verlauf im Diagramm verschiebt sich so, dass er heute genau bei deinem Stand endet.</div></div></div>`;
+  const st=V.map(n=>{const a=acc(n);return{n,d:a.baseD?ymd(a.baseD+12*36e5):'2026-11-01',v:'',z:rateNow(n)?String(rateNow(n)).replace('.',','):'',zf:today()}});
+  st.forEach(x=>{const t=new Date(x.d+'T00:00').getTime();x.v=String(Math.round((acc(x.n).baseVal!=null&&acc(x.n).baseD==t?acc(x.n).baseVal:rawBal(x.n,t-1))*100)/100).replace('.',',')});
+  $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Tresor"><div class="sheet-h"><button id="vbX">Abbrechen</button><b>Bestand & Zinsen</b><button id="vbS" style="font-weight:600">Sichern</button></div>
+   <div class="sheet-b"><div class="note" style="padding:0">Lege fest, ab welchem Tag und mit welchem Stand der Tresor startet. Alles davor zählt mit 0. Ab dem Stichtag rechnet die App mit deinen Buchungen und den Zinsen weiter.</div>
+   ${st.map((x,i)=>{const a=acc(x.n),R=(a.rates||[]).slice().sort((p,q)=>p.from<q.from?1:-1);return `<div class="sh" style="padding:0">${esc(x.n)}</div><div class="group">
+    <div class="cell plain"><label for="vbD${i}">Stichtag</label><input id="vbD${i}" type="date" value="${x.d}"></div>
+    <div class="cell plain"><label for="vbV${i}">Stand am Stichtag</label><input id="vbV${i}" inputmode="decimal" value="${x.v}" style="max-width:140px"><span>€</span></div>
+    <div class="cell plain"><label for="vbZ${i}">Zinssatz</label><input id="vbZ${i}" inputmode="decimal" value="${x.z}" placeholder="z. B. 4,25" style="max-width:90px"><span>% p. a.</span></div>
+    <div class="cell plain"><label for="vbF${i}">Neuer Zinssatz gilt ab</label><input id="vbF${i}" type="date" value="${R.length?today():x.d}"></div>
+    ${R.length?`<div class="cell plain" style="flex-direction:column;align-items:stretch;gap:4px"><span class="s" style="font-size:12px;color:var(--muted)">Bisherige Zinssätze</span>${R.map((r,k)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:14px"><span>ab ${new Date(r.from+'T12:00').toLocaleDateString('de-DE')}</span><span><b>${String(r.p).replace('.',',')} %</b> <button class="ed-ic" data-zdel="${i}|${r.from}" aria-label="Zinssatz löschen" style="color:var(--bad)">${I('trash',14)}</button></span></div>`).join('')}</div>`:''}
+    <div class="cell plain"><span class="s" style="font-size:12px;color:var(--muted)">Zinsen bisher: <b>${eur(zinsAt(x.n,Date.now()))}</b> · aktuell ca. ${eur(rawBal(x.n,Date.now())*rateNow(x.n)/36500)} pro Tag</span></div></div>`}).join('')}
+   <div class="note" style="padding:0">Zinsen werden täglich auf den Kontostand gerechnet und gutgeschrieben (Zinseszins). Ändert die Bank den Zins, trag den neuen Satz mit dem Datum ein, ab dem er gilt. Der alte bleibt für die Zeit davor erhalten.</div></div></div>`;
   $('scrim').onclick=$('vbX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
-  $('vbS').onclick=()=>{const sa=JSON.stringify(S.accts);let ch=0;document.querySelectorAll('[data-vb]').forEach(inp=>{const n=V[+inp.dataset.vb],a=acc(n),v=qNum(inp.value);if(isNaN(v))return;const cur=calc(n).rest;if(Math.abs(v-cur)>0.004){a.start=Math.round(((a.start||0)+(v-cur))*100)/100;a.baseAt=Date.now();ch++}});
-    save();$('sheetRoot').innerHTML='';render();toast(ch?'Tresor-Bestand festgelegt.':'Nichts geändert.',ch?()=>{S.accts=JSON.parse(sa);refreshA();save();render()}:null)}};
+  document.querySelectorAll('[data-zdel]').forEach(b=>b.onclick=()=>{const[i,f]=b.dataset.zdel.split('|'),a=acc(V[+i]);a.rates=(a.rates||[]).filter(r=>r.from!=f);save();openVaultBase()});
+  $('vbS').onclick=()=>{const sa=JSON.stringify(S.accts);
+    st.forEach((x,i)=>{const a=acc(x.n),d=$('vbD'+i).value,v=qNum($('vbV'+i).value),z=qNum($('vbZ'+i).value),zf=$('vbF'+i).value||d;
+      if(d&&!isNaN(v)){const t=new Date(d+'T00:00').getTime(),net=rawBal(x.n,t-1)-(a.start||0);a.baseD=t;a.baseVal=v;a.start=Math.round((v-net)*100)/100;a.baseAt=Date.now()}
+      if(!isNaN(z)&&z!==rateNow(x.n)){a.rates=(a.rates||[]).filter(r=>r.from!=zf);a.rates.push({from:zf,p:z})}else if(isNaN(z)&&$('vbZ'+i).value.trim()===''&&rateNow(x.n)){a.rates=(a.rates||[]).filter(r=>r.from!=zf);a.rates.push({from:zf,p:0})}});
+    for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();toast('Tresor gesichert.',()=>{S.accts=JSON.parse(sa);refreshA();save();render()})}};
 function vaultSecHtml(show){const V=vaultCash();if(!V.length)return `<div class="sec" style="grid-column:1/-1"><div class="sh">Tresor</div><div class="mmcard"><div class="srow"><span class="s" style="color:var(--muted);font-size:13px">Noch keine Tresor-Konten. Unter Einstellungen › Tresor legst du fest, welche Konten dazugehören.</span></div></div></div>`;
   const S0=vaultSeries(),f=S0[0],l=S0[S0.length-1],sg=v=>v>0?'+':'',Vv=x=>show?x:'•••',dl=l.v-f.v;
-  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Tresor · ${RANGES[dRange][0]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span>${show?'<button class="link" id="vbOpen">Bestand festlegen</button>':''}</span></div>
+  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Tresor · ${RANGES[dRange][0]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span><button class="link" id="vbOpen">Bestand & Zinsen</button></span></div>
    <div class="chartbox">${show?`<div class="vtot"><span>Bestand</span><b>${eur(l.v)}</b></div>`:`<div class="vtot"><span>Bestand verborgen</span><b>•••</b></div>`}
     ${vaultChart(S0,V,show)}
-    <div class="dlg">${[['__tot','Tresor gesamt','#1F9D6B',l.v,f.v],...V.map((n,k)=>[n,n,acc(n).col||PCOL[k%PCOL.length],l.per[k],f.per[k]])].map(([id,n,c,v,v0])=>`<button class="dlg-i ${vOff[id]?'off':''}" data-vlg="${esc(id)}"><i style="background:${c}"></i><span>${esc(n)}</span><b>${Vv(eur0(v))}</b><small class="${v-v0<0?'out':'in'}">${Vv(sg(v-v0)+eur0(v-v0))} im Zeitraum</small></button>`).join('')}</div>
-    <div class="note" style="padding:6px 4px 0">Kontostand aus deinen Buchungen: Einzahlungen und Umbuchungen in den Tresor. Depot-Konten deiner Sparpläne zählen oben beim Depot, damit nichts doppelt gerechnet wird.</div></div></div>`}
+    <div class="dlg">${(V.length==1?[['__tot',V[0],'#1F9D6B',l.v,f.v]]:[['__tot','Tresor gesamt','#1F9D6B',l.v,f.v],...V.map((n,k)=>[n,n,acc(n).col||PCOL[k%PCOL.length],l.per[k],f.per[k]])]).map(([id,n,c,v,v0])=>`<button class="dlg-i ${vOff[id]?'off':''}" data-vlg="${esc(id)}"><i style="background:${c}"></i><span>${esc(n)}</span><b>${Vv(eur0(v))}</b><small class="${v-v0<0?'out':'in'}">${Vv(sg(v-v0)+eur0(v-v0))} im Zeitraum</small></button>`).join('')}</div>
+    ${V.some(n=>rateNow(n))?`<div class="ztag">${V.filter(n=>rateNow(n)).map(n=>`${I('up',13)} ${esc(n)}: ${String(rateNow(n)).replace('.',',')} % Zinsen · bisher ${Vv(eur(zinsAt(n,Date.now())))} · heute +${Vv(eur(rawBal(n,Date.now())*rateNow(n)/36500))}`).join('<br>')}</div>`:''}
+    <div class="note" style="padding:6px 4px 0">Kontostand aus deinen Buchungen und Zinsen${V.some(n=>acc(n).baseD)?', ab Stichtag '+V.filter(n=>acc(n).baseD).map(n=>new Date(acc(n).baseD).toLocaleDateString('de-DE')).join(', '):''}. Depot-Konten deiner Sparpläne zählen oben beim Depot, damit nichts doppelt gerechnet wird.</div></div></div>`}
 
 /* ---------- Puffer verschieben & Tresor ---------- */
 const vaultAccs=()=>S.accts.filter(a=>a.vault!=null?a.vault:(a.verm||isTabu(a.n)||/etf/i.test(a.n))).map(a=>a.n);
