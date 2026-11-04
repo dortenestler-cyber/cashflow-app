@@ -828,6 +828,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
+const APP_VER='18 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1758,7 +1759,8 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    <button class="btn soft" id="bakBtn">Sicherung als Text kopieren</button><div class="note">Den Text z. B. in einer Notiz aufheben.</div>
     <textarea class="box" id="restore" placeholder="Zum Wiederherstellen eine Sicherung hier einfügen"></textarea><button class="btn soft" id="resBtn">Wiederherstellen</button></div>
    <div class="note" id="expMsg"></div><textarea class="box" id="expOut" hidden readonly></textarea>
-   <div class="sec"><div class="sh">Zurücksetzen</div>${S.ex?'<button class="btn danger" id="clearEx">Beispieldaten löschen</button>':''}<button class="btn danger" id="resetAll">Alles auf Anfang</button><div class="note" id="resetMsg"></div></div>`;
+   <div class="sec"><div class="sh">Zurücksetzen</div>${S.ex?'<button class="btn danger" id="clearEx">Beispieldaten löschen</button>':''}<button class="btn danger" id="resetAll">Alles auf Anfang</button><div class="note" id="resetMsg"></div></div>
+   <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}${navigator.serviceWorker?` · <button class="ed-link" id="updNow" style="color:var(--blue);font-size:13px">Nach Update suchen</button>`:''}</div>`;
   return ''}
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
@@ -1894,6 +1896,7 @@ function bind(){bindSwipe();{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=
   on('bakBtn',()=>{const b=Object.assign({},S,{exp:S.exp.map(e=>Object.assign({},e,{img:undefined}))});copy(JSON.stringify(b),$('expMsg'),$('expOut'))});
   on('resBtn',()=>{try{const d=JSON.parse($('restore').value);if(!d.exp||!d.budgets)throw 0;S=d;S.goals=S.goals||[];S.bg=S.bg||{};ensureAccts();save();applyRec();$('expMsg').textContent='Sicherung wiederhergestellt.';setView=null;render()}catch(e){$('expMsg').textContent='Das ist keine gültige Sicherung. Bitte den kompletten Text einfügen.'}});
   on('clearEx',()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];save();render()});
+  on('updNow',()=>{toast('Suche nach Update …');navigator.serviceWorker.getRegistration().then(r=>r?r.update().then(()=>setTimeout(()=>location.reload(),800)):location.reload()).catch(()=>location.reload())});
   on('resetAll',()=>{if(!resetArm){resetArm=true;$('resetMsg').textContent='Nochmal tippen, um wirklich alles zu löschen.';return}resetArm=false;const keepBg=S.bg;S=DEF();S.bg=keepBg;S.ex=false;S.wish=[];S.rec=[];S.goals=[];ensureAccts();save();setView=null;tab='dash';render()})}
 
 /* ---------- entry sheet (MoneyControl-style) ---------- */
@@ -2087,5 +2090,6 @@ applyTheme();
 closeMonths();render();lock();if(!S.onb)openOnb();
 </script>
 
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator){let rl=false;const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl||!had)return;rl=true;const sr=document.getElementById('sheetRoot');if(sr&&sr.innerHTML){document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')location.reload()});return}location.reload()});
+window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{const up=()=>r.update().catch(()=>{});up();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')up()});setInterval(up,30*60*1000)}).catch(()=>{}))}</script>
 </body></html>
