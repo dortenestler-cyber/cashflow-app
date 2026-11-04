@@ -590,7 +590,7 @@ repeat:'<path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 
 star:'<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9z"/>',
 calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
 lifebuoy:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="m6.3 6.3 3.2 3.2M14.5 14.5l3.2 3.2M17.7 6.3l-3.2 3.2M9.5 14.5l-3.2 3.2"/>',
-face:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+face:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
 export:'<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/>',
 search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
 backspace:'<path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z"/><path d="m12 9 5 6M17 9l-5 6"/>',
@@ -741,7 +741,7 @@ function ensureAccts(){if(S.accts){refreshA();ensureFlags();return}
       {id:uid(),type:'out',b:'Comdirect',c:'Budgets & Sparen',a:1075,n:'Monatsverteilung auf Konten',t:t(1,9)},{id:uid(),type:'out',b:'Comdirect',c:'Abos',a:47.97,n:'Handy, Streaming, Cloud',t:t(2,10)},
       {id:uid(),type:'out',b:'Comdirect',c:'Versicherung',a:96.4,n:'Haftpflicht & Hausrat',t:t(3,9)})}
   refreshA();ensureFlags()}
-const save=()=>{try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}try{syDirty()}catch(e){}};
+const save=()=>{try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}try{syDirty()}catch(e){}try{pushSoon()}catch(e){}};
 
 /* recurring entries become real bookings once due */
 function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}
@@ -944,7 +944,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='74 (04.11.)';
+const APP_VER='75 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1999,7 +1999,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
   ${sec('Schutz vor Impulsen','Regeln, die dich vor Spontankäufen schützen.',
    nav('rules','lock','Regeln & Tabu-Konten','Notfallbremse, 14 Tage Wartezeit, Restgeld',c3)+
    nav('puffer','hourglass','Stundenlohn',eur(S.lohn)+' pro Std. · für „so viele Stunden Arbeit“',c3)+
-   nav('pin','lock','PIN & '+bioName(),S.pin?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3))}
+   nav('pin','lock','PIN & '+bioName(),S.pin?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3)+nav('push','bell','Mitteilungen',pushOn()?'Aktiv auf diesem Gerät':'Aus',c3))}
   ${sec('Rückblick & Hilfe','',
    nav('report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
@@ -2085,6 +2085,19 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    <div class="sec"><div class="sh">Puffer</div><div class="group"><div class="cell plain"><label for="pufA">Eingangskonto</label><select id="pufA"><option value="">keins</option>${S.accts.filter(a=>a.kind=='konto').map(a=>`<option ${a.puffer?'selected':''}>${esc(a.n)}</option>`).join('')}</select></div>
     <div class="cell plain"><div class="t">Puffer nach offenen Fixkosten</div><b>${eur(pufVal())}</b></div></div><div class="note">Puffer = Kontostand minus alle Fixkosten, die in diesem Monat noch abgehen. Ziel bis 1.000 €. Darüber schlägt der Assistent eine Umbuchung in den Vermögensaufbau vor.</div></div>
    <button class="btn soft" id="onbAgain">Einrichtung erneut starten</button>`}
+  if(k=='push'){const O=S.pushOpt||{fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false},sw=(id,on,l,s)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" data-po="${id}" ${on!==false?'checked':''}></div>`;
+   return back+`<h1 class="lt">Mitteilungen</h1></div>
+   <div class="group"><div class="cell plain"><div class="t"><div>Mitteilungen auf diesem Gerät</div><div class="s" id="pushSt">${pushOn()?'Aktiv'+(S.pushAt?' · Plan aktualisiert '+new Date(S.pushAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):''):!syOn()?'Braucht die Online-Synchronisierung':'Aus'}</div></div><input type="checkbox" class="switch" id="pushSw" ${pushOn()?'checked':''} ${syOn()?'':'disabled'}></div></div>
+   ${pushOn()?`<button class="btn soft" id="pushTest">Test-Mitteilung senden</button>`:''}
+   <div class="sec"><div class="sh">Worüber</div><div class="group">${sw('fix',O.fix,'Fixkosten-Wächter','2 Tage bevor eine Abbuchung das Konto ins Minus zieht')}${sw('fc',O.fc,'Frühwarnung Budgets','Wenn ein Budget vor Monatsende leer wird')}${sw('due',O.due,'Große Abbuchungen','Am Vortag, ab 100 €')}${sw('ctr',O.ctr,'Kündigungsfristen','14 und 3 Tage vorher')}${sw('wish',O.wish,'Wunschliste','Wenn eine Wartezeit vorbei ist')}${sw('chk',O.chk,'Wochen-Check-in','Sonntags 18 Uhr')}</div></div>
+   <div class="sec"><div class="sh">Datenschutz</div><div class="group">${sw('amt',O.amt===true,'Beträge in Mitteilungen','Aus: Texte ohne Euro-Beträge. Die Texte liegen bis zum Versand unverschlüsselt bei Supabase.')}</div>
+   <div class="note">Nachts zwischen 22 und 7 Uhr kommt nichts, solche Mitteilungen werden auf 8 Uhr verschoben. Der Plan wird jedes Mal neu berechnet, wenn du die App benutzt.</div></div>
+   <div class="sec"><div class="sh">Einmalige Einrichtung in Supabase (5 Minuten)</div><div class="mmcard" style="padding:12px 14px"><ol class="steps" style="margin:0;padding-left:18px;font-size:14px;line-height:1.45">
+    <li>Supabase öffnen › links <b>SQL Editor</b> › <b>New query</b>. Hier <button class="link" id="pushSqlCopy">SQL kopieren</button>, einfügen, <b>Run</b>.</li>
+    <li>Links <b>Edge Functions</b> › <b>Deploy a new function</b> › <b>Via Editor</b>. Name genau <b>push</b>. Beispielcode löschen, hier <button class="link" id="pushFnCopy">Code kopieren</button>, einfügen, <b>Deploy function</b>.</li>
+    <li>In der Funktion <b>push</b> unter <b>Details</b> bzw. <b>Settings</b> den Schalter <b>Verify JWT</b> ausschalten und speichern. Die Funktion prüft die Anmeldung selbst.</li>
+    <li>Zurück hier oben den Schalter einschalten, Mitteilungen erlauben, dann <b>Test-Mitteilung senden</b>.</li></ol>
+    <div class="note" style="padding:8px 0 0">Auf dem iPhone geht das nur, wenn die App vom Home-Bildschirm geöffnet wird (ab iOS 16.4).</div></div></div>`}
   if(k=='pin')return back+`<h1 class="lt">PIN-Schutz</h1></div><div class="group"><div class="cell plain"><label for="pinin">Vierstellige PIN</label><input id="pinin" inputmode="numeric" maxlength="4" placeholder="${S.pin?'••••':'nicht gesetzt'}"></div></div>
    <button class="btn" id="pinSave">PIN speichern</button>${S.pin?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Die PIN schützt vor neugierigen Blicken und ist immer der Ersatz, falls ${bioName()} mal nicht klappt.</div>
    <div class="sec"><div class="sh">${bioName()}</div><div class="group" id="bioBox"><div class="cell plain"><div class="t"><div>Mit ${bioName()} entsperren</div><div class="s" id="bioSub">${!S.pin?'Lege zuerst eine PIN fest.':bioGet()?'Aktiv auf diesem Gerät':'Wird geprüft …'}</div></div><input type="checkbox" class="switch" id="bioSw" ${bioGet()?'checked':''} ${S.pin?'':'disabled'}></div></div>
@@ -2231,6 +2244,11 @@ function bind(){{const e=$('eyeH');if(e)e.onclick=()=>{depShow=!depShow;render()
   if($('mstart'))$('mstart').onchange=()=>{S.start=+$('mstart').value;off=0;applyRec();save()};
   if($('puf'))$('puf').onchange=()=>{S.puffer=parseFloat($('puf').value)||0;save()};
   if($('lohn'))$('lohn').onchange=()=>{S.lohn=parseFloat($('lohn').value)||S.lohn;save()};
+  if($('pushSw'))$('pushSw').onchange=async()=>{const sw=$('pushSw');sw.disabled=true;try{if(sw.checked){await pushEnable();toast('Mitteilungen sind aktiv.')}else{await pushDisable();toast('Mitteilungen ausgeschaltet.')}}catch(e){sw.checked=pushOn();const m=String(e.message||e);toast(/not signed|401/.test(m)?'Bitte in der Synchronisierung neu anmelden.':/Failed to fetch|404|NOT_FOUND|Function not found/i.test(m)?'Die Funktion „push“ fehlt noch. Siehe Einrichtung unten.':m)}render()};
+  if($('pushTest'))$('pushTest').onclick=async()=>{try{const j=await pushCall('test');toast(j.sent?'Gesendet. Sollte gleich ankommen.':'Kein Gerät registriert. Schalter aus und wieder ein.')}catch(e){toast('Test fehlgeschlagen: '+(e.message||e))}};
+  document.querySelectorAll('[data-po]').forEach(i=>i.onchange=()=>{S.pushOpt=Object.assign({fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false},S.pushOpt||{});S.pushOpt[i.dataset.po]=i.checked;save();pushPlan(true)});
+  if($('pushSqlCopy'))$('pushSqlCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_SQL()).then(()=>toast('SQL kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
+  if($('pushFnCopy'))$('pushFnCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_FN).then(()=>toast('Code kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   on('pinSave',()=>{const v=$('pinin').value;if(!/^\d{4}$/.test(v)){$('pinMsg').textContent='Bitte genau vier Ziffern eingeben.';return}S.pin=v;save();render();$('pinMsg').textContent='PIN gespeichert. Beim nächsten Öffnen wird sie abgefragt.'});
   on('pinOff',()=>{S.pin='';try{localStorage.removeItem(BIOK)}catch(e){}save();render()});
   if($('bioSw')){bioAvail().then(ok=>{const sub=$('bioSub');if(!ok&&!bioGet()){if(sub)sub.textContent=CANFILE?'Auf diesem Gerät oder Browser nicht verfügbar.':'Nur in der installierten App, nicht in dieser Vorschau.';$('bioSw').disabled=true}else if(sub&&S.pin&&!bioGet())sub.textContent='Aus'});
@@ -2449,6 +2467,88 @@ $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.we
     openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))};
 
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
+/* ---------- push notifications ---------- */
+const PUSH_FN=`// Supabase Edge Function "push": Mitteilungen für CashFlow (Web Push)
+import webpush from "npm:web-push@3.6.7";
+import { createClient } from "npm:@supabase/supabase-js@2";
+const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron" };
+const J = (o, st = 200) => new Response(JSON.stringify(o), { status: st, headers: { ...cors, "Content-Type": "application/json" } });
+async function cfg() {
+  let { data } = await sb.from("push_cfg").select("*").eq("id", 1).single();
+  if (!data.vapid_public) { const k = webpush.generateVAPIDKeys(); await sb.from("push_cfg").update({ vapid_public: k.publicKey, vapid_private: k.privateKey }).eq("id", 1); data = { ...data, vapid_public: k.publicKey, vapid_private: k.privateKey }; }
+  webpush.setVapidDetails("https://dortenestler-cyber.github.io/cashflow-app/", data.vapid_public, data.vapid_private); return data;
+}
+async function sendTo(uid, msg) {
+  const { data: subs } = await sb.from("push_subs").select("*").eq("user_id", uid); let n = 0;
+  for (const s of subs || []) {
+    try { await webpush.sendNotification(s.sub, JSON.stringify(msg), { TTL: 86400 }); n++; }
+    catch (e) { if (e.statusCode === 404 || e.statusCode === 410) await sb.from("push_subs").delete().eq("endpoint", s.endpoint); }
+  }
+  return n;
+}
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  try {
+    const c = await cfg(); const body = await req.json().catch(() => ({}));
+    if (req.headers.get("x-cron") && req.headers.get("x-cron") === c.secret) {
+      const { data: q } = await sb.from("push_queue").select("*").eq("sent", false).lte("at", new Date().toISOString()).order("at").limit(200);
+      for (const m of q || []) {
+        if (Date.now() - new Date(m.at).getTime() < 6 * 3600e3) await sendTo(m.user_id, { title: m.title, body: m.body, tag: m.tag });
+        await sb.from("push_queue").update({ sent: true }).eq("id", m.id);
+      }
+      await sb.from("push_queue").delete().eq("sent", true).lt("at", new Date(Date.now() - 7 * 864e5).toISOString());
+      return J({ ok: true, n: (q || []).length });
+    }
+    const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+    const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
+    if (!uid) return J({ error: "not signed in" }, 401);
+    if (body.op === "key") return J({ key: c.vapid_public, v: 1 });
+    if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
+    if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
+    if (body.op === "plan") {
+      await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
+      const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
+      if (items.length) await sb.from("push_queue").insert(items);
+      return J({ ok: true, n: items.length });
+    }
+    if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
+    return J({ error: "unknown op" }, 400);
+  } catch (e) { return J({ error: String(e) }, 500); }
+});`;
+const PUSH_SQL=()=>`create extension if not exists pg_cron;
+create extension if not exists pg_net;
+create table if not exists public.push_cfg (id int primary key default 1, secret text not null default gen_random_uuid()::text, vapid_public text, vapid_private text);
+insert into public.push_cfg (id) values (1) on conflict do nothing;
+create table if not exists public.push_subs (endpoint text primary key, user_id uuid not null references auth.users on delete cascade, sub jsonb not null, created_at timestamptz default now());
+create table if not exists public.push_queue (id bigserial primary key, user_id uuid not null references auth.users on delete cascade, at timestamptz not null, title text not null, body text, tag text, sent boolean not null default false);
+alter table public.push_cfg enable row level security;
+alter table public.push_subs enable row level security;
+alter table public.push_queue enable row level security;
+select cron.schedule('cashflow-push', '*/10 * * * *', $cron$ select net.http_post(url := '__URL__/functions/v1/push', headers := jsonb_build_object('Content-Type','application/json','x-cron',(select secret from public.push_cfg where id = 1)), body := '{}'::jsonb) $cron$);`.replace('__URL__',(SY.url||SYDEF).replace(/\/$/,''));
+const PUSHK='cf_push',pushOn=()=>{try{return localStorage.getItem(PUSHK)==='1'}catch(e){return false}};
+const pushSupported=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+async function pushCall(op,extra){const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify(Object.assign({op},extra||{}))});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||('Fehler '+r.status));return j}
+function pushKeyBytes(b64){const s=b64.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((b64.length+3)%4);return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+async function pushEnable(){if(!syOn())throw new Error('Zuerst die Online-Synchronisierung einrichten.');if(!pushSupported())throw new Error(/iPhone|iPad/.test(navigator.userAgent)&&!STANDALONE?'Öffne die App vom Home-Bildschirm, nicht im Browser.':'Dieses Gerät oder dieser Browser kann keine Mitteilungen.');
+  const perm=await Notification.requestPermission();if(perm!=='granted')throw new Error('Mitteilungen sind nicht erlaubt. In den iPhone-Einstellungen › Mitteilungen › CashFlow erlauben.');
+  const {key}=await pushCall('key');const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
+  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushKeyBytes(key)});
+  await pushCall('sub',{sub:sub.toJSON()});localStorage.setItem(PUSHK,'1');S.pushOpt=S.pushOpt||{fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false};save();await pushPlan(true)}
+async function pushDisable(){try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub){try{await pushCall('unsub',{endpoint:sub.endpoint})}catch(e){}await sub.unsubscribe()}}catch(e){}try{localStorage.removeItem(PUSHK)}catch(e){}}
+function pushQuiet(d){const x=new Date(d);if(x.getHours()>=22){x.setDate(x.getDate()+1);x.setHours(8,0,0,0)}else if(x.getHours()<7)x.setHours(8,0,0,0);return x}
+const at9=(d,dd=0)=>{const x=new Date(d);x.setDate(x.getDate()+dd);x.setHours(9,0,0,0);return x};
+function pushItems(){const O=S.pushOpt||{},A=!!O.amt,E=v=>A?' ('+eur(v)+')':'',now0=Date.now(),L=[],add=(at,title,body,tag)=>{const d=pushQuiet(at);if(d.getTime()>now0+60e3&&d.getTime()<now0+35*864e5)L.push({at:d.getTime(),title,body,tag})};
+  if(O.fix!==false){const fg=fixGuard();if(fg){const d=at9(fg.at.d,-2);add(d.getTime()<now0?now0+5*6e4:d,fg.min<0?`${fg.n} reicht am ${dmy(fg.at.d)} nicht`:`${fg.n} wird am ${dmy(fg.at.d)} knapp`,`${fg.big.map(x=>x.n).join(', ')} geht ab${A?', danach '+eur(fg.min):''}. Jetzt umbuchen?`,'fix')}}
+  if(O.fc!==false)BUDG.forEach(b=>{const f=budForecast(b);if(f){const d=new Date();d.setDate(d.getDate()+1);d.setHours(18,30,0,0);add(d,`${b} reicht nur bis ca. ${dmy(f.when)}`,`Bei deinem Tempo wird es eng. ${A?'Höchstens '+eur(f.perDay)+' pro Tag, dann reicht es.':'Heute bewusst sparsam bleiben.'}`,'fc-'+b)}});
+  if(O.due!==false)[0,1].forEach(o=>{const P=period(o),k=pkey(P);(S.rec||[]).forEach(r=>{if(r.paused||r.a<100||r.type=='in')return;const d=recDue(r,P);if(!d||S.exp.some(e=>e.rid==r.id&&e.pk==k))return;if(isTabu(r.to||''))return;add(at9(d,-1),'Morgen: '+(r.n||r.c),`${r.n||r.c}${E(r.a)} wird morgen von ${r.b} abgebucht.`,'due-'+r.id)})});
+  if(O.ctr!==false)(S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(!x.kd)return;[14,3].forEach(dd=>add(at9(x.kd,-dd),`Kündigungsfrist: ${c.n}`,`Noch ${dd} Tage, bis ${x.kd.toLocaleDateString('de-DE')} kündigen oder bewusst verlängern.`,'ctr-'+c.id+'-'+dd))});
+  if(O.wish!==false)(S.wish||[]).forEach(w=>{if(w.s!='offen')return;add(new Date(w.t+wait(w.p)),'Wartezeit vorbei: '+(w.n||'Wunsch'),'Jetzt entscheiden: kaufen, sparen oder loslassen?','wish-'+w.id)});
+  if(O.chk!==false){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7||7));d.setHours(18,0,0,0);add(d,'Wochen-Check-in','Fünf Minuten: Wie lief die Woche, was nimmst du dir vor?','chk')}
+  return L.sort((a,b)=>a.at-b.at).slice(0,30)}
+let pushT=null,pushLast='';async function pushPlan(force){if(!pushOn()||!syOn())return;try{const items=pushItems(),h=JSON.stringify(items);if(!force&&h==pushLast)return;await pushCall('plan',{items});pushLast=h;S.pushAt=Date.now()}catch(e){}}
+function pushSoon(){clearTimeout(pushT);pushT=setTimeout(()=>pushPlan(false),4000)}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){clearTimeout(pushT);pushPlan(false)}});
 const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
 const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
 let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts'];
@@ -3040,7 +3140,7 @@ function applyTheme(){const t=S.theme||'system';if(t=='system')document.document
 applyTheme();
 if(/^#(sync|einrichtung)$/i.test(location.hash)){history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync'}
 if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_token=/.test(location.hash);history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync';setTimeout(()=>toast(ok?'E-Mail bestätigt. Jetzt unten „Anmelden“ tippen.':'Der Bestätigungslink ist abgelaufen oder wurde schon benutzt. Versuch einfach „Anmelden“.'),600)}
-closeMonths();render();lock();if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
+closeMonths();render();lock();setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
 if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
 </script>
 
