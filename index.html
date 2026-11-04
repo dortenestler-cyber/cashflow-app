@@ -465,6 +465,28 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 .ana-acc{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
 .ana-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:80px;padding:0 14px 12px;align-items:end}.ana-wd div{display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}.ana-wd i{width:70%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}.ana-wd span{font-size:11px;color:var(--muted)}
 .sstep{display:flex;gap:12px;align-items:flex-start}.sstep-n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;flex:none;margin-top:2px}.sstep-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.sstep-b>b{font-size:17px}.sstep-b .s{font-size:14px;color:var(--muted);line-height:1.45}.sstep-b ol{margin:0;padding-left:20px;font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:3px}.sstep-b code{background:var(--fill);border-radius:4px;padding:0 4px;font-size:12px}.sstat{font-size:13px;font-weight:600}.sstat:empty{display:none}
+
+/* ===== Desktop ===== */
+@media (min-width:1000px){
+ body.mm .tabbar{top:0;bottom:0;left:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:4px;padding:28px 12px;border-top:0;border-right:.5px solid var(--sep);box-shadow:none}
+ body.mm .tabbar::before{content:"CashFlow";font-family:var(--round);font-weight:800;font-size:22px;color:var(--accent);padding:0 14px 18px}
+ body.mm .tabbar button{flex:none;flex-direction:row;gap:12px;font-size:15px!important;letter-spacing:0;padding:11px 14px;border-radius:12px;justify-content:flex-start;width:100%}
+ body.mm .tabbar button.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+ body.mm .tabbar button:hover{background:var(--fill)}
+ .view{max-width:1120px!important;margin:0 auto 0 max(250px,calc((100vw - 1120px)/2 + 110px))!important;padding:24px 32px 120px!important}
+ body[data-tab="dash"] .view,body[data-tab="rep"] .view,body[data-tab="more"] .view,body[data-tab="wish"] .view{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;align-items:start;grid-auto-flow:row dense}
+ body[data-tab] .view>.hcard,body[data-tab] .view>header,body[data-tab] .view>.car,body[data-tab] .view>.cdots,body[data-tab] .view>.seg,body[data-tab] .view>.quick,body[data-tab] .view>.minis,body[data-tab] .view>.kpis,body[data-tab] .view>.note,body[data-tab] .view>.anchor,body[data-tab] .view>.btn,body[data-tab] .view>.chartbox,body[data-tab] .view>.mmcard,body[data-tab="rep"] .view>.sec,body[data-tab="wish"] .view>*{grid-column:1/-1}
+ body[data-tab="rep"] .view{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body[data-tab="dash"] .car .slide{min-height:220px}
+ .minis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important}
+ .sheet{top:50%;bottom:auto;left:50%;right:auto;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:88vh;border-radius:22px!important;animation:fade .2s ease!important;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+ #asstRoot{left:250px!important}.vfab{left:250px}.fab{right:max(32px,calc((100vw - 1120px)/2 - 60px))}
+ #toastRoot{left:220px}
+ .apop{width:380px}
+ .pad{max-width:300px!important}
+ body.mm .view.detail{max-width:900px!important}
+}
+@media (min-width:1000px){body[data-tab="rep"] .view>.sec:has(.ana-flow),body[data-tab="rep"] .view>.sec:has(.vault){grid-column:auto}}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -845,7 +867,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='35 (04.11.)';
+const APP_VER='36 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1859,7 +1881,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- render ---------- */
-function render(){document.body.classList.add('mm');renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
+function render(){document.body.classList.add('mm');document.body.dataset.tab=setView?'sub':(curB?'acc':tab);renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
   const html=curB?viewDetail(curB):setView?viewSet(setView):tab=='dash'?viewDash():tab=='list'?viewList():tab=='cal'?viewCal():tab=='rep'?viewRep():tab=='wish'?viewWish():viewMore();
   const html2=html.replace(/<div><button class="back" id="(\w+)">‹ [^<]*<\/button><h1 class="lt"[^>]*>([\s\S]*?)<\/h1>((?:<div class="date">[\s\S]*?<\/div>)?)<\/div>/,(m,id,t,sub)=>appbar({title:t,back:id,noGear:true,sub:sub?sub.replace(/<\/?div[^>]*>/g,''):''}));
   $('app').innerHTML=`<div class="view ${curB?'detail':''}">${html2}</div>`;bind();renderAsst()}
@@ -2435,6 +2457,7 @@ if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(
 if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
 function applyTheme(){const t=S.theme||'system';if(t=='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);document.body.classList.toggle('bigcal',!!S.bigCal)}
 applyTheme();
+if(/^#(sync|einrichtung)$/i.test(location.hash)){history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync'}
 if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_token=/.test(location.hash);history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync';setTimeout(()=>toast(ok?'E-Mail bestätigt. Jetzt unten „Anmelden“ tippen.':'Der Bestätigungslink ist abgelaufen oder wurde schon benutzt. Versuch einfach „Anmelden“.'),600)}
 closeMonths();render();lock();if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
 if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
