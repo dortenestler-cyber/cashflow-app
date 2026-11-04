@@ -881,7 +881,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='39 (04.11.)';
+const APP_VER='40 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2204,7 +2204,8 @@ $('fab').onclick=()=>openSheet();
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tbNew'))openSheet()});
 function kbHelp(){showAnswer('Tastatur',`<div class="vhelp kbh">${[['N','Neue Buchung'],['1 – 6','Übersicht, Buchungen, Kalender, Auswertung, Impulse, Einstellungen'],['← →','Monat zurück / vor'],['/','Suchen in Buchungen'],['Esc','Fenster schließen, zurück'],['?','Diese Hilfe']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}
   <b>In der Buchung</b>${[['0–9 , ⌫','Betrag tippen'],['+ − =','Rechnen'],['Buchstaben','springt ins Suchfeld (z. B. „rewe“)'],['Tab','durch Kategorien und Felder'],['Enter','Sichern'],['A / E / U','Ausgabe, Einnahme, Umbuchung (mit Alt)']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}</div>`)}
-document.addEventListener('keydown',e=>{const tgt=e.target,inField=tgt.matches&&tgt.matches('input,textarea,select,[contenteditable]'),sheet=$('sheetRoot').innerHTML,entry=!!document.querySelector('#sheetRoot .sheet[aria-label="Buchung"]');
+document.addEventListener('keydown',e=>{if($('lockRoot')&&$('lockRoot').innerHTML){const k=/^[0-9]$/.test(e.key)?e.key:e.key=='Backspace'?'⌫':null;if(k){e.preventDefault();const b=document.querySelector(`.lock .pad [data-k="${k}"]`);if(b)b.click()}return}
+  const tgt=e.target,inField=tgt.matches&&tgt.matches('input,textarea,select,[contenteditable]'),sheet=$('sheetRoot').innerHTML,entry=!!document.querySelector('#sheetRoot .sheet[aria-label="Buchung"]');
   if(e.key=='Escape'&&inField&&sheet&&tgt.value){tgt.blur();return}
   if(e.key=='Escape'){if(asstOpen){asstOpen=false;renderAsst();return}if(sheet){$('sheetRoot').innerHTML='';renderAsst();return}if(setView&&$('setBack')){$('setBack').click();return}if(curB&&$('back')){$('back').click();return}if(drill&&$('drBack')){$('drBack').click();return}return}
   if(entry){if(e.key=='Enter'&&tgt.tagName=='BUTTON'&&!(e.metaKey||e.ctrlKey))return;if(e.key=='Enter'&&(e.metaKey||e.ctrlKey||!inField||tgt.id!='equick')){if(tgt.tagName=='TEXTAREA'&&!(e.metaKey||e.ctrlKey))return;if(tgt.id=='equick')return;e.preventDefault();$('ok')&&$('ok').click();return}
@@ -2483,7 +2484,7 @@ function openOnb(){let st=0;const draw=()=>{const steps=[
   if($('onbImp'))$('onbImp').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];fin();tab='more';setView='import';render()};
   if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();toast('Los geht’s. Tippe auf +, um zu buchen.')};
   if($('onbKeep'))$('onbKeep').onclick=fin};draw();renderAsst()}
-function lock(){if(!S.pin)return;let v='';const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock"><div style="font-size:17px;font-weight:600">PIN eingeben</div>
+function lock(){if(!S.pin)return;let v='';const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock"><div style="font-size:17px;font-weight:600">PIN eingeben</div><div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
   <div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div><div class="note" style="min-height:18px;color:var(--bad)">${msg||''}</div>
   <div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>k?`<button data-k="${k}">${k=='⌫'?I('backspace',24):k}</button>`:'<span></span>').join('')}</div></div>`;
   document.querySelectorAll('.lock .pad button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;v=k=='⌫'?v.slice(0,-1):(v+k).slice(0,4);
