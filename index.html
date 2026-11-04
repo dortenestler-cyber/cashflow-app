@@ -438,6 +438,11 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .choices button .i{width:15px;height:15px;vertical-align:-2px}
 
 .kseg{margin-top:-6px}.kseg button{font-size:13px}
+.shrow{align-items:flex-start}.shrow .shck{margin-top:2px}.shrow .del{margin-top:2px}
+.shmeta{display:flex;gap:8px;align-items:center;margin-top:6px}
+.qty{display:inline-flex;align-items:center;background:var(--fill);border-radius:999px;overflow:hidden}
+.qty button{border:0;background:none;color:var(--blue);font:inherit;font-size:18px;font-weight:600;width:34px;height:30px;cursor:pointer;display:grid;place-items:center;padding:0}
+.qty button:disabled{color:var(--muted);opacity:.4}.qty b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -1449,8 +1454,10 @@ function viewPdb(){const sh=shopS(),q=pdbQ.toLowerCase();
 function viewShop(){const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.done),done=sh.items.filter(x=>x.done);
   const sug=Object.entries(sh.hist||{}).filter(([n])=>!sh.items.some(x=>x.n.toLowerCase()==n)).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const row=x=>`<div class="shrow ${x.done?'done':''}"><button class="shck" data-shd="${x.id}" aria-label="${x.done?'Nicht gekauft':'Gekauft'}">${x.done?I('check',16):''}</button>
-    <div class="t"><div>${x.q>1?x.q+'× ':''}${esc(x.n)}</div><div class="s">${x.p?(x.est?'ca. ':'')+eur(x.p*(x.q||1)):'ohne Preis'}${x.q>1&&x.p?' · je '+eur(x.p):''}${x.unit?' · '+esc(x.unit):''}${x.est?' · Richtwert':''}</div></div>
-    <button class="shopt ${x.opt?'kann':'muss'}" data-sho="${x.id}">${x.opt?'Kann':'Muss'}</button><button class="del" data-shx="${x.id}" aria-label="Entfernen">${I('minus',20)}</button></div>`;
+    <div class="t"><div>${esc(x.n)}</div><div class="s">${x.p?(x.est?'ca. ':'')+eur(x.p*(x.q||1)):'ohne Preis'}${(x.q||1)>1&&x.p?' · je '+eur(x.p):''}${x.unit?' · '+esc(x.unit):''}${x.est?' · Richtwert':''}</div>
+     <div class="shmeta"><span class="qty" role="group" aria-label="Menge ${esc(x.n)}"><button data-shq="${x.id}|-1" aria-label="Weniger" ${(x.q||1)<=1?'disabled':''}>−</button><b>${x.q||1}</b><button data-shq="${x.id}|1" aria-label="Mehr">+</button></span>
+     <button class="shopt ${x.opt?'kann':'muss'}" data-sho="${x.id}">${x.opt?'Kann':'Muss'}</button></div></div>
+    <button class="del" data-shx="${x.id}" aria-label="Entfernen">${I('minus',20)}</button></div>`;
   return `${appbar({title:'Einkaufszettel',back:'shopBack',noGear:true,stats:`<div class="hc-big"><span>Geschätzt</span><b>${eur(ck.est)}</b></div><div class="hc-line">${esc(sh.acct)} noch frei: ${eur(ck.rest)} · ${eur(ck.c.tag)} pro Tag</div>`})}
   <div class="seg" id="shLevel">${Object.entries(PLEVEL).map(([k,v])=>`<button class="${(sh.level||'disc')==k?'on':''}" data-f="${k}">${v[1]}</button>`).join('')}</div>
   <div class="seg" id="shopAcc">${BUDG.map(b=>`<button class="${sh.acct==b?'on':''}" data-f="${esc(b)}">${esc(SHORT[b])}</button>`).join('')}</div>
@@ -1490,6 +1497,7 @@ function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const s
   if($('shN'))$('shN').onkeydown=e=>{if(e.key=='Enter')add()};if($('shP'))$('shP').onkeydown=e=>{if(e.key=='Enter')add()};
   document.querySelectorAll('[data-shs]').forEach(b=>b.onclick=()=>{shopAdd(b.dataset.shs,'');render()});
   document.querySelectorAll('[data-shd]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.shd);x.done=!x.done;save();render()});
+  document.querySelectorAll('[data-shq]').forEach(b=>b.onclick=()=>{const[id,d]=b.dataset.shq.split('|'),x=sh.items.find(i=>i.id==id);if(!x)return;x.q=Math.max(1,Math.min(99,(x.q||1)+ +d));save();render()});
   document.querySelectorAll('[data-sho]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.sho);x.opt=!x.opt;save();render()});
   document.querySelectorAll('[data-shx]').forEach(b=>b.onclick=()=>{const ss=JSON.stringify(sh.items);sh.items=sh.items.filter(i=>i.id!=b.dataset.shx);save();render();toast('Entfernt.',()=>{sh.items=JSON.parse(ss);save();render()})});
   document.querySelectorAll('#shopAcc button').forEach(b=>b.onclick=()=>{sh.acct=b.dataset.f;save();render()});
