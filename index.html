@@ -464,6 +464,7 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 .ana-flow{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:12px 14px;font-size:14px;font-variant-numeric:tabular-nums}.ana-flow b{text-align:right;font-weight:600}.ana-sum{border-top:1px solid var(--sep);padding-top:8px;font-weight:700}
 .ana-acc{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
 .ana-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:80px;padding:0 14px 12px;align-items:end}.ana-wd div{display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}.ana-wd i{width:70%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}.ana-wd span{font-size:11px;color:var(--muted)}
+.sstep{display:flex;gap:12px;align-items:flex-start}.sstep-n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;flex:none;margin-top:2px}.sstep-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.sstep-b>b{font-size:17px}.sstep-b .s{font-size:14px;color:var(--muted);line-height:1.45}.sstep-b ol{margin:0;padding-left:20px;font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:3px}.sstep-b code{background:var(--fill);border-radius:4px;padding:0 4px;font-size:12px}.sstat{font-size:13px;font-weight:600}.sstat:empty{display:none}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -844,7 +845,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='33 (04.11.)';
+const APP_VER='34 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2235,26 +2236,33 @@ function viewSync(){const on=syOn(),need=on&&!SY.k&&!syKey;
    <button class="btn" id="syNow">Jetzt synchronisieren</button>
    <div class="anchor">${I('lock',16)}<span>Deine Daten werden auf diesem Gerät mit deinem Sync-Passwort verschlüsselt, bevor sie hochgeladen werden. Online liegt nur unlesbarer Datensalat.</span></div>
    <div class="sec"><div class="sh">Abmelden</div><button class="btn soft" id="syOut">Abmelden, Daten auf diesem Gerät behalten</button><button class="btn danger" id="syWipe">Abmelden und Daten von diesem Gerät löschen</button><div class="note">Auf einem fremden oder dienstlichen Rechner immer die zweite Variante nutzen. Online bleibt alles erhalten.</div></div>`
-  :`${need?`<div class="tip">Du bist angemeldet, aber das Sync-Passwort ist auf diesem Gerät nicht gespeichert. Bitte melde dich neu an.</div>`:''}
-   <div class="sec"><div class="sh">1 · Dein Online-Speicher</div><div class="group">
-    <div class="cell plain"><label for="syU">Projekt-URL</label><input id="syU" placeholder="https://xyz.supabase.co" value="${esc(SY.url||'')}" autocapitalize="off"></div>
-    <div class="cell plain"><label for="syK">Publishable Key</label><input id="syK" placeholder="sb_publishable_…" value="${esc(SY.key||'')}" autocapitalize="off"></div></div>
-    <div class="note">Einmalig aus Supabase kopieren: Die URL ist https://DEIN-PROJEKT.supabase.co, den Key findest du unter Project Settings › API Keys › „Publishable key“. Niemals den Secret Key verwenden.</div></div>
-   <div class="sec"><div class="sh">2 · Anmelden</div><div class="group">
-    <div class="cell plain"><label for="syE">E-Mail</label><input id="syE" type="email" autocomplete="username" value="${esc(SY.email||'')}"></div>
-    <div class="cell plain"><label for="syP">Passwort</label><input id="syP" type="password" autocomplete="current-password"></div>
-    <div class="cell plain"><label for="syX">Sync-Passwort</label><input id="syX" type="password" autocomplete="off" placeholder="mind. 8 Zeichen"></div>
-    <div class="cell plain"><div class="t"><div>Auf diesem Gerät merken</div><div class="s">Auf dem Dienst-PC besser ausschalten</div></div><input id="syR" type="checkbox" class="switch" checked></div></div>
-    <div class="note">Das Sync-Passwort verschlüsselt deine Daten. Es verlässt nie dein Gerät und kann nicht zurückgesetzt werden. Bitte gut merken und auf allen Geräten gleich eingeben.</div>
-    <div class="note" id="syErr" style="color:var(--bad)"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn" id="syIn">Anmelden</button><button class="btn soft" id="syUp">Konto erstellen</button></div></div>
-   <div class="sec"><div class="sh">Einrichtung (einmalig, ca. 10 Minuten)</div><div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
-    <li>Auf <b>supabase.com</b> kostenlos registrieren und „New project“ anlegen, Region <b>Frankfurt</b>.</li>
-    <li>Links <b>SQL Editor</b> öffnen, den Code unten einfügen und auf „Run“ tippen.</li>
-    <li>Unter <b>Project Settings › API Keys</b> den <b>Publishable key</b> (beginnt mit sb_publishable_) kopieren. Die Projekt-URL ist https://&lt;Projekt-ID&gt;.supabase.co, die ID steht in der Adresszeile nach /project/.</li>
-    <li>Hier „Konto erstellen“ tippen, den Link in der Bestätigungs-E-Mail öffnen, dann „Anmelden“.</li>
-    <li>Am PC dieselbe Adresse im Browser öffnen, hier die gleichen Daten eingeben, fertig.</li></ol>
-    <div class="srow"><textarea class="box" readonly id="sySql" style="font-family:ui-monospace,monospace;font-size:11px;min-height:150px">${esc(SYSQL)}</textarea><button class="btn soft" id="syCopy">SQL kopieren</button></div></div></div>`}`}
+  :`${need?`<div class="tip">Du bist angemeldet, aber das Sync-Passwort ist auf diesem Gerät nicht gespeichert. Bitte melde dich unten neu an.</div>`:''}
+   <div class="note" style="padding:0 4px">Einmal auf <b>einem</b> Gerät einrichten (Schritte 1 bis 3), danach auf jedem weiteren Gerät nur noch Schritt 4.</div>
+   <div class="sstep"><div class="sstep-n">1</div><div class="sstep-b"><b>Tabelle in Supabase anlegen</b><span class="s">Am PC auf supabase.com in deinem Projekt:</span>
+    <ol><li>Links in der Leiste auf <b>SQL Editor</b> klicken (Symbol <code>&gt;_</code>).</li><li>Oben auf <b>+ New query</b> bzw. „New SQL snippet“.</li><li>Hier auf <b>SQL kopieren</b> tippen und dort ins große Feld einfügen.</li><li>Unten rechts auf <b>Run</b> klicken. Es erscheint „Success. No rows returned“.</li></ol>
+    <button class="btn soft" id="syCopy">SQL kopieren</button><textarea class="box" readonly id="sySql" hidden>${esc(SYSQL)}</textarea>
+    <div class="sstat" id="syT">${syChk.t===true?'✅ Tabelle gefunden':syChk.t===false?'⚠️ Tabelle noch nicht gefunden':''}</div></div></div>
+   <div class="sstep"><div class="sstep-n">2</div><div class="sstep-b"><b>Schlüssel eintragen</b><span class="s">In Supabase links unten auf das Zahnrad <b>Project Settings</b> › <b>API Keys</b>. Beim Eintrag „default“ den <b>Publishable key</b> (beginnt mit <code>sb_publishable_</code>) mit dem Kopier-Symbol kopieren und hier einfügen. Nicht den Secret Key.</span>
+    <div class="group"><div class="cell plain"><label for="syU">Projekt-URL</label><input id="syU" value="${esc(SY.url||SYDEF)}" autocapitalize="off" spellcheck="false"></div>
+     <div class="cell plain"><label for="syK">Publishable Key</label><input id="syK" placeholder="sb_publishable_…" value="${esc(SY.key||'')}" autocapitalize="off" spellcheck="false"></div></div>
+    <button class="btn soft" id="syChk">Verbindung prüfen</button><div class="sstat" id="syC">${syChk.c||''}</div></div></div>
+   <div class="sstep"><div class="sstep-n">3</div><div class="sstep-b"><b>CashFlow-Konto erstellen</b><span class="s">Denk dir zwei Passwörter aus: eins zum Anmelden und ein <b>Sync-Passwort</b>, das deine Daten verschlüsselt. Das Sync-Passwort kann niemand zurücksetzen, schreib es dir sicher auf.</span>
+    <div class="group"><div class="cell plain"><label for="syE">E-Mail</label><input id="syE" type="email" autocomplete="username" value="${esc(SY.email||'')}"></div>
+     <div class="cell plain"><label for="syP">Passwort</label><input id="syP" type="password" autocomplete="current-password" placeholder="zum Anmelden"></div>
+     <div class="cell plain"><label for="syX">Sync-Passwort</label><input id="syX" type="password" autocomplete="off" placeholder="mind. 8 Zeichen"></div>
+     <div class="cell plain"><div class="t"><div>Auf diesem Gerät merken</div><div class="s">Am Dienst-PC ausschalten</div></div><input id="syR" type="checkbox" class="switch" checked></div></div>
+    <button class="btn" id="syUp">Konto erstellen</button><span class="s">Danach kommt eine E-Mail von Supabase („Confirm your signup“). Den Link darin antippen, zurück hierher und Schritt 4.</span></div></div>
+   <div class="sstep"><div class="sstep-n">4</div><div class="sstep-b"><b>Anmelden</b><span class="s">Mit E-Mail, Passwort und Sync-Passwort von oben. Auf jedem weiteren Gerät (PC, Browser) einfach die App-Adresse öffnen, Schlüssel aus Schritt 2 und die drei Angaben eintragen und anmelden.</span>
+    <button class="btn" id="syIn">Anmelden</button></div></div>
+   <div class="note" id="syErr" style="color:var(--bad)"></div>
+   <div class="note">Tipp, wenn alles läuft: In Supabase unter Authentication › Sign In / Providers „Allow new users to sign up“ ausschalten. Dann kann sich niemand sonst in deinem Projekt registrieren.</div>`}`}
+let syChk={};const SYDEF='https://yyltagrgzrjteltnkolw.supabase.co';
+async function syCheck(){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim();if(!url||!key){$('syC').textContent='Bitte URL und Key eintragen.';return}
+  $('syC').textContent='Prüfe …';try{const r=await fetch(url+'/rest/v1/cashflow?select=user_id&limit=1',{headers:{apikey:key}});
+    if(r.status==401||r.status==403){syChk={c:'❌ Key wird nicht akzeptiert. Bitte den Publishable key vollständig kopieren.'}}
+    else if(r.ok){syChk={c:'✅ Verbindung klappt, Tabelle ist da.',t:true}}
+    else{const j=await r.json().catch(()=>({}));syChk={c:/does not exist|relation|schema cache/i.test(JSON.stringify(j))?'⚠️ Verbindung klappt, aber die Tabelle fehlt noch. Bitte Schritt 1 ausführen.':'❌ Fehler '+r.status,t:false}}
+    SY.url=url;SY.key=key;sySave()}catch(e){syChk={c:'❌ Keine Verbindung. Stimmt die URL?'}}render()}
 const SYSQL=`create table if not exists public.cashflow (
   user_id uuid primary key references auth.users(id) on delete cascade,
   data text not null,
@@ -2267,7 +2275,7 @@ alter table public.cashflow enable row level security;
 create policy "nur eigene Daten" on public.cashflow
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
 function bindSync(){if(setView!='sync')return;const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
-  on('syIn',()=>syLogin(false));on('syUp',()=>syLogin(true));on('syNow',()=>{syMsg='Synchronisiere …';render();S._m=Math.max(S._m||0,(SY.at||0)+1);sync(false)});
+  on('syIn',()=>syLogin(false));on('syChk',()=>syCheck());on('syUp',()=>syLogin(true));on('syNow',()=>{syMsg='Synchronisiere …';render();S._m=Math.max(S._m||0,(SY.at||0)+1);sync(false)});
   on('syOut',()=>syLogout(false));on('syWipe',()=>{const b=$('syWipe');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich? Nochmal tippen';return}syLogout(true)});
   on('syCopy',()=>{const t=$('sySql');t.select();try{navigator.clipboard.writeText(SYSQL).then(()=>toast('SQL kopiert.'))}catch(e){document.execCommand('copy');toast('SQL kopiert.')}})}
 
