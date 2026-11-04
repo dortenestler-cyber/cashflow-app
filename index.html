@@ -448,12 +448,15 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .pufl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.pufl b{color:var(--fg);font-weight:500;text-align:right}.pufl span b{font-weight:700}
 .ed-ic{border:0;background:none;color:var(--muted);padding:4px;cursor:pointer;display:inline-flex;border-radius:6px}.ed-ic:hover{background:var(--fill)}.ed-link{border:0;background:none;padding:0;color:var(--blue);font:inherit;cursor:pointer;text-align:left}
 .sheet.noanim{animation:none}.es{display:flex;flex-direction:column;gap:12px}.ctx{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.pill{border:0;background:var(--card);color:var(--fg);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;font-weight:500;display:inline-flex;gap:5px;align-items:center;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}.pill.on{box-shadow:0 0 0 2px var(--blue)}.pill .caret{color:var(--muted);font-size:10px}.impact{text-align:center;font-size:14px;font-weight:500;margin-top:-8px;color:var(--muted)}.es .chips:empty{display:none}
+.vfab{position:fixed;left:max(16px,calc(env(safe-area-inset-left,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 66px);width:56px;height:56px;border-radius:50%;border:0;background:var(--card);color:var(--accent);display:grid;place-items:center;cursor:pointer;z-index:5;box-shadow:0 6px 16px rgba(0,0,0,.16)}.vfab[hidden]{display:none}.vfab.rec{background:var(--bad);color:#fff;animation:pulse 1.4s ease-in-out infinite}
+body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
 <div id="app"></div>
 <nav class="tabbar" id="tabbar"></nav>
 <button class="fab" id="fab" aria-label="Neue Buchung">+</button>
+<button class="vfab" id="vfab" aria-label="Spracheingabe"></button>
 <div id="sheetRoot"></div>
 <div id="asstRoot"></div>
 <div id="toastRoot"></div>
@@ -826,7 +829,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
-  const tkey0=0;const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');S.dismTips=(S.dismTips||[]).filter(k=>t0.some(x=>tkey(x)==k));const t=t0.filter(x=>!S.dismTips.includes(tkey(x)));if(!t.length){r.innerHTML='';return}S.seenTips=(S.seenTips||[]).filter(k=>t.some(x=>tkey(x)==k));const top=t[0].sev,n=t.filter(x=>!S.seenTips.includes(tkey(x))).length;
+  const tkey0=0;const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');S.dismTips=(S.dismTips||[]).filter(k=>t0.some(x=>tkey(x)==k));const t=t0.filter(x=>!S.dismTips.includes(tkey(x)));if(!t.length){r.innerHTML='';return}S.seenTips=(S.seenTips||[]).filter(k=>t.some(x=>tkey(x)==k));const top=t[0].sev,n=t.filter(x=>!S.seenTips.includes(tkey(x))).length;if(!n&&!asstOpen){r.innerHTML='';return}
   r.innerHTML=`<button class="abub ${top}" id="abub" aria-label="Assistent, ${t.length} Hinweise" aria-expanded="${asstOpen}">${I(top=='bad'?'alert':'sparkle',24)}${n?`<span class="acnt">${n}</span>`:''}</button>
    ${asstOpen?`<div class="apop" role="dialog" aria-label="Hinweise"><div class="apop-h"><b>Dein Assistent</b><button id="aClose" aria-label="Schließen">${I('close',20)}</button></div>
     <div class="apop-b">${t.map((x,i)=>`<div class="atip ${x.sev}" data-tk="${esc(tkey(x))}"><div class="atip-t">${asstNew.includes(tkey(x))?'<span class="newdot">Neu</span>':''}${I(x.sev=='bad'?'alert':x.sev=='warn'?'up':x.sev=='ok'?'check':'sparkle',15)}<b>${esc(x.ttl)}</b></div><div class="atip-x">${x.txt}</div>
@@ -1551,11 +1554,11 @@ function shopVoice(v){let t=' '+v+' ';t=t.replace(/\b(setze?|schreibe?|packe?|f�
     s=s.replace(/^(die|der|das|den)\s+/i,'').trim();if(!s||s.length<2)return;s=s.charAt(0).toUpperCase()+s.slice(1);
     const d=dbFind(s),names=[s.toLowerCase(),d&&s.length<=d.n.length+1?d.n.toLowerCase():null].filter(Boolean),ex=sh.items.find(x=>!x.done&&names.includes(x.n.toLowerCase()));
     if(ex)ex.q=(ex.q||1)+q;else shopAdd((q>1?q+'x ':'')+s,'');added.push((q>1?q+'× ':'')+(ex?ex.n:sh.items[sh.items.length-1].n))});save();return added}
-function listen(onText,field,ph){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function listen(onText,field,ph,onEnd){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
   try{const r=new SR();r.lang='de-DE';r.interimResults=false;r.maxAlternatives=1;const old=field?field.placeholder:'';if(field)field.placeholder=ph||'Ich höre zu …';
-    r.onresult=ev=>onText(ev.results[0][0].transcript);r.onerror=()=>{if(field){field.placeholder=old;field.focus()}toast('Spracheingabe ging nicht. Nutze das Mikrofon der Tastatur.')};
-    r.onend=()=>{if(field&&document.body.contains(field))field.placeholder=old};r.start()}catch(e){if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur.')}}
+    r.onresult=ev=>onText(ev.results[0][0].transcript);r.onerror=()=>{onEnd&&onEnd();if(field){field.placeholder=old;field.focus()}toast('Spracheingabe ging nicht. Nutze das Mikrofon der Tastatur.')};
+    r.onend=()=>{if(field&&document.body.contains(field))field.placeholder=old;onEnd&&onEnd()};r.start()}catch(e){onEnd&&onEnd();if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur.')}}
 function shopVoiceDone(added){if(!added.length){toast('Nichts erkannt. Sag z. B. „Milch, 2 Brot und Eier“.');return}toast('Auf dem Einkaufszettel: '+added.join(', '));renderAsst&&setTimeout(renderAsst,0)}
 function shopAdd(txt,price){const sh=shopS();let t=txt.trim();if(!t)return;let q=1,p=pNum(price);const mq=t.match(/^(\d+)\s*[x×]\s*/i);if(mq){q=+mq[1];t=t.slice(mq[0].length)}
   const mp=t.match(/\s(\d+(?:[.,]\d{1,2})?)\s*€?$/);if(mp&&isNaN(p)){p=pNum(mp[1]);t=t.slice(0,mp.index)}t=t.trim();const k=t.toLowerCase();
@@ -1668,6 +1671,7 @@ function viewMore(){const nav=(k,ico,l,s)=>`<button class="cell" data-set="${k}"
    ${nav('yplan','calendar','Jahresplaner','Sonderausgaben, monatliche Rücklage')}
    ${nav('abos','repeat','Abo-Radar',eur0(aboList().reduce((s,x)=>s+x.year,0))+' im Jahr · Kündigungsfristen')}
    ${nav('ng','lifebuoy','Notgroschen',S.showWealth?eur0(ngVal())+' von '+eur0(ngTarget()):'Optional · Vermögen ausgeblendet')}
+   <button class="cell" id="asstShow"><div class="ico" style="background:color-mix(in srgb,#7b5cf6 14%,transparent);color:#7b5cf6">${I('sparkle')}</div><div class="t"><div>Hinweise des Assistenten</div><div class="s">Auch bereits gesehene Hinweise anzeigen</div></div><span class="chev">›</span></button>
    ${nav('shop','cart','Einkaufszettel',(S.shop&&S.shop.items.length?S.shop.items.length+' Artikel · ':'')+'mit Budget-Check')}
    ${nav('debts','target','Schuldenfrei',(S.debts||[]).length?((S.debts||[]).map(d=>eur0(debtInfo(d).rest)+' offen').join(' · ')):'Kredite und Raten abbauen')}
    ${nav('rules','lock','Regeln & Monatsabschluss','Notfallbremse, 14 Tage, Restgeld')}
@@ -1757,7 +1761,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- render ---------- */
-function render(){document.body.classList.add('mm');renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;
+function render(){document.body.classList.add('mm');renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
   const html=curB?viewDetail(curB):setView?viewSet(setView):tab=='dash'?viewDash():tab=='list'?viewList():tab=='cal'?viewCal():tab=='rep'?viewRep():tab=='wish'?viewWish():viewMore();
   const html2=html.replace(/<div><button class="back" id="(\w+)">‹ [^<]*<\/button><h1 class="lt"[^>]*>([\s\S]*?)<\/h1>((?:<div class="date">[\s\S]*?<\/div>)?)<\/div>/,(m,id,t,sub)=>appbar({title:t,back:id,noGear:true,sub:sub?sub.replace(/<\/?div[^>]*>/g,''):''}));
   $('app').innerHTML=`<div class="view ${curB?'detail':''}">${html2}</div>`;bind();renderAsst()}
@@ -1839,6 +1843,7 @@ function bind(){bindSwipe();{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=
   document.querySelectorAll('[data-gdrop]').forEach(b=>b.onclick=()=>{const g=S.goals.find(x=>x.id==b.dataset.gdrop);if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich aufgeben?';return}
     g.dropped=Date.now();S.gespart+=g.ziel;save();render()});
   document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{setView=b.dataset.set;render();scrollTo(0,0)});
+  if($('asstShow'))$('asstShow').onclick=e=>{e.stopPropagation();asstOpen=true;renderAsst();if(!$('abub'))toast('Gerade gibt es keine Hinweise.')};
   document.querySelectorAll('#lookSeg button').forEach(b=>b.onclick=()=>{S.look=b.dataset.f;save();render()});
   on('debtAdd',()=>openDebt(-1));document.querySelectorAll('[data-dedit]').forEach(b=>b.onclick=()=>openDebt(+b.dataset.dedit));
   document.querySelectorAll('[data-ddel]').forEach(b=>b.onclick=()=>{if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich entfernen?';return}const s=JSON.stringify(S.debts);S.debts.splice(+b.dataset.ddel,1);save();render();toast('Kredit entfernt.',()=>{S.debts=JSON.parse(s);save();render()})});
@@ -2037,6 +2042,11 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){if(rec.img){delete rec.img;save();}}
     close();render();toast(E.id?'Änderung gesichert.':(rec.type=='tr'?'Umbuchung gesichert: ':rec.type=='in'?'Einnahme gesichert: ':'Ausgabe gesichert: ')+eur(a),()=>restore(sn))}}
 $('fab').onclick=()=>openSheet();
+$('vfab').innerHTML=I('mic',24);
+$('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.webkitSpeechRecognition,shop=setView=='shop';
+  if(!SR){if(shop){$('shN')&&$('shN').focus()}else{openSheet();setTimeout(()=>$('equick')&&$('equick').focus(),60)}toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
+  vf.classList.add('rec');listen(v=>{vf.classList.remove('rec');if(shop||isShopVoice(v)){const a=shopVoice(v);render();shopVoiceDone(a);return}
+    openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))};
 
 /* ---------- summary for Claude ---------- */
 function share(){const P=period(0);let t=`Hallo Claude, hier mein Budget-Stand (${now.toLocaleDateString('de-DE')}, ${P.label}, noch ${P.left} Tage):\n`;
