@@ -549,6 +549,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 #fab,#vfab,#asstRoot .abub{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s ease}
 body.navving #fab,body.navving #vfab,body.navving #asstRoot .abub{transform:scale(.72);opacity:.38}
 body.navving #fab:hover,body.navving #vfab:hover,body.navving #asstRoot .abub:hover{transform:none;opacity:1}
+a.arow,a.arow:visited{text-decoration:none;color:inherit}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -964,7 +965,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='81 (04.11.)';
+const APP_VER='82 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -993,7 +994,7 @@ function aVar(w){const st=w.replace(/^ge(?=\w{4})/,'').replace(/(ungen|ung|en|er
 const aRow=e=>`<button class="arow" data-aex="${e.id}"><span class="arow-t"><b>${esc(e.n||e.c||'Buchung')}</b><small>${new Date(e.t).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'2-digit'})} · ${esc(SHORT[e.b]||e.b)}${e.type=='tr'?' → '+esc(SHORT[e.to]||e.to):e.c&&e.n?' · '+esc(e.c):''}</small></span><span class="arow-v ${e.type=='in'?'in':''}">${e.type=='in'?'+':e.type=='tr'?'':'−'}${eur(e.a)}</span></button>`;
 function aList(L,max=25){return `<div class="alist">${L.slice(0,max).map(aRow).join('')}</div>${L.length>max?`<div class="a-s">… und ${L.length-max} weitere. Grenze die Suche ein, z. B. mit einem Monat oder Konto.</div>`:''}`}
 function askAI(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'').trim();if(!l)return null;const acc=accIn(l),cat=aCat(l),amt=aAmt(l);
-  if(/^(hilfe|was kannst du|was kann ich (dich )?fragen|beispiele)/.test(l))return{h:`<p>Frag mich zum Beispiel:</p><div class="chips wrap">${['Wie viel habe ich diesen Monat für Lebensmittel ausgegeben?','Suche Amazon','Buchungen über 100 € im Oktober','Kann ich mir 80 € leisten?','Was wird diese Woche abgebucht?','Welche Abos habe ich?','Größte Ausgaben letzten Monat','Wie viel ist noch in Flow?'].map(x=>`<button class="chip" data-aq="${esc(x)}">${esc(x)}</button>`).join('')}</div>`};
+  if(/^(hilfe|was kannst du|was kann ich (dich )?fragen|beispiele)/.test(l))return{h:`<p>Frag mich zum Beispiel:</p><div class="chips wrap">${['Wie viel habe ich diesen Monat für Lebensmittel ausgegeben?','Suche Amazon','Buchungen über 100 € im Oktober','Kann ich mir 80 € leisten?','Was wird diese Woche abgebucht?','Welche Abos habe ich?','Größte Ausgaben letzten Monat','Wie viel ist noch in Flow?','News aus der Krypto-Welt'].map(x=>`<button class="chip" data-aq="${esc(x)}">${esc(x)}</button>`).join('')}</div>`};
   let m;
   if((m=l.match(/kann ich (?:mir )?(.*?)(\d+(?:[.,]\d{1,2})?)\s*(?:€|euro)?/))&&/leisten|ausgeben|kaufen|drin/.test(l)){const a=pNum(m[2]),b=acc&&!isK(acc)?acc:(BUDG.find(x=>/gönn/i.test(x))||BUDG[0]),c=calc(b),P=c.p,after=c.rest-a,pd=Math.max(after,0)/Math.max(P.left,1);
     const ok=after>=0,w=a>=50;return{h:`<p class="a-big ${ok?'':'out'}">${ok?(w||pd<5?'Ja, aber':'Ja'):'Nein'}</p><p>${esc(b)} hat noch ${eur(c.rest)}. Danach blieben ${eur(after)}${ok?`, also ${eur(pd)} pro Tag bis Monatsende`:''}.${isLock(b)&&!ok?' Notfallbremse: kein Nachschub aus anderen Töpfen.':''}</p>${w?`<p>Bei ${eur(a)} gilt deine Regel: erst auf die Wunschliste, Wartezeit ${Math.round(wait(a)/864e5)} Tage.</p>`:''}`,a:w?[['Auf die Wunschliste',()=>{openWish();setTimeout(()=>{if($('wpreis'))$('wpreis').value=String(a).replace('.',',')},60)}]]:null}}
@@ -1016,7 +1017,18 @@ function askAI(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'').trim();i
     return{h:`<p class="a-big">${eur(tot)}</p><p>${typ=='in'?'Eingenommen':'Ausgegeben'}${cat?' für '+esc(cat):''}${terms.length?' bei „'+esc(terms.join(' '))+'“':''}${acc?' über '+esc(acc):''} ${r?esc(r.lab):'insgesamt'}, ${L.length} Buchung${L.length==1?'':'en'}.</p>${cmp}${L.length?aList(L,8):''}`}}
   if(!L.length)return{h:`<p>Dazu habe ich nichts gefunden${terms.length?' für „'+esc(terms.join(' '))+'“':''}.</p><p class="a-s">Tipp: „Suche Rewe“, „Buchungen über 50 € im Oktober“ oder „Hilfe“.</p>`};
   return{h:`<p><b>${L.length} Buchung${L.length==1?'':'en'}</b>${r?' · '+esc(r.lab):''} · zusammen ${eur(tot)}</p>${aList(L)}`}}
-function asstAsk(q){q=String(q||'').trim();if(!q)return;let a;try{a=askAI(q)}catch(e){a={h:'<p>Da ist etwas schiefgelaufen: '+esc(e.message||e)+'</p>'}}AQ.msgs.push({q,h:a?a.h:'<p>Das habe ich nicht verstanden.</p>',a:a&&a.a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();
+const NEWSRX=/\b(news|nachrichten|neuigkeiten|schlagzeilen|was gibt'?s neues|was gibt es neues|was ist los)\b/;
+async function aNews(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'');if(!syOn())return '<p>Für Internet-Suchen brauche ich die Online-Synchronisierung mit deiner Supabase-Funktion „kurse“.</p>';
+  let t=l.replace(NEWSRX,' ').replace(/\b(zu|über|aus|der|die|das|dem|den|welt|gibt|es|aktuelle[n]?|neueste[n]?|mir|zeig|such|suche|bitte|mal|heute|von|bei|im|in|meine[n]?|meinen werten|markt|zum|zur|thema)\b/g,' ').replace(/\s+/g,' ').trim();
+  const D=depot(),hit=D.find(h=>{const n=String(h.n||'').toLowerCase(),sy=String(h.sym||'').toLowerCase();return (n&&t&&(n.includes(t)||t.split(' ').some(w=>w.length>3&&n.includes(w))))||(sy&&t.split(' ').includes(sy))});
+  let qy;if(/krypto|crypto|coin/.test(t)||!t&&/krypto/.test(l))qy={q:'krypto',g:'Krypto Bitcoin Ethereum',y:'BTC-USD',lab:'Krypto'};else if(hit)qy={q:hit.sym,lab:hit.n||hit.sym,g:newsG(hit),y:hit.type=='krypto'?hit.sym.toUpperCase()+'-USD':(hit.ysym||'')};else if(t)qy={q:t,g:t,y:''};else qy={q:'börse',g:'Börse Aktien',y:'',lab:'Börse'};
+  const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[qy]})});const j=r.ok?await r.json():{};
+  if(!Array.isArray(j.__news))return '<p>Deine Funktion „kurse“ kann noch keine News. Aktualisiere sie einmal mit dem neuesten Code (Auswertung › Vermögen › Kurse-Einrichtung).</p>';
+  const out=[];j.__news.filter(n=>n&&n.t&&n.u&&n.ts>Date.now()-10*864e5).sort((a,b)=>b.ts-a.ts).forEach(n=>{const w=nWords(n.t);if(out.some(o=>{let c=0;w.forEach(x=>{if(o.w.has(x))c++});return o.u==n.u||(c>=3&&c/Math.max(1,Math.min(w.size,o.w.size))>=.6)}))return;out.push({...n,w})});
+  if(!out.length)return `<p>Keine aktuellen Meldungen zu „${esc(qy.g)}“ gefunden.</p>`;
+  return `<p><b>Aktuelle News: ${esc(qy.lab||qy.g)}</b></p><div class="alist">${out.slice(0,8).map(n=>`<a class="arow" href="${esc(n.u)}" target="_blank" rel="noopener noreferrer"><span class="arow-t"><b style="white-space:normal">${esc(n.t)}</b><small>${esc(n.p||'')} · ${agoTxt(n.ts)}</small></span></a>`).join('')}</div><p class="a-s">Quellen: Google News, Bing, Yahoo Finance. Doppelte Meldungen sind zusammengefasst.</p>`}
+function asstAsk(q){q=String(q||'').trim();if(!q)return;if(NEWSRX.test(q.toLowerCase())){const m={q,h:'<p class="a-s">Suche im Internet …</p>'};AQ.msgs.push(m);asstOpen=true;renderAsst();aNews(q).then(h=>{m.h=h}).catch(e=>{m.h='<p>Suche ging nicht: '+esc(e.message||e)+'</p>'}).finally(()=>{renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)});setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}
+  let a;try{a=askAI(q)}catch(e){a={h:'<p>Da ist etwas schiefgelaufen: '+esc(e.message||e)+'</p>'}}AQ.msgs.push({q,h:a?a.h:'<p>Das habe ich nicht verstanden.</p>',a:a&&a.a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();
   setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(hide){r.innerHTML='';return}
@@ -3267,7 +3279,7 @@ function voiceCmd(v){const l=v.toLowerCase().trim();if(!l)return true;
   if(/^(hilfe|was kann ich (sagen|fragen)|welche befehle|was verstehst du)/.test(l)){voiceHelp();return true}
   if(vShopDone(l))return true;
   if(isShopVoice(v)){shopVoiceDone(shopVoice(v));return true}
-  if(/^(such|find|zeig mir (alle |meine )?buchung|wie ?viel|was habe ich|was hab ich|kann ich mir|welche abos|was wird|wann habe ich|größte|teuerste)|\?$/.test(l)){$('sheetRoot').innerHTML='';asstAsk(v);return true}
+  if(NEWSRX.test(l)||/^(such|find|zeig mir (alle |meine )?buchung|wie ?viel|was habe ich|was hab ich|kann ich mir|welche abos|was wird|wann habe ich|größte|teuerste)|\?$/.test(l)){$('sheetRoot').innerHTML='';asstAsk(v);return true}
   return vNav(l)||vFix(l)||vQuestion(l)||vWish(l,v)||vGoal(l)||vRecurring(l,v)||vMulti(v)}
 
 /* ---------- summary for Claude ---------- */
