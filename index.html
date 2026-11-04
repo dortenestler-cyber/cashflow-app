@@ -436,6 +436,8 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .ctr+.ctr{border-top:.5px solid var(--sep)}.ctr-h{display:flex;gap:10px;align-items:center}.ctr-h .t{flex:1;min-width:0}.ctr .s{font-size:12px;color:var(--muted)}
 .ctr-l{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.ctr-l b{color:var(--fg);font-weight:600}
 .choices button .i{width:15px;height:15px;vertical-align:-2px}
+
+.kseg{margin-top:-6px}.kseg button{font-size:13px}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -804,6 +806,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   (S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(x.kd){const dl=Math.ceil((x.kd-now)/864e5);if(dl>0&&dl<=30)t.push({sev:'warn',act:'ctr',cid:c.id,ttl:`Kündigungsfrist ${c.n}`,txt:`Noch ${dl} Tage bis ${x.kd.toLocaleDateString('de-DE')}. Willst du verlängern?`})}});
   if(P.idx<=5){const R=reviewData(-1);if(R.bs.some(x=>x.c.used>0))t.push({sev:'info',act:'review',ttl:'Dein Monatsrückblick '+period(-1).label,txt:`${R.good.length} Dinge liefen gut${R.bad.length?', '+R.bad.length+' nicht so gut':''}. Schau ihn dir an.`})}
   if(CANFILE&&S.exp.length&&(!S.lastBak||Date.now()-S.lastBak>7*864e5))t.push({sev:'info',act:'bak',ttl:'Zeit für eine Sicherung',txt:S.lastBak?'Deine letzte Sicherung ist über eine Woche alt.':'Du hast noch nie eine Sicherung gespeichert. Leg sie in iCloud Drive ab.'});
+  if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
@@ -843,7 +846,7 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   ${(S.debts||[]).filter(d=>!d.done).map(debtCard).join('')}
   ${BN.filter(isK).length?`<div class="sec"><div class="sh">Konten</div><div class="group">${BN.filter(isK).map(b=>{const c=calc(b);return `<button class="cell" data-b="${b}"><div class="ico" style="background:color-mix(in srgb,${COL[b]} 16%,transparent);color:${COL[b]}">${I('wallet')}</div><div class="t"><div>${esc(b)}</div><div class="s">Kontostand · nicht im Gesamtbudget</div></div><div class="v"><b>${WH(b)?MASK:eur(c.rest)}</b></div><span class="chev">›</span></button>`}).join('')}</div></div>`:''}
   <div class="sec"><div class="sh">Zusammen</div><div class="group">
-    <div class="cell plain"><div class="t"><div>Puffer ${esc(pufAcc()?pufAcc().n:'')}</div><div class="bar"><i style="width:${Math.max(0,Math.min(pufVal()/10,100))}%;background:var(--ok)"></i></div><div class="s">${pufAcc()?'Kontostand · ab 1.000 € geht der Rest in den Vermögensaufbau':'Kein Eingangskonto festgelegt (Mehr › Konten)'}</div></div><div class="v">${eur0(pufVal())}</div></div>
+    <div class="cell plain"><div class="t"><div>Puffer ${esc(pufAcc()?pufAcc().n:'')}</div><div class="bar"><i style="width:${Math.max(0,Math.min(pufVal()/10,100))}%;background:var(--ok)"></i></div><div class="s">${pufAcc()?(()=>{const o1=usedSum([pufAcc().n],0,'Einmalig');return 'Kontostand · ab 1.000 € geht der Rest in den Vermögensaufbau'+(o1?` · ${eur0(o1)} einmalige Ausgaben diesen Monat gehen vom Puffer ab`:'')})():'Kein Eingangskonto festgelegt (Mehr › Konten)'}</div></div><div class="v">${eur0(pufVal())}</div></div>
   </div></div>
   ${up.length?`<div class="sec"><div class="sh">Demnächst geplant</div><div class="group">${up.map((x,ui)=>`<button class="cell" data-up="${ui}"><div class="ico" style="background:color-mix(in srgb,${COL[x.r.b]} 16%,transparent);color:${COL[x.r.b]}">${icoOf(x.r.b,x.r.c)}</div><div class="t"><div>${esc(x.r.n)}</div><div class="s">${x.d.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} · ${SHORT[x.r.b]}</div></div><div class="v ${x.r.type=='in'?'in':''}">${x.r.type=='in'?'+':x.r.type=='tr'?'':'−'}${eur(x.r.a)}</div><span class="chev">›</span></button>`).join('')}</div></div>`:''}
   <div class="sec"><div class="sh"><span>Letzte Buchungen</span><button class="link" id="allTx">Alle</button></div><div class="group">${S.exp.filter(e=>inP(e,P)).sort((a,b)=>b.t-a.t).slice(0,4).map(e=>rowOf(e,true)).join('')||'<div class="empty">Noch nichts gebucht. Tippe auf +.</div>'}</div></div>
@@ -988,18 +991,26 @@ function barChart({vals,labels,ref,col,hi,h=150,top,flat}){const W=330,H=h,x0=34
   if(ref)g+=`<line x1="${x0}" x2="${x1}" y1="${sy(ref.v).toFixed(1)}" y2="${sy(ref.v).toFixed(1)}" stroke="var(--fg)" stroke-dasharray="4 3" stroke-width="1"/><text x="${x1}" y="${(sy(ref.v)-4).toFixed(1)}" text-anchor="end" font-size="9" style="fill:var(--fg)">${ref.label}</text>`;
   labels.forEach(l=>g+=`<text x="${(x0+l.i*gw+gw/2).toFixed(1)}" y="${H-5}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${l.t}</text>`);
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
-const used=(e,bs)=>(e.type=='out'&&bs.includes(e.b))||(e.type=='tr'&&bs.includes(e.b)&&!bs.includes(e.to))?e.a:0;
+const isRecE=e=>!!(e.rid||e.tpl);
+let repK='Alle';const kOk=(e,kf)=>!kf||kf=='Alle'||(kf=='Wiederkehrend')==isRecE(e);
+const used=(e,bs,kf)=>kOk(e,kf)&&((e.type=='out'&&bs.includes(e.b))||(e.type=='tr'&&!e.alloc&&bs.includes(e.b)&&!bs.includes(e.to)))?e.a:0;
+function recPlan(bs,o){const p=period(o);return (S.rec||[]).filter(r=>!r.paused&&bs.includes(r.b)&&(r.type=='out'||(r.type=='tr'&&!r.alloc&&!bs.includes(r.to)))&&recDue(r,p)).reduce((s,r)=>s+r.a,0)}
+function kindLim(bs,o,kf){const b=budOf(bs),rp=recPlan(bs,o),hasB=bs.some(x=>!isK(x));
+  if(kf=='Wiederkehrend')return{v:rp,label:'Geplant '+eur0(rp)};
+  if(!hasB)return kf=='Einmalig'?null:{v:rp,label:'Fixkosten geplant '+eur0(rp)};
+  if(kf=='Einmalig')return{v:Math.max(b-rp,0),label:'Frei für Einmaliges '+eur0(Math.max(b-rp,0))};return{v:b,label:'Budget '+eur0(b)}}
+const usedSum=(bs,o,kf)=>{const p=period(o);return S.exp.reduce((s,e)=>s+(inP(e,p)&&!isPlan(e)?used(e,bs,kf):0),0)};
 const budOf=bs=>bs.reduce((s,b)=>s+(S.budgets[b]||0),0);
-function dayVals(bs,o){const p=period(o),v=Array(p.len).fill(0);S.exp.forEach(e=>{if(inP(e,p)&&!isPlan(e)){const i=Math.floor((e.t-p.s)/864e5);if(i>=0&&i<p.len)v[i]+=used(e,bs)}});return{p,v}}
-function cumChart(bs,o,col){const{p,v}=dayVals(bs,o),pr=dayVals(bs,o-1),lim=budOf(bs),n=p.len;
+function dayVals(bs,o,kf){const p=period(o),v=Array(p.len).fill(0);S.exp.forEach(e=>{if(inP(e,p)&&!isPlan(e)){const i=Math.floor((e.t-p.s)/864e5);if(i>=0&&i<p.len)v[i]+=used(e,bs,kf)}});return{p,v}}
+function cumChart(bs,o,col,kf){const{p,v}=dayVals(bs,o,kf),pr=dayVals(bs,o-1,kf),L0=kf===undefined?{v:budOf(bs),label:'Budget '+eur0(budOf(bs))}:kindLim(bs,o,kf),lim=L0?L0.v:0,n=p.len;
   let c=0,cum=v.map((x,i)=>(c+=x,o==0&&i>=p.idx?null:c));let c2=0,cum2=pr.v.map(x=>c2+=x).slice(0,n);while(cum2.length<n)cum2.push(c2);
   const ideal=Array.from({length:n},(_,i)=>lim*(i+1)/n);
   const lab=[0,Math.floor(n/2),n-1].map(i=>({i,t:new Date(p.s.getTime()+i*864e5).getDate()+'.'}));
   const last=cum.filter(x=>x!=null).pop()||0,exp=o==0?last/Math.max(p.idx,1)*n:last;
-  return `<div class="chartbox">${lineChart({n,labels:lab,refs:[{v:lim,col:'var(--bad)',label:'Budget '+eur0(lim)}],series:[
-    {pts:ideal,col:'var(--muted)',dash:'3 4',w:1.4},{pts:cum2,col:col,w:1.6,op:.35},{pts:cum,col:col,area:true,dot:true}]})}
+  return `<div class="chartbox">${lineChart({n,labels:lab,refs:L0&&lim?[{v:lim,col:kf=='Wiederkehrend'||!bs.some(x=>!isK(x))?'var(--muted)':'var(--bad)',label:L0.label}]:[],series:[
+    ...(lim?[{pts:ideal,col:'var(--muted)',dash:'3 4',w:1.4}]:[]),{pts:cum2,col:col,w:1.6,op:.35},{pts:cum,col:col,area:true,dot:true}]})}
     <div class="legend"><span><i style="background:${col}"></i>Dieser Monat</span><span><i style="background:${col};opacity:.35"></i>Vormonat</span><span><i style="background:var(--muted)"></i>Plan</span></div>
-    ${o==0&&p.idx>=7?`<div class="note" style="padding:6px 4px 0">Hochrechnung bis Monatsende: <b style="color:${exp>lim?'var(--bad)':'var(--ok)'}">${eur0(exp)}</b> von ${eur0(lim)}</div>`:''}</div>`}
+    ${o==0&&p.idx>=7&&lim?`<div class="note" style="padding:6px 4px 0">Hochrechnung bis Monatsende: <b style="color:${exp>lim?'var(--bad)':'var(--ok)'}">${eur0(exp)}</b> von ${eur0(lim)}</div>`:''}</div>`}
 let rpP='Monat',rpFrom='',rpTo='',rpList=true;
 function rpRange(){const p=period(off);if(rpP=='Monat')return[p.s.getTime(),p.e.getTime(),p.label];
   if(rpP=='Quartal'){const q=Math.floor(p.s.getMonth()/3),s=new Date(p.s.getFullYear(),q*3,S.start),e=new Date(p.s.getFullYear(),q*3+3,S.start);return[s.getTime(),e.getTime(),`${q+1}. Quartal ${s.getFullYear()}`]}
@@ -1019,7 +1030,7 @@ function viewReport(bs,head){const R=reportData(bs),outs=R.cat.filter(c=>c.type=
   return head+`<div class="seg" id="rpP">${['Monat','Quartal','Jahr','Frei'].map(x=>`<button class="${rpP==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>
   ${rpP=='Frei'?`<div class="group"><div class="cell plain"><label for="rpFrom">Von</label><input id="rpFrom" type="date" value="${rpFrom||ymd(R.s)}"></div><div class="cell plain"><label for="rpTo">Bis</label><input id="rpTo" type="date" value="${rpTo||ymd(R.e-864e5)}"></div></div>`:''}
   <button class="btn soft" id="toYear" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('gauge',18)}Jahresübersicht ${period(off).s.getFullYear()}</button>
-  <div class="report"><div class="rp-h"><div><div class="rp-k">Finanzbericht</div><div class="rp-t">${R.label}</div></div><div class="rp-k" style="text-align:right">Konten<br><b>${repB=='Alle'?'Alle sichtbaren Konten':esc(repB)}</b></div></div>
+  <div class="report"><div class="rp-h"><div><div class="rp-k">Finanzbericht</div><div class="rp-t">${R.label}</div></div><div class="rp-k" style="text-align:right">Konten<br><b>${repB=='Alle'?'Alle Budgets':esc(repB)}</b></div></div>
    <div class="mmsum" style="box-shadow:none;background:var(--fill)"><div>Einnahmen<b class="in">${eur(R.inc)}</b></div><div>Ausgaben<b class="out">${eur(R.out)}</b></div><div>Saldo<b class="${R.inc-R.out<0?'out':''}">${eur(R.inc-R.out)}</b></div></div>
    <div class="rp-kv"><span>Buchungen</span><b>${R.L.length}</b><span>Ø Ausgaben pro Tag</span><b>${eur(R.out/R.days)}</b><span>Größte Ausgabe</span><b>${(()=>{const m=R.L.filter(x=>x.type=='out').sort((a,b)=>b.a-a.a)[0];return m?esc(m.n||m.c)+' · '+eur(m.a):'–'})()}</b></div>
    <div class="rp-s">Ausgaben nach Kategorie</div>${donut(parts)}
@@ -1065,17 +1076,20 @@ function catTrend(bs){
    <div class="group">${rows.map(r=>`<button class="cell" data-dc="${esc(r.b)}|${esc(r.c[0])}"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${I(r.c[1])}</div>
    <div class="t"><div>${esc(r.c[0])}</div><div class="s">${SHORT[r.b]} · Ø ${eur0(r.avg)}</div></div>${spark(r.vals,COL[r.b])}
    <div class="v" style="min-width:64px">${eur0(r.cur)}<div class="s" style="color:${r.ch>.15?'var(--bad)':r.ch<-.15?'var(--ok)':'var(--muted)'}">${I(r.ch>0?'up':r.ch<0?'down':'flat',12)} ${Math.abs(Math.round(r.ch*100))} %</div></div></button>`).join('')||'<div class="empty">Noch keine Daten.</div>'}</div>`}
-function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?BN:[repB],col=repB=='Alle'?'var(--blue)':COL[repB],seg=`<div class="seg" id="repV">${['Monat','Budget','Verlauf','Verträge','Bericht'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
-  const head=appbar({title:'Auswertung',month:repV!='Verträge'&&(repV!='Bericht'||rpP=='Monat'),right:`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto">${['Alle',...BUDG].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle':esc(SHORT[b])}</option>`).join('')}</select></label>`,tabs:{id:'repV',cur:repV,items:['Monat','Budget','Verlauf','Verträge','Bericht'].map(x=>[x,x])}});
-  if(repV=='Monat'){const{v}=dayVals(bs,off),lim=budOf(bs);
-    const parts=[];bs.forEach(b=>{const by={};S.exp.filter(e=>inP(e,p)&&e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
+function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?TOT:[repB],col=repB=='Alle'?'var(--blue)':COL[repB],kf=repK,kseg=`<div class="seg kseg" id="repK">${[['Alle','Alle'],['Einmalig','Einmalig'],['Wiederkehrend','Wiederkehrend']].map(([v,l])=>`<button class="${repK==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`,seg=`<div class="seg" id="repV">${['Monat','Budget','Verlauf','Verträge','Bericht'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
+  const head=appbar({title:'Auswertung',month:repV!='Verträge'&&(repV!='Bericht'||rpP=='Monat'),right:`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repV',cur:repV,items:['Monat','Budget','Verlauf','Verträge','Bericht'].map(x=>[x,x])}});
+  if(repV=='Monat'){const{v}=dayVals(bs,off,kf),KL=kindLim(bs,off,kf),lim=KL?KL.v:0;
+    const parts=[];bs.forEach(b=>{const by={};S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&e.type=='out'&&e.b==b&&kOk(e,kf)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
       Object.entries(by).sort((x,y)=>y[1]-x[1]).forEach(([k,val],i)=>parts.push({b,c:k,k:repB=='Alle'?k+' · '+SHORT[b]:k,v:val,ico:icoOf(b,k),col:`color-mix(in srgb,${HEX[b]} ${100-i*14}%,var(--card))`}))});
     parts.sort((a,b)=>b.v-a.v);const tot=parts.reduce((s,x)=>s+x.v,0);
-    const pBy={};S.exp.filter(e=>inP(e,p)&&e.p&&e.type=='out'&&bs.includes(e.b)).forEach(e=>pBy[e.p]=(pBy[e.p]||0)+e.a);
-    const byN={};S.exp.filter(e=>inP(e,p)&&e.type=='out'&&bs.includes(e.b)&&e.n).forEach(e=>{const k=e.n.trim();byN[k]=(byN[k]||{v:0,n:0});byN[k].v+=e.a;byN[k].n++});
+    const pBy={};S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&kOk(e,kf)&&e.p&&e.type=='out'&&bs.includes(e.b)).forEach(e=>pBy[e.p]=(pBy[e.p]||0)+e.a);
+    const byN={};S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&kOk(e,kf)&&e.type=='out'&&bs.includes(e.b)&&e.n).forEach(e=>{const k=e.n.trim();byN[k]=(byN[k]||{v:0,n:0});byN[k].v+=e.a;byN[k].n++});
     const topN=Object.entries(byN).sort((a,b)=>b[1].v-a[1].v).slice(0,6);
-    return head+`<div class="sec"><div class="sh">Ausgabenkurve</div>${cumChart(bs,off,col)}</div>
-    <div class="sec"><div class="sh">Pro Tag</div><div class="chartbox">${barChart({vals:v,col,hi:off==0?p.idx-1:null,ref:{v:lim/p.len,label:'Tagesbudget '+eur0(lim/p.len)},labels:[0,9,19,p.len-1].filter(i=>i<p.len).map(i=>({i,t:new Date(p.s.getTime()+i*864e5).getDate()+'.'}))})}<div class="note" style="padding:6px 4px 0">Rote Balken liegen über dem Tagesbudget.</div></div></div>
+    const tU=usedSum(bs,off,'Alle'),tR=usedSum(bs,off,'Wiederkehrend');
+    return head+kseg+`<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Einmalig<b>${eur0(tU-tR)}</b></div><div class="kpi">Wiederkehrend<b>${eur0(tR)}</b></div><div class="kpi">${repB=='Alle'||!isK(repB)?'Budget':'Fix geplant'}<b>${eur0(repB=='Alle'||!isK(repB)?budOf(bs):recPlan(bs,off))}</b></div></div>
+    ${repB=='Alle'?`<div class="note">Nur deine Budgets. Fixkosten vom Eingangskonto zählen hier nie mit. Wähle oben ein Konto, um sie zu sehen.</div>`:''}
+    <div class="sec"><div class="sh">Ausgabenkurve${kf!='Alle'?' · '+kf:''}</div>${cumChart(bs,off,col,kf)}</div>
+    <div class="sec"><div class="sh">Pro Tag</div><div class="chartbox">${barChart({vals:v,col,hi:off==0?p.idx-1:null,ref:lim&&kf!='Wiederkehrend'&&(repB=='Alle'||!isK(repB))?{v:lim/p.len,label:'Tagesbudget '+eur0(lim/p.len)}:null,labels:[0,9,19,p.len-1].filter(i=>i<p.len).map(i=>({i,t:new Date(p.s.getTime()+i*864e5).getDate()+'.'}))})}<div class="note" style="padding:6px 4px 0">Rote Balken liegen über dem Tagesbudget.</div></div></div>
     <div class="sec"><div class="sh">Nach Kategorie</div><div class="chartbox">${donut(parts)}</div>
      ${parts.length?`<div class="group">${parts.map(x=>`<button class="cell" data-dc="${esc(x.b)}|${esc(x.c)}"><div class="ico" style="background:${x.col};color:#fff">${x.ico}</div><div class="t"><div>${esc(x.k)}</div><div class="bar"><i style="width:${(x.v/tot*100).toFixed(0)}%;background:${x.col}"></i></div></div><div class="v">${eur(x.v)}<div class="s">${Math.round(x.v/tot*100)} %</div></div><span class="chev">›</span></button>`).join('')}</div>`:''}</div>
     ${topN.length?`<div class="sec"><div class="sh">Größte Ausgaben</div><div class="mmcard">${topN.map(([k,x],i)=>`<div class="srow"><div class="srow-h"><span>${i+1}. ${esc(k)}</span><span class="s" style="color:var(--muted);font-size:12px">${x.n}×</span><span class="out">${eur(x.v)}</span></div></div>`).join('')}</div></div>`:''}
@@ -1095,16 +1109,16 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
      <div class="note">Woche zeigt das Wochenbudget, Monat und 12 Monate jeweils Ausgaben gegen Budget.</div></div>`}
   if(repV=='Verlauf'){const N=12,ms=[];for(let i=N-1;i>=0;i--)ms.push(off-i);
     const lab=ms.map((o,i)=>({i,t:period(o).s.toLocaleDateString('de-DE',{month:'narrow'}),on:o==off}));
-    const ser=bs.map(b=>({pts:ms.map(o=>calc(b,o).used),col:COL[b],dot:true,area:bs.length==1}));
-    const tots=ms.map(o=>bs.reduce((s,b)=>s+calc(b,o).used,0)),lim=budOf(bs),rests=ms.map((o,i)=>lim-tots[i]);
+    const ser=bs.map(b=>({pts:ms.map(o=>usedSum([b],o,kf)),col:COL[b],dot:true,area:bs.length==1}));
+    const KL=kindLim(bs,off,kf),tots=ms.map(o=>usedSum(bs,o,kf)),lim=KL?KL.v:0,rests=ms.map((o,i)=>lim-tots[i]);
     const past=tots.slice(0,-1).filter(x=>x>0),avg=past.length?past.reduce((a,b)=>a+b,0)/past.length:0;
     const good=past.filter(x=>x<=lim).length;
-    const wd=Array(7).fill(0),wc=Array(7).fill(0);for(let o=off-3;o<off;o++){const{p:pp,v}=dayVals(bs,o);v.forEach((x,i)=>{const d=(new Date(pp.s.getTime()+i*864e5).getDay()+6)%7;wd[d]+=x;wc[d]++})}
+    const wd=Array(7).fill(0),wc=Array(7).fill(0);for(let o=off-3;o<off;o++){const{p:pp,v}=dayVals(bs,o,kf);v.forEach((x,i)=>{const d=(new Date(pp.s.getTime()+i*864e5).getDay()+6)%7;wd[d]+=x;wc[d]++})}
     const wavg=wd.map((x,i)=>wc[i]?x/wc[i]:0),wmax=wavg.indexOf(Math.max(...wavg)),WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
-    return head+`<button class="btn soft" id="toYear2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('gauge',18)}Jahressaldo ${period(off).s.getFullYear()} öffnen</button><div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Ø pro Monat<b>${eur0(avg)}</b></div><div class="kpi">Im Budget<b>${good} von ${past.length}</b></div><div class="kpi">Ø übrig<b class="${lim-avg>=0?'in':''}">${eur0(lim-avg)}</b></div></div>
-    <div class="sec"><div class="sh">Ausgaben, 12 Monate</div><div class="chartbox">${lineChart({n:N,labels:lab,series:ser,refs:bs.length==1?[{v:lim,col:'var(--bad)',label:'Budget '+eur0(lim)}]:[]})}
-     ${bs.length>1?`<div class="legend">${bs.map(b=>`<span><i style="background:${HEX[b]}"></i>${b}</span>`).join('')}</div>`:''}</div></div>
-    <div class="sec"><div class="sh">Übrig am Monatsende</div><div class="chartbox">${barChart({vals:rests.map(x=>Math.max(x,0)),col:'var(--ok)',hi:N-1,labels:lab.map(l=>({i:l.i,t:l.t}))})}<div class="note" style="padding:6px 4px 0">Das wandert jeweils in die Sinking Funds. Insgesamt ${eur0(rests.slice(0,-1).reduce((s,x)=>s+Math.max(x,0),0))} in 11 Monaten.</div></div></div>
+    return head+kseg+`<button class="btn soft" id="toYear2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('gauge',18)}Jahressaldo ${period(off).s.getFullYear()} öffnen</button>${kf=='Wiederkehrend'||!bs.some(x=>!isK(x))?`<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Ø pro Monat<b>${eur0(avg)}</b></div><div class="kpi">Geplant/Monat<b>${eur0(lim)}</b></div><div class="kpi">Letzter Monat<b>${eur0(tots[tots.length-2]||0)}</b></div></div>`:`<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Ø pro Monat<b>${eur0(avg)}</b></div><div class="kpi">Im Budget<b>${good} von ${past.length}</b></div><div class="kpi">Ø übrig<b class="${lim-avg>=0?'in':''}">${eur0(lim-avg)}</b></div></div>`}
+    <div class="sec"><div class="sh">Ausgaben, 12 Monate</div><div class="chartbox">${lineChart({n:N,labels:lab,series:bs.length>1?[...ser,{pts:tots,col:'var(--fg)',w:1.6,dash:'2 3'}]:ser,refs:lim?[{v:lim,col:'var(--bad)',label:KL.label}]:[]})}
+     ${bs.length>1?`<div class="legend">${bs.map(b=>`<span><i style="background:${HEX[b]}"></i>${b}</span>`).join('')}<span><i style="background:var(--fg)"></i>Zusammen</span></div>`:''}</div></div>
+    ${lim&&kf!='Wiederkehrend'?`<div class="sec"><div class="sh">Übrig am Monatsende</div><div class="chartbox">${barChart({vals:rests.map(x=>Math.max(x,0)),col:'var(--ok)',hi:N-1,labels:lab.map(l=>({i:l.i,t:l.t}))})}<div class="note" style="padding:6px 4px 0">Das wandert jeweils in die Sinking Funds. Insgesamt ${eur0(rests.slice(0,-1).reduce((s,x)=>s+Math.max(x,0),0))} in 11 Monaten.</div></div></div>`:''}
     <div class="sec"><div class="sh">Typischer Wochentag</div><div class="chartbox">${barChart({vals:wavg,col,hi:wmax,labels:WD.map((t,i)=>({i,t})),h:130})}<div class="note" style="padding:6px 4px 0">Am ${['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'][wmax]} gibst du im Schnitt am meisten aus (${eur(wavg[wmax])}).</div></div></div><div class="sec"><div class="sh">Kategorien im Trend</div>${catTrend(bs)}</div>`}
   return head+catTrend(bs)}
 const fd=t=>new Date(t).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:new Date(t).getFullYear()!=now.getFullYear()?'numeric':undefined});
@@ -1176,6 +1190,7 @@ function openRec(i){const r=i>=0?Object.assign({},S.rec[i]):{id:uid(),type:'out'
     <div class="cell plain"><label for="rE">Rhythmus</label><select id="rE">${[[1,'monatlich'],[2,'alle 2 Monate'],[3,'vierteljährlich'],[6,'halbjährlich'],[12,'jährlich']].map(([v,l])=>`<option value="${v}" ${(r.every||1)==v?'selected':''}>${l}</option>`).join('')}</select></div>
     <div class="cell plain"><label for="rSt">Ab</label><input id="rSt" type="date" value="${r.start||''}"></div>
     <div class="cell plain"><label for="rEn">Bis (optional)</label><input id="rEn" type="date" value="${r.end||''}"></div>
+    ${r.type=='out'&&!isK(r.b)?`<div class="cell plain" style="background:color-mix(in srgb,var(--warn) 12%,var(--card))"><div class="t"><div>${esc(r.b)} ist ein Budget</div><div class="s">Diese Ausgabe geht dann jeden Monat von deinem ${esc(r.b)}-Budget ab. Fixkosten gehören aufs Eingangskonto.</div></div>${pufAcc()?`<button class="chip" id="rToK">Nach ${esc(pufAcc().n)}</button>`:''}</div>`:''}
     <div class="cell plain"><label for="rP">Pausieren</label><span style="flex:1"></span><input id="rP" type="checkbox" class="switch" ${r.paused?'checked':''}></div></div>
    <div class="note" style="padding:0">Änderungen gelten ab der nächsten Fälligkeit. Bereits gebuchte Einträge bleiben, wie sie sind.</div><div class="note" id="rErr" style="padding:0;color:var(--bad)"></div>
    ${i>=0?'<button class="btn danger" id="rDel">Wiederkehrende Buchung löschen</button>':''}</div></div>`;
@@ -1183,6 +1198,7 @@ function openRec(i){const r=i>=0?Object.assign({},S.rec[i]):{id:uid(),type:'out'
    $('scrim').onclick=$('rX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
    document.querySelectorAll('#rTyp button').forEach(b=>b.onclick=()=>{keep();r.type=b.dataset.v;if(r.type=='tr'&&(!r.to||r.to==r.b))r.to=ALL.find(a=>a!=r.b);draw()});
    $('rB').onchange=()=>{keep();if(r.to==r.b)r.to=ALL.find(a=>a!=r.b);draw()};
+   if($('rToK'))$('rToK').onclick=()=>{keep();r.b=pufAcc().n;draw()};
    $('rS').onclick=()=>{keep();if(!r.n.trim()||!r.a){$('rErr').textContent='Bitte Name und Betrag eintragen.';return}if(r.type=='tr'&&isTabu(r.b)){$('rErr').textContent=r.b+' ist tabu.';return}
      if(r.type!='tr'){delete r.to;delete r.alloc}else r.c='';if(!r.end)delete r.end;if(!r.paused)delete r.paused;
      const s=JSON.stringify(S.rec);if(i>=0)S.rec[i]=r;else S.rec.push(r);save();applyRec();$('sheetRoot').innerHTML='';render();toast(i>=0?'Wiederkehrende Buchung geändert.':'Wiederkehrende Buchung angelegt.',()=>{S.rec=JSON.parse(s);save();render()})};
@@ -1715,10 +1731,11 @@ function bind(){bindSwipe();{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep'
   document.querySelectorAll('#rpP button').forEach(b=>b.onclick=()=>{rpP=b.dataset.f;render()});
   if($('rpFrom'))$('rpFrom').onchange=()=>{rpFrom=$('rpFrom').value;render()};if($('rpTo'))$('rpTo').onchange=()=>{rpTo=$('rpTo').value;render()};
   if($('rpList'))$('rpList').onchange=()=>{rpList=$('rpList').checked;render()};
-  on('rpCopy',()=>{copy(reportText(reportData(repB=='Alle'?BN:[repB])),$('rpMsg'),$('rpOut'))});
-  on('rpCsv',()=>{const R=reportData(repB=='Alle'?BN:[repB]);copy([['Datum','Typ','Konto','Nach','Kategorie','Unterkategorie','Notiz','Betrag']].concat(R.L.map(e=>[new Date(e.t).toLocaleDateString('de-DE'),{out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[e.type],e.b,e.to||'',e.c||'',e.sc||'',e.n||'',e.a.toFixed(2).replace('.',',')])).map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n'),$('rpMsg'),$('rpOut'))});
+  on('rpCopy',()=>{copy(reportText(reportData(repB=='Alle'?TOT:[repB])),$('rpMsg'),$('rpOut'))});
+  on('rpCsv',()=>{const R=reportData(repB=='Alle'?TOT:[repB]);copy([['Datum','Typ','Konto','Nach','Kategorie','Unterkategorie','Notiz','Betrag']].concat(R.L.map(e=>[new Date(e.t).toLocaleDateString('de-DE'),{out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[e.type],e.b,e.to||'',e.c||'',e.sc||'',e.n||'',e.a.toFixed(2).replace('.',',')])).map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n'),$('rpMsg'),$('rpOut'))});
   if($('repBsel'))$('repBsel').onchange=()=>{repB=$('repBsel').value;render()};
   on('toYear2',()=>{drill={k:'year'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
+  document.querySelectorAll('#repK button').forEach(b=>b.onclick=()=>{repK=b.dataset.f;render()});
   document.querySelectorAll('#repV button').forEach(b=>b.onclick=()=>{repV=b.dataset.f;drill=null;yOff=0;render();scrollTo(0,0)});
   on('wishNew',openWish);document.querySelectorAll('#wishV button').forEach(b=>b.onclick=()=>{wishV=b.dataset.f;render();scrollTo(0,0)});
   document.querySelectorAll('[data-kc]').forEach(b=>b.onclick=()=>openKaufCheck(+b.dataset.kc));
@@ -1842,13 +1859,14 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     ${tr?'':`<div class="cell plain"><label for="eperson">Person</label><input id="eperson" placeholder="optional" value="${esc(E.p)}"></div>`}
     <div class="cell plain"><label for="eimg">Beleg</label>${E.img?`<img class="thumb" src="${E.img}" alt="Beleg"><button class="del" id="imgDel" aria-label="Beleg entfernen">${I('minus',22)}</button>`:`<span style="flex:1"></span><label for="eimg" style="color:var(--blue);cursor:pointer">Foto hinzufügen</label>`}<input id="eimg" type="file" accept="image/*" hidden></div>
     ${E.id?'':`<div class="cell plain"><label for="erep">Monatlich wiederholen</label><span style="flex:1"></span><input id="erep" type="checkbox" class="switch" ${E.rep?'checked':''}></div>
+    ${E.rep&&E.type=='out'&&!isK(E.b)?`<div class="cell plain"><div class="s" style="font-size:12px;color:color-mix(in srgb,var(--warn) 75%,var(--fg))">Wiederkehrend aus ${esc(E.b)} belastet jeden Monat dein Budget. Fixkosten besser aufs Eingangskonto buchen.</div></div>`:''}
     ${tr?'':`<div class="cell plain"><label for="efav">Als Favorit merken</label><span style="flex:1"></span><input id="efav" type="checkbox" class="switch" ${E.fav?'checked':''}></div>`}`}
    </div>
    <div class="note" id="eerr" style="color:var(--bad)"></div>
    ${E.id&&E.t>Date.now()?`<button class="btn" id="nowE">${I('check',18)} Heute buchen statt am ${new Date(E.t).toLocaleDateString('de-DE')}</button>`:''}
    ${E.id?'<button class="btn danger" id="delE">Buchung löschen</button>':''}
   </div></div>`;
-  const keep=()=>{if($('equick')&&$('equick').value.trim())quickParse($('equick').value);E.n=$('enote').value;E.tg=$('etags').value;if($('esub'))E.sc=$('esub').value;E.dt=$('edate').value;if($('eperson'))E.p=$('eperson').value;if($('erep'))E.rep=$('erep').checked;if($('efav'))E.fav=$('efav').checked};
+  const keep=()=>{if($('equick')&&$('equick').value.trim())quickParse($('equick').value);E.n=$('enote').value;E.tg=$('etags').value;if($('esub'))E.sc=$('esub').value;E.dt=$('edate').value;if($('eperson'))E.p=$('eperson').value;if($('erep')){const was=E.rep;E.rep=$('erep').checked;if(was!==E.rep)setTimeout(drawSheet,0)}if($('efav'))E.fav=$('efav').checked};
   const close=()=>$('sheetRoot').innerHTML='';
   $('scrim').onclick=$('cancel').onclick=close;
   $('eMore').onclick=()=>{keep();E.more=!E.more;drawSheet()};
