@@ -525,6 +525,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .shedit{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;max-width:100%}.shedit span{overflow:hidden;text-overflow:ellipsis}.shedit .i{color:var(--muted);flex:none;opacity:.7}
 .shunk{width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .sw-edit{background:var(--accent)}.swr>.shrow{position:relative;background:var(--card);transition:transform .2s ease;z-index:1}.swr+.swr>.shrow{border-top:.5px solid var(--sep)}
+.biobtn{display:flex;flex-direction:column;align-items:center;gap:10px;border:0;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font:inherit;font-weight:600;font-size:15px;padding:18px 26px;border-radius:22px;cursor:pointer}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -584,7 +585,7 @@ repeat:'<path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 
 star:'<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9z"/>',
 calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
 lifebuoy:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="m6.3 6.3 3.2 3.2M14.5 14.5l3.2 3.2M17.7 6.3l-3.2 3.2M9.5 14.5l-3.2 3.2"/>',
-lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+face:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/>',lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
 export:'<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/>',
 search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
 backspace:'<path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z"/><path d="m12 9 5 6M17 9l-5 6"/>',
@@ -909,7 +910,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='66 (04.11.)';
+const APP_VER='67 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1962,7 +1963,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
   ${sec('Schutz vor Impulsen','Regeln, die dich vor Spontankäufen schützen.',
    nav('rules','lock','Regeln & Tabu-Konten','Notfallbremse, 14 Tage Wartezeit, Restgeld',c3)+
    nav('puffer','hourglass','Stundenlohn',eur(S.lohn)+' pro Std. · für „so viele Stunden Arbeit“',c3)+
-   nav('pin','lock','PIN-Schutz',S.pin?'Aktiv':'Aus',c3))}
+   nav('pin','lock','PIN & '+bioName(),S.pin?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3))}
   ${sec('Rückblick & Hilfe','',
    nav('report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
@@ -2049,7 +2050,9 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     <div class="cell plain"><div class="t">Puffer nach offenen Fixkosten</div><b>${eur(pufVal())}</b></div></div><div class="note">Puffer = Kontostand minus alle Fixkosten, die in diesem Monat noch abgehen. Ziel bis 1.000 €. Darüber schlägt der Assistent eine Umbuchung in den Vermögensaufbau vor.</div></div>
    <button class="btn soft" id="onbAgain">Einrichtung erneut starten</button>`}
   if(k=='pin')return back+`<h1 class="lt">PIN-Schutz</h1></div><div class="group"><div class="cell plain"><label for="pinin">Vierstellige PIN</label><input id="pinin" inputmode="numeric" maxlength="4" placeholder="${S.pin?'••••':'nicht gesetzt'}"></div></div>
-   <button class="btn" id="pinSave">PIN speichern</button>${S.pin?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Im Dummy schützt die PIN nur vor neugierigen Blicken. Die echte App nutzt später Face ID.</div>`;
+   <button class="btn" id="pinSave">PIN speichern</button>${S.pin?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Die PIN schützt vor neugierigen Blicken und ist immer der Ersatz, falls ${bioName()} mal nicht klappt.</div>
+   <div class="sec"><div class="sh">${bioName()}</div><div class="group" id="bioBox"><div class="cell plain"><div class="t"><div>Mit ${bioName()} entsperren</div><div class="s" id="bioSub">${!S.pin?'Lege zuerst eine PIN fest.':bioGet()?'Aktiv auf diesem Gerät':'Wird geprüft …'}</div></div><input type="checkbox" class="switch" id="bioSw" ${bioGet()?'checked':''} ${S.pin?'':'disabled'}></div></div>
+   <div class="note">Wird nur auf diesem Gerät eingerichtet, nicht über den Sync. Am Arbeits-PC also einfach ausgeschaltet lassen.</div></div>`;
   if(k=='bg')return back+`<h1 class="lt">Hintergründe</h1></div><div class="note">Tippe auf eine Karte, um Farbverlauf oder Foto zu ändern.</div>${['Gesamt',...ALL].map(x=>`<button class="bgprev" data-bg="${x}" style="${bgStyle(x)};border:0;width:100%;cursor:pointer;font:inherit;font-weight:700;font-size:20px;text-align:left">${x=='Gesamt'?'Alle Budgets':x}</button>`).join('')}`;
   if(k=='import')return viewImport();
   if(k=='look')return back+`<h1 class="lt">Design</h1></div><div class="seg" id="lookSeg">${[['mm','Money Manager'],['glass','Glas']].map(x=>`<button class="${(S.look||'mm')==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div>
@@ -2193,7 +2196,9 @@ function bind(){bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();bi
   if($('puf'))$('puf').onchange=()=>{S.puffer=parseFloat($('puf').value)||0;save()};
   if($('lohn'))$('lohn').onchange=()=>{S.lohn=parseFloat($('lohn').value)||S.lohn;save()};
   on('pinSave',()=>{const v=$('pinin').value;if(!/^\d{4}$/.test(v)){$('pinMsg').textContent='Bitte genau vier Ziffern eingeben.';return}S.pin=v;save();render();$('pinMsg').textContent='PIN gespeichert. Beim nächsten Öffnen wird sie abgefragt.'});
-  on('pinOff',()=>{S.pin='';save();render()});
+  on('pinOff',()=>{S.pin='';try{localStorage.removeItem(BIOK)}catch(e){}save();render()});
+  if($('bioSw')){bioAvail().then(ok=>{const sub=$('bioSub');if(!ok&&!bioGet()){if(sub)sub.textContent=CANFILE?'Auf diesem Gerät oder Browser nicht verfügbar.':'Nur in der installierten App, nicht in dieser Vorschau.';$('bioSw').disabled=true}else if(sub&&S.pin&&!bioGet())sub.textContent='Aus'});
+    $('bioSw').onchange=async()=>{const sw=$('bioSw');if(sw.checked){try{await bioSetup();if(!await bioCheck())throw new Error('check');toast(bioName()+' ist eingerichtet.')}catch(e){try{localStorage.removeItem(BIOK)}catch(_){}toast(e&&e.name=='NotAllowedError'?'Abgebrochen.':bioName()+' konnte nicht eingerichtet werden.')}}else{try{localStorage.removeItem(BIOK)}catch(e){}toast(bioName()+' ausgeschaltet.')}render()}}
   on('csvBtn',()=>{const rows=[['Datum','Typ','Konto','Nach','Kategorie','Notiz','Person','Betrag']].concat(S.exp.slice().sort((a,b)=>a.t-b.t).map(e=>[new Date(e.t).toLocaleDateString('de-DE'),{out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[e.type],e.b,e.to||'',e.c||'',e.n||'',e.p||'',e.a.toFixed(2).replace('.',',')]));
     copy(rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n'),$('expMsg'),$('expOut'))});
   on('bakFileBtn',async()=>{const b=JSON.stringify(Object.assign({},S,{backup:'cashflow-1'})),name='CashFlow-Sicherung-'+ymd(Date.now())+'.json',f=new File([b],name,{type:'application/json'});
@@ -2919,11 +2924,22 @@ function openOnb(){let st=0;const draw=()=>{const steps=[
   if($('onbImp'))$('onbImp').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];fin();tab='more';setView='import';render()};
   if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();toast('Los geht’s. Tippe auf +, um zu buchen.')};
   if($('onbKeep'))$('onbKeep').onclick=fin};draw();renderAsst()}
-function lock(){if(!S.pin)return;let v='';const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock"><div style="font-size:17px;font-weight:600">PIN eingeben</div><div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
+const BIOK='cf_bio',bioName=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)?'Face ID':/Mac/.test(navigator.userAgent)?'Touch ID':'Fingerabdruck / Windows Hello';
+const bioGet=()=>{try{return JSON.parse(localStorage.getItem(BIOK)||'null')}catch(e){return null}};
+const waE=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),waD=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
+async function bioAvail(){try{return CANFILE&&window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()}catch(e){return false}}
+async function bioSetup(){const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
+  const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'CashFlow'},user:{id:rnd(16),name:'CashFlow',displayName:'CashFlow'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000,attestation:'none'}});
+  localStorage.setItem(BIOK,JSON.stringify({id:waE(c.rawId),t:Date.now()}))}
+async function bioCheck(){const b=bioGet();if(!b)return false;const r=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:waD(b.id),transports:['internal','hybrid']}],userVerification:'required',timeout:60000}});
+  if(!r||!r.response||!r.response.authenticatorData)return false;const f=new Uint8Array(r.response.authenticatorData)[32];return !!(f&4)}
+function lock(){if(!S.pin)return;let v='',bioBusy=false;const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential;
+  const tryBio=async(auto)=>{if(bioBusy||!hasBio)return;bioBusy=true;try{if(await bioCheck()){$('lockRoot').innerHTML='';return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen. PIN eingeben oder nochmal tippen.')}finally{bioBusy=false}};const t0=Date.now();
+  const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock">${hasBio?`<button class="biobtn" id="bioGo" aria-label="Mit ${bioName()} entsperren">${I('face',44)}<span>Mit ${bioName()} entsperren</span></button>`:''}<div style="font-size:17px;font-weight:600">${hasBio?'oder PIN eingeben':'PIN eingeben'}</div><div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
   <div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div><div class="note" style="min-height:18px;color:var(--bad)">${msg||''}</div>
   <div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>k?`<button data-k="${k}">${k=='⌫'?I('backspace',24):k}</button>`:'<span></span>').join('')}</div></div>`;
   document.querySelectorAll('.lock .pad button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;v=k=='⌫'?v.slice(0,-1):(v+k).slice(0,4);
-    if(v.length==4){if(v==S.pin){$('lockRoot').innerHTML='';return}v='';draw('Falsche PIN');return}draw()})};draw()}
+    if(v.length==4){if(v==S.pin){$('lockRoot').innerHTML='';return}v='';draw('Falsche PIN');return}draw()});if($('bioGo'))$('bioGo').onclick=()=>tryBio(false)};draw();if(hasBio)setTimeout(()=>tryBio(true),250)}
 if(ALL.includes('Alltag')&&!ALL.includes('Flow'))renameAcct('Alltag','Flow');
 if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(r)S.debts.push({id:'d1',n:'Anyfin Umschuldungskredit',total:1482,interest:228,rate:r.a||60,start:r.start||'2026-12-30',match:'Anyfin',note:'iPhone 16 Pro (PayPal), Garmin Fenix 9 Pro (Advanzia)'});save()}
 if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
