@@ -771,9 +771,9 @@ function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e
     return{p,konto:true,list:L.filter(e=>e.b==b||e.to==b),out:ps(e=>e.type=='out'&&e.b==b),inc:ps(e=>e.type=='in'&&e.b==b),trO:ps(e=>e.type=='tr'&&e.b==b),trI:ps(e=>e.type=='tr'&&e.to==b),total:bal,used:0,rest:bal,tag:0,woche:0,pct:0}}
   const out=L.filter(e=>e.type=='out'&&e.b==b).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&e.b==b).reduce((s,e)=>s+e.a,0);
   const trO=L.filter(e=>e.type=='tr'&&e.b==b&&!e.alloc).reduce((s,e)=>s+e.a,0),trI=L.filter(e=>e.type=='tr'&&e.to==b&&!e.alloc).reduce((s,e)=>s+e.a,0);
-  let carry=0;if(acc(b).carry&&p.s.getTime()>S.since)carry=Math.max(calc(b,off-1).rest,0);
-  const total=(S.budgets[b]||0)+inc+trI+carry,used=out+trO,rest=total-used,tag=p.left?Math.max(rest,0)/p.left:0;
-  return{p,list:L.filter(e=>e.b==b||e.to==b),out,inc,trO,trI,carry,total,used,rest,tag,woche:Math.min(tag*7,Math.max(rest,0)),pct:total?used/total:0}}
+  let carry=0;if(acc(b).carry&&p.s.getTime()>S.since)carry=Math.max(calc(b,off-1).rest,0);const sa=acc(b),st=(sa.start&&sa.startT===p.s.getTime())?sa.start:0;
+  const total=(S.budgets[b]||0)+inc+trI+carry+st,used=out+trO,rest=total-used,tag=p.left?Math.max(rest,0)/p.left:0;
+  return{p,list:L.filter(e=>e.b==b||e.to==b),out,inc,trO,trI,carry,st,total,used,rest,tag,woche:Math.min(tag*7,Math.max(rest,0)),pct:total?used/total:0}}
 const zone=p=>p<.6?'var(--ok)':p<.85?'var(--warn)':'var(--bad)';
 /* budget state: ok, über Plan (more used than the plan allows by today), aufgebraucht (nothing left) */
 function stat(c){const P=c.p,soll=c.total*Math.min((P.idx||P.len)/P.len,1),over=c.used-soll;
@@ -897,7 +897,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='59 (04.11.)';
+const APP_VER='60 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -969,7 +969,7 @@ function viewDetail(b){if(isK(b))return viewKonto(b);const c=calc(b),byCat={};c.
   <div class="seg" id="accSw">${swL().map(x=>`<button class="${x==b?'on':''}" data-f="${x}">${esc(SHORT[x])}</button>`).join('')}</div>
   <div class="kpis"><div class="kpi">Budget<b>${eur0(c.total)}</b></div><div class="kpi">Ausgegeben<b>${eur0(c.used)}</b></div><div class="kpi">Pro Tag<b>${eur(c.tag)}</b></div><div class="kpi">Pro Woche<b>${eur0(c.woche)}</b></div></div>
   <div class="sec"><div class="sh">Verlauf diesen Monat</div>${cumChart([b],0,COL[b])}</div>
-  ${c.inc||c.trI||c.trO?`<div class="note">Enthält ${c.inc?eur(c.inc)+' Einnahmen':''}${c.trI?' · '+eur(c.trI)+' Umbuchung rein':''}${c.trO?' · '+eur(c.trO)+' Umbuchung raus':''}.</div>`:''}
+  ${c.inc||c.trI||c.trO||c.carry||c.st?`<div class="note">Enthält ${[c.carry&&eur(c.carry)+' Übertrag aus dem Vormonat',c.st&&eur(c.st)+' Anfangsbestand',c.inc&&eur(c.inc)+' Einnahmen',c.trI&&eur(c.trI)+' Umbuchung rein',c.trO&&eur(c.trO)+' Umbuchung raus'].filter(Boolean).join(' · ')}.</div>`:''}
   ${cs.length?`<div class="sec"><div class="sh">Nach Kategorie</div><div class="group">${cs.map(([k,v])=>`
     <button class="cell" data-cat="${esc(k)}"><div class="ico" style="background:color-mix(in srgb,${COL[b]} 16%,transparent);color:${COL[b]}">${icoOf(b,k)}</div>
     <div class="t"><div>${esc(k)}</div><div class="bar"><i style="width:${(v/c.out*100).toFixed(0)}%;background:${COL[b]}"></i></div></div>
@@ -1904,7 +1904,9 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    <div class="slide" style="${bgStyle(a.n)};min-height:120px;cursor:default"><div class="lbl">${esc(a.n)}</div><div class="bal">${WH(a.n)?MASK:eur(calc(a.n).rest)}</div><div style="font-size:13px;opacity:.9">${a.kind=='konto'?'Kontostand':'übrig diesen Monat'}</div></div>
    <div class="group"><div class="cell plain"><label for="aname">Name</label><input id="aname" value="${esc(a.n)}"></div>
     <div class="cell plain"><span>Art</span><span style="flex:1"></span><div class="seg" id="akind" style="width:180px">${[['budget','Budget'],['konto','Konto']].map(x=>`<button class="${a.kind==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div></div>
-    ${a.kind=='budget'?`<div class="cell plain"><label for="abud">Monatsbudget</label><input id="abud" type="number" inputmode="decimal" value="${S.budgets[a.n]||0}"></div>`:`<div class="cell plain"><label for="astart">Startsaldo</label><input id="astart" type="number" inputmode="decimal" value="${a.start||0}"></div>`}
+    ${a.kind=='budget'?`<div class="cell plain"><label for="abud">Monatsbudget</label><input id="abud" type="number" inputmode="decimal" value="${S.budgets[a.n]||0}"></div>`:''}
+    <div class="cell plain"><div class="t" style="flex:1;min-width:0"><label for="astart">Anfangsbestand</label><div class="s">${a.kind=='konto'?'Kontostand, mit dem das Konto startet':a.start&&a.startT!=null?'Einmalig im Finanzmonat ab '+new Date(a.startT).toLocaleDateString('de-DE',{day:'numeric',month:'numeric',year:'numeric'})+' dazugerechnet':'Wird einmalig im aktuellen Finanzmonat dazugerechnet'}</div></div><input id="astart" type="number" inputmode="decimal" step="0.01" style="width:110px;flex:none" value="${a.start||0}"></div>
+    <div class="cell plain" style="flex-wrap:wrap;row-gap:8px"><div class="t"><div>Am Monatsende</div><div class="s">${a.kind=='konto'?'Konten führen ihren Kontostand immer weiter.':(a.roll&&S.rollTo&&a.n!=S.rollTo)?'Restgeld wird nach '+esc(S.rollTo)+' umgebucht, das Konto startet bei 0.':a.carry?'Restgeld bleibt hier und erhöht das Budget im nächsten Monat.':'Restgeld verfällt, das Konto startet mit dem Monatsbudget neu.'}</div></div>${a.kind=='konto'?'<b style="font-weight:600">Übertragen</b>':`<div class="seg" id="acarry" style="width:100%">${[['reset','Neu starten'],['carry','Übertragen'],...(S.rollTo&&a.n!=S.rollTo?[['roll','→ '+esc(SHORT[S.rollTo]||S.rollTo)]]:[])].map(x=>`<button class="${(x[0]=='roll'?a.roll&&S.rollTo&&a.n!=S.rollTo:x[0]=='carry'?a.carry&&!(a.roll&&S.rollTo&&a.n!=S.rollTo):!a.carry&&!(a.roll&&S.rollTo&&a.n!=S.rollTo))?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div>`}</div>
     <div class="cell plain"><label for="avis">Sichtbar in der Übersicht</label><span style="flex:1"></span><input id="avis" type="checkbox" class="switch" ${a.vis?'checked':''}></div>
     ${a.kind=='budget'?`<div class="cell plain"><label for="atot">Im Gesamtbudget zählen</label><span style="flex:1"></span><input id="atot" type="checkbox" class="switch" ${a.tot?'checked':''}></div>`:''}</div>
    <div class="sec"><div class="sh">Farbe</div><div class="swatches" style="grid-template-columns:repeat(8,1fr)">${ACOL.map(c=>`<button class="sw ${a.col==c?'on':''}" data-ac="${c}" style="background:${c}" aria-label="Farbe ${c}"></button>`).join('')}</div>
@@ -2084,7 +2086,8 @@ function bind(){bindSwipe();bindVault();bindVaultSet();bindSync();bindDepot();bi
     if($('aname'))$('aname').onchange=()=>{const nw=$('aname').value.trim();if(!nw||nw==a.n||ALL.includes(nw)){$('aname').value=a.n;return}renameAcct(a.n,nw);render()};
     document.querySelectorAll('#akind button').forEach(b=>b.onclick=()=>{a.kind=b.dataset.f;if(a.kind=='konto'){a.tot=false;a.start=a.start||0}else{S.budgets[a.n]=S.budgets[a.n]||0}refreshA();save();render()});
     if($('abud'))$('abud').onchange=()=>{S.budgets[a.n]=parseFloat($('abud').value)||0;save();render()};
-    if($('astart'))$('astart').onchange=()=>{a.start=parseFloat($('astart').value)||0;save();render()};
+    if($('astart'))$('astart').onchange=()=>{a.start=pNum($('astart').value)||0;if(a.kind=='budget')a.startT=period(0).s.getTime();save();render()};
+    document.querySelectorAll('#acarry button').forEach(b=>b.onclick=()=>{const f=b.dataset.f;a.carry=f=='carry';a.roll=f=='roll';save();render()});
     if($('avis'))$('avis').onchange=()=>{a.vis=$('avis').checked;refreshA();save();render()};
     if($('atot'))$('atot').onchange=()=>{a.tot=$('atot').checked;refreshA();save();render()};
     document.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>{a.col=b.dataset.ac;refreshA();save();render()});
