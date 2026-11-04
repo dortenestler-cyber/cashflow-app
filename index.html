@@ -914,7 +914,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='72 (04.11.)';
+const APP_VER='73 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -2537,14 +2537,29 @@ Deno.serve(async (req) => {
   const chart = async (s) => (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(s) + "?range=5d&interval=1d", { headers: H })).json()).chart.result[0].meta;
   const { q = [], hist = false, news = null } = await req.json().catch(() => ({}));
   if (Array.isArray(news)) {
-    const items = [];
-    for (const t of news.slice(0, 15)) {
-      try {
-        const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=0&newsCount=10&lang=de-DE&region=DE&q=" + encodeURIComponent(t), { headers: H })).json();
-        for (const n of j.news || []) items.push({ q: t, id: n.uuid, t: n.title, p: n.publisher, u: n.link, ts: (n.providerPublishTime || 0) * 1000, rel: n.relatedTickers || [] });
-      } catch (e) {}
+    const items = []; const diag = {};
+    const dec = (x) => x.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    for (const n0 of news.slice(0, 15)) {
+      const n = typeof n0 === "string" ? { q: n0, y: n0 } : n0; let c = 0;
+      if (n.g) {
+        try {
+          const xml = await (await fetch("https://news.google.com/rss/search?hl=de&gl=DE&ceid=DE:de&q=" + encodeURIComponent(n.g + " when:7d"), { headers: H })).text();
+          for (const it of (xml.match(/<item>[\\s\\S]*?<\\/item>/g) || []).slice(0, 12)) {
+            const g = (t) => { const m = it.match(new RegExp("<" + t + "[^>]*>([\\\\s\\\\S]*?)<\\\\/" + t + ">")); return m ? dec(m[1]) : ""; };
+            const src = g("source"); let title = g("title"); if (src && title.endsWith(" - " + src)) title = title.slice(0, -(src.length + 3));
+            items.push({ q: n.q, id: g("guid") || g("link"), t: title, p: src || "Google News", u: g("link"), ts: Date.parse(g("pubDate")) || 0 }); c++;
+          }
+        } catch (e) { diag[n.q + ":g"] = String(e); }
+      }
+      if (n.y) {
+        try {
+          const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=0&newsCount=10&q=" + encodeURIComponent(n.y), { headers: H })).json();
+          for (const x of j.news || []) { items.push({ q: n.q, id: x.uuid, t: x.title, p: x.publisher, u: x.link, ts: (x.providerPublishTime || 0) * 1000 }); c++; }
+        } catch (e) { diag[n.q + ":y"] = String(e); }
+      }
+      diag[n.q] = c;
     }
-    return new Response(JSON.stringify({ __news: items, v: 4 }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ __news: items, diag, v: 5 }), { headers: { ...cors, "Content-Type": "application/json" } });
   }
   const out = {}; const fx = {};
   for (const s of q.slice(0, 40)) {
@@ -2565,7 +2580,7 @@ Deno.serve(async (req) => {
       let k = 1, cur = m.currency;
       if (cur === "GBp") { k = 0.01; cur = "GBP"; }
       if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
-      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 4 };
+      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 5 };
       if (hist) {
         const rg = { d: "range=1y&interval=1d", h: "range=5d&interval=60m", i: "range=1d&interval=5m" }[hist === true ? "d" : hist] || "range=1y&interval=1d";
         const r = (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?" + rg, { headers: H })).json()).chart.result[0];
@@ -2620,9 +2635,12 @@ function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
     <div class="note">Kurse in Euro. Krypto über Coinbase/CoinGecko, ETFs und Aktien über deine Supabase-Funktion. Sparpläne werden zum aktuellen Kurs fortgeschrieben, die Stückzahl ist daher ein Näherungswert. Gleiche sie ab und zu mit deinem Depot ab.</div></div>
    ${newsHtml()}
    ${S.kursFn&&!S.kursFnOld?'':depSetupHtml()}`}
-let NEWS=null,newsBusy=false,newsMsg='',newsAll=false;try{NEWS=JSON.parse(localStorage.getItem('cf_news')||'null')}catch(e){}
+let NEWSDIAG=null,NEWS=null,newsBusy=false,newsMsg='',newsAll=false;try{NEWS=JSON.parse(localStorage.getItem('cf_news')||'null')}catch(e){}
 const nWords=t=>new Set(String(t||'').toLowerCase().replace(/[^a-z0-9äöüß ]+/g,' ').split(/\s+/).filter(w=>w.length>2&&!/^(the|and|for|with|from|this|that|der|die|das|und|mit|für|von|auf|ist|des|den|dem|eine|einer|ein|its|are|was|has|have|will|stock|stocks|aktie|aktien)$/.test(w)));
-function newsTerms(){return depot().filter(h=>h.type!='robo'&&h.sym).map(h=>({h,q:h.type=='krypto'?h.sym.trim().toUpperCase()+'-USD':(h.ysym||h.sym).trim().toUpperCase()}))}
+const CRN={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',XRP:'XRP Ripple',ADA:'Cardano',DOGE:'Dogecoin',DOT:'Polkadot',LINK:'Chainlink',AVAX:'Avalanche',LTC:'Litecoin',MATIC:'Polygon',POL:'Polygon',BNB:'BNB',TRX:'Tron',SHIB:'Shiba Inu',ATOM:'Cosmos',XLM:'Stellar',SUI:'Sui',TON:'Toncoin'};
+function newsG(h){if(h.type=='krypto'){const k=h.sym.trim().toUpperCase();return (CRN[k]||h.n||k)+' Kurs'}let n=String(h.n||h.sym||'').replace(/\b(UCITS|ETF|EUR|USD|Acc|Dist|Inc|\(Acc\)|\(Dist\)|Shares|Class|plc|SE|AG|Inc\.?|Corp\.?|Ltd\.?|N\.V\.|S\.A\.)\b/gi,' ').replace(/\s+/g,' ').trim();
+  if(h.type=='etf'){const R=[[/semicond|halbleiter/i,'Halbleiter Aktien'],[/all country|acwi/i,'MSCI ACWI'],[/msci world/i,'MSCI World'],[/emerging/i,'Emerging Markets Aktien'],[/s&p ?500/i,'S&P 500'],[/nasdaq/i,'Nasdaq 100'],[/euro ?stoxx ?50/i,'Euro Stoxx 50'],[/stoxx europe 600|europe/i,'Europäische Aktien'],[/dax/i,'DAX'],[/ftse all-world|all-world/i,'Weltaktien'],[/dividend/i,'Dividenden Aktien'],[/clean energy/i,'Clean Energy Aktien'],[/robot|automation/i,'Robotik Aktien'],[/gold/i,'Goldpreis']];const m=R.find(([r])=>r.test(n));return m?m[1]:n}return n+' Aktie'}
+function newsTerms(){return depot().filter(h=>h.type!='robo'&&h.sym).map(h=>({h,q:h.type=='krypto'?h.sym.trim().toUpperCase()+'-USD':(h.ysym||h.sym).trim().toUpperCase(),g:newsG(h)}))}
 function newsClean(raw){const T=newsTerms(),byQ={};T.forEach(x=>{(byQ[x.q]=byQ[x.q]||[]).push(x.h.n||x.h.sym)});const cut=Date.now()-7*864e5,out=[];
   raw.filter(n=>n&&n.t&&n.u&&n.ts>=cut).sort((a,b)=>a.ts-b.ts).forEach(n=>{const w=nWords(n.t),u=n.u.split('?')[0];
     const dup=out.find(o=>o.id==n.id||o.u0==u||(()=>{let c=0;w.forEach(x=>{if(o.w.has(x))c++});return c/Math.max(1,Math.min(w.size,o.w.size))>=.6&&c>=3})());
@@ -2631,11 +2649,11 @@ function newsClean(raw){const T=newsTerms(),byQ={};T.forEach(x=>{(byQ[x.q]=byQ[x
   out.forEach(o=>{const age=(Date.now()-o.ts)/36e5;o.score=o.src.length*2+o.tags.length*1.5-Math.min(age,168)/24});
   const top=out.slice().sort((a,b)=>b.score-a.score).slice(0,3).filter(o=>o.src.length>1||o.tags.length>1),ids=new Set(top.map(o=>o.id));
   return{top,rest:out.filter(o=>!ids.has(o.id)).sort((a,b)=>b.ts-a.ts)}}
-async function newsLoad(force){const T=newsTerms();if(!T.length||newsBusy)return;if(!force&&NEWS&&Date.now()-NEWS.t<30*6e4&&NEWS.k==T.map(x=>x.q).join())return;
+async function newsLoad(force){const T=newsTerms();if(!T.length||newsBusy)return;if(!force&&NEWS&&Date.now()-NEWS.t<30*6e4&&NEWS.k==T.map(x=>x.q).join()+'|5'&&(NEWS.raw||[]).length)return;
   if(!syOn()){newsMsg='Für News brauchst du die Online-Synchronisierung mit der Funktion „kurse“.';return}
-  newsBusy=true;newsMsg='';try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[...new Set(T.map(x=>x.q))]})});const j=r.ok?await r.json():{};
-    if(Array.isArray(j.__news)){S.newsFnOld=false;NEWS={t:Date.now(),k:T.map(x=>x.q).join(),raw:j.__news.map(n=>({q:n.q,id:n.id,t:n.t,p:n.p,u:n.u,ts:n.ts}))};try{localStorage.setItem('cf_news',JSON.stringify(NEWS))}catch(e){}}
-    else{S.newsFnOld=true;newsMsg=''}}catch(e){newsMsg='News konnten gerade nicht geladen werden.'}newsBusy=false;if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
+  newsBusy=true;newsMsg='';try{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:T.filter((x,i)=>T.findIndex(y=>y.q==x.q)==i).map(x=>({q:x.q,y:/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x.q)?'':x.q,g:x.g}))})});const j=r.ok?await r.json():{};
+    if(Array.isArray(j.__news)&&(j.v||0)>=5){S.newsFnOld=false;NEWSDIAG=j.diag||null;if(!j.__news.length)newsMsg='Die Funktion hat keine Meldungen gefunden ('+Object.entries(j.diag||{}).filter(([k])=>!k.includes(':')).map(([k,v])=>k+': '+v).join(', ')+').';NEWS={t:Date.now(),k:T.map(x=>x.q).join()+'|5',raw:j.__news.map(n=>({q:n.q,id:n.id,t:n.t,p:n.p,u:n.u,ts:n.ts}))};try{localStorage.setItem('cf_news',JSON.stringify(NEWS))}catch(e){}}
+    else{S.newsFnOld=true;newsMsg=r.ok?'':'Die Funktion antwortet mit Fehler '+r.status+'.'}}catch(e){newsMsg='News konnten gerade nicht geladen werden ('+(e.message||e)+').'}newsBusy=false;if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
 const agoTxt=ts=>{const m=Math.round((Date.now()-ts)/6e4);return m<60?'vor '+Math.max(1,m)+' Min.':m<1440?'vor '+Math.round(m/60)+' Std.':m<2880?'gestern':'vor '+Math.round(m/1440)+' Tagen'};
 function newsHtml(){if(!newsTerms().length)return '';const C=NEWS?newsClean(NEWS.raw||[]):{top:[],rest:[]},all=[...C.top,...C.rest];
   const item=(o,big)=>`<a class="nws${big?' top':''}" href="${esc(o.u)}" target="_blank" rel="noopener noreferrer"><span class="nws-t">${esc(o.t)}</span><span class="nws-m">${o.tags.slice(0,3).map(t=>`<em>${esc(t.length>18?t.slice(0,17)+'…':t)}</em>`).join('')}<span>${esc(o.p||'')}${o.src.length>1?' +'+(o.src.length-1):''} · ${agoTxt(o.ts)}</span></span></a>`;
@@ -2645,7 +2663,7 @@ function newsHtml(){if(!newsTerms().length)return '';const C=NEWS?newsClean(NEWS
    ${newsMsg?`<div class="note" style="padding:0 4px 8px">${esc(newsMsg)}</div>`:''}
    ${all.length?`<div class="mmcard">${C.top.length?`<div class="nws-h">Wichtig</div>${C.top.map(o=>item(o,1)).join('')}${rest.length?'<div class="nws-h">Neueste</div>':''}`:''}${rest.map(o=>item(o)).join('')}</div>
    ${C.rest.length>8?`<button class="link" id="newsMore" style="display:block;margin:8px auto 0">${newsAll?'Weniger anzeigen':'Alle '+all.length+' Meldungen'}</button>`:''}
-   <div class="note">Letzte 7 Tage, gleiche Meldungen aus mehreren Quellen sind zusammengefasst (+n). Quelle: Yahoo Finance, meist auf Englisch. ${NEWS?'Stand '+new Date(NEWS.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'.':''}</div>`
+   <div class="note">Letzte 7 Tage, gleiche Meldungen aus mehreren Quellen sind zusammengefasst (+n). Quellen: Google News (deutsch) und Yahoo Finance. ${NEWS?'Stand '+new Date(NEWS.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'.':''}</div>`
    :`<div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">${newsBusy?'News werden geladen …':S.newsFnOld?'Noch keine News.':'Keine aktuellen Meldungen der letzten 7 Tage.'}</div></div>`}</div>`}
 function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">${S.kursFnOld?'Kursfunktion aktualisieren (für den Kursverlauf)':'ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)'}</div>${S.kursFnOld?'<div class="note" style="padding:0 4px 6px">Deine Funktion „kurse“ ist von gestern. Für die Wertentwicklung bitte in Supabase die Funktion „kurse“ öffnen, den Code ersetzen und neu deployen.</div>':''}<div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
   <li>In Supabase links auf <b>Edge Functions</b> (Blitz-Symbol), dann <b>Deploy a new function</b> › <b>Via Editor</b>.</li>
