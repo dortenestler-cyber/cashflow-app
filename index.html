@@ -1532,7 +1532,7 @@ function viewShop(){const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.d
   ${ck.k!='none'?`<div class="bcheck ${ck.k}"><div class="bc-h">${I(ck.k=='bad'?'alert':ck.k=='warn'?'up':'check',18)}<b>${ck.k=='bad'?'Budget-Check: passt nicht':ck.k=='warn'?'Budget-Check: wird knapp':'Budget-Check: passt'}</b></div><div>${ck.txt}</div>
    <div class="bar" style="height:8px;margin-top:8px"><i style="width:${Math.min(100,ck.rest?ck.est/ck.rest*100:100).toFixed(0)}%;background:${ck.k=='bad'?'var(--bad)':ck.k=='warn'?'var(--warn)':'var(--ok)'}"></i></div>
    <div class="s" style="font-size:12px;margin-top:4px">${Math.round(ck.rest?ck.est/ck.rest*100:100)} % vom freien ${esc(sh.acct)}-Budget</div></div>`:`<div class="note">${ck.txt}</div>`}
-  <div class="mmcard"><div class="shadd"><input id="shN" list="pdbList" placeholder="Artikel, z. B. Milch" aria-label="Artikel"><datalist id="pdbList">${Object.values(PDB).map(x=>`<option value="${esc(x.n)}">${esc(x.u)} · ca. ${eur(dbPrice(x))}</option>`).join('')}</datalist><input id="shP" inputmode="decimal" placeholder="€" aria-label="Preis" style="width:70px;text-align:right"><button class="btn" id="shAdd" style="width:auto;padding:9px 14px">${I('plus',18)}</button></div>
+  <div class="mmcard"><div class="shadd"><input id="shN" list="pdbList" placeholder="Artikel, z. B. Milch" aria-label="Artikel"><datalist id="pdbList">${Object.values(PDB).map(x=>`<option value="${esc(x.n)}">${esc(x.u)} · ca. ${eur(dbPrice(x))}</option>`).join('')}</datalist><input id="shP" inputmode="decimal" placeholder="€" aria-label="Preis" style="width:70px;text-align:right"><button class="btn" id="shAdd" style="width:auto;padding:9px 14px">${I('plus',18)}</button><button class="btn soft" id="shMic" aria-label="Artikel sprechen" style="width:auto;padding:9px 12px">${I('mic',18)}</button></div>
    ${sug.length?`<div class="chips" style="padding:0 12px 10px">${sug.map(([n])=>`<button class="chip" data-shs="${esc(n)}">${esc(n.charAt(0).toUpperCase()+n.slice(1))}${sh.prices[n]?' '+eur(sh.prices[n]):''}</button>`).join('')}</div>`:''}</div>
   ${open.length?`<div class="sec"><div class="sh">Noch zu kaufen · ${open.length}</div><div class="mmcard">${open.map(row).join('')}</div></div>`:''}
   ${done.length?`<div class="sec"><div class="sh">Im Wagen · ${done.length}</div><div class="mmcard">${done.map(row).join('')}</div></div>`:''}
@@ -1540,6 +1540,23 @@ function viewShop(){const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.d
   ${sh.items.length?`<button class="btn" id="shBook">${I('cart',18)} Einkauf buchen</button><button class="btn soft" id="shClear">Zettel leeren</button>`:''}
   <button class="btn soft" id="pdbOpen">${I('receipt',18)} Preisliste mit ${Object.keys(PDB).length} Artikeln</button>
   <div class="note">„Muss“ ist nötig, „Kann“ darf weg, wenn es eng wird. Preise ohne eigene Angabe sind Richtwerte (ca.) für Deutschland, deine eigenen Preise haben Vorrang.</div>`}
+const NUMW={ein:1,eine:1,einen:1,zwei:2,drei:3,vier:4,'fünf':5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,zwölf:12};
+const isShopVoice=v=>/einkaufs(liste|zettel)|auf die liste|^\s*(liste|einkauf)\b/i.test(v);
+function shopVoice(v){let t=' '+v+' ';t=t.replace(/\b(setze?|schreibe?|packe?|füge?|tue?|nimm|kauf(e|en)?)\s+/gi,' ').replace(/\b(bitte|noch|hinzu|drauf|mal|auch)\b/gi,' ')
+   .replace(/\b(auf|in|zu[rm]?)\s+(die|den|der|meine[nr]?)?\s*(einkaufsliste|einkaufszettel|liste)\b/gi,' ').replace(/einkaufs(liste|zettel)|^\s*(liste|einkauf)\b/gi,' ').replace(/[:;.!?]/g,',');
+  const parts=t.split(/,|\bund\b|\bsowie\b|\bplus\b/i).map(s=>s.trim()).filter(Boolean),sh=shopS(),added=[];
+  parts.forEach(s=>{let q=1;const m=s.match(/^(\d+)\s*(x|×|stück|mal)?\s+/i);
+    if(m&&!/^\d+\s*(g|kg|ml|l|liter|gramm|kilo)\b/i.test(s)){q=+m[1];s=s.slice(m[0].length)}
+    else{const ws=s.split(/\s+/),w=ws[0].toLowerCase();if(NUMW[w]&&ws.length>1){q=NUMW[w];s=ws.slice(1).join(' ')}}
+    s=s.replace(/^(die|der|das|den)\s+/i,'').trim();if(!s||s.length<2)return;s=s.charAt(0).toUpperCase()+s.slice(1);
+    const d=dbFind(s),names=[s.toLowerCase(),d&&s.length<=d.n.length+1?d.n.toLowerCase():null].filter(Boolean),ex=sh.items.find(x=>!x.done&&names.includes(x.n.toLowerCase()));
+    if(ex)ex.q=(ex.q||1)+q;else shopAdd((q>1?q+'x ':'')+s,'');added.push((q>1?q+'× ':'')+(ex?ex.n:sh.items[sh.items.length-1].n))});save();return added}
+function listen(onText,field,ph){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
+  try{const r=new SR();r.lang='de-DE';r.interimResults=false;r.maxAlternatives=1;const old=field?field.placeholder:'';if(field)field.placeholder=ph||'Ich höre zu …';
+    r.onresult=ev=>onText(ev.results[0][0].transcript);r.onerror=()=>{if(field){field.placeholder=old;field.focus()}toast('Spracheingabe ging nicht. Nutze das Mikrofon der Tastatur.')};
+    r.onend=()=>{if(field&&document.body.contains(field))field.placeholder=old};r.start()}catch(e){if(field)field.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur.')}}
+function shopVoiceDone(added){if(!added.length){toast('Nichts erkannt. Sag z. B. „Milch, 2 Brot und Eier“.');return}toast('Auf dem Einkaufszettel: '+added.join(', '));renderAsst&&setTimeout(renderAsst,0)}
 function shopAdd(txt,price){const sh=shopS();let t=txt.trim();if(!t)return;let q=1,p=pNum(price);const mq=t.match(/^(\d+)\s*[x×]\s*/i);if(mq){q=+mq[1];t=t.slice(mq[0].length)}
   const mp=t.match(/\s(\d+(?:[.,]\d{1,2})?)\s*€?$/);if(mp&&isNaN(p)){p=pNum(mp[1]);t=t.slice(0,mp.index)}t=t.trim();const k=t.toLowerCase();
   let est=false,unit='';if(isNaN(p)){if(sh.prices[k])p=sh.prices[k];else{const d=dbFind(t);if(d){p=dbPrice(d);est=!d.s||(S.shop&&S.shop.level&&S.shop.level!='disc');unit=d.u+(d.s&&!est?' · Bon '+d.s:'');if(t.length<=d.n.length+1)t=d.n}else p=0}}else sh.prices[k]=p;
@@ -1561,7 +1578,7 @@ function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const s
   on('pdbOpen',()=>{setView='pdb';pdbQ='';render();scrollTo(0,0)});
   document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbFind(x.n);if(d)x.p=dbPrice(d)}});save();render()});
   on('shopBack',()=>{setView=null;tab=prevTab&&prevTab!='more'?prevTab:'dash';render();scrollTo(0,0)});
-  const add=()=>{shopAdd($('shN').value,$('shP').value);render();setTimeout(()=>$('shN')&&$('shN').focus(),0)};on('shAdd',add);
+  const add=()=>{shopAdd($('shN').value,$('shP').value);render();setTimeout(()=>$('shN')&&$('shN').focus(),0)};on('shAdd',add);on('shMic',()=>listen(v=>{const a=shopVoice(v);render();shopVoiceDone(a)},$('shN'),'Sag z. B. „Milch, 2 Brot und Eier“'));
   if($('shN'))$('shN').onkeydown=e=>{if(e.key=='Enter')add()};if($('shP'))$('shP').onkeydown=e=>{if(e.key=='Enter')add()};
   document.querySelectorAll('[data-shs]').forEach(b=>b.onclick=()=>{shopAdd(b.dataset.shs,'');render()});
   document.querySelectorAll('[data-shd]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.shd);x.done=!x.done;save();render()});
@@ -1943,7 +1960,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
   $('sheetRoot').innerHTML=`<div class="scrim" ${prevB?'style="animation:none"':''} id="scrim"></div><div class="sheet ${prevB?'noanim':''}" role="dialog" aria-label="Buchung">
   <div class="sheet-h"><button id="cancel">Abbrechen</button><b>${E.id?'Buchung bearbeiten':'Neue Buchung'}</b><span style="min-width:70px"></span></div>
   <div class="sheet-b es">
-   ${E.id?'':`<div class="search"><span style="color:var(--muted)">${I('search',16)}</span><input id="equick" placeholder="Rewe, Kaffee … oder sprechen" autocomplete="off" enterkeyhint="done"><button id="eMic" class="ed-ic" aria-label="Spracheingabe" style="color:var(--blue)">${I('mic',20)}</button></div><div class="chips" id="sugBox"></div>`}
+   ${E.id?'':`<div class="search"><span style="color:var(--muted)">${I('search',16)}</span><input id="equick" placeholder="Rewe, Kaffee … oder „Einkaufsliste Milch“" autocomplete="off" enterkeyhint="done"><button id="eMic" class="ed-ic" aria-label="Spracheingabe" style="color:var(--blue)">${I('mic',20)}</button></div><div class="chips" id="sugBox"></div>`}
    <div class="amount ${inc?'in':''}">${inc?'+':''}${shown}<small> €</small>${/[+−]/.test(E.amt)?`<div class="calcres">= ${eur(evalAmt(E.amt))}</div>`:''}</div>
    ${impact?`<div class="impact">${impact}</div>`:''}
    <div class="ctx">${pill('type',typL)}${pill('acc',(tr?'von ':inc?'auf ':'von ')+esc(SHORT[E.b]),isLock(E.b)||isTabu(E.b)?'lock':'wallet')}${tr?pill('to','nach '+esc(SHORT[E.to]),isLock(E.to)?'lock':null):''}${pill('date',dtL,null)}</div>
@@ -2001,13 +2018,9 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
   if($('imgDel'))$('imgDel').onclick=()=>{keep();E.img='';drawSheet()};
   if($('nowE'))$('nowE').onclick=()=>{E.dt=today();E.t=Date.now();if($('edate'))$('edate').value=E.dt;$('ok').click()};
   if($('delE'))$('delE').onclick=()=>{const s=snap();S.exp=S.exp.filter(e=>e.id!=E.id);save();close();render();toast('Buchung gelöscht.',()=>restore(s))};
-  if($('eMic'))$('eMic').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition,f=$('equick');
-    const apply=v=>{keep();qp(v);drawSheet();toast('Verstanden: „'+v+'“')};
-    if(!SR){f.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich z. B. „12,50 Rewe Flow“.');return}
-    try{const r=new SR();r.lang='de-DE';r.interimResults=false;r.maxAlternatives=1;$('eMic').style.color='var(--bad)';f.placeholder='Ich höre zu …';
-      r.onresult=ev=>{const v=ev.results[0][0].transcript;apply(v)};r.onerror=()=>{f.placeholder='Rewe, Kaffee … oder sprechen';$('eMic').style.color='var(--blue)';f.focus();toast('Spracheingabe ging nicht. Nutze das Mikrofon der Tastatur.')};
-      r.onend=()=>{if($('eMic'))$('eMic').style.color='var(--blue)'};r.start()}catch(e){f.focus();toast('Tippe auf das Mikrofon unten auf der Tastatur.')}};
-  if($('equick')){drawSug();$('equick').oninput=drawSug;$('equick').onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();const v=$('equick').value;if(!v.trim())return;keep();qp(v);$('equick').value='';drawSheet()}}}
+  const voice=v=>{if(isShopVoice(v)){shopVoiceDone(shopVoice(v));if($('equick'))$('equick').value='';return}keep();qp(v);drawSheet();toast('Verstanden: „'+v+'“')};
+  if($('eMic'))$('eMic').onclick=()=>listen(voice,$('equick'));
+  if($('equick')){drawSug();$('equick').oninput=drawSug;$('equick').onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();const v=$('equick').value;if(!v.trim())return;if(isShopVoice(v)){shopVoiceDone(shopVoice(v));$('equick').value='';drawSug();return}keep();qp(v);$('equick').value='';drawSheet()}}}
   $('ok').onclick=()=>{keep();const a=Math.round(evalAmt(E.amt)*100)/100;
     if(E.type!='in'&&isTabu(E.b)){$('eerr').textContent=E.b+' ist tabu. Wähle ein anderes Konto.';return}
     if(E.type=='tr'&&isLock(E.to)&&!E.id&&!E.ovr){if(!a){$('eerr').textContent='Bitte zuerst den Betrag eingeben.';return}openOverride(a,()=>{drawSheet();$('ok').click()});return}
