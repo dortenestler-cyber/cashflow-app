@@ -674,7 +674,7 @@ function ensureAccts(){if(S.accts){refreshA();ensureFlags();return}
       {id:uid(),type:'out',b:'Comdirect',c:'Budgets & Sparen',a:1075,n:'Monatsverteilung auf Konten',t:t(1,9)},{id:uid(),type:'out',b:'Comdirect',c:'Abos',a:47.97,n:'Handy, Streaming, Cloud',t:t(2,10)},
       {id:uid(),type:'out',b:'Comdirect',c:'Versicherung',a:96.4,n:'Haftpflicht & Hausrat',t:t(3,9)})}
   refreshA();ensureFlags()}
-const save=()=>{try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}};
+const save=()=>{try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}try{syDirty()}catch(e){}};
 
 /* recurring entries become real bookings once due */
 function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}
@@ -844,7 +844,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='30 (04.11.)';
+const APP_VER='32 (04.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 function renderAsst(){const r=$('asstRoot');if(!r)return;const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(!t0.length||hide){r.innerHTML='';return}
@@ -1772,6 +1772,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
    nav('theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[S.theme||'system']+' · Schrift im Kalender · Erfolge feiern',c5)+
    nav('bgs','palette','Kartenhintergründe','Farbe oder eigenes Foto je Karte',c5))}
   ${sec('Daten','',
+   nav('sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten',c6)+
    nav('export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel',c6)+
    nav('import','export','Import aus MoneyControl','Backup oder CSV übernehmen',c6))}
   <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
@@ -1804,7 +1805,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
   if(k=='month')return back+`<h1 class="lt">Finanzmonat</h1></div><div class="group"><div class="cell plain"><label for="mstart">Beginnt am</label><select id="mstart">${Array.from({length:28},(_,i)=>`<option ${S.start==i+1?'selected':''} value="${i+1}">${i+1}. des Monats</option>`).join('')}</select></div></div><div class="note">Stell hier den Tag ein, an dem dein Gehalt kommt. Budgets, Tagesbudget und Auswertungen richten sich danach.</div>`;
   if(k=='puffer')return back+`<h1 class="lt">Stundenlohn</h1></div><div class="group"><div class="cell plain"><label for="lohn">Netto pro Stunde</label><input id="lohn" type="number" step="0.1" inputmode="decimal" value="${S.lohn}"></div></div><div class="note">3.200 € netto ÷ rund 165 Stunden ≈ 19,40 €. Damit rechnet die App Preise in Arbeitszeit um. Der Puffer ergibt sich jetzt aus dem Kontostand deines Eingangskontos.</div>`;
   if(k=='pdb')return viewPdb();
-  if(k=='shop')return viewShop();if(k=='abos')return viewAbos();if(k=='yplan')return viewYplan();if(k=='ng')return viewNg();if(k=='report')return viewReport(TOT,appbar({title:'Finanzbericht',back:'setBack',noGear:true,month:rpP=='Monat'}));if(k=='review')return viewReview();
+  if(k=='shop')return viewShop();if(k=='abos')return viewAbos();if(k=='yplan')return viewYplan();if(k=='ng')return viewNg();if(k=='sync')return viewSync();if(k=='report')return viewReport(TOT,appbar({title:'Finanzbericht',back:'setBack',noGear:true,month:rpP=='Monat'}));if(k=='review')return viewReview();
   if(k=='bgs')return `<div><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Kartenhintergründe</h1></div>
    <div class="note" style="padding:0 4px">Tippe auf eine Karte, um Farbe oder Foto zu ändern.</div>
    <div class="bgl">${['Gesamt',...BN].map(b=>`<button class="bgcard" data-bg="${esc(b)}" style="${bgStyle(b)}"><span>${b=='Gesamt'?'Alle Budgets':esc(b)}</span><small>${S.bg[b]&&S.bg[b].img?'Eigenes Foto':esc((GR[(S.bg[b]||{g:0}).g||0]||GR[0])[0])} ›</small></button>`).join('')}</div>`;
@@ -1870,7 +1871,7 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
   document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){bindSwipe();bindVault();bindVaultSet();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){bindSwipe();bindVault();bindVaultSet();bindSync();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
@@ -2159,7 +2160,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     if(E.fav&&!E.id&&E.type=='out')S.fav.push({b:E.b,c:E.c,n:E.n,a});
     if(rec.ovr&&!E.id){S.ovrLog=S.ovrLog||[];S.ovrLog.push({id:rec.id,t:rec.t,from:rec.b,to:rec.to,a,reason:rec.ovr.reason,ans:rec.ovr.ans})}
     const sn=snap();if(E.id)S.exp=S.exp.map(e=>e.id==E.id?rec:e);else S.exp.push(rec);
-    try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){if(rec.img){delete rec.img;save();}}
+    try{localStorage.setItem('dodo4',JSON.stringify(S));syDirty()}catch(e){if(rec.img){delete rec.img;save();}}
     close();render();toast(E.id?'Änderung gesichert.':(rec.type=='tr'?'Umbuchung gesichert: ':rec.type=='in'?'Einnahme gesichert: ':'Ausgabe gesichert: ')+eur(a),()=>restore(sn))}}
 $('fab').onclick=()=>openSheet();
 $('vfab').innerHTML=I('mic',24);
@@ -2168,6 +2169,107 @@ $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.we
   if(!SR){if(shop){$('shN')&&$('shN').focus()}else{openSheet();setTimeout(()=>$('equick')&&$('equick').focus(),60)}toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
   vf.classList.add('rec');listen(v=>{vf.classList.remove('rec');if(shop&&!/^(zeig|öffne|geh|wie|was|einkauf)/i.test(v.trim())){const a=shopVoice(v);render();shopVoiceDone(a);return}if(voiceCmd(v))return;
     openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))};
+
+/* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
+const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
+const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
+let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts'];
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+function b64big(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)}
+async function syDerive(pass,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:ub64(salt),iterations:250000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])}
+async function syLoadKey(){if(syKey)return syKey;if(SY.k){syKey=await crypto.subtle.importKey('raw',ub64(SY.k),'AES-GCM',true,['encrypt','decrypt']);return syKey}return null}
+async function syEnc(obj){const iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},syKey,new TextEncoder().encode(JSON.stringify(obj)));return{data:b64big(ct),iv:b64(iv)}}
+async function syDec(row){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:ub64(row.iv)},syKey,ub64(row.data));return JSON.parse(new TextDecoder().decode(pt))}
+const syOn=()=>!!(SY.url&&SY.key&&SY.refresh);
+async function syFetch(path,opt={},auth=true){const h=Object.assign({apikey:SY.key,'Content-Type':'application/json'},opt.headers||{});
+  if(auth){if(!SY.access||Date.now()>(SY.exp||0)-60000)await syRefresh();h.Authorization='Bearer '+SY.access}
+  const r=await fetch(SY.url.replace(/\/$/,'')+path,Object.assign({},opt,{headers:h}));if(r.status==401&&auth&&!opt._retry){await syRefresh();return syFetch(path,Object.assign({},opt,{_retry:1}),auth)}return r}
+async function syAuthSet(j){if(!j.access_token)throw new Error(j.error_description||j.msg||j.error||'Anmeldung fehlgeschlagen');SY.access=j.access_token;SY.refresh=j.refresh_token;SY.exp=Date.now()+(j.expires_in||3600)*1000;SY.uid=j.user&&j.user.id||SY.uid;SY.email=j.user&&j.user.email||SY.email;sySave()}
+async function syRefresh(){const r=await fetch(SY.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SY.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:SY.refresh})});
+  const j=await r.json().catch(()=>({}));if(!r.ok){SY.refresh=null;SY.access=null;sySave();throw new Error('Sitzung abgelaufen. Bitte neu anmelden.')}await syAuthSet(j)}
+async function syGet(){const r=await syFetch('/rest/v1/cashflow?select=*&user_id=eq.'+SY.uid);if(!r.ok)throw new Error('Laden fehlgeschlagen ('+r.status+'). Ist die Tabelle angelegt?');const a=await r.json();return a[0]||null}
+function syBase(st){const b={};COLS.forEach(c=>b[c]=(st[c]||[]).map(x=>x.id).filter(Boolean));return b}
+function syMerge(loc,rem,base){const out=JSON.parse(JSON.stringify((loc._m||0)>=(rem._m||0)?loc:rem)),locNew=(loc._m||0)>=(rem._m||0);
+  COLS.forEach(c=>{const L=loc[c]||[],Rm=rem[c]||[],B=new Set((base&&base[c])||[]),lm=new Map(L.filter(x=>x&&x.id).map(x=>[x.id,x])),rm=new Map(Rm.filter(x=>x&&x.id).map(x=>[x.id,x])),res=[];
+    const ids=[...new Set([...L.map(x=>x&&x.id),...Rm.map(x=>x&&x.id)])].filter(Boolean);
+    ids.forEach(id=>{const a=lm.get(id),r=rm.get(id);if(a&&r)res.push(locNew?a:r);else if(a){if(!B.has(id))res.push(a)}else if(r){if(!B.has(id))res.push(r)}});
+    [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));out[c]=res});
+  return out}
+const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0}));let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}return (h2>>>0).toString(36)+(h1>>>0).toString(36)};
+function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
+async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(!await syLoadKey()){syMsg='Sync-Passwort fehlt auf diesem Gerät.';return}
+  syBusy=true;try{for(let tries=0;tries<3;tries++){const row=await syGet();
+      if(row&&row.rev!==SY.rev){const rem=await syDec(row);const dirty=(S._m||0)>(SY.at||0);
+        if(!dirty){S=rem}else{S=syMerge(S,rem,SY.base);S._m=Date.now()}
+        try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);if(!dirty){SY.at=Date.now();SY.h=syHash()}sySave();if(!dirty){refreshA&&refreshA();render();syMsg='Aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
+        render()}
+      if((S._m||0)<=(SY.at||0)&&row){syMsg='Synchron · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
+      const enc=await syEnc(S),nr=(row?row.rev:0)+1,body={user_id:SY.uid,data:enc.data,iv:enc.iv,salt:SY.salt,rev:nr,updated_at:new Date().toISOString()};
+      let r;if(!row)r=await syFetch('/rest/v1/cashflow',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
+      else r=await syFetch('/rest/v1/cashflow?user_id=eq.'+SY.uid+'&rev=eq.'+row.rev,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
+      const j=await r.json().catch(()=>[]);if(r.ok&&Array.isArray(j)&&j.length){SY.rev=nr;SY.base=syBase(S);SY.at=Date.now();SY.h=syHash();sySave();syMsg='Gespeichert · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
+      if(!r.ok&&r.status!=409)throw new Error('Speichern fehlgeschlagen ('+r.status+')')}
+  }catch(e){syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(setView=='sync')render()}}
+async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim(),email=$('syE').value.trim(),pw=$('syP').value,pass=$('syX').value,keep=$('syR').checked;
+  if(!url||!key||!email||!pw||!pass){$('syErr').textContent='Bitte alle Felder ausfüllen.';return}if(pass.length<8){$('syErr').textContent='Das Sync-Passwort braucht mindestens 8 Zeichen.';return}
+  $('syErr').textContent='Verbinde …';SY.url=url;SY.key=key;
+  try{const r=await fetch(url+'/auth/v1/'+(signup?'signup':'token?grant_type=password'),{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+    const j=await r.json().catch(()=>({}));if(signup&&r.ok&&!j.access_token){$('syErr').textContent='Konto angelegt. Bestätige den Link in deiner E-Mail und tippe dann auf „Anmelden“.';sySave();return}
+    if(!r.ok)throw new Error(j.error_description||j.msg||j.error||('Fehler '+r.status));await syAuthSet(j);
+    const row=await syGet();SY.salt=row?row.salt:b64(crypto.getRandomValues(new Uint8Array(16)));syKey=await syDerive(pass,SY.salt);
+    if(row){try{await syDec(row)}catch(e){syKey=null;SY.refresh=null;sySave();$('syErr').textContent='Sync-Passwort passt nicht zu den gespeicherten Daten.';return}}
+    SY.k=keep?b64(await crypto.subtle.exportKey('raw',syKey)):null;SY.rev=null;SY.at=0;SY.base=null;sySave();
+    if(row){const rem=await syDec(row);const hasLocal=S.exp&&S.exp.length&&!S.ex;
+      if(hasLocal&&!confirmMerge){S=syMerge(S,rem,{});S._m=Date.now()}else S=rem;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);SY.at=hasLocal?0:Date.now();if(!hasLocal)SY.h=syHash();sySave();refreshA();}
+    else{S._m=Date.now()}
+    await sync(false);render();toast(row?'Verbunden. Deine Daten sind auf diesem Gerät.':'Verbunden. Deine Daten sind jetzt verschlüsselt online gesichert.')}
+  catch(e){$('syErr').textContent=e.message||String(e)}}
+const confirmMerge=false;
+function syLogout(wipe){if(SY.access)fetch(SY.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SY.key,Authorization:'Bearer '+SY.access}}).catch(()=>{});
+  const keep={url:SY.url,key:SY.key,email:SY.email};SY=keep;syKey=null;sySave();
+  if(wipe){try{localStorage.removeItem('dodo4')}catch(e){}location.reload();return}render();toast('Abgemeldet.')}
+function viewSync(){const on=syOn(),need=on&&!SY.k&&!syKey;
+  return `${appbar({title:'Online-Sync',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${on?'Verbunden als':'Status'}</span><b style="font-size:22px">${on?esc(SY.email||''):'Nicht verbunden'}</b></div><div class="hc-line">${on?esc(syMsg||'Bereit'):'iPhone, PC und Browser mit denselben Daten'}</div>`})}
+  ${on&&!need?`<div class="group"><div class="cell plain"><div class="t"><div>Automatisch synchronisieren</div><div class="s">Nach jeder Änderung und beim Öffnen</div></div>${I('check',18)}</div></div>
+   <button class="btn" id="syNow">Jetzt synchronisieren</button>
+   <div class="anchor">${I('lock',16)}<span>Deine Daten werden auf diesem Gerät mit deinem Sync-Passwort verschlüsselt, bevor sie hochgeladen werden. Online liegt nur unlesbarer Datensalat.</span></div>
+   <div class="sec"><div class="sh">Abmelden</div><button class="btn soft" id="syOut">Abmelden, Daten auf diesem Gerät behalten</button><button class="btn danger" id="syWipe">Abmelden und Daten von diesem Gerät löschen</button><div class="note">Auf einem fremden oder dienstlichen Rechner immer die zweite Variante nutzen. Online bleibt alles erhalten.</div></div>`
+  :`${need?`<div class="tip">Du bist angemeldet, aber das Sync-Passwort ist auf diesem Gerät nicht gespeichert. Bitte melde dich neu an.</div>`:''}
+   <div class="sec"><div class="sh">1 · Dein Online-Speicher</div><div class="group">
+    <div class="cell plain"><label for="syU">Projekt-URL</label><input id="syU" placeholder="https://xyz.supabase.co" value="${esc(SY.url||'')}" autocapitalize="off"></div>
+    <div class="cell plain"><label for="syK">Anon-Key</label><input id="syK" placeholder="eyJhbGciOi…" value="${esc(SY.key||'')}" autocapitalize="off"></div></div>
+    <div class="note">Einmalig aus Supabase › Project Settings › API kopieren. Die Anleitung steht unten.</div></div>
+   <div class="sec"><div class="sh">2 · Anmelden</div><div class="group">
+    <div class="cell plain"><label for="syE">E-Mail</label><input id="syE" type="email" autocomplete="username" value="${esc(SY.email||'')}"></div>
+    <div class="cell plain"><label for="syP">Passwort</label><input id="syP" type="password" autocomplete="current-password"></div>
+    <div class="cell plain"><label for="syX">Sync-Passwort</label><input id="syX" type="password" autocomplete="off" placeholder="mind. 8 Zeichen"></div>
+    <div class="cell plain"><div class="t"><div>Auf diesem Gerät merken</div><div class="s">Auf dem Dienst-PC besser ausschalten</div></div><input id="syR" type="checkbox" class="switch" checked></div></div>
+    <div class="note">Das Sync-Passwort verschlüsselt deine Daten. Es verlässt nie dein Gerät und kann nicht zurückgesetzt werden. Bitte gut merken und auf allen Geräten gleich eingeben.</div>
+    <div class="note" id="syErr" style="color:var(--bad)"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn" id="syIn">Anmelden</button><button class="btn soft" id="syUp">Konto erstellen</button></div></div>
+   <div class="sec"><div class="sh">Einrichtung (einmalig, ca. 10 Minuten)</div><div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
+    <li>Auf <b>supabase.com</b> kostenlos registrieren und „New project“ anlegen, Region <b>Frankfurt</b>.</li>
+    <li>Links <b>SQL Editor</b> öffnen, den Code unten einfügen und auf „Run“ tippen.</li>
+    <li>Unter <b>Project Settings › API</b> die „Project URL“ und den „anon public“ Key oben eintragen.</li>
+    <li>Hier „Konto erstellen“ tippen, den Link in der Bestätigungs-E-Mail öffnen, dann „Anmelden“.</li>
+    <li>Am PC dieselbe Adresse im Browser öffnen, hier die gleichen Daten eingeben, fertig.</li></ol>
+    <div class="srow"><textarea class="box" readonly id="sySql" style="font-family:ui-monospace,monospace;font-size:11px;min-height:150px">${esc(SYSQL)}</textarea><button class="btn soft" id="syCopy">SQL kopieren</button></div></div></div>`}`}
+const SYSQL=`create table if not exists public.cashflow (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  data text not null,
+  iv text not null,
+  salt text not null,
+  rev bigint not null default 1,
+  updated_at timestamptz not null default now()
+);
+alter table public.cashflow enable row level security;
+create policy "nur eigene Daten" on public.cashflow
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
+function bindSync(){if(setView!='sync')return;const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
+  on('syIn',()=>syLogin(false));on('syUp',()=>syLogin(true));on('syNow',()=>{syMsg='Synchronisiere …';render();S._m=Math.max(S._m||0,(SY.at||0)+1);sync(false)});
+  on('syOut',()=>syLogout(false));on('syWipe',()=>{const b=$('syWipe');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich? Nochmal tippen';return}syLogout(true)});
+  on('syCopy',()=>{const t=$('sySql');t.select();try{navigator.clipboard.writeText(SYSQL).then(()=>toast('SQL kopiert.'))}catch(e){document.execCommand('copy');toast('SQL kopiert.')}})}
 
 /* ---------- Puffer verschieben & Tresor ---------- */
 const vaultAccs=()=>S.accts.filter(a=>a.vault!=null?a.vault:(a.verm||isTabu(a.n)||/etf/i.test(a.n))).map(a=>a.n);
@@ -2303,12 +2405,13 @@ function openOnb(){let st=0;const draw=()=>{const steps=[
   `<h2>Deine Monatsbudgets</h2><div class="group">${S.accts.filter(a=>a.kind=='budget').map(a=>`<div class="cell plain"><label>${esc(a.n)}</label><input class="onbB" data-b="${esc(a.n)}" inputmode="decimal" value="${S.budgets[a.n]||0}"></div>`).join('')}</div><p class="note" style="padding:0">Rest aus Flow und Gönn dir wandert am Monatsende in die Sinking Funds.</p>`,
   `<h2>Dein Eingangskonto</h2><div class="group">${S.accts.filter(a=>a.kind=='konto').map(a=>`<div class="cell plain"><label>${esc(a.n)} heute</label><input class="onbK" data-b="${esc(a.n)}" inputmode="decimal" value="${Math.round(calc(a.n).rest*100)/100}"></div>`).join('')||'<div class="empty">Kein Konto angelegt.</div>'}</div><p class="note" style="padding:0">Der Kontostand ist dein Puffer. Ziel bis 1.000 €, alles darüber gehört in den Vermögensaufbau.</p>`,
   `<h2>Deine Regeln</h2><div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div><ul class="steps"><li>Jeder Wunsch wartet 14 Tage auf der Wunschliste.</li><li>Konsum nur aus Gönn dir oder angesparten Sinking Funds.</li><li>Ist Gönn dir leer, gibt es keinen Nachschub.</li><li>Der Vermögensaufbau ist tabu.</li></ul>`,
-  `<h2>Deine Daten</h2><p>Die App zeigt gerade Beispieldaten. Wie möchtest du starten?</p><button class="btn" id="onbImp">Aus MoneyControl importieren</button><button class="btn soft" id="onbClean">Leer starten</button><button class="btn soft" id="onbKeep">Mit Beispieldaten weiter ausprobieren</button>`];
+  `<h2>Deine Daten</h2><p>Die App zeigt gerade Beispieldaten. Wie möchtest du starten?</p><button class="btn" id="onbSync">Ich nutze CashFlow schon auf einem anderen Gerät</button><button class="btn soft" id="onbImp">Aus MoneyControl importieren</button><button class="btn soft" id="onbClean">Leer starten</button><button class="btn soft" id="onbKeep">Mit Beispieldaten weiter ausprobieren</button>`];
   $('sheetRoot').innerHTML=`<div class="scrim"></div><div class="sheet onb" role="dialog" aria-label="Einrichtung"><div class="sheet-h"><button id="onbBack" ${st?'':'style="visibility:hidden"'}>Zurück</button><span class="onb-dots">${steps.map((_,i)=>`<i class="${i==st?'on':''}"></i>`).join('')}</span><button id="onbSkip">${st==steps.length-1?'':'Überspringen'}</button></div>
    <div class="sheet-b">${steps[st]}${st<steps.length-1?'<button class="btn" id="onbNext">Weiter</button>':''}</div></div>`;
   const keep=()=>{document.querySelectorAll('.onbB').forEach(i=>S.budgets[i.dataset.b]=pNum(i.value)||0);document.querySelectorAll('.onbK').forEach(i=>{const a=acc(i.dataset.b),v=pNum(i.value);if(!isNaN(v))a.start=(a.start||0)+v-calc(a.n).rest})};
   const fin=()=>{S.onb=true;save();$('sheetRoot').innerHTML='';render()};
   if($('onbNext'))$('onbNext').onclick=()=>{keep();st++;draw()};$('onbBack').onclick=()=>{keep();st--;draw()};$('onbSkip').onclick=()=>{keep();fin()};
+  if($('onbSync'))$('onbSync').onclick=()=>{fin();tab='more';setView='sync';render()};
   if($('onbImp'))$('onbImp').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];fin();tab='more';setView='import';render()};
   if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();toast('Los geht’s. Tippe auf +, um zu buchen.')};
   if($('onbKeep'))$('onbKeep').onclick=fin};draw();renderAsst()}
@@ -2323,6 +2426,7 @@ if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
 function applyTheme(){const t=S.theme||'system';if(t=='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);document.body.classList.toggle('bigcal',!!S.bigCal)}
 applyTheme();
 closeMonths();render();lock();if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
+if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
 </script>
 
 <script>if('serviceWorker' in navigator){let rl=false;const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl||!had)return;rl=true;const sr=document.getElementById('sheetRoot');if(sr&&sr.innerHTML){document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')location.reload()});return}location.reload()});
