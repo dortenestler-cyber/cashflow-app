@@ -561,6 +561,10 @@ a.arow,a.arow:visited{text-decoration:none;color:inherit}
 .mdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}.mnav{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-weight:600}
 .urge-t{text-align:center;font-size:17px;font-weight:600}.urge-c{font:800 54px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center;padding:10px 0;color:var(--bad)}.urge-c.done{color:var(--ok);display:grid;place-items:center}
 .inv-l{flex-basis:100%;display:flex;flex-direction:column;gap:3px;margin-top:4px;background:var(--fill);border-radius:10px;padding:6px 10px}.inv-l>span{display:flex;align-items:baseline;gap:6px;font-size:12.5px}.inv-l i{font-style:normal;color:var(--ok);width:14px}.inv-l .ipl i,.inv-l .ipl{color:var(--muted)}.inv-l em{font-style:normal;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inv-l small{color:var(--muted);font-size:11px}.inv-l b{font-weight:600;font-variant-numeric:tabular-nums}
+.pos-kpi{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px}.pos-kpi div{background:var(--card);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column}.pos-kpi span{font-size:11px;color:var(--muted)}.pos-kpi b{font-size:15px;font-variant-numeric:tabular-nums}
+.pos-sum{padding:4px 14px 12px}.pos-sum summary{cursor:pointer;font-weight:600;color:var(--accent);padding:6px 0}.pos-sum p{font-size:13.5px;line-height:1.5;margin:6px 0;white-space:pre-line}
+.tgt{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);padding:6px 0}.tgt div{position:relative;flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--bad),var(--warn),var(--ok))}.tgt i{position:absolute;top:-5px;width:3px;height:16px;border-radius:2px;background:var(--fg);transform:translateX(-50%)}.tgt em{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--fg);transform:translateX(-50%)}
+.reco-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin:6px 0 4px}.reco-bar i{display:block}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -978,7 +982,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='90 (05.11.)';
+const APP_VER='91 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1437,6 +1441,7 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
   if(repV=='Bericht'||repV=='Jahr0')repV='Analyse';
   if(repV=='Prognose')return head+forecastHtml();
   if(repV=='Bericht')return viewReport(bs,head);
+  if(repV=='Vermögen'&&posView)return posHtml();
   if(repV=='Vermögen')return head+depotHtml();
   if(repV=='Verträge')return head+aboBody(true);
   if(repV=='Jahr'){drill={k:'year'};return viewYear(bs)}
@@ -2364,10 +2369,10 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- render ---------- */
-function render(){try{tcHide();tcInit()}catch(e){}if(tab!='rep'||repV!='Vermögen')depShow=false;document.body.classList.add('mm');document.body.dataset.tab=setView?'sub':(curB?'acc':tab);renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
+function render(){try{tcHide();tcInit()}catch(e){}if(tab!='rep'||repV!='Vermögen'){depShow=false;posView=null}document.body.classList.add('mm');document.body.dataset.tab=setView?'sub':(curB?'acc':tab);renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
   const html=curB?viewDetail(curB):setView?viewSet(setView):tab=='dash'?viewDash():tab=='list'?viewList():tab=='cal'?viewCal():tab=='rep'?viewRep():tab=='wish'?viewWish():viewMore();
   const html2=html.replace(/<div><button class="back" id="(\w+)">‹ [^<]*<\/button><h1 class="lt"[^>]*>([\s\S]*?)<\/h1>((?:<div class="date">[\s\S]*?<\/div>)?)<\/div>/,(m,id,t,sub)=>appbar({title:t,back:id,noGear:true,sub:sub?sub.replace(/<\/?div[^>]*>/g,''):''}));
-  $('app').innerHTML=`<div class="view ${curB?'detail':''}">${html2}</div>`;{const vk=[tab,setView||'',curB||'',tab=='rep'?repV:'',tab=='wish'?wishV:''].join('|');if(vk!==render.vk){const first=render.vk==null;render.vk=vk;if(!first){window.scrollTo(0,0);document.body.scrollTop=0;document.documentElement.scrollTop=0;const ap=$('app');if(ap)ap.scrollTop=0}}}bind();renderAsst()}
+  $('app').innerHTML=`<div class="view ${curB?'detail':''}">${html2}</div>`;{const vk=[tab,setView||'',curB||'',tab=='rep'?repV:'',tab=='wish'?wishV:'',tab=='rep'&&repV=='Vermögen'?posView||'':''].join('|');if(vk!==render.vk){const first=render.vk==null;render.vk=vk;if(!first){window.scrollTo(0,0);document.body.scrollTop=0;document.documentElement.scrollTop=0;const ap=$('app');if(ap)ap.scrollTop=0}}}bind();renderAsst()}
 const copy=(t,okEl,fbEl)=>{const fb=()=>{if(fbEl){fbEl.hidden=false;fbEl.value=t;fbEl.select()}okEl.textContent='Text unten markieren und kopieren.'};
   try{navigator.clipboard.writeText(t).then(()=>okEl.textContent='Kopiert.',fb)}catch(e){fb()}};
 function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.lastElementChild;let x0=null,y0=null,dx=0,open=false;
@@ -3056,7 +3061,37 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const H = { "User-Agent": "Mozilla/5.0" };
   const chart = async (s) => (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(s) + "?range=5d&interval=1d", { headers: H })).json()).chart.result[0].meta;
-  const { q = [], hist = false, news = null } = await req.json().catch(() => ({}));
+  const { q = [], hist = false, news = null, info = null } = await req.json().catch(() => ({}));
+  if (info) {
+    const isin = /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(info); let cands = [info];
+    try { const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=10&newsCount=0&q=" + encodeURIComponent(info), { headers: H })).json(); const qs = (j.quotes || []).map((x) => x.symbol).filter(Boolean); cands = isin ? qs : [info, ...qs.filter((x) => x !== info)]; } catch (_) {}
+    let ck = "", cr = "";
+    try { const r0 = await fetch("https://fc.yahoo.com", { headers: H, redirect: "manual" }); const sc = (r0.headers.getSetCookie ? r0.headers.getSetCookie() : [r0.headers.get("set-cookie") || ""]).map((x) => x.split(";")[0]).filter(Boolean); ck = sc.join("; "); cr = await (await fetch("https://query2.finance.yahoo.com/v1/test/getcrumb", { headers: { ...H, cookie: ck } })).text(); } catch (_) {}
+    const mods = "assetProfile,summaryProfile,fundProfile,topHoldings,financialData,recommendationTrend,price,summaryDetail,defaultKeyStatistics,quoteType";
+    let best = null;
+    for (const sym of cands.slice(0, 5)) {
+      try {
+        const j = await (await fetch("https://query2.finance.yahoo.com/v10/finance/quoteSummary/" + encodeURIComponent(sym) + "?modules=" + mods + (cr ? "&crumb=" + encodeURIComponent(cr) : ""), { headers: { ...H, cookie: ck } })).json();
+        const q = j.quoteSummary && j.quoteSummary.result && j.quoteSummary.result[0]; if (!q) continue;
+        const raw = (x) => (x && typeof x === "object" && "raw" in x ? x.raw : x);
+        const th = q.topHoldings || {}, ap = q.assetProfile || q.summaryProfile || {}, fp = q.fundProfile || {}, fd = q.financialData || {}, pr = q.price || {}, sd = q.summaryDetail || {}, ks = q.defaultKeyStatistics || {};
+        const o = { symbol: sym, name: pr.longName || pr.shortName || sym, type: (q.quoteType && q.quoteType.quoteType) || pr.quoteType || "", currency: pr.currency || fd.financialCurrency || "",
+          summary: ap.longBusinessSummary || ks.longBusinessSummary || "", sector: ap.sector || "", industry: ap.industry || "", country: ap.country || "", employees: ap.fullTimeEmployees || null, web: ap.website || "",
+          family: fp.family || "", category: fp.categoryName || ks.category || "", ter: raw(fp.feesExpensesInvestment && fp.feesExpensesInvestment.annualReportExpenseRatio) ?? raw(sd.expenseRatio) ?? null, assets: raw(sd.totalAssets) ?? raw(ks.totalAssets) ?? null,
+          holdings: (th.holdings || []).slice(0, 10).map((h) => ({ n: h.holdingName || h.symbol, s: h.symbol, p: raw(h.holdingPercent) })),
+          sectors: (th.sectorWeightings || []).map((x) => { const k = Object.keys(x)[0]; return { n: k, p: raw(x[k]) }; }).filter((x) => x.p > 0.001).sort((a, b) => b.p - a.p),
+          stockPos: raw(th.stockPosition), bondPos: raw(th.bondPosition),
+          price: raw(fd.currentPrice) ?? raw(pr.regularMarketPrice), target: { lo: raw(fd.targetLowPrice), mean: raw(fd.targetMeanPrice), med: raw(fd.targetMedianPrice), hi: raw(fd.targetHighPrice), n: raw(fd.numberOfAnalystOpinions) },
+          reco: fd.recommendationKey || "", recoMean: raw(fd.recommendationMean), trend: ((q.recommendationTrend && q.recommendationTrend.trend) || []).find((t) => t.period === "0m") || null,
+          pe: raw(sd.trailingPE), div: raw(sd.dividendYield) ?? raw(sd.yield), w52: [raw(sd.fiftyTwoWeekLow), raw(sd.fiftyTwoWeekHigh)], mcap: raw(sd.marketCap) };
+        const score = (o.summary ? 2 : 0) + (o.holdings.length ? 3 : 0) + (o.sectors.length ? 1 : 0) + (o.target.mean ? 2 : 0);
+        const empty = (v) => v == null || v === "" || (Array.isArray(v) && !v.length) || (typeof v === "object" && !Array.isArray(v) && !Object.values(v).some((x) => x != null));
+        if (!best) best = { ...o, score }; else { for (const k in o) if (empty(best[k]) && !empty(o[k])) best[k] = o[k]; best.score = Math.max(best.score, score); }
+        if (best.holdings.length && best.summary && (best.target.mean || best.type === "ETF" || best.holdings.length)) break;
+      } catch (_) {}
+    }
+    return new Response(JSON.stringify({ info: best, v: 7, crumb: !!cr }), { headers: { ...cors, "Content-Type": "application/json" } });
+  }
   if (Array.isArray(news)) {
     const items = []; const diag = {};
     const dec = (x) => x.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/<[^>]+>/g, "").trim();
@@ -3089,7 +3124,7 @@ Deno.serve(async (req) => {
       }
       diag[n.q] = c;
     }
-    return new Response(JSON.stringify({ __news: items, diag, v: 6 }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ __news: items, diag, v: 7 }), { headers: { ...cors, "Content-Type": "application/json" } });
   }
   const out = {}; const fx = {};
   for (const s of q.slice(0, 40)) {
@@ -3110,9 +3145,9 @@ Deno.serve(async (req) => {
       let k = 1, cur = m.currency;
       if (cur === "GBp") { k = 0.01; cur = "GBP"; }
       if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
-      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 6 };
+      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 7 };
       if (hist) {
-        const rg = { d: "range=1y&interval=1d", h: "range=5d&interval=60m", i: "range=1d&interval=5m" }[hist === true ? "d" : hist] || "range=1y&interval=1d";
+        const rg = { d: "range=1y&interval=1d", h: "range=5d&interval=60m", i: "range=1d&interval=5m", w: "range=2y&interval=1wk", m: "range=1mo&interval=1h", s: "range=6mo&interval=1d", f: "range=5y&interval=1wk" }[hist === true ? "d" : hist] || "range=1y&interval=1d";
         const r = (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?" + rg, { headers: H })).json()).chart.result[0];
         const c = r.indicators.quote[0].close;
         out[s].hist = r.timestamp.map((t, i) => [t * 1000, c[i] == null ? null : c[i] * k]).filter((x) => x[1] != null);
@@ -3144,6 +3179,55 @@ async function depRefresh(force){if(depBusy)return;const D=depot();if(!D.length)
   for(const h of D.filter(h=>h.manual&&h.mprice&&h.cur&&h.cur!='EUR')){const r=await fxLoad(h.cur);if(r)h.price=h.mprice*r}
   depApplyPlans();save();depBusy=false;depMsg=(ok?'Kurse aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'')+(fail?(ok?' · ':'')+fail+' ohne automatischen Kurs':'');if(ok&&st.length&&!fail)S.kursFn=true;if(tab=='rep'&&repV=='Vermögen'&&!$('sheetRoot').innerHTML)render()}
 function depApplyPlans(){const td=today();depot().forEach(h=>{if(!h.rate||!h.plan||!h.next)return;let n=0;while(h.next<=td&&n<24){if(!h.price)break;h.qty=Math.round(((h.qty||0)+h.rate/h.price)*1e6)/1e6;h.inv=Math.round(((h.inv||0)+h.rate)*100)/100;if(h.qty)h.avg=Math.round(h.inv/h.qty/((h.cur||'EUR')=='EUR'?1:(h.fx||1))*10000)/10000;const d=new Date(h.next+'T12:00');d.setMonth(d.getMonth()+1);h.next=ymd(d.getTime());n++}})}
+/* ---------- Detailseite je Vermögenswert ---------- */
+let posView=null,posRange='1y';async function cbDaily(sym,days){const out=[];let end=Date.now();for(let k=0;k<Math.ceil(days/300)&&k<7;k++){const st=end-300*864e5;try{const r=await (await fetch('https://api.exchange.coinbase.com/products/'+sym+'-EUR/candles?granularity=86400&start='+new Date(Math.max(st,Date.now()-days*864e5)).toISOString()+'&end='+new Date(end).toISOString())).json();if(!Array.isArray(r)||!r.length)break;r.forEach(x=>out.push([x[0]*1000,x[4]]))}catch(e){break}end=st;if(end<Date.now()-days*864e5)break}return out.sort((a,b)=>a[0]-b[0])}const PR={'1d':['1T','i'],'1w':['1W','h'],'1m':['1M','m'],'6m':['6M','s'],'ytd':['YTD','d'],'1y':['1J','d'],'5y':['5J','f']};const PRL={'1d':'heute','1w':'1 Woche','1m':'1 Monat','6m':'6 Monate','ytd':'seit 1.1.','1y':'1 Jahr','5y':'5 Jahre'};
+const PH={},PINFO=(()=>{try{return JSON.parse(localStorage.getItem('cf_info')||'{}')}catch(e){return{}}})(),PBUSY={};
+const SECDE={technology:'Technologie',healthcare:'Gesundheit',financial_services:'Finanzen',consumer_cyclical:'Zyklischer Konsum',consumer_defensive:'Basiskonsum',industrials:'Industrie',communication_services:'Kommunikation',energy:'Energie',basic_materials:'Rohstoffe',realestate:'Immobilien',utilities:'Versorger'};
+const RECO={strong_buy:['Stark kaufen','var(--ok)'],buy:['Kaufen','var(--ok)'],hold:['Halten','var(--warn)'],underperform:['Untergewichten','var(--bad)'],sell:['Verkaufen','var(--bad)'],none:['Keine Einschätzung','var(--muted)']};
+async function posHist(h,r){const k=hkey(h)+'|'+r;if(PH[k]&&Date.now()-PH[k].t<(r=='1d'?5*6e4:36e5))return PH[k].pts;if(PBUSY[k])return null;PBUSY[k]=1;let pts=null;
+  try{if(h.type=='krypto'){const sym=String(h.sym).toUpperCase().trim();const days={'1d':1,'1w':7,'1m':30,'6m':183,'ytd':Math.ceil((Date.now()-yStart())/864e5)+1,'1y':365,'5y':1826}[r];if(days>300){pts=await cbDaily(sym,days);if(r=='5y')pts=pts.filter((_,j)=>j%7==0||j==pts.length-1)}if(!pts||!pts.length){const sr=await (await fetch('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(sym))).json();const c=(sr.coins||[]).find(x=>x.symbol.toUpperCase()==sym)||(sr.coins||[])[0];if(c){h.cgid=c.id;const j=await (await fetch('https://api.coingecko.com/api/v3/coins/'+c.id+'/market_chart?vs_currency=eur&days='+Math.min(days,365))).json();if(j.prices&&j.prices.length)pts=j.prices}}if((!pts||!pts.length)&&days>1)pts=await cbDaily(sym,Math.min(days,1826))}
+    else if(syOn()){const q=String(h.sym).trim().toUpperCase();const rr=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({q:[q],hist:PR[r][1]})});const j=rr.ok?await rr.json():{};const y=j[q];if(y&&y.hist&&y.hist.length){pts=y.hist;if(!y.v||y.v<7)S.kursFnOld=true}}}catch(e){}
+  if(pts&&(r=='ytd'||r=='1m'&&h.type!='krypto'))pts=pts.filter(p=>p[0]>=(r=='ytd'?yStart():Date.now()-31*864e5));
+  delete PBUSY[k];if(pts&&pts.length){PH[k]={t:Date.now(),pts};return pts}PH[k]={t:Date.now()-36e5+5*6e4,pts:null,fail:1};return null}
+async function posInfo(h){const k=hkey(h);const c=PINFO[k];if(c&&Date.now()-c.t<24*36e5)return c.d;if(PBUSY['i'+k])return null;PBUSY['i'+k]=1;let d=null;
+  try{if(h.type=='krypto'){const sym=String(h.sym).toUpperCase().trim();let id=h.cgid;if(!id){const sr=await (await fetch('https://api.coingecko.com/api/v3/search?query='+encodeURIComponent(sym))).json();const cc=(sr.coins||[]).find(x=>x.symbol.toUpperCase()==sym)||(sr.coins||[])[0];id=cc&&cc.id}
+      if(id){const j=await (await fetch('https://api.coingecko.com/api/v3/coins/'+id+'?localization=true&tickers=false&community_data=false&developer_data=false')).json();const md=j.market_data||{};const strip=t=>String(t||'').replace(/<[^>]+>/g,'').replace(/\r?\n\r?\n/g,'\n\n').trim();
+        d={kind:'krypto',name:j.name,summary:strip((j.description||{}).de)||strip((j.description||{}).en),lang:(j.description||{}).de?'de':'en',rank:j.market_cap_rank,mcap:md.market_cap&&md.market_cap.eur,ath:md.ath&&md.ath.eur,athDate:md.ath_date&&md.ath_date.eur,supply:md.circulating_supply,max:md.max_supply,cats:(j.categories||[]).filter(Boolean).slice(0,4),web:(j.links&&j.links.homepage||[])[0]||''}}}
+    else if(syOn()){const rr=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({info:String(h.sym).trim().toUpperCase()})});const j=rr.ok?await rr.json():{};if(j.v>=7)d=j.info?Object.assign({kind:'yahoo'},j.info):{kind:'none'};else{S.kursFnOld=true;d={kind:'old'}}}}catch(e){}
+  delete PBUSY['i'+k];if(d&&d.kind!='old'){PINFO[k]={t:Date.now(),d};try{localStorage.setItem('cf_info',JSON.stringify(PINFO))}catch(e){}}return d}
+const fmtBig=v=>v==null?'–':v>=1e12?(v/1e12).toLocaleString('de-DE',{maximumFractionDigits:1})+' Bio.':v>=1e9?(v/1e9).toLocaleString('de-DE',{maximumFractionDigits:1})+' Mrd.':v>=1e6?(v/1e6).toLocaleString('de-DE',{maximumFractionDigits:1})+' Mio.':Math.round(v).toLocaleString('de-DE');
+function posHtml(){const D=depot(),i=D.findIndex(h=>h.id==posView),h=D[i];if(!h){posView=null;return depotHtml()}const show=S.showWealth||depShow,V=x=>show?x:'•••',t=DT[h.type]||DT.sonst;
+  const k=hkey(h)+'|'+posRange,pts=PH[k]&&PH[k].pts,info=PINFO[hkey(h)]&&PINFO[hkey(h)].d;
+  if(!PH[k]&&!PBUSY[k])posHist(h,posRange).then(()=>{if(posView==h.id&&!$('sheetRoot').innerHTML)render()});if(!info&&h.type!='robo'&&!PBUSY['i'+hkey(h)]&&!(PINFO['f'+hkey(h)]>Date.now()-6e5))posInfo(h).then(d=>{if(!d)PINFO['f'+hkey(h)]=Date.now();if(posView==h.id&&!$('sheetRoot').innerHTML)render()});
+  const val=(h.qty||0)*(h.price||0)||h.pendVal||0,gain=val-(h.inv||0);
+  let chart='<div class="chartbox"><div class="empty">'+(PH[k]&&PH[k].fail?'Kein Kursverlauf verfügbar.':h.type!='krypto'&&!syOn()?'Für den Kursverlauf brauchst du die Supabase-Funktion „kurse“.':'Kursverlauf wird geladen …')+'</div></div>';
+  if(pts&&pts.length>1){const n=Math.min(pts.length,240),st=Math.max(1,Math.ceil(pts.length/n)),P=pts.filter((_,j)=>j%st==0||j==pts.length-1),f=P[0][1],l=P[P.length-1][1],ch=(l/f-1)*100,hi=Math.max(...P.map(p=>p[1])),lo=Math.min(...P.map(p=>p[1]));
+    const fd=tt=>{const d=new Date(tt);return posRange=='1d'?d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):posRange=='1w'?d.toLocaleDateString('de-DE',{weekday:'short'})+' '+d.getHours()+' h':d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:posRange=='5y'||posRange=='1y'?'2-digit':undefined})};
+    const lab=[0,Math.floor(P.length/2),P.length-1].map(j=>({i:j,t:fd(P[j][0])}));
+    chart=`<div class="pos-kpi"><div><span>Veränderung · ${PRL[posRange]}</span><b class="${ch<0?'out':'in'}">${ch>=0?'+':''}${ch.toFixed(2).replace('.',',')} %</b></div><div><span>Hoch</span><b>${eur(hi)}</b></div><div><span>Tief</span><b>${eur(lo)}</b></div></div>
+     <div class="chartbox">${lineChart({n:P.length,series:[{pts:P.map(p=>p[1]),col:ch<0?'var(--bad)':'var(--ok)',area:true,dot:true,name:'Kurs'}],labels:lab,h:200,tipLab:j=>new Date(P[j][0]).toLocaleString('de-DE',{weekday:'short',day:'numeric',month:'short',year:'2-digit',hour:posRange=='1d'||posRange=='1w'?'2-digit':undefined,minute:posRange=='1d'||posRange=='1w'?'2-digit':undefined})})}</div>`}
+  let inf='';if(h.type=='robo')inf='<div class="note">Für ein Robo-Depot gibt es keine eigenen Basisdaten. Der Verlauf ist über den hinterlegten Vergleichs-ETF geschätzt.</div>';
+  else if(!info)inf=`<div class="mmcard"><div class="srow" style="color:var(--muted)">${h.type!='krypto'&&!syOn()?'Für Basisdaten brauchst du die Supabase-Funktion „kurse“.':PINFO['f'+hkey(h)]?'Basisdaten konnten nicht geladen werden.':'Basisdaten werden geladen …'}</div></div>`;
+  else if(info.kind=='old'||info.kind=='none')inf=`<div class="mmcard"><div class="srow" style="color:var(--muted)">${info.kind=='old'?'Für Basisdaten und Analysten-Einschätzungen bitte die Funktion „kurse“ mit dem neuesten Code aktualisieren (Knopf unten im Depot).':'Zu diesem Wert wurden keine Basisdaten gefunden.'}</div></div>`;
+  else if(info.kind=='krypto')inf=`<div class="sec"><div class="sh">Basisdaten</div><div class="mmcard"><div class="ana-flow"><span>Rang nach Marktkapitalisierung</span><b>${info.rank?'#'+info.rank:'–'}</b><span>Marktkapitalisierung</span><b>${fmtBig(info.mcap)} €</b><span>Allzeithoch</span><b>${info.ath?eur(info.ath):'–'}${info.athDate?' <small>('+new Date(info.athDate).toLocaleDateString('de-DE',{month:'short',year:'numeric'})+')</small>':''}</b><span>Im Umlauf</span><b>${fmtBig(info.supply)}${info.max?' von '+fmtBig(info.max):''}</b>${info.cats.length?`<span>Kategorie</span><b>${info.cats.map(esc).join(', ')}</b>`:''}</div>${info.summary?`<details class="pos-sum"><summary>Wofür ist ${esc(info.name)} da?</summary><p>${esc(info.summary.slice(0,1800))}${info.summary.length>1800?' …':''}</p>${info.lang=='en'?'<p class="a-s">Beschreibung von CoinGecko, nur auf Englisch verfügbar.</p>':''}</details>`:''}</div></div>
+    <div class="sec"><div class="sh">Prognosen & Einschätzungen</div><div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">Für Kryptowährungen gibt es keine Kursziele oder Kauf-/Verkaufsempfehlungen von Banken und Brokern. Kursprognosen im Internet sind meist Spekulation.</div></div></div>`;
+  else{const isFund=/ETF|MUTUALFUND/i.test(info.type)||h.type=='etf',tr=info.trend,tot=tr?(tr.strongBuy+tr.buy+tr.hold+tr.sell+tr.strongSell):0,cur=info.currency||'',fm=v=>v==null?'–':v.toLocaleString('de-DE',{maximumFractionDigits:2})+' '+cur;
+    inf=`<div class="sec"><div class="sh">Basisdaten</div><div class="mmcard"><div class="ana-flow">${info.name?`<span>Name</span><b>${esc(info.name)}</b>`:''}${info.family?`<span>Anbieter</span><b>${esc(info.family)}</b>`:''}${info.category?`<span>Kategorie</span><b>${esc(info.category)}</b>`:''}${info.ter!=null?`<span>Kosten (TER)</span><b>${(info.ter*100).toFixed(2).replace('.',',')} % p. a.</b>`:''}${info.assets?`<span>Fondsvolumen</span><b>${fmtBig(info.assets)} ${esc(cur)}</b>`:''}${info.sector?`<span>Branche</span><b>${esc(info.sector)}${info.industry?' · '+esc(info.industry):''}</b>`:''}${info.country?`<span>Land</span><b>${esc(info.country)}</b>`:''}${info.mcap?`<span>Börsenwert</span><b>${fmtBig(info.mcap)} ${esc(cur)}</b>`:''}${info.pe?`<span>KGV</span><b>${info.pe.toFixed(1).replace('.',',')}</b>`:''}${info.div?`<span>Dividendenrendite</span><b>${(info.div*100).toFixed(2).replace('.',',')} %</b>`:''}${info.stockPos!=null?`<span>Aktienanteil</span><b>${Math.round(info.stockPos*100)} %</b>`:''}</div>
+      ${info.summary?`<details class="pos-sum"><summary>${isFund?'Was steckt in diesem Fonds?':'Was macht das Unternehmen?'}</summary><p>${esc(info.summary.slice(0,1800))}</p><p class="a-s">Beschreibung von Yahoo Finance, meist auf Englisch.</p></details>`:''}</div></div>
+     ${info.holdings&&info.holdings.length?`<div class="sec"><div class="sh">Größte Positionen</div><div class="mmcard">${info.holdings.map(x=>`<div class="srow"><div class="srow-h"><span>${esc(x.n)}</span><span></span><b>${x.p!=null?(x.p*100).toFixed(1).replace('.',',')+' %':''}</b></div><div class="bar" style="height:5px"><i style="width:${Math.min(100,(x.p||0)/(info.holdings[0].p||1)*100).toFixed(0)}%;background:var(--accent)"></i></div></div>`).join('')}</div></div>`:''}
+     ${info.sectors&&info.sectors.length?`<div class="sec"><div class="sh">Branchen</div><div class="mmcard">${info.sectors.slice(0,8).map(x=>`<div class="srow"><div class="srow-h"><span>${esc(SECDE[x.n]||x.n)}</span><span></span><b>${(x.p*100).toFixed(1).replace('.',',')} %</b></div><div class="bar" style="height:5px"><i style="width:${Math.min(100,x.p*100/(info.sectors[0].p||1)).toFixed(0)}%;background:var(--blue)"></i></div></div>`).join('')}</div></div>`:''}
+     <div class="sec"><div class="sh">Prognosen & Einschätzungen</div><div class="mmcard">${info.target&&info.target.mean?`<div class="srow"><div class="srow-h"><span>Kursziel Ø ${info.target.n?`<small style="color:var(--muted)">${info.target.n} Analysten</small>`:''}</span><span></span><b>${fm(info.target.mean)}</b></div>
+       <div class="tgt"><span>${fm(info.target.lo)}</span><div><i style="left:${info.price&&info.target.hi>info.target.lo?Math.max(0,Math.min(100,(info.price-info.target.lo)/(info.target.hi-info.target.lo)*100)):50}%" title="aktuell"></i><em style="left:${info.target.hi>info.target.lo?Math.max(0,Math.min(100,(info.target.mean-info.target.lo)/(info.target.hi-info.target.lo)*100)):50}%"></em></div><span>${fm(info.target.hi)}</span></div>
+       <div class="a-s" style="padding:0 0 4px">Aktuell ${fm(info.price)} · Potenzial bis Ø-Ziel ${info.price?((info.target.mean/info.price-1)*100>=0?'+':'')+((info.target.mean/info.price-1)*100).toFixed(1).replace('.',',')+' %':'–'}</div></div>`:''}
+       ${info.reco&&info.reco!='none'||tot?`<div class="srow"><div class="srow-h"><span>Einschätzung</span><span></span><b style="color:${(RECO[info.reco]||RECO.none)[1]}">${(RECO[info.reco]||RECO.none)[0]}</b></div>${tot?`<div class="reco-bar">${[['strongBuy','Stark kaufen','#1F9D6B'],['buy','Kaufen','#3CCB92'],['hold','Halten','#F0A12D'],['sell','Verkaufen','#F0657A'],['strongSell','Stark verkaufen','#C4314B']].map(([kk,l,c])=>tr[kk]?`<i style="flex:${tr[kk]};background:${c}" title="${l}: ${tr[kk]}"></i>`:'').join('')}</div><div class="a-s">${[['strongBuy','Stark kaufen'],['buy','Kaufen'],['hold','Halten'],['sell','Verkaufen'],['strongSell','Stark verkaufen']].filter(([kk])=>tr[kk]).map(([kk,l])=>l+' '+tr[kk]).join(' · ')}</div>`:''}</div>`:''}
+       ${!(info.target&&info.target.mean)&&!(info.reco&&info.reco!='none')&&!tot?`<div class="srow" style="color:var(--muted);font-size:13px">${isFund?'Für ETFs gibt es keine Kursziele oder Kauf-/Verkaufsempfehlungen von Analysten, da sie einen Index abbilden. Entscheidend sind Kosten, Streuung und dein Anlagehorizont.':'Für diesen Wert liegen keine Analysten-Einschätzungen vor.'}</div>`:''}</div>
+      <div class="note">Daten von Yahoo Finance, Stand ${new Date(PINFO[hkey(h)].t).toLocaleDateString('de-DE')}. Analysten-Einschätzungen sind keine Anlageberatung und liegen oft daneben.</div></div>`}
+  return `${appbar({title:esc(h.n||h.sym),back:'posBack',noGear:true,right:`<button class="hc-ic" id="posEdit" aria-label="Bearbeiten">${I('pen',18)}</button>`,stats:`<div class="hc-big"><span>${t[0]} · ${esc(h.ysym||h.sym||'')}</span><b>${h.price?eur(h.price):'–'}</b></div><div class="hc-line">${h.prev&&h.price?((h.price/h.prev-1)*100>=0?'+':'')+((h.price/h.prev-1)*100).toFixed(2).replace('.',',')+' % heute · ':''}Bestand ${V(eur(val))}${h.inv?' · '+V((gain>=0?'+':'−')+eur0(Math.abs(gain))):''}</div>`})}
+   <div class="seg rgseg" id="posRg">${Object.entries(PR).map(([kk,v])=>`<button class="${posRange==kk?'on':''}" data-pr="${kk}">${v[0]}</button>`).join('')}</div>
+   ${chart}
+   <div class="mmcard"><div class="ana-flow"><span>Stück</span><b>${V((+h.qty||0).toLocaleString('de-DE',{maximumFractionDigits:6}))}</b><span>Ø Kaufpreis</span><b>${h.inv&&h.qty?V(eur(h.inv/h.qty)):'–'}</b><span>Investiert</span><b>${V(eur(h.inv||0))}</b>${h.rate?`<span>Sparplan</span><b>${eur(h.rate)} am ${h.day||1}.</b>`:''}${h.real?`<span>Realisiert</span><b class="${h.real<0?'out':'in'}">${V((h.real>=0?'+':'−')+eur(Math.abs(h.real)))}</b>`:''}</div>
+    <div class="cell plain" style="gap:8px"><button class="btn soft" id="posBuy" style="flex:1;margin:0">+ Kauf</button><button class="btn soft" id="posSell" style="flex:1;margin:0" ${+h.qty>0?'':'disabled'}>− Verkauf</button></div></div>
+   ${inf}`}
 function depotHtml(){const D=depot(),V=x=>S.showWealth||depShow?x:'•••';
   const val=h=>h.pendVal&&!h.qty?h.pendVal:(h.qty||0)*(h.price||(h.inv&&h.qty?h.inv/h.qty:0)),tot=D.reduce((s,h)=>s+val(h),0),inv=D.reduce((s,h)=>s+(h.inv||0),0),g=tot-inv,mon=D.reduce((s,h)=>s+(h.rate||0),0),day=D.reduce((s,h)=>s+(h.prev&&h.price?(h.price-h.prev)*(h.qty||0):0),0);
   const byT={};D.forEach(h=>byT[h.type]=(byT[h.type]||0)+val(h));const parts=Object.entries(byT).filter(x=>x[1]>0).map(([t,v])=>({k:DT[t][0],v,col:DT[t][1]}));
@@ -3293,8 +3377,10 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
        const r=Object.assign(ri>=0?S.rec[ri]:{id:uid()},{type:'tr',b:h.from,to:h.to,c:'',a:h.rate,n:'Sparplan '+(h.n||h.sym),day:h.day,every:1,dep:h.id});if(ri<0){r.start=nx;S.rec.push(r)}h.rid=r.id;note=ri>=0?' Wiederkehrende Buchung angepasst.':' Wiederkehrende Buchung angelegt: '+eur(h.rate)+' am '+h.day+'. von '+h.from+' nach '+h.to+'.'}
      else if(ri>=0){S.rec.splice(ri,1);delete h.rid;note=' Wiederkehrende Buchung entfernt.'}
      if(i>=0)D[i]=h;else D.push(h);save();$('sheetRoot').innerHTML='';render();toast((i>=0?'Position gesichert.':'Position angelegt.')+note,()=>{S.rec=JSON.parse(sr);S.accts=JSON.parse(sa);S.depot=JSON.parse(sd);refreshA();save();render()});depRefresh(true)}};draw();renderAsst()}
+const on2=(id,f)=>{const el=$(id);if(el)el.onclick=f};
 function bindDepot(){if(!(tab=='rep'&&repV=='Vermögen'))return;if($('depFnCopy2'))$('depFnCopy2').onclick=()=>{try{navigator.clipboard.writeText(KURS_FN).then(()=>toast('Code kopiert. Jetzt in Supabase einfügen und Deploy tippen.'))}catch(e){toast('Kopieren ging nicht.')}};document.querySelectorAll('#depAdd').forEach(b=>b.onclick=()=>openDep(-1));
-  document.querySelectorAll('[data-dep]').forEach(b=>b.onclick=()=>openDep(+b.dataset.dep));
+  document.querySelectorAll('[data-dep]').forEach(b=>b.onclick=()=>{const h=depot()[+b.dataset.dep];if(h){posView=h.id;render()}});
+  if(posView){const i=depot().findIndex(h=>h.id==posView);on2('posBack',()=>{posView=null;render()});on2('posEdit',()=>openDep(i));on2('posBuy',()=>openTrade(i,'buy'));on2('posSell',()=>openTrade(i,'sell'));document.querySelectorAll('[data-pr]').forEach(b=>b.onclick=()=>{posRange=b.dataset.pr;render()})}
   document.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>{dRange=b.dataset.rg;histMsg='';render();loadHist(false,RANGES[dRange][1])});
   if($('vbOpen'))$('vbOpen').onclick=()=>openVaultBase();
   document.querySelectorAll('[data-vlg]').forEach(b=>b.onclick=()=>{const k=b.dataset.vlg;vOff[k]=!vOff[k];render()});
