@@ -962,7 +962,9 @@ function txList(list,showB){if(!list.length)return '<div class="group"><div clas
 
 /* ---------- views ---------- */
 /* ---------- debts: Schuldenfrei-Ziel ---------- */
-function debtInfo(d){const st=new Date(d.start+'T00:00').getTime(),re=new RegExp(d.match||'^$','i');
+function debtRec(d){const R=S.rec||[];let r=d.rid&&R.find(x=>x.id==d.rid);if(!r&&d.match){let re;try{re=new RegExp(d.match,'i')}catch(e){return null}r=R.find(x=>x.type!='in'&&!x.abo&&re.test(x.n||''))}return r||null}
+const debtRate=d=>{const r=debtRec(d);return r&&!r.paused?r.a:(d.rate||0)};
+function debtInfo(d){d=Object.assign({},d,{rate:debtRate(d)});const st=new Date(d.start+'T00:00').getTime(),re=new RegExp(d.match||'^$','i');
   const pays=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&e.t>=st-5*864e5&&re.test(e.n||'')),paid=pays.reduce((s,e)=>s+e.a,0)+(d.paidBefore||0);
   const rest=Math.max((d.total||0)-paid,0),n=d.rate?Math.ceil(rest/d.rate):0,sd=new Date(d.start+'T12:00'),first=Math.max(0,(now.getFullYear()-sd.getFullYear())*12+now.getMonth()-sd.getMonth()+(now.getDate()>sd.getDate()?1:0));
   const off0=paid>0?first:0,last=new Date(sd.getFullYear(),sd.getMonth()+off0+Math.max(n-1,0),Math.min(sd.getDate(),28));
@@ -1036,7 +1038,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='100 (05.11.)';
+const APP_VER='101 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1493,7 +1495,7 @@ function devHtml(){const D=S.devSel=S.devSel||{r:'1y',c:'',q:''},R=devRange(D.r)
      ${PV.length>1?`<div class="note">Bei ${esc(PV[0].k)} lädst du am günstigsten, ${((PV[PV.length-1].p-PV[0].p)*100).toFixed(0)} Cent pro kWh weniger als bei ${esc(PV[PV.length-1].k)}.</div>`:''}</div>`}
   else chHtml=`<div class="sec"><div class="sh">Ladepreis E-Auto</div><div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">Trag beim Buchen einer Ladung die geladenen kWh ein (Feld erscheint bei Kategorie oder Notiz mit „Laden“). Dann siehst du hier deinen Preis pro kWh je Anbieter.</div></div></div>`;
   // shopping list
-  const SB=S.exp.filter(e=>e.shop&&e.t>=R.s&&e.t<R.e),xs=SB.filter(e=>e.shop.x>0.5),xsum=xs.reduce((s,e)=>s+e.shop.x,0),btot=SB.reduce((s,e)=>s+e.a,0),xi={};SB.forEach(e=>(e.shop.xi||[]).forEach(r=>{const k=r.n.toLowerCase();xi[k]=xi[k]||{n:r.n,c:0,v:0};xi[k].c++;xi[k].v+=r.p||0}));
+  const SB=S.exp.filter(e=>e.shop&&e.t>=R.s&&e.t<R.e),shX=e=>e.shop.est!=null?Math.round((e.a-e.shop.est)*100)/100:(e.shop.x||0),xs=SB.filter(e=>shX(e)>0.5),xsum=xs.reduce((s,e)=>s+shX(e),0),btot=SB.reduce((s,e)=>s+e.a,0),xi={};SB.forEach(e=>(e.shop.xi||[]).forEach(r=>{const k=r.n.toLowerCase();xi[k]=xi[k]||{n:r.n,c:0,v:0};xi[k].c++;xi[k].v+=r.p||0}));
   const ph=(S.shop&&S.shop.ph)||{},PH2=Object.entries(ph).filter(([k,L])=>L.length>=2).map(([k,L])=>{const f=L[0],l=L[L.length-1];return{k,f,l,ch:(l[1]/f[1]-1)*100}}).sort((a,b)=>Math.abs(b.ch)-Math.abs(a.ch)).slice(0,12);
   const shHtml=`<div class="sec"><div class="sh">Einkaufszettel</div>${SB.length?`<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Einkäufe<b>${SB.length}</b></div><div class="kpi">Spontan dazu<b class="${xsum?'out':''}">${eur0(xsum)}</b></div><div class="kpi">Anteil<b>${btot?Math.round(xsum/btot*100):0} %</b></div></div>
     <div class="note">${xs.length?`Bei ${xs.length} von ${SB.length} Einkäufen kam etwas dazu, im Schnitt ${eur(xsum/Math.max(xs.length,1))}.`:'Bisher hast du immer nur gekauft, was auf dem Zettel stand. Stark!'}${Object.keys(xi).length?' Häufigste Extras: '+Object.values(xi).sort((a,b)=>b.c-a.c).slice(0,4).map(x=>esc(x.n)+(x.c>1?' ('+x.c+'×)':'')).join(', ')+'.':''}</div>`:'<div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">Buche Einkäufe über den Einkaufszettel mit dem Betrag vom Kassenbon. Dann siehst du hier, wie viel du spontan dazukaufst.</div></div>'}
@@ -1667,8 +1669,8 @@ function notBoughtHtml(){const nb=[...S.wish.filter(w=>w.s=='verworfen').map(w=>
    ...S.goals.filter(g=>g.dropped).map(g=>({n:g.n,p:g.ziel,t:g.dropped,g:g.g,w:g.w,k:'Sparziel aufgegeben'}))].sort((a,b)=>b.t-a.t);
   const bought=S.wish.filter(w=>w.s=='gekauft'),bySt={};nb.forEach(x=>bySt[x.g||'–']=(bySt[x.g||'–']||0)+x.p);
   return `<div class="sec"><div class="sh"><span>Nicht gekauft</span><span>${nb.length} Wünsche</span></div>
-  <div class="balance" style="background:linear-gradient(150deg,var(--ok),color-mix(in srgb,var(--ok) 60%,var(--blue)))"><div class="gsub" style="color:inherit;opacity:.85">Gespart durch Verzicht</div><div class="bal">${eur(S.gespart)}</div>
-   <div class="gsub" style="color:inherit;opacity:.85">Das sind ${std(S.gespart)}${bought.length?` · ${bought.length} bewusst gekauft`:''}</div></div>
+  <div class="balance" style="background:linear-gradient(150deg,var(--ok),color-mix(in srgb,var(--ok) 60%,var(--blue)))"><div class="gsub" style="color:inherit;opacity:.85">Gespart durch Verzicht</div><div class="bal">${eur(gespartV())}</div>
+   <div class="gsub" style="color:inherit;opacity:.85">Das sind ${std(gespartV())}${bought.length?` · ${bought.length} bewusst gekauft`:''}</div></div>
   <div class="group">${nb.map(x=>`<div class="cell plain"><div class="t"><div>${esc(x.n)}</div><div class="s">${fd(x.t)} · ${x.k}${x.g?' · '+esc(x.g):''}</div>${x.w?`<div class="s">„${esc(x.w)}“</div>`:''}</div><div class="v" style="color:var(--ok)">${eur(x.p)}</div></div>`).join('')||'<div class="empty">Noch nichts verworfen.</div>'}</div>
   ${Object.keys(bySt).length?`<div class="note">Verzichtet nach Gefühl: ${Object.entries(bySt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>esc(k)+' '+eur0(v)).join(' · ')}</div>`:''}</div>`}
 let wishV='Wünsche';
@@ -1699,13 +1701,13 @@ function openDebt(i){const d=i>=0?Object.assign({},S.debts[i]):{n:'',total:'',in
    <div class="cell plain"><label for="dn">Name</label><input id="dn" value="${esc(d.n)}" placeholder="z. B. Anyfin Kredit"></div>
    <div class="cell plain"><label for="dt">Gesamtbetrag inkl. Zinsen</label><input id="dt" inputmode="decimal" value="${d.total??''}"></div>
    <div class="cell plain"><label for="dz">davon Zinsen</label><input id="dz" inputmode="decimal" value="${d.interest??''}"></div>
-   <div class="cell plain"><label for="dr">Monatsrate</label><input id="dr" inputmode="decimal" value="${d.rate??''}"></div>
+   <div class="cell plain"><label for="dr">Monatsrate</label><input id="dr" inputmode="decimal" value="${(debtRec(d)?debtRec(d).a:d.rate)??''}"></div>${debtRec(d)?`<div class="cell plain" style="padding-top:0"><div class="s" style="font-size:12px;color:var(--muted)">${I('repeat',11)} Verknüpft mit der wiederkehrenden Buchung „${esc(debtRec(d).n||'')}“. Eine Änderung der Rate gilt dort mit.</div></div>`:''}
    <div class="cell plain"><label for="dd">Erste Rate</label><input id="dd" type="date" value="${d.start}"></div>
    <div class="cell plain"><label for="dm">Erkennen an Notiz</label><input id="dm" value="${esc(d.match||'')}" placeholder="z. B. Anyfin"></div>
    <div class="cell plain"><label for="dno">Wofür</label><input id="dno" value="${esc(d.note||'')}" placeholder="optional"></div></div><div class="note" id="dErr" style="padding:0;color:var(--bad)"></div></div></div>`;
   $('scrim').onclick=$('dX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
   $('dS').onclick=()=>{const o={id:d.id||uid(),n:$('dn').value.trim(),total:pNum($('dt').value),interest:pNum($('dz').value)||0,rate:pNum($('dr').value),start:$('dd').value,match:$('dm').value.trim()||$('dn').value.trim().split(' ')[0],note:$('dno').value.trim()};
-    if(!o.n||!o.total||!o.rate){$('dErr').textContent='Bitte Name, Gesamtbetrag und Rate eintragen.';return}S.debts=S.debts||[];if(i>=0)S.debts[i]=o;else S.debts.push(o);save();$('sheetRoot').innerHTML='';render();toast('Gesichert.')};renderAsst()}
+    if(!o.n||!o.total||!o.rate){$('dErr').textContent='Bitte Name, Gesamtbetrag und Rate eintragen.';return}S.debts=S.debts||[];const lr=debtRec(o);if(lr){o.rid=lr.id;if(lr.a!==o.rate)lr.a=o.rate}if(i>=0)S.debts[i]=o;else S.debts.push(o);save();$('sheetRoot').innerHTML='';render();toast('Gesichert.')};renderAsst()}
 function openRec(i,pre){const r=i>=0?Object.assign({},S.rec[i]):Object.assign({id:uid(),type:'out',b:ALL.includes('Comdirect')?'Comdirect':ALL[0],c:'',a:0,n:'',day:new Date().getDate(),every:1,start:ymd(Date.now())},pre||{});
   const draw=()=>{const cs=cats(r.b)||[['Sonstiges','dot']];if(r.type!='tr'&&!cs.some(c=>c[0]==r.c))r.c=cs[0][0];
    $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Wiederkehrende Buchung"><div class="sheet-h"><button id="rX">Abbrechen</button><b>${i>=0?'Bearbeiten':'Neu'}</b><button id="rS" style="font-weight:600">Sichern</button></div>
@@ -1747,7 +1749,7 @@ function openGoalEdit(gid){const g=S.goals.find(x=>x.id==gid);if(!g)return;const
    document.querySelectorAll('[data-gex]').forEach(b=>b.onclick=()=>{keep();const d=D[+b.dataset.gex];d.del=!d.del;draw()});
    $('geS').onclick=()=>{keep();const zz=pNum(z);if(!n.trim()||!zz){$('geE').textContent='Bitte Name und Zielbetrag eintragen.';return}
      for(const d of D)if(!d.del&&!(pNum(d.v)>0)){$('geE').textContent='Jede Einzahlung braucht einen Betrag. Zum Entfernen den Papierkorb nutzen.';return}
-     const sn=snap(),gs=JSON.stringify(S.goals);g.n=n.trim();g.ziel=zz;g.w=w.trim()||undefined;
+     const sn=snap(),gs=JSON.stringify(S.goals);g.n=n.trim();g.ziel=zz;g.w=w.trim()||undefined;{const ws=g.wid&&(S.wish||[]).find(x=>x.id==g.wid);if(ws){ws.n=g.n;ws.p=zz;ws.w=g.w||''}}
      const keepD=[];D.forEach(d=>{const e=d.eid&&S.exp.find(x=>x.id==d.eid);if(d.del){if(e)S.exp.splice(S.exp.indexOf(e),1);return}const a=Math.round(pNum(d.v)*100)/100;if(e){e.a=a;e.n='Sparziel: '+g.n}keepD.push({a,t:d.t,src:d.src,eid:d.eid})});
      g.dep=keepD;save();$('sheetRoot').innerHTML='';render();toast('Sparziel geändert.',()=>{restore(sn);S.goals=JSON.parse(gs);save();render()})}};draw();renderAsst()}
 function openDeposit(gid,amt0){const g=S.goals.find(x=>x.id==gid);if(!g)return;const tgt=g.acct&&ALL.includes(g.acct)?g.acct:(ALL.includes('Sinking Funds')?'Sinking Funds':ALL[0]);
@@ -1826,8 +1828,8 @@ function openWish(ei){const E=ei!=null?S.wish[ei]:null;const W=E?{n:E.n,p:String
   document.querySelectorAll('[data-wg]').forEach(b=>b.onclick=()=>{keep();W.g=b.dataset.wg;draw()});document.querySelectorAll('[data-wt]').forEach(b=>b.onclick=()=>{keep();W.tr=W.tr==b.dataset.wt?'':b.dataset.wt;draw()});
   $('wSave').onclick=()=>{keep();const v=pNum(W.p);if(!W.n.trim()||!v){$('wErr').textContent='Bitte Name und Preis eintragen.';return}
     if(E){const un=E.t+wait(E.p),old=JSON.stringify(E);Object.assign(E,{n:W.n.trim(),p:v,l:W.l.trim(),w:W.w.trim(),g:W.g,tr:W.tr});if(E.t+wait(v)<un)E.t=un-wait(v);save();$('sheetRoot').innerHTML='';render();toast('Wunsch geändert.',()=>{Object.assign(E,JSON.parse(old));save();render()});return}
-    S.wish.unshift({n:W.n.trim(),p:v,l:W.l.trim(),w:W.w.trim(),g:W.g,tr:W.tr,t:Date.now(),s:'offen'});save();$('sheetRoot').innerHTML='';wishV='Wünsche';render();toast('Auf der Wunschliste. Frei ab '+new Date(Date.now()+wait(v)).toLocaleDateString('de-DE',{day:'numeric',month:'long'})+'.')}};draw()}
-function openKaufCheck(i){const w=S.wish[i],g=calc('Gönn dir'),goal=S.goals.find(x=>!x.done&&!x.dropped&&x.n==w.n),gs=goal?goal.dep.reduce((a,d)=>a+d.a,0):0,A=[null,null,null];
+    S.wish.unshift({id:uid(),n:W.n.trim(),p:v,l:W.l.trim(),w:W.w.trim(),g:W.g,tr:W.tr,t:Date.now(),s:'offen'});save();$('sheetRoot').innerHTML='';wishV='Wünsche';render();toast('Auf der Wunschliste. Frei ab '+new Date(Date.now()+wait(v)).toLocaleDateString('de-DE',{day:'numeric',month:'long'})+'.')}};draw()}
+function openKaufCheck(i){const w=S.wish[i],g=calc('Gönn dir'),goal=goalOfWish(w),gs=goal?goal.dep.reduce((a,d)=>a+d.a,0):0,A=[null,null,null];
   const draw=()=>{const fromG=g.rest>=w.p,fromS=gs>=w.p,ok=A.every(x=>x===true)&&(fromG||fromS);
    $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kauf-Check"><div class="sheet-h"><button id="kcX">Abbrechen</button><b>Kauf-Check</b><span style="width:70px"></span></div>
    <div class="sheet-b"><div class="mmcard"><div class="srow"><div class="srow-h"><span><b>${esc(w.n)}</b></span><span class="hours">${std(w.p)}</span><b>${eur(w.p)}</b></div></div></div>
@@ -1848,8 +1850,8 @@ function openKaufCheck(i){const w=S.wish[i],g=calc('Gönn dir'),goal=S.goals.fin
    $('kcBuy').onclick=()=>{if(!ok)return;w.s='gekauft';w.dt=Date.now();if(fromS){goal.done=Date.now();S.exp.push({id:uid(),type:'out',b:'Sinking Funds',c:'Sparziel',a:w.p,n:w.n,t:Date.now()})}
      else S.exp.push({id:uid(),type:'out',b:'Gönn dir',c:'Shopping',a:w.p,n:w.n,t:Date.now(),tg:['wunschliste']});save();$('sheetRoot').innerHTML='';render();toast('Bewusst gekauft und gebucht.')};
    $('kcSave').onclick=()=>{decideWish(i,'Sparziel');$('sheetRoot').innerHTML=''};$('kcDrop').onclick=()=>{decideWish(i,'verworfen');$('sheetRoot').innerHTML=''}};draw();renderAsst()}
-function decideWish(i,s){const w=S.wish[i],prev=JSON.stringify({w,g:S.goals,gs:S.gespart});w.s=s;w.dt=Date.now();if(s=='verworfen')S.gespart+=w.p;
-  if(s=='Sparziel'&&!S.goals.some(g=>g.n==w.n&&!g.done&&!g.dropped))S.goals.unshift({id:uid(),n:w.n,ziel:w.p,t:Date.now(),from:"Wunsch",g:w.g,w:w.w,l:w.l,dep:[]});save();render();
+function decideWish(i,s){const w=S.wish[i],prev=JSON.stringify({w,g:S.goals,gs:S.gespart});w.s=s;w.dt=Date.now();if(s=='verworfen')
+  if(!w.id)w.id=uid();if(s=='Sparziel'&&!goalOfWish(w))S.goals.unshift({id:uid(),wid:w.id,n:w.n,ziel:w.p,t:Date.now(),from:"Wunsch",g:w.g,w:w.w,l:w.l,dep:[]});save();render();
   if(s=='verworfen'&&S.cele!==false)celebrate(eur(w.p)+' gespart');
   toast(s=='verworfen'?`Losgelassen: ${eur(w.p)} gespart.`:'Als Sparziel angelegt.',()=>{const o=JSON.parse(prev);Object.assign(S.wish[i],o.w);S.goals=o.g;S.gespart=o.gs;save();render()})}
 /* ---------- Kontostand-Abgleich ---------- */
@@ -1968,7 +1970,7 @@ function bindImport(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   document.querySelectorAll('[data-pg]').forEach(c=>c.onchange=()=>{IMP.plan[c.dataset.pg]=c.checked});
   if($('mcBal'))$('mcBal').oninput=()=>{IMP.bal=$('mcBal').value};if($('mcKeep'))$('mcKeep').onchange=()=>{IMP.keepW=$('mcKeep').checked};
   on('mcGo',()=>{const d=IMP.d;S.accts=d.accts;S.budgets=d.budgets;S.cats=d.cats;S.exp=d.exp.filter(e=>!e.plan||(IMP.plan||{})[(e.n||e.c)+'|'+e.b]!==false).map(e=>{if(e.plan){const o=Object.assign({},e);delete o.plan;delete o.arch;return o}return e});S.debts=(d.debts||[]).map(x=>Object.assign({},x));S.contracts=d.contracts||[];S.rec=d.rec;S.fav=d.fav;S.bg=Object.assign({},S.bg||{},d.bg);
-    if(!IMP.keepW){S.wish=[];S.goals=[];S.gespart=0}S.ex=false;S.onb=true;S.closed=[];S.since=period(0).s.getTime();S.rollTo='Sinking Funds';S.lastClose=null;
+    if(!IMP.keepW){S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0}S.ex=false;S.onb=true;S.closed=[];S.since=period(0).s.getTime();S.rollTo='Sinking Funds';S.lastClose=null;
     S.imports=[{id:'mc',t:Date.now(),n:d.exp.length}];refreshA();ensureFlags();
     for(let o=0;o<=3;o++){const p=period(o),k=pkey(p);S.rec.forEach(r=>{S.exp.filter(e=>e.tpl==r.tpl&&inP(e,p)).forEach(e=>{e.rid=r.id;e.pk=k})})}
     const bal=pNum(IMP.bal),cd=S.accts.find(a=>a.n=='Comdirect');if(cd&&!isNaN(bal)){cd.start=0;cd.start=bal-calc('Comdirect').rest}
@@ -2501,7 +2503,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- render ---------- */
-function render(){try{if(typeof depSync=='function')depSync()}catch(e){}render.prevVk=render.vk;render.prevY=document.body.scrollTop||document.documentElement.scrollTop||scrollY||0;try{tcHide();tcInit()}catch(e){}if(tab!='rep'||repV!='Vermögen'){depShow=false;posView=null}document.body.classList.add('mm');document.body.dataset.tab=setView?'sub':(curB?'acc':tab);renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
+function render(){try{depSync();linkSync()}catch(e){}render.prevVk=render.vk;render.prevY=document.body.scrollTop||document.documentElement.scrollTop||scrollY||0;try{tcHide();tcInit()}catch(e){}if(tab!='rep'||repV!='Vermögen'){depShow=false;posView=null}document.body.classList.add('mm');document.body.dataset.tab=setView?'sub':(curB?'acc':tab);renderTabs();$('fab').hidden=!['dash','list','cal'].includes(tab)||!!setView;$('vfab').hidden=!(setView=='shop'||(['dash','list','cal','rep','wish'].includes(tab)&&!setView));document.body.classList.toggle('vf',!$('vfab').hidden);
   const html=curB?viewDetail(curB):setView?viewSet(setView):tab=='dash'?viewDash():tab=='list'?viewList():tab=='cal'?viewCal():tab=='rep'?viewRep():tab=='wish'?viewWish():viewMore();
   const html2=html.replace(/<div><button class="back" id="(\w+)">‹ [^<]*<\/button><h1 class="lt"[^>]*>([\s\S]*?)<\/h1>((?:<div class="date">[\s\S]*?<\/div>)?)<\/div>/,(m,id,t,sub)=>appbar({title:t,back:id,noGear:true,sub:sub?sub.replace(/<\/?div[^>]*>/g,''):''}));
   $('app').innerHTML=`<div class="view ${curB?'detail':''}">${html2}</div>`;const stNow={tab,repV,wishV,sub:!!(setView||curB||(tab=='rep'&&repV=='Vermögen'&&posView))};{const vk=[tab,setView||'',curB||'',tab=='rep'?repV:'',tab=='wish'?wishV:'',tab=='rep'&&repV=='Vermögen'?posView||'':''].join('|');if(vk===render.vk)render.st=stNow;if(vk!==render.vk){const first=render.vk==null;if(!first&&!render.popping&&render.st&&!render.st.sub){NAVS.push(render.st);if(NAVS.length>30)NAVS.shift()}render.popping=false;render.vk=vk;render.st=stNow;if(!first){const old=render.prevVk,oy=render.prevY||0;render.ys=render.ys||[];let y=0;const top=render.ys[render.ys.length-1];if(top&&top.vk===vk){y=top.y;render.ys.pop()}else{if(old!=null)render.ys.push({vk:old,y:oy});if(render.ys.length>40)render.ys.shift()}const go=()=>{window.scrollTo(0,y);document.body.scrollTop=y;document.documentElement.scrollTop=y};go();if(y)requestAnimationFrame(go)}}}bind();renderAsst()}
@@ -2586,7 +2588,7 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   document.querySelectorAll('[data-gbuy]').forEach(b=>b.onclick=()=>{const g=S.goals.find(x=>x.id==b.dataset.gbuy),sv=g.dep.reduce((s,d)=>s+d.a,0);g.done=Date.now();
     S.exp.push({id:uid(),type:'out',b:'Sinking Funds',c:'Sparziel',a:sv,n:g.n,t:Date.now()});save();render()});
   document.querySelectorAll('[data-gdrop]').forEach(b=>b.onclick=()=>{const g=S.goals.find(x=>x.id==b.dataset.gdrop);if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich aufgeben?';return}
-    g.dropped=Date.now();S.gespart+=g.ziel;save();render()});
+    g.dropped=Date.now();save();render()});
   document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{if(b.dataset.set=='abos'){tab='rep';repV='Verträge';setView=null;drill=null}else setView=b.dataset.set;render();scrollTo(0,0)});
   if($('vHelp2'))$('vHelp2').onclick=()=>voiceHelp();if($('kbHelpBtn'))$('kbHelpBtn').onclick=()=>kbHelp();
   if($('asstShow'))$('asstShow').onclick=e=>{e.stopPropagation();asstOpen=true;renderAsst();if(!$('abub'))toast('Gerade gibt es keine Hinweise.')};
@@ -2652,7 +2654,7 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   if($('bakIn'))$('bakIn').onchange=ev=>{const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d.format=='dodo-mc-1'){tab='more';setView='import';impLoad(rd.result);render();return}if(!d.exp||!d.budgets)throw 0;S=d;S.goals=S.goals||[];S.bg=S.bg||{};ensureAccts();save();setView=null;tab='dash';render();toast('Sicherung wiederhergestellt.')}catch(e){$('expMsg').textContent='Diese Datei ist keine CashFlow-Sicherung.'}};rd.readAsText(f)};
   on('bakBtn',()=>{const b=Object.assign({},S,{exp:S.exp.map(e=>Object.assign({},e,{img:undefined}))});copy(JSON.stringify(b),$('expMsg'),$('expOut'))});
   on('resBtn',()=>{try{const d=JSON.parse($('restore').value);if(!d.exp||!d.budgets)throw 0;S=d;S.goals=S.goals||[];S.bg=S.bg||{};ensureAccts();save();applyRec();$('expMsg').textContent='Sicherung wiederhergestellt.';setView=null;render()}catch(e){$('expMsg').textContent='Das ist keine gültige Sicherung. Bitte den kompletten Text einfügen.'}});
-  on('clearEx',()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];save();render()});
+  on('clearEx',()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0;S.ex=false;S.rec=[];save();render()});
   on('updNow',()=>{toast('Suche nach Update …');navigator.serviceWorker.getRegistration().then(r=>r?r.update().then(()=>setTimeout(()=>location.reload(),800)):location.reload()).catch(()=>location.reload())});
   on('resetAll',()=>{if(!resetArm){resetArm=true;$('resetMsg').textContent='Nochmal tippen, um wirklich alles zu löschen.';return}resetArm=false;const keepBg=S.bg;S=DEF();S.bg=keepBg;S.ex=false;S.wish=[];S.rec=[];S.goals=[];ensureAccts();save();setView=null;tab='dash';render()})}
 
@@ -3347,6 +3349,14 @@ function depSync(){const R=S.rec||[];let ch=false;depot().forEach(h=>{let r=h.ri
   if(h.rate!==r.a){h.rate=r.a;ch=true}if(r.day&&h.day!==r.day){h.day=r.day;if(h.next){const d=new Date(h.next+'T12:00'),n=new Date(d.getFullYear(),d.getMonth(),Math.min(r.day,28),12);let s=ymd(n.getTime());if(s<today()){n.setMonth(n.getMonth()+1);s=ymd(n.getTime())}h.next=s}ch=true}
   if(r.b&&h.from!==r.b){h.from=r.b;ch=true}if(r.to&&h.to!==r.to){h.to=r.to;ch=true}if(h.paused!==pa){h.paused=pa;ch=true}if(!h.book){h.book=true;ch=true}});
   if(ch){try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}return ch}
+function gespartV(){return Math.round(((S.wish||[]).filter(w=>w.s=='verworfen').reduce((s,w)=>s+(w.p||0),0)+(S.goals||[]).filter(g=>g.dropped).reduce((s,g)=>s+(g.ziel||0),0)+(S.gespartAdj||0))*100)/100}
+function goalOfWish(w){if(!w)return null;const G=S.goals||[];return (w.id&&G.find(g=>g.wid==w.id&&!g.done&&!g.dropped))||G.find(g=>!g.wid&&!g.done&&!g.dropped&&g.n==w.n)||null}
+/* Eine Quelle: Wunsch ↔ Sparziel (Wunsch liefert Name, Preis, Grund, Link), Kredit-Rate aus der wiederkehrenden Buchung, gespart wird berechnet */
+function linkSync(){let ch=false;(S.wish||[]).forEach(w=>{if(!w.id){w.id='w'+sh32(String(w.t||'')+'|'+(w.n||''));ch=true}});
+  (S.wish||[]).forEach(w=>{if(w.s!='Sparziel')return;const g=goalOfWish(w);if(!g)return;if(!g.wid){g.wid=w.id;ch=true}if(g.n!==w.n){g.n=w.n;ch=true}if(g.ziel!==w.p){g.ziel=w.p;ch=true}if((g.w||'')!==(w.w||'')){g.w=w.w||undefined;ch=true}if((g.l||'')!==(w.l||'')){g.l=w.l||undefined;ch=true}});
+  (S.debts||[]).forEach(d=>{const r=debtRec(d);if(r&&d.rid!==r.id){d.rid=r.id;ch=true}});
+  if(S.gespartAdj==null){const calc0=(S.wish||[]).filter(w=>w.s=='verworfen').reduce((s,w)=>s+(w.p||0),0)+(S.goals||[]).filter(g=>g.dropped).reduce((s,g)=>s+(g.ziel||0),0);S.gespartAdj=Math.max(0,Math.round(((S.gespart||0)-calc0)*100)/100);ch=true}
+  if(ch){try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}return ch}
 function depApplyPlans(){const td=today();depSync();depot().forEach(h=>{if(!h.rate||!h.plan||!h.next)return;if(h.paused){while(h.next<=td){const d=new Date(h.next+'T12:00');d.setMonth(d.getMonth()+1);h.next=ymd(d.getTime())}return}let n=0;while(h.next<=td&&n<24){if(!h.price)break;h.qty=Math.round(((h.qty||0)+h.rate/h.price)*1e6)/1e6;h.inv=Math.round(((h.inv||0)+h.rate)*100)/100;if(h.qty)h.avg=Math.round(h.inv/h.qty/((h.cur||'EUR')=='EUR'?1:(h.fx||1))*10000)/10000;const d=new Date(h.next+'T12:00');d.setMonth(d.getMonth()+1);h.next=ymd(d.getTime());n++}})}
 /* ---------- Detailseite je Vermögenswert ---------- */
 let posView=null,posRange='1y';async function cbDaily(sym,days){const out=[];let end=Date.now();for(let k=0;k<Math.ceil(days/300)&&k<7;k++){const st=end-300*864e5;try{const r=await (await fetch('https://api.exchange.coinbase.com/products/'+sym+'-EUR/candles?granularity=86400&start='+new Date(Math.max(st,Date.now()-days*864e5)).toISOString()+'&end='+new Date(end).toISOString())).json();if(!Array.isArray(r)||!r.length)break;r.forEach(x=>out.push([x[0]*1000,x[4]]))}catch(e){break}end=st;if(end<Date.now()-days*864e5)break}return out.sort((a,b)=>a[0]-b[0])}const PR={'1d':['1T','i'],'1w':['1W','h'],'1m':['1M','m'],'6m':['6M','s'],'ytd':['YTD','d'],'1y':['1J','d'],'5y':['5J','f']};const PRL={'1d':'heute','1w':'1 Woche','1m':'1 Monat','6m':'6 Monate','ytd':'seit 1.1.','1y':'1 Jahr','5y':'5 Jahre'};
@@ -3749,7 +3759,7 @@ function vWish(l,v){if(!/^(wunsch|ich wünsche mir|wunschliste|auf die wunschlis
   let n=spoken(v).replace(/^(auf die )?wunschliste|^wunsch|^ich wünsche mir|^ich (will|möchte|hätte gern)/i,'').replace(/(\d+(?:[.,]\d{1,2})?)\s*(euro|€)?/i,'').replace(new RegExp('\\b('+GEF.join('|')+'|gestresst|stress|gelangweilt|belohnung|haben|kaufen|für|eine?n?|neue?[nrs]?|weil ich|bin|ich)\\b','gi'),' ').replace(new RegExp(tr,'i'),'').replace(/[,.]/g,' ').replace(/\s+/g,' ').trim();
   if(!n){toast('Was wünschst du dir? Sag z. B. „Wunsch Kopfhörer 89 Euro“.');return true}n=n.charAt(0).toUpperCase()+n.slice(1);
   if(!p){$('sheetRoot').innerHTML='';openWish();setTimeout(()=>{$('wname').value=n;$('wpreis').focus()},50);toast('Noch den Preis eintragen.');return true}
-  const s=JSON.stringify(S.wish);S.wish.unshift({n,p,l:'',w:'',g,tr,t:Date.now(),s:'offen'});save();$('sheetRoot').innerHTML='';render();
+  const s=JSON.stringify(S.wish);S.wish.unshift({id:uid(),n,p,l:'',w:'',g,tr,t:Date.now(),s:'offen'});save();$('sheetRoot').innerHTML='';render();
   toast(`Wunsch „${n}“ (${eur(p)}) gemerkt. Frei ab ${new Date(Date.now()+wait(p)).toLocaleDateString('de-DE',{day:'numeric',month:'long'})}.`,()=>{S.wish=JSON.parse(s);save();render()});return true}
 function vGoal(l){if(!/zurücklegen|zurück legen|sparziel|weglegen|beiseite/.test(l)&&!/\bfür (den |die |das |meinen |meine )?.+ sparen\b/.test(l))return false;
   const act=S.goals.filter(g=>!g.done&&!g.dropped);if(!act.length){toast('Du hast noch kein Sparziel.');return true}
@@ -3795,7 +3805,7 @@ function share(){const P=period(0);let t=`Hallo Claude, hier mein Budget-Stand (
   BUDG.forEach(b=>{const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
     t+=`- ${b}: ${eur(c.used)} von ${eur(c.total)} verbraucht, Rest ${eur(c.rest)}, ${eur(c.tag)} pro Tag. Kategorien: ${Object.entries(by).map(([k,v])=>k+' '+eur(v)).join(', ')||'keine'}\n`});
   ALL.filter(isK).filter(b=>!WH(b)).forEach(b=>{t+=`- Konto ${b}: Kontostand ${eur(calc(b).rest)}\n`});
-  t+=`- Puffer: ${eur(pufVal())} von 1.000 €\n- Offene Wünsche: ${S.wish.filter(w=>w.s=='offen').map(w=>`${w.n} (${eur(w.p)}, ${w.g})`).join(', ')||'keine'}\n- Sparziele: ${S.goals.filter(g=>!g.done&&!g.dropped).map(g=>`${g.n} (${eur(g.dep.reduce((a,d)=>a+d.a,0))} von ${eur(g.ziel)})`).join(', ')||'keine'}\n- Gespart durch Verzicht: ${eur(S.gespart)}\nWie mache ich mich? Hast du Tipps?`;
+  t+=`- Puffer: ${eur(pufVal())} von 1.000 €\n- Offene Wünsche: ${S.wish.filter(w=>w.s=='offen').map(w=>`${w.n} (${eur(w.p)}, ${w.g})`).join(', ')||'keine'}\n- Sparziele: ${S.goals.filter(g=>!g.done&&!g.dropped).map(g=>`${g.n} (${eur(g.dep.reduce((a,d)=>a+d.a,0))} von ${eur(g.ziel)})`).join(', ')||'keine'}\n- Gespart durch Verzicht: ${eur(gespartV())}\nWie mache ich mich? Hast du Tipps?`;
   const h=$('shareHint');try{navigator.clipboard.writeText(t).then(()=>h.textContent='Kopiert. Jetzt in der Claude-App einfügen.',fb)}catch(e){fb()}
   function fb(){h.innerHTML=`<textarea class="box" readonly style="width:100%">${esc(t)}</textarea>Text markieren und kopieren.`}}
 
@@ -3812,8 +3822,8 @@ function openOnb(){let st=0;const draw=()=>{const steps=[
   const fin=()=>{S.onb=true;save();$('sheetRoot').innerHTML='';render()};
   if($('onbNext'))$('onbNext').onclick=()=>{keep();st++;draw()};$('onbBack').onclick=()=>{keep();st--;draw()};$('onbSkip').onclick=()=>{keep();fin()};
   if($('onbSync'))$('onbSync').onclick=()=>{fin();tab='more';setView='sync';render()};
-  if($('onbImp'))$('onbImp').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];fin();tab='more';setView='import';render()};
-  if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();toast('Los geht’s. Tippe auf +, um zu buchen.')};
+  if($('onbImp'))$('onbImp').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0;S.ex=false;S.rec=[];fin();tab='more';setView='import';render()};
+  if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();toast('Los geht’s. Tippe auf +, um zu buchen.')};
   if($('onbKeep'))$('onbKeep').onclick=fin};draw();renderAsst()}
 const BIOK='cf_bio',bioName=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)?'Face ID':/Mac/.test(navigator.userAgent)?'Touch ID':'Fingerabdruck / Windows Hello';
 const bioGet=()=>{try{return JSON.parse(localStorage.getItem(BIOK)||'null')}catch(e){return null}};
