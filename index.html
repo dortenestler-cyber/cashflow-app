@@ -585,6 +585,7 @@ body.swback{overflow:hidden}body.swback #app{background:var(--bg)}
 .bm{display:inline-flex;align-items:center;justify-content:center}.bm>i{display:block;width:62%;height:62%;background:currentColor;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}.blogo.bm{border-radius:5px}
 .ls-dk{display:inline-flex;padding:8px;border-radius:12px;background:#1b1726}.ls-dk .bm-dk{color:color-mix(in srgb,var(--bc) 28%,#fff)!important;background:color-mix(in srgb,var(--bc) 45%,#24242a)!important}.ls-big .ico{width:56px!important;height:56px!important;border-radius:16px}.ls-r{border:0;font:inherit;color:inherit;cursor:pointer}.ls-r.on{outline:2px solid var(--blue)}.ls-r span:last-child{font-size:12px;line-height:1.2}.cell .ico.bt,.ls-dk .ico,.ls-big .ico,.cell>.ico.bm{width:34px;height:34px;border-radius:11px}
 .ico.bt.bflat:not(.bm){padding-bottom:3px}
+.brf{background:color-mix(in srgb,var(--accent) 8%,var(--card));border-radius:14px;padding:12px 14px;margin:2px 0 8px}.brf-h{font-weight:700;margin-bottom:6px}.brf-l{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.4;padding:3px 0}.brf-i{color:var(--accent);flex:none;margin-top:1px}
 .kst{color:var(--muted);font-weight:600;margin-left:2px}
 .fx-r{display:block;width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}.fx-chg{display:inline-block;margin-top:3px;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:8px}.fx-chg.up{color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}.fx-chg.down{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
 .ico.bt{position:relative;overflow:visible;font-weight:700;font-size:13px;letter-spacing:-.02em;line-height:1}.ico.blg{background:#fff;box-shadow:inset 0 0 0 1px var(--line,rgba(0,0,0,.08))}.ico.blg img{width:70%;height:70%;object-fit:contain;border-radius:4px}
@@ -1112,7 +1113,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='109 (05.11.)';
+const APP_VER='110 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1186,7 +1187,7 @@ function renderAsst(){const r=$('asstRoot');if(!r)return;document.body.classList
    ${asstOpen?`<div class="apop" role="dialog" aria-label="Hinweise"><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${ROBO}</span>Dein Assistent</b><button id="aClose" aria-label="Schließen">${I('close',20)}</button></div>
     <div class="apop-b">${t.length?'':'<div class="a-s" style="padding:4px 4px 0">Keine neuen Hinweise. Frag mich etwas oder suche nach Buchungen.</div>'}${t.map((x,i)=>`<div class="atip ${x.sev}" data-tk="${esc(tkey(x))}" data-ti="${i}"><button class="atip-x0" data-adis="${i}" aria-label="Hinweis ausblenden" title="Ausblenden">${I('close',14)}</button><div class="atip-t">${asstNew.includes(tkey(x))?'<span class="newdot">Neu</span>':''}${I(x.sev=='bad'?'alert':x.sev=='warn'?'up':x.sev=='ok'?'check':'sparkle',15)}<b>${esc(x.ttl)}</b></div><div class="atip-x">${x.txt}</div>
      ${x.b||x.tab||x.act?`<div class="choices" style="margin-top:6px">${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='shopP'?`<button data-ashopp="${i}">Preise nachtragen</button>`:''}${x.act=='rg'?`<button data-arg="${i}|0">Hat sich gelohnt</button><button data-arg="${i}|1">Bereue ich</button>`:''}${x.act=='urge'?`<button data-aurge="${i}">Antworten</button>`:''}${x.act=='rk'?`<button data-ark="${i}">Jetzt einrichten</button>`:''}${x.act=='abg'?`<button data-aabg="${i}">Jetzt abgleichen</button>`:''}${x.act=='sub'?`<button data-asub="${i}">Ins Abo-Radar</button><button data-asubn="${i}">Kein Abo</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}
-    ${AQ.msgs.map((m,mi)=>`<div class="aq-q">${esc(m.q)}</div><div class="aq-a">${m.h}${(m.a||[]).map((x,xi)=>`<button class="chip" data-aact="${mi}|${xi}">${x[0]}</button>`).join('')}</div>`).join('')}</div>
+    ${AQ.msgs.map((m,mi)=>`${m.q?`<div class="aq-q">${esc(m.q)}</div>`:''}<div class="aq-a">${m.h}${(m.a||[]).map((x,xi)=>`<button class="chip" data-aact="${mi}|${xi}">${x[0]}</button>`).join('')}</div>`).join('')}</div>
     <form class="aq-in" id="aqForm"><input id="aqI" placeholder="Frag mich oder suche …" autocomplete="off" enterkeyhint="send"><button type="button" class="aq-mic" id="aqMic" aria-label="Sprechen">${I('mic',18)}</button><button type="submit" class="aq-go" aria-label="Senden">${I('fwd',18)}</button></form>
     <div class="apop-f">Wischen blendet Hinweise aus · Wichtiges sofort, Infos ab 18 Uhr${(S.dismTips||[]).length?` · <button class="link" id="aUndis" style="font-size:11px">${S.dismTips.length} ausgeblendet</button>`:''}${AQ.msgs.length?` · <button class="link" id="aClr" style="font-size:11px">Verlauf leeren</button>`:''}</div></div>`:''}`;
   $('abub').onclick=e=>{e.stopPropagation();asstOpen=!asstOpen;if(asstOpen){asstNew=t.filter(x=>!(S.seenTips||[]).includes(tkey(x))).map(tkey);S.seenTips=[...new Set([...(S.seenTips||[]),...t.map(tkey)])];save()}renderAsst()};
@@ -2494,13 +2495,13 @@ async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render
   st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
   st.bak=await t(async()=>{const r=await syFetch('/rest/v1/cashflow_backup?select=ym&limit=1');return r.ok});
   st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.kursev=j.v||0;return (j.v||0)>=9?true:'old'});
-  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;pstSave(j);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});st.pushjwt=r2.status==401?'on':r2.ok?'off':'?'}catch(e){st.pushjwt='?'}return (j.v||0)>=5?true:'old'});
+  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;pstSave(j);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});st.pushjwt=r2.status==401?'on':r2.ok?'off':'?'}catch(e){st.pushjwt='?'}return (j.v||0)>=6?true:'old'});
   st.pushsql=await t(async()=>{const a=await syFetch('/rest/v1/push_brief?select=user_id&limit=1'),b=await syFetch('/rest/v1/push_queue?select=id&limit=1'),c=await syFetch('/rest/v1/inbox?select=id&limit=1');return a.ok&&b.ok&&c.ok?true:b.ok?'old':false});
   SETUP.st=st;try{localStorage.setItem('cf_setup',JSON.stringify(st))}catch(e){}SETUP.busy=false;if(st.kurse===true)S.kursFnOld=false;if(st.push===true&&st.pushsql===true)S.briefOld=false;render()}
 function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','check']:v==='old'?['Veraltet, bitte neu einspielen','warn','up']:v===false?['Fehlt noch','bad','alert']:v==='err'?['Antwortet mit Fehler','bad','alert']:['Noch nicht geprüft','muted','dot'];
   return `<div class="anchor">${I('lock',16)}<span>Hier liegt alles, was du in Supabase einfügen musst. Reihenfolge von oben nach unten. Ein erneutes Einfügen schadet nie: SQL und Code überschreiben nur die alte Version.</span></div>
    ${syOn()?`<button class="btn" id="setupChk">${SETUP.busy?'Prüfe …':'Status prüfen'}</button>${st.at?`<div class="note" style="text-align:center;padding:0">Zuletzt geprüft ${new Date(st.at).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`:'<div class="tip">Zuerst unter Einstellungen › Online-Sync verbinden. Für Schritt 1 brauchst du nur das SQL unten.</div>'}
-   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,5]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
+   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,6]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
      <div class="setup-b">${x.what}</div>${x.k=='push'&&pushOn()?pstHtml():''}<div class="setup-w">${I('pin',13)} ${x.where}</div>
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
@@ -2999,7 +3000,7 @@ $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.we
 
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
 /* ---------- push notifications ---------- */
-const PUSH_FN=`// Supabase Edge Function "push" v5: Mitteilungen + Daily Briefing für CashFlow (Web Push)
+const PUSH_FN=`// Supabase Edge Function "push" v6: Mitteilungen + Daily Briefing für CashFlow (Web Push)
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
@@ -3091,7 +3092,8 @@ async function briefs() {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const c = await cfg(); const body = await req.json().catch(() => ({}));
+    const c = await cfg(); const qp = Object.fromEntries(new URL(req.url).searchParams); const isGet = req.method === "GET"; const body = Object.assign(isGet ? {} : await req.json().catch(() => ({})), qp.op ? qp : {});
+    const SAY = (s, st = 200, extra = {}) => isGet ? new Response(s, { status: st, headers: { ...cors, "Content-Type": "text/plain; charset=utf-8" } }) : J({ say: s, ...extra }, st);
     if (req.headers.get("x-cron") && req.headers.get("x-cron") === c.secret) {
       const { data: q } = await sb.from("push_queue").select("*").eq("sent", false).lte("at", new Date().toISOString()).order("at").limit(200);
       for (const m of q || []) {
@@ -3103,14 +3105,14 @@ Deno.serve(async (req) => {
       return J({ ok: true, n: (q || []).length, briefs: b });
     }
     if (body.op === "siri") {
-      const raw = String(body.k || ""); if (raw.length < 16) return J({ say: "Kein gültiger CashFlow-Schlüssel im Kurzbefehl." }, 401);
+      const raw = String(body.k || ""); if (raw.length < 16) return SAY("Kein gültiger CashFlow-Schlüssel im Kurzbefehl.", 401);
       const hb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw))); const kh = Array.from(hb).map((x) => x.toString(16).padStart(2, "0")).join("");
       const { data: kr } = await sb.from("siri_keys").select("user_id").eq("key_hash", kh).maybeSingle();
-      if (!kr) return J({ say: "Dieser Schlüssel ist nicht mehr gültig. Bitte in CashFlow unter Siri und Kurzbefehle neu erzeugen." }, 401);
+      if (!kr) return SAY("Dieser Schlüssel ist nicht mehr gültig. Bitte in CashFlow unter Siri und Kurzbefehle neu erzeugen.", 401);
       const su = kr.user_id;
       if (body.m === "stand") {
         const { data: r } = await sb.from("push_brief").select("data,updated_at").eq("user_id", su).maybeSingle(); const d = (r && r.data) || null;
-        if (!d) return J({ say: "Noch keine Daten. Öffne CashFlow einmal mit eingeschalteten Mitteilungen." });
+        if (!d) return SAY("Noch keine Daten. Öffne CashFlow einmal mit eingeschalteten Mitteilungen.");
         const B = berlin(), L = []; const at = d.at ? new Date(d.at) : null;
         if (d.acc && d.acc.length) L.push(d.acc.map((a) => a.n + ": noch " + E0(a.v) + (a.d != null ? ", heute " + E0(a.d) : "")).join(". ") + ".");
         if (d.sp && d.sp.d === B.ymd && d.sp.v) L.push("Heute ausgegeben: " + E0(d.sp.v) + ".");
@@ -3118,30 +3120,30 @@ Deno.serve(async (req) => {
         const evs = (d.ev || []).filter((e) => e.d >= B.ymd).slice(0, 4).map((e) => (e.d === B.ymd ? "heute " : "") + e.t); if (evs.length) L.push("Demnächst: " + evs.join(", ") + ".");
         if (d.pos && d.pos.length) { let ws = 0, wp = 0; for (const p of d.pos.slice(0, 10)) { const m = await move(p); if (m == null) continue; ws += p.w || 0; wp += (p.w || 0) * m; } if (ws) L.push("Depot heute " + PC(wp / ws) + "."); }
         if (at) L.push("Stand " + new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(at) + " Uhr.");
-        return J({ say: L.join(" ") || "Keine Daten vorhanden.", v: 5 });
+        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 6 });
       }
-      const txt = String(body.txt || "").trim().slice(0, 300); if (!txt) return J({ say: "Ich habe nichts verstanden." });
-      const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su); if ((count || 0) >= 50) return J({ say: "Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter." });
-      const { error } = await sb.from("inbox").insert({ user_id: su, txt }); if (error) return J({ say: "Konnte nicht speichern." }, 500);
-      return J({ say: "Notiert: " + txt, v: 5 });
+      const txt = String(body.txt || "").trim().slice(0, 300); if (!txt) return SAY("Ich habe nichts verstanden.");
+      const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su); if ((count || 0) >= 50) return SAY("Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter.");
+      const { error } = await sb.from("inbox").insert({ user_id: su, txt }); if (error) return SAY("Konnte nicht speichern.", 500);
+      return SAY("Notiert: " + txt, 200, { v: 6 });
     }
-    if (body.op === "ping") return J({ pong: true, v: 5 });
+    if (body.op === "ping") return J({ pong: true, v: 6 });
     const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
     const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
     if (!uid) return J({ error: "not signed in" }, 401);
-    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 5, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
+    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 6, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
     if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
     if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
     if (body.op === "plan") {
       await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
       const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
       if (items.length) await sb.from("push_queue").insert(items);
-      return J({ ok: true, n: items.length, v: 5 });
+      return J({ ok: true, n: items.length, v: 6 });
     }
-    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 5 }); }
+    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 6 }); }
     if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); const n = await sendTo(uid, m); if (body.real && n) await sb.from("push_brief").update(body.kind === "e" ? { sent_e: berlin().ymd } : { sent_m: berlin().ymd }).eq("user_id", uid); return J({ ok: true, sent: n, msg: m }); }
-    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 5 }); }
-    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 5 }); }
+    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 6 }); }
+    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 6 }); }
     if (body.op === "inbox_del") { const ids = (body.ids || []).map(Number).filter(Boolean); if (ids.length) await sb.from("inbox").delete().eq("user_id", uid).in("id", ids); return J({ ok: true }); }
     if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
     return J({ error: "unknown op" }, 400);
@@ -4011,27 +4013,28 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
    ${P.length?`<div class="sec"><div class="sh">Bitte prüfen · ${P.length}</div><div class="mmcard">${P.map(p=>`<div class="srow"><div class="srow-h"><span><b>„${esc(p.txt)}“</b><br><small style="color:var(--muted)">${esc(p.why)} · ${new Date(p.t).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></span><span></span><span style="display:flex;gap:6px"><button class="btn soft" data-sp="${p.id}" style="padding:6px 10px;min-height:0">Öffnen</button><button class="ed-ic" data-spx="${p.id}" aria-label="Verwerfen">${I('minus',18)}</button></span></div></div>`).join('')}</div></div>`:''}
    <div class="sec"><div class="sh">Dein Siri-Schlüssel</div><div class="group">${sk?cp('siK',sk.k):'<div class="cell plain"><span style="color:var(--muted)">Noch kein Schlüssel erzeugt.</span></div>'}${cp('siU',u)}</div>
     <button class="btn ${sk?'soft':''}" id="siGen">${sk?'Neuen Schlüssel erzeugen (alter wird ungültig)':'Schlüssel erzeugen'}</button>
-    <div class="note">Der Schlüssel erlaubt nur zwei Dinge: Sätze in deine Siri-Ablage legen und den Briefing-Stand vorlesen. Er liegt nur auf diesem Gerät und in deinen Kurzbefehlen. Bei Verlust einfach neu erzeugen.</div></div>
-   ${sk?`<div class="sec"><div class="sh">Kurzbefehl 1 · „CashFlow“ – eintragen</div><div class="mmcard">
-     ${step(1,'Kurzbefehle-App › + › Aktion „Text diktieren“','Sprache: Deutsch. Optional „Beenden nach: Kurzer Pause“.')}
-     ${step(2,'Aktion „Inhalte von URL abrufen“','URL: die Adresse oben. Methode: POST. Header: Content-Type = application/json. Anfragetext: JSON mit drei Feldern – op (Text) = siri · k (Text) = dein Schlüssel · txt (Text) = Variable „Diktierter Text“.')}
-     ${step(3,'Aktion „Wörterbuchwert abrufen“','Wert für Schlüssel: say')}
-     ${step(4,'Aktion „Text sprechen“','Text: Wörterbuchwert. Dann den Kurzbefehl „CashFlow“ nennen – fertig: „Hey Siri, CashFlow“.')}</div>
+    <div class="note">Der Schlüssel steckt schon in den Adressen unten. Er erlaubt nur zwei Dinge: Sätze in deine Siri-Ablage legen und den Briefing-Stand vorlesen. Er liegt nur auf diesem Gerät und in deinen Kurzbefehlen. Bei Verlust einfach neu erzeugen – dann die Adressen in den Kurzbefehlen ersetzen.</div></div>
+   ${sk?`<div class="sec"><div class="sh">Kurzbefehl 1 · „CashFlow“ – eintragen</div><div class="group">${cp('siA',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
+     ${step(1,'Kurzbefehle-App › + › „Text diktieren“','Sprache: Deutsch.')}
+     ${step(2,'„Text URL-codieren“','Nimmt automatisch den diktierten Text.')}
+     ${step(3,'„Inhalte von URL abrufen“','Adresse oben kopieren und einfügen, direkt dahinter die Variable „URL-codierter Text“ setzen. Sonst nichts ändern.')}
+     ${step(4,'„Text sprechen“','Spricht die Antwort („Notiert: …“). Kurzbefehl „CashFlow“ nennen – fertig.')}</div>
      <div class="note">Beispiele: „Rewe 23,40“ · „Tanken 60 von Flow“ · „Milch und Eier auf die Einkaufsliste“ · „Wunsch Kopfhörer 89 Euro“ · „Journal: wollte Sneaker, gestresst, widerstanden“ · „Notbremse“. Übernommen wird beim nächsten Öffnen der App.</div></div>
-   <div class="sec"><div class="sh">Kurzbefehl 2 · „CashFlow Stand“ – vorlesen</div><div class="mmcard">
-     ${step(1,'Aktion „Inhalte von URL abrufen“','Wie oben, aber JSON: op = siri · k = dein Schlüssel · m = stand')}
-     ${step(2,'„Wörterbuchwert abrufen“ (say) › „Text sprechen“','Siri liest Budgets, Tagesbudget, heutige Ausgaben, Tresor, Termine und Depot vor – Stand deiner letzten App-Nutzung.')}</div></div>
-   <div class="sec"><div class="sh">Kurzbefehl 3 · „CashFlow fragen“ – Assistent</div><div class="mmcard">
-     ${step(1,'Aktion „Text diktieren“','Deine Frage, z. B. „Wie viel habe ich im Oktober bei Rewe ausgegeben?“')}
-     ${step(2,'Aktion „Text URL-codieren“ › Aktion „URL“','URL: Adresse unten + codierter Text')}
-     ${step(3,'Aktion „URLs öffnen“','CashFlow öffnet sich mit der Frage im Assistenten.')}</div><div class="group">${cp('siQ',app+'?frage=')}${cp('siS',app+'?sag=')}</div>
-     <div class="note">Die zweite Adresse (?sag=) ist die Variante ohne Ablage: Der Kurzbefehl öffnet CashFlow und trägt sofort ein.</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 2 · „CashFlow Stand“ – vorlesen</div><div class="group">${cp('siB',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=stand')}</div><div class="mmcard">
+     ${step(1,'„Inhalte von URL abrufen“','Adresse oben einfügen, fertig.')}
+     ${step(2,'„Text sprechen“','Siri liest Budgets, Tagesbudget, heutige Ausgaben, Tresor, Termine und Depot vor – Stand deiner letzten App-Nutzung.')}</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 3 · „CashFlow fragen“ – Assistent</div><div class="group">${cp('siQ',app+'?frage=')}</div><div class="mmcard">
+     ${step(1,'„Text diktieren“','Deine Frage, z. B. „Wie viel habe ich im Oktober bei Rewe ausgegeben?“')}
+     ${step(2,'„Text URL-codieren“','')}
+     ${step(3,'„URLs öffnen“','Adresse oben einfügen, dahinter „URL-codierter Text“. CashFlow öffnet sich mit der Frage im Assistenten.')}</div>
+     <div class="group">${cp('siS',app+'?sag=')}</div><div class="note">Variante ohne Ablage: dieselben drei Schritte mit dieser Adresse – CashFlow öffnet sich kurz und trägt sofort ein.</div>
+     <div class="note">Tipp: Wenn alles läuft, teile jeden Kurzbefehl einmal über „iCloud-Link kopieren“ und leg die Links z. B. in Notizen ab. Auf einem neuen iPhone reicht dann ein Tipp.</div></div>
    <div class="sec"><div class="sh">Testen</div><div class="group"><button class="cell plain" id="siTst" style="color:var(--blue)">Stand abrufen, wie Siri ihn vorliest</button><button class="cell plain" id="siPull" style="color:var(--blue)">Siri-Ablage jetzt abholen</button></div><div class="note" id="siOut"></div></div>`:''}
    <div class="note">Datenschutz: Gesprochene Sätze liegen bis zum nächsten Öffnen der App unverschlüsselt in deiner Supabase-Ablage und werden danach gelöscht. Der „Stand“ nutzt nur die Daten, die für dein Daily Briefing ohnehin dort liegen.</div>`}
 function bindSiri(){if(!$('siGen'))return;
   $('siGen').onclick=async()=>{const b=$('siGen');b.disabled=true;b.textContent='Erzeuge …';try{await siriNewKey();render();toast('Neuer Siri-Schlüssel erzeugt. Im Kurzbefehl eintragen.')}catch(e){b.disabled=false;b.textContent='Schlüssel erzeugen';toast('Fehler: '+(e.message||e)+'. Ist die Funktion „push“ v4 eingespielt und das SQL für Mitteilungen ausgeführt?')}};
   document.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>{const t=$(b.dataset.cp).textContent;try{navigator.clipboard.writeText(t).then(()=>toast('Kopiert.'))}catch(e){toast(t)}});
-  if($('siTst'))$('siTst').onclick=async()=>{const o=$('siOut');o.textContent='Frage an …';try{const r=await fetch(siriFnUrl(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'siri',k:siriGet().k,m:'stand'})});const j=await r.json().catch(()=>({}));o.textContent=j.say||('Fehler '+r.status)}catch(e){o.textContent='Nicht erreichbar: '+(e.message||e)}};
+  if($('siTst'))$('siTst').onclick=async()=>{const o=$('siOut');o.textContent='Frage an …';try{const r=await fetch(siriFnUrl()+'?op=siri&k='+encodeURIComponent(siriGet().k)+'&m=stand');const tx=await r.text();o.textContent=r.ok&&!/^\s*\{/.test(tx)?tx:(r.status==401?'Schlüssel ungültig oder „Verify JWT“ ist an.':/^\s*\{/.test(tx)?'Funktion „push“ ist älter als v6 – bitte neu einspielen.':'Fehler '+r.status+': '+tx.slice(0,120))}catch(e){o.textContent='Nicht erreichbar: '+(e.message||e)}};
   if($('siPull'))$('siPull').onclick=()=>siriPull(true);
   document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{const p=(S.siriPend||[]).find(x=>x.id==b.dataset.sp);if(!p)return;S.siriPend=S.siriPend.filter(x=>x.id!=p.id);save();if(voiceCmd(p.txt))return;openSheet();qp(p.txt);drawSheet()});
   document.querySelectorAll('[data-spx]').forEach(b=>b.onclick=()=>{S.siriPend=(S.siriPend||[]).filter(x=>x.id!=b.dataset.spx);save();render()})}
@@ -4057,6 +4060,21 @@ function pstHtml(){const s=pstState();if(!pushOn())return '';if(!s)return `<div 
 function bindPst(){if($('pstChk'))$('pstChk').onclick=async()=>{$('pstChk').textContent='…';await pstCheck(true);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});SETUP.st=Object.assign(SETUP.st||{},{pushjwt:r2.status==401?'on':r2.ok?'off':'?'});localStorage.setItem('cf_setup',JSON.stringify(SETUP.st))}catch(e){}render()};
   [['pstM','m'],['pstE','e']].forEach(([id,k])=>{if($(id))$(id).onclick=async()=>{$(id).textContent='Sende …';try{await briefSend(true);const j=await pushCall('brieftest',{kind:k,data:briefData(),real:true});toast(j.sent?(k=='e'?'Abend':'Morgen')+'-Briefing gesendet.':'Kein Gerät erreicht. Mitteilungen einmal aus- und einschalten.');await pstCheck(true);render()}catch(e){toast('Fehler: '+(e.message||e))}}})}
 
+/* ---------- Tipp auf eine Mitteilung ---------- */
+function briefCard(t,b){const L=String(b||'').split('\n').map(x=>x.trim()).filter(Boolean);const ic=l=>/^Depot|Woche:/.test(l)?'chart':/Tresor/.test(l)?'lock':/ausgegeben|Ausgaben/.test(l)?'cart':/^(Heute|Morgen|Mo|Di|Mi|Do|Fr|Sa|So|\d)/.test(l)?'calendar':'wallet';
+  return `<div class="brf"><div class="brf-h">${esc(t||'Briefing')}</div>${L.map(l=>`<div class="brf-l"><span class="brf-i">${I(ic(l),14)}</span><span>${esc(l)}</span></div>`).join('')}</div>`}
+function notifOpen(n){if(!n)return;const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
+  if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='rep';repV='Vermögen';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
+  const id=tag.replace(/^[a-z]+-/,'');
+  if(/^due-/.test(tag)){const i=(S.rec||[]).findIndex(r=>r.id==id);tab='more';setView='rec';render();if(i>=0)setTimeout(()=>openRec(i),200);return}
+  if(/^ctr-/.test(tag)){const i=(S.contracts||[]).findIndex(c=>c.id==id);tab='rep';repV='Verträge';render();if(i>=0)setTimeout(()=>openContract(i),200);return}
+  if(/^wish-/.test(tag)){tab='wish';wishV='Wünsche';render();const i=(S.wish||[]).findIndex(w=>w.id==id);if(i>=0)setTimeout(()=>openKaufCheck(i),200);return}
+  if(/^rg-/.test(tag)){const e=S.exp.find(x=>x.id==id);tab='list';render();if(e)setTimeout(()=>openSheet(e),200);return}
+  if(tag=='chk'){tab='dash';render();setTimeout(()=>openCheckin(),200);return}
+  if(tag=='urge'){tab='wish';render();setTimeout(()=>openUrge(),200);return}
+  tab='dash';render();asstOpen=true;renderAsst()}
+try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.cfNotif)notifOpen(e.data.cfNotif)})}catch(e){}
+setTimeout(()=>{try{const q=new URLSearchParams(location.search),n=q.get('n');if(!n)return;history.replaceState(history.state,'',location.pathname);notifOpen(JSON.parse(n))}catch(e){}},1000);
 /* ---------- summary for Claude ---------- */
 function share(){const P=period(0);let t=`Hallo Claude, hier mein Budget-Stand (${now.toLocaleDateString('de-DE')}, ${P.label}, noch ${P.left} Tage):\n`;
   BUDG.forEach(b=>{const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
