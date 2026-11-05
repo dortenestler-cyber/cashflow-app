@@ -725,7 +725,7 @@ const $=id=>document.getElementById(id);
 const eur=x=>x.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
 const eur0=x=>x.toLocaleString('de-DE',{maximumFractionDigits:0})+' €';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const now=new Date();
+let now=new Date();
 
 /* ---------- state ---------- */
 function sample(){const ex=[],P0=period(0,1);
@@ -790,7 +790,7 @@ function ensureAccts(){if(S.accts){refreshA();ensureFlags();return}
       {id:uid(),type:'out',b:'Comdirect',c:'Budgets & Sparen',a:1075,n:'Monatsverteilung auf Konten',t:t(1,9)},{id:uid(),type:'out',b:'Comdirect',c:'Abos',a:47.97,n:'Handy, Streaming, Cloud',t:t(2,10)},
       {id:uid(),type:'out',b:'Comdirect',c:'Versicherung',a:96.4,n:'Haftpflicht & Hausrat',t:t(3,9)})}
   refreshA();ensureFlags()}
-const save=()=>{try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}try{syDirty()}catch(e){}try{pushSoon()}catch(e){}};
+let saveWarn=0,DV=0;const save=()=>{DV++;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){if(Date.now()-saveWarn>6e4){saveWarn=Date.now();setTimeout(()=>{try{toast('Speicher voll: Änderungen konnten auf diesem Gerät nicht gesichert werden. Belegfotos entfernen oder Online-Sync nutzen.')}catch(_){}},0)}}try{syDirty()}catch(e){}try{pushSoon()}catch(e){}};
 
 /* recurring entries become real bookings once due */
 function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}
@@ -826,7 +826,7 @@ const ANCHOR='Mein Geld hat bereits einen Job. Mein Gönn-dir-Budget ist mein be
 const KONSUM=['Restaurant','Café','Freizeit','Shopping','Beauty','Hobby','Geschenke','Restaurant/Café','Barbesuch','Veranstaltungen','Ausflüge','Klettergear','Sportkleidung','Schmuck','Accessoires','Taschen','Elektronik','Wellness','Essen bestellen','Kleidung','Schuhe'];
 const isTabu=n=>{const a=acc(n);if(a.tabu&&a.untabu&&Date.now()>=a.untabu){a.tabu=false;delete a.untabu;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}return !!a.tabu};const isLock=n=>!!acc(n).lock;
 const inP=(e,p)=>e.t>=p.s.getTime()&&e.t<p.e.getTime();
-const NOWT=Date.now(),isPlan=e=>e.t>Date.now();
+let NOWT=Date.now();const isPlan=e=>e.t>Date.now();
 function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e));
   if(isK(b)){const A=S.exp.filter(e=>e.t<p.e.getTime()&&!isPlan(e)),sm=(f)=>A.filter(f).reduce((s,e)=>s+e.a,0);
     const bal=(typeof zinsAt=='function'?zinsAt(b,Math.min(p.e.getTime(),Date.now())):0)+(acc(b).start||0)+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);
@@ -935,7 +935,7 @@ const bLogo=d=>`https://www.google.com/s2/favicons?domain=${encodeURIComponent(d
 const blogoHtml=e=>{if(S.brandLogos===false)return '';const d=brandOf(e);return d?`<img class="blogo" src="${bLogo(d)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''};
 function brandsHtml(){const M=S.brandMap||{},cnt={},none={};S.exp.forEach(e=>{if(e.type=='tr'||!e.n)return;const d=brandOf(e);if(d){cnt[d]=(cnt[d]||0)+1}else{const k=bKey(e.n);if(k.length>=3&&!/^(einkauf|sonstiges|bargeld|kontoabgleich|monatsabschluss|sparplan)/.test(k))none[k]=(none[k]||0)+1}});
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]),miss=Object.entries(none).sort((a,b)=>b[1]-a[1]).slice(0,20);
-  return `<div class="group"><div class="cell plain"><div class="t"><div>Marken-Logos anzeigen</div><div class="s">In Buchungen neben dem Namen</div></div><input type="checkbox" class="switch" id="blOn" ${S.brandLogos!==false?'checked':''}></div></div>
+  return `<div class="group"><div class="cell plain"><div class="t"><div>Marken-Logos anzeigen</div><div class="s">In Buchungen neben dem Namen · einmal geladen, dann auf dem Gerät gespeichert</div></div><input type="checkbox" class="switch" id="blOn" ${S.brandLogos!==false?'checked':''}></div></div>
    <div class="sec"><div class="sh">Erkannt in deinen Buchungen · ${top.length}</div><div class="bl-grid">${top.map(([d,n])=>`<div class="bl-i"><img src="${bLogo(d)}" alt="" referrerpolicy="no-referrer"><span>${esc(d.replace(/\.(de|com|eu|capital)$/,''))}</span><small>${n}×</small></div>`).join('')||'<div class="note">Noch keine Marken erkannt.</div>'}</div></div>
    ${miss.length?`<div class="sec"><div class="sh">Ohne Logo · häufig</div><div class="group">${miss.map(([k,n],i)=>`<div class="cell plain"><div class="t" style="flex:1;min-width:0"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</div><div class="s">${n} Buchung${n>1?'en':''}</div></div><input data-bmk="${esc(k)}" placeholder="webseite.de" autocapitalize="off" style="max-width:130px;text-align:right"></div>`).join('')}</div>
     <div class="note">Trag die Webseite der Marke ein (z. B. „friseur-mueller.de“), dann erscheint ihr Logo bei allen passenden Buchungen. Leer lassen, wenn es keine Marke ist.</div></div>`:''}
@@ -980,10 +980,11 @@ function fixGuard(){const pa=pufAcc();if(!pa)return null;const n=pa.n,ev=[],now0
   ev.sort((x,y)=>dayStart(x.d)-dayStart(y.d)||y.a-x.a);let bal=calc(n).rest,min=bal,at=null;ev.forEach(x=>{bal+=x.a;if(bal<min){min=bal;at=x}});
   return at&&min<50?{n,min,at,big:ev.filter(x=>x.a<0&&dayStart(x.d)==dayStart(at.d))}:null}
 function catOutliers(){const P=period(0);if(P.idx<5)return[];const cur={},avg={};
-  S.exp.forEach(e=>{if(e.type!='out'||isPlan(e)||isRecE(e)||isTabu(e.b))return;const k=e.c||'Sonstiges';if(inP(e,P))cur[k]=(cur[k]||0)+e.a;else for(let o=-1;o>=-3;o--){if(inP(e,period(o))){avg[k]=(avg[k]||0)+e.a;break}}});
+  S.exp.forEach(e=>{if(e.type!='out'||e.corr||isPlan(e)||isRecE(e)||isTabu(e.b))return;const k=e.c||'Sonstiges';if(inP(e,P))cur[k]=(cur[k]||0)+e.a;else for(let o=-1;o>=-3;o--){if(inP(e,period(o))){avg[k]=(avg[k]||0)+e.a;break}}});
   let n=0;for(let o=-1;o>=-3;o--)if(period(o).e.getTime()>(S.since||0))n++;if(!n)return[];
   return Object.entries(cur).map(([k,v])=>({k,v,a:(avg[k]||0)/n})).filter(x=>x.a>5&&x.v>2*x.a&&x.v-x.a>30).sort((x,y)=>(y.v-y.a)-(x.v-x.a)).slice(0,2)}
-function newSubs(){const D=864e5,since=Date.now()-110*D,G={},norm=t=>String(t||'').toLowerCase().replace(/\d+/g,'').replace(/[^a-zäöüß]+/g,' ').trim();
+const subKey=t=>String(t||'').toLowerCase().replace(/\d+/g,'').replace(/[^a-zäöüß]+/g,' ').trim();
+function newSubs(){const D=864e5,since=Date.now()-110*D,G={},norm=subKey;
   const known=new Set((S.rec||[]).map(r=>norm(r.n||r.c)));const no=S.subNo||[];
   S.exp.forEach(e=>{if(e.type!='out'||isPlan(e)||e.rid||e.t<since||!e.n)return;const k=norm(e.n);if(k.length<3||known.has(k)||no.includes(k))return;(G[k]=G[k]||[]).push(e)});
   return Object.entries(G).map(([k,L])=>{L.sort((a,b)=>a.t-b.t);const last=L[L.length-1],M=L.filter(e=>Math.abs(e.a-last.a)<=Math.max(1,last.a*.1));if(M.length<2||L.length>M.length+1)return null;
@@ -991,7 +992,8 @@ function newSubs(){const D=864e5,since=Date.now()-110*D,G={},norm=t=>String(t||'
     const gaps=M.slice(1).map((e,i)=>(e.t-M[i].t)/D);if(!gaps.every(g=>g>=25&&g<=36))return null;if(Date.now()-last.t>40*D)return null;return{k,e:last,n:M.length}}).filter(Boolean).slice(0,2)}
 function subAdopt(k){const x=newSubs().find(y=>y.k==k);if(!x)return;const e=x.e,nd=new Date(e.t);const nx=new Date(nd.getFullYear(),nd.getMonth()+1,1);
   const r={id:uid(),type:'out',b:e.b,c:e.c||'Abos',a:e.a,n:e.n,day:nd.getDate(),every:1,start:ymd(nx.getTime()),abo:true};S.rec.push(r);save();render();toast(e.n+' ist jetzt im Abo-Radar, ab nächstem Monat automatisch gebucht.');setTimeout(()=>openAbo(r.id),200)}
-function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
+let TIPC={k:'',v:null};function tipsList(){const k=DV+'|'+Math.floor(Date.now()/3e5)+'|'+((S.dismTips||[]).length)+'|'+(S.exp||[]).length;if(TIPC.k===k&&TIPC.v)return TIPC.v.slice();const v=tipsList0();TIPC={k,v};return v.slice()}
+function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   BUDG.forEach(b=>{const c=calc(b),s=stat(c);
     if(s.k=='bad')t.push({sev:'bad',b,ttl:b+': '+s.txt,txt:isLock(b)?`„${ANCHOR}“ Die Notfallbremse ist aktiv: kein Nachschub aus anderen Töpfen. Am ${period(1).s.getDate()}.${period(1).s.getMonth()+1}. startet ${b} neu.`:'Ab jetzt nichts mehr aus diesem Topf ausgeben.'});
     else{const f=budForecast(b);if(f)t.push({sev:'warn',b,fc:1,ttl:`${b}: reicht nur bis ca. ${dmy(f.when)}`,txt:`Bei deinem Tempo (${eur(f.rate)} pro Tag) ist ${esc(b)} ${f.free>0?'am '+f.when.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'}):'schon jetzt'} leer${f.free>0?'':', offene Fixkosten eingerechnet'}. Mit höchstens ${eur(f.perDay)} pro Tag kommst du bis Monatsende.`});
@@ -1021,7 +1023,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='96 (05.11.)';
+const APP_VER='97 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1221,7 +1223,7 @@ function viewSumme(p){const L=S.exp.filter(e=>inP(e,p)),pp=period(off-1),LP=S.ex
   ${Object.keys(trs).length?`<div class="sec"><div class="sh">Umbuchungen</div><div class="mmcard">${Object.entries(trs).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span>${eur(v)}</span></div></div>`).join('')}</div></div>`:''}
   <button class="btn soft" id="csvMonth">Diesen Monat als CSV kopieren</button><div class="note" id="csvMsg"></div><textarea class="box" id="csvOut" hidden readonly></textarea>`}
 function viewCal(){const p=period(off),ALLX=expV(p.s.getTime()-8*864e5,p.e.getTime()+15*864e5),L=ALLX.filter(e=>inP(e,p)&&(off>0||!isPlan(e))&&(flt=='Alle'||e.b==flt||e.to==flt)),tflt='Alle';
-  const out=L.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0);
+  const out=L.filter(e=>e.type=='out'&&!e.corr).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&!e.corr).reduce((s,e)=>s+e.a,0);
   const sum=(i,o)=>`<div class="mmsum strip"><div>Einnahmen<b class="in">${eur(i)}</b></div><div>Ausgaben<b class="out">${eur(o)}</b></div><div>Saldo<b class="${i-o<0?'out':''}">${eur(i-o)}</b></div></div>`;
   const head=appbar({title:'Kalender',month:true,left:`<button class="ab-ic ${showF||flt!='Alle'?'act':''}" id="fBtn" aria-label="Konto filtern">${I('filter',21)}</button>`});
 const DOTC=['#3b8fd9','#f25c54','#a06bf2','#2fc4a3','#f0a12d','#e56bb0','#5fb35a','#8a8f98'];
@@ -1338,7 +1340,7 @@ function barChart({vals,labels,ref,col,hi,h=150,top,flat,tipLab,tipName}){const 
   return tcWrap(`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`,{W,H,xs:vals.map((_,i)=>x0+i*gw+gw/2),bw:gw*.9,y0,y1:yt,tips:vals.map((v,i)=>tcHead(TL(i))+tcRow(tipName||'',v||0,'')+(ref&&!flat&&v>ref.v?`<span class="tr" style="color:var(--bad)">über ${esc(ref.label)}</span>`:''))})}
 const isRecE=e=>!!(e.rid||e.tpl);
 let repK='Alle';const kOk=(e,kf)=>!kf||kf=='Alle'||(kf=='Wiederkehrend')==isRecE(e);
-const used=(e,bs,kf)=>kOk(e,kf)&&((e.type=='out'&&bs.includes(e.b))||(e.type=='tr'&&!e.alloc&&bs.includes(e.b)&&!bs.includes(e.to)))?e.a:0;
+const used=(e,bs,kf)=>!e.corr&&kOk(e,kf)&&((e.type=='out'&&bs.includes(e.b))||(e.type=='tr'&&!e.alloc&&bs.includes(e.b)&&!bs.includes(e.to)))?e.a:0;
 function recPlan(bs,o){const p=period(o);return (S.rec||[]).filter(r=>!r.paused&&bs.includes(r.b)&&(r.type=='out'||(r.type=='tr'&&!r.alloc&&!bs.includes(r.to)))&&recDue(r,p)).reduce((s,r)=>s+r.a,0)}
 function kindLim(bs,o,kf){const b=budOf(bs),rp=recPlan(bs,o),hasB=bs.some(x=>!isK(x));
   if(kf=='Wiederkehrend')return{v:rp,label:'Geplant '+eur0(rp)};
@@ -1393,7 +1395,7 @@ function monthOff(Y,m){const c=period(0).s;return (Y*12+m)-(c.getFullYear()*12+c
 function yearHead(Y,title,sub){return `<div><button class="back" id="drBack">‹ Auswertung</button><h1 class="lt" style="font-size:28px">${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div>
   <div class="ynav"><button id="yPrev" aria-label="Voriges Jahr">‹</button><span><b>${Y}</b> <small>${new Date(Y,0,S.start).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})} – ${new Date(Y+1,0,S.start-1).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</small></span><button id="yNext" aria-label="Nächstes Jahr" ${yOff>=0?'disabled':''}>›</button></div>`}
 function viewYear(bs){const Y=period(0).s.getFullYear()+yOff,ms=[];
-  for(let m=0;m<12;m++){const o=monthOff(Y,m),pp=period(o),fut=o>0,L=fut?[]:S.exp.filter(e=>inP(e,pp)&&bs.includes(e.b));
+  for(let m=0;m<12;m++){const o=monthOff(Y,m),pp=period(o),fut=o>0,L=fut?[]:S.exp.filter(e=>inP(e,pp)&&!e.corr&&bs.includes(e.b));
     ms.push({m,o,fut,i:L.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),x:L.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0)})}
   let cum=0;const pts=ms.map(r=>r.fut?null:(cum+=r.i-r.x));const ti=ms.reduce((s,r)=>s+r.i,0),tx=ms.reduce((s,r)=>s+r.x,0),n=ms.filter(r=>!r.fut&&(r.i||r.x)).length||1;
   return yearHead(Y,'Jahressaldo '+Y,repB=='Alle'?'Alle sichtbaren Konten':repB)+`<div class="chartbox">${lineChart({n:12,series:[{pts,col:'var(--in)',area:true,dot:true,w:2.4}],labels:ms.map((r,i)=>({i,t:MN[i].slice(0,3),on:r.o==0})),h:190,tipLab:i=>MN[i]+' '+Y+' · Saldo'})}
@@ -1461,8 +1463,8 @@ function forecastHtml(){const N=6,pa=pufAcc(),mn=o=>period(o).s.toLocaleDateStri
 const DEVR={'3m':['3M',3],'6m':['6M',6],'1y':['1J',12],'2y':['2J',24],'all':['Alles',0]};
 function devRange(r){const n=new Date();if(r=='all'){const t0=Math.min(...S.exp.map(e=>e.t),Date.now());const d=new Date(t0);return{s:new Date(d.getFullYear(),d.getMonth(),1).getTime(),e:Date.now()+1,m:(n.getFullYear()-d.getFullYear())*12+n.getMonth()-d.getMonth()+1}}const m=DEVR[r][1];return{s:new Date(n.getFullYear(),n.getMonth()-m+1,1).getTime(),e:Date.now()+1,m}}
 function devHtml(){const D=S.devSel=S.devSel||{r:'1y',c:'',q:''},R=devRange(D.r),q=(D.q||'').toLowerCase().trim();
-  const inR=e=>e.t>=R.s&&e.t<R.e&&!isPlan(e)&&e.type=='out'&&!WH(e.b),match=e=>(!D.c||e.c==D.c)&&(!q||[e.n,e.c,e.sc,e.p].join(' ').toLowerCase().includes(q));
-  const L=S.exp.filter(e=>inR(e)&&match(e)),sum=L.reduce((s,e)=>s+e.a,0),len=R.e-R.s,prevL=S.exp.filter(e=>e.t>=R.s-len&&e.t<R.s&&!isPlan(e)&&e.type=='out'&&!WH(e.b)&&match(e)),prev=prevL.reduce((s,e)=>s+e.a,0);
+  const inR=e=>e.t>=R.s&&e.t<R.e&&!isPlan(e)&&!e.corr&&e.type=='out'&&!WH(e.b),match=e=>(!D.c||e.c==D.c)&&(!q||[e.n,e.c,e.sc,e.p].join(' ').toLowerCase().includes(q));
+  const L=S.exp.filter(e=>inR(e)&&match(e)),sum=L.reduce((s,e)=>s+e.a,0),len=R.e-R.s,prevL=S.exp.filter(e=>e.t>=R.s-len&&e.t<R.s&&!isPlan(e)&&!e.corr&&e.type=='out'&&!WH(e.b)&&match(e)),prev=prevL.reduce((s,e)=>s+e.a,0);
   const catSums={};S.exp.filter(inR).forEach(e=>{if(e.c)catSums[e.c]=(catSums[e.c]||0)+e.a});const cats=Object.entries(catSums).sort((a,b)=>b[1]-a[1]);
   const ms=[];const n=new Date();for(let i=R.m-1;i>=0;i--){const d=new Date(n.getFullYear(),n.getMonth()-i,1);ms.push({s:d.getTime(),e:new Date(d.getFullYear(),d.getMonth()+1,1).getTime(),l:d.toLocaleDateString('de-DE',{month:R.m>12?'narrow':'short'}),ll:d.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}
   const vals=ms.map(m=>L.filter(e=>e.t>=m.s&&e.t<m.e).reduce((s,e)=>s+e.a,0)),avg=vals.length?sum/vals.length:0;
@@ -2240,7 +2242,7 @@ function invMonth(n,o){const D=depot().filter(h=>h.to==n||(!h.to&&/etf|depot/i.t
     if(h.rate&&h.plan!==false){const r=h.rid&&(S.rec||[]).find(x=>x.id==h.rid);if(r&&r.paused)return;const d=new Date(P.s.getFullYear(),P.s.getMonth(),Math.min(h.day||1,28),12);if(d<P.s)d.setMonth(d.getMonth()+1);if(d>=P.e)return;
       const bd=h.bd&&h.bd!='pre'?new Date(h.bd+'T00:00').getTime():0;if(bd&&d.getTime()<bd)return;if(d.getTime()<=now0)b+=h.rate;else pl+=h.rate}});
   return{b:Math.round(b*100)/100,pl}}
-function anaData(o){const p=period(o),pp=period(o-1),V=vaultAccs(),pa=pufAcc(),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e)),LP=S.exp.filter(e=>inP(e,pp)&&!isPlan(e));
+function anaData(o){const p=period(o),pp=period(o-1),V=vaultAccs(),pa=pufAcc(),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&!e.corr),LP=S.exp.filter(e=>inP(e,pp)&&!isPlan(e)&&!e.corr);
   const sum=(A,f)=>A.filter(f).reduce((s,e)=>s+e.a,0),inc=A=>sum(A,e=>e.type=='in'),out=A=>sum(A,e=>e.type=='out');
   const intoV=e=>(e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b)),saved=sum(L,intoV),goalDep=S.goals.reduce((s,g)=>s+g.dep.filter(d=>inP({t:d.t},p)).reduce((q,d)=>q+d.a,0),0);
   const fix=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&isRecE(e)):0,oneK=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&!isRecE(e)):0,budUsed=TOT.reduce((s,b)=>s+calc(b,o).used,0);
@@ -2327,7 +2329,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
   ${sec('Schutz vor Impulsen','Regeln, die dich vor Spontankäufen schützen.',
    nav('rules','lock','Regeln & Tabu-Konten','Notfallbremse, 14 Tage Wartezeit, Restgeld',c3)+
    nav('puffer','hourglass','Stundenlohn',eur(S.lohn)+' pro Std. · für „so viele Stunden Arbeit“',c3)+
-   nav('pin','lock','PIN & '+bioName(),S.pin?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3)+nav('push','bell','Mitteilungen',pushOn()?'Aktiv auf diesem Gerät':'Aus',c3))}
+   nav('pin','lock','PIN & '+bioName(),pinActive()?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3)+nav('push','bell','Mitteilungen',pushOn()?'Aktiv auf diesem Gerät':'Aus',c3))}
   ${sec('Rückblick & Hilfe','',
    nav('report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
@@ -2356,7 +2358,7 @@ async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render
   st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
   st.bak=await t(async()=>{const r=await syFetch('/rest/v1/cashflow_backup?select=ym&limit=1');return r.ok});
   st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=7?true:'old'});
-  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=2?true:'old'});
+  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=3?true:'old'});
   st.pushsql=await t(async()=>{const a=await syFetch('/rest/v1/push_brief?select=user_id&limit=1'),b=await syFetch('/rest/v1/push_queue?select=id&limit=1');return a.ok&&b.ok?true:b.ok?'old':false});
   SETUP.st=st;try{localStorage.setItem('cf_setup',JSON.stringify(st))}catch(e){}SETUP.busy=false;if(st.kurse===true)S.kursFnOld=false;if(st.push===true&&st.pushsql===true)S.briefOld=false;render()}
 function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','check']:v==='old'?['Veraltet, bitte neu einspielen','warn','up']:v===false?['Fehlt noch','bad','alert']:v==='err'?['Antwortet mit Fehler','bad','alert']:['Noch nicht geprüft','muted','dot'];
@@ -2449,7 +2451,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    <div class="sec"><div class="sh">Daily Briefing</div><div class="group">${sw('bm',O.bm,'Morgen-Briefing','Mo–Fr 6:30, Sa/So 8:00 · Konten, Tresor-Einzahlungen, Kurse vom Vortag, nächste 3 Tage · am Wochenende mit Wochenbilanz')}${sw('be',O.be,'Tageszusammenfassung','Täglich 18:00 · Ausgaben heute, Konten, Wertentwicklung')}</div>
     ${pushOn()?`<div class="cell plain" style="gap:8px;padding:8px 0"><button class="btn soft" id="brT1" style="flex:1;margin:0">Morgen-Briefing testen</button><button class="btn soft" id="brT2" style="flex:1;margin:0">Abend testen</button></div>`:''}
     ${S.briefOld?'<div class="note" style="color:var(--bad)">Für das Briefing brauchst du die neue Version der Funktion „push“ und das aktualisierte SQL (siehe Einrichtung unten, Schritt 1 und 2 wiederholen).</div>':''}
-    <div class="note">Kurse holt Supabase frisch zum Versand. Kontostände und Termine stammen von deiner letzten App-Nutzung. Dafür liegen Kontostände, Termine und Depot-Positionen unverschlüsselt bei Supabase.</div></div>
+    <div class="note">Kurse holt Supabase frisch zum Versand. Kontostände und Termine stammen von deiner letzten App-Nutzung. Bei Supabase liegen dafür nur Kontostände, Termine ohne Beträge und die Kürzel deiner Depotwerte mit ihrem Anteil – keine Stückzahlen oder Depotwerte. Mit „Beträge in Mitteilungen“ kommen Beträge dazu.</div></div>
    <div class="sec"><div class="sh">Datenschutz</div><div class="group">${sw('amt',O.amt===true,'Beträge in Mitteilungen','Aus: Texte ohne Euro-Beträge. Die Texte liegen bis zum Versand unverschlüsselt bei Supabase.')}</div>
    <div class="note">Nachts zwischen 22 und 7 Uhr kommt nichts, solche Mitteilungen werden auf 8 Uhr verschoben. Der Plan wird jedes Mal neu berechnet, wenn du die App benutzt.</div></div>
    <button class="btn soft" data-gosetup="1">Alle Codes: Einstellungen › Supabase-Einrichtung</button>
@@ -2459,10 +2461,10 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     <li>In der Funktion <b>push</b> unter <b>Details</b> bzw. <b>Settings</b> den Schalter <b>Verify JWT</b> ausschalten und speichern. Die Funktion prüft die Anmeldung selbst.</li>
     <li>Zurück hier oben den Schalter einschalten, Mitteilungen erlauben, dann <b>Test-Mitteilung senden</b>.</li></ol>
     <div class="note" style="padding:8px 0 0">Auf dem iPhone geht das nur, wenn die App vom Home-Bildschirm geöffnet wird (ab iOS 16.4).</div></div></div>`}
-  if(k=='pin')return back+`<h1 class="lt">PIN-Schutz</h1></div><div class="group"><div class="cell plain"><label for="pinin">Vierstellige PIN</label><input id="pinin" inputmode="numeric" maxlength="4" placeholder="${S.pin?'••••':'nicht gesetzt'}"></div></div>
-   <button class="btn" id="pinSave">PIN speichern</button>${S.pin?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Die PIN schützt vor neugierigen Blicken und ist immer der Ersatz, falls ${bioName()} mal nicht klappt.</div>
-   ${S.pin?`<div class="sec"><div class="sh">Automatisch sperren</div><div class="seg" id="lockAf">${[[0,'Sofort'],[1,'1 Min.'],[5,'5 Min.'],[15,'15 Min.'],[-1,'Nur Neustart']].map(([v,l])=>`<button class="${(S.lockAfter==null?5:S.lockAfter)==v?'on':''}" data-v="${v}">${l}</button>`).join('')}</div><div class="note">Wie lange die App im Hintergrund sein darf, bevor sie wieder ${bioGet()?bioName()+' oder ':''}die PIN verlangt.</div></div>`:''}
-   <div class="sec"><div class="sh">${bioName()}</div><div class="group" id="bioBox"><div class="cell plain"><div class="t"><div>Mit ${bioName()} entsperren</div><div class="s" id="bioSub">${!S.pin?'Lege zuerst eine PIN fest.':bioGet()?'Aktiv auf diesem Gerät':'Wird geprüft …'}</div></div><input type="checkbox" class="switch" id="bioSw" ${bioGet()?'checked':''} ${S.pin?'':'disabled'}></div></div>
+  if(k=='pin')return back+`<h1 class="lt">PIN-Schutz</h1></div><div class="group"><div class="cell plain"><label for="pinin">Vierstellige PIN</label><input id="pinin" inputmode="numeric" maxlength="4" placeholder="${pinActive()?'••••':'nicht gesetzt'}"></div></div>
+   <button class="btn" id="pinSave">PIN speichern</button>${pinActive()?'<button class="btn danger" id="pinOff">PIN entfernen</button>':''}<div class="note" id="pinMsg">Die PIN schützt vor neugierigen Blicken und ist immer der Ersatz, falls ${bioName()} mal nicht klappt.</div>
+   ${pinActive()?`<div class="sec"><div class="sh">Automatisch sperren</div><div class="seg" id="lockAf">${[[0,'Sofort'],[1,'1 Min.'],[5,'5 Min.'],[15,'15 Min.'],[-1,'Nur Neustart']].map(([v,l])=>`<button class="${(S.lockAfter==null?5:S.lockAfter)==v?'on':''}" data-v="${v}">${l}</button>`).join('')}</div><div class="note">Wie lange die App im Hintergrund sein darf, bevor sie wieder ${bioGet()?bioName()+' oder ':''}die PIN verlangt.</div></div>`:''}
+   <div class="sec"><div class="sh">${bioName()}</div><div class="group" id="bioBox"><div class="cell plain"><div class="t"><div>Mit ${bioName()} entsperren</div><div class="s" id="bioSub">${!pinActive()?'Lege zuerst eine PIN fest.':bioGet()?'Aktiv auf diesem Gerät':'Wird geprüft …'}</div></div><input type="checkbox" class="switch" id="bioSw" ${bioGet()?'checked':''} ${pinActive()?'':'disabled'}></div></div>
    ${bioGet()?`<button class="btn soft" id="bioTest">${bioName()} jetzt testen</button>`:''}<div class="note">Wird nur auf diesem Gerät eingerichtet, nicht über den Sync. Am Arbeits-PC also einfach ausgeschaltet lassen.</div></div>`;
   if(k=='bg')return back+`<h1 class="lt">Hintergründe</h1></div><div class="note">Tippe auf eine Karte, um Farbverlauf oder Foto zu ändern.</div>${['Gesamt',...ALL].map(x=>`<button class="bgprev" data-bg="${x}" style="${bgStyle(x)};border:0;width:100%;cursor:pointer;font:inherit;font-weight:700;font-size:20px;text-align:left">${x=='Gesamt'?'Alle Budgets':x}</button>`).join('')}`;
   if(k=='import')return viewImport();
@@ -2622,10 +2624,10 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   if($('blOn'))$('blOn').onchange=()=>{S.brandLogos=$('blOn').checked;save();render()};document.querySelectorAll('[data-bmk]').forEach(i=>i.onchange=()=>{const d=i.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');if(!d)return;if(!/\./.test(d)){toast('Bitte eine Webseite wie marke.de eintragen.');return}S.brandMap=S.brandMap||{};S.brandMap[i.dataset.bmk]=d;save();render();toast('Logo zugeordnet.')});document.querySelectorAll('[data-bmx]').forEach(b=>b.onclick=()=>{delete S.brandMap[b.dataset.bmx];save();render()});
   on('setupChk',setupCheck);document.querySelectorAll('[data-setcp]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setcp);try{navigator.clipboard.writeText(x.code()).then(()=>toast((x.w=='SQL'?'SQL':'Code')+' kopiert. Jetzt in Supabase einfügen.'))}catch(e){const pr=$('setpre-'+x.k);pr.hidden=false;pr.textContent=x.code();toast('Kopieren ging nicht. Text unten markieren.')}});
   document.querySelectorAll('[data-setsh]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setsh),pr=$('setpre-'+x.k);pr.hidden=!pr.hidden;if(!pr.hidden)pr.textContent=x.code()});
-  on('pinSave',()=>{const v=$('pinin').value;if(!/^\d{4}$/.test(v)){$('pinMsg').textContent='Bitte genau vier Ziffern eingeben.';return}S.pin=v;save();render();$('pinMsg').textContent='PIN gespeichert. Beim nächsten Öffnen wird sie abgefragt.'});
-  on('pinOff',()=>{S.pin='';try{localStorage.removeItem(BIOK)}catch(e){}save();render()});
+  on('pinSave',()=>{const v=$('pinin').value;if(!/^\d{4}$/.test(v)){$('pinMsg').textContent='Bitte genau vier Ziffern eingeben.';return}pinSet(v).then(()=>{render();if($('pinMsg'))$('pinMsg').textContent='PIN gespeichert. Sie gilt nur auf diesem Gerät.'});return;$('pinMsg').textContent='PIN gespeichert. Beim nächsten Öffnen wird sie abgefragt.'});
+  on('pinOff',()=>{pinSet('');try{localStorage.removeItem(BIOK)}catch(e){}save();render()});
   document.querySelectorAll('#lockAf button').forEach(b=>b.onclick=()=>{S.lockAfter=+b.dataset.v;save();render()});
-  if($('bioSw')){bioAvail().then(ok=>{const sub=$('bioSub');if(!ok&&!bioGet()){if(sub)sub.textContent=CANFILE?'Auf diesem Gerät oder Browser nicht verfügbar.':'Nur in der installierten App, nicht in dieser Vorschau.';$('bioSw').disabled=true}else if(sub&&S.pin&&!bioGet())sub.textContent='Aus'});
+  if($('bioSw')){bioAvail().then(ok=>{const sub=$('bioSub');if(!ok&&!bioGet()){if(sub)sub.textContent=CANFILE?'Auf diesem Gerät oder Browser nicht verfügbar.':'Nur in der installierten App, nicht in dieser Vorschau.';$('bioSw').disabled=true}else if(sub&&pinActive()&&!bioGet())sub.textContent='Aus'});
     if($('bioTest'))$('bioTest').onclick=async()=>{try{toast(await bioCheck()?bioName()+' funktioniert.':bioName()+' wurde nicht bestätigt.')}catch(e){toast('Test fehlgeschlagen ('+(e.name||e.message)+').')}};
     $('bioSw').onchange=async()=>{const sw=$('bioSw');if(sw.checked){try{await bioSetup();toast(bioName()+' ist eingerichtet. Beim nächsten Start der App wird danach gefragt.')}catch(e){try{localStorage.removeItem(BIOK)}catch(_){}toast(e&&e.name=='NotAllowedError'?'Abgebrochen oder nicht erlaubt.':bioName()+' konnte nicht eingerichtet werden ('+((e&&(e.name||e.message))||'Fehler')+').')}}else{try{localStorage.removeItem(BIOK)}catch(e){}toast(bioName()+' ausgeschaltet.')}render()}}
   on('csvBtn',()=>{const rows=[['Datum','Typ','Konto','Nach','Kategorie','Notiz','Person','Betrag']].concat(S.exp.slice().sort((a,b)=>a.t-b.t).map(e=>[new Date(e.t).toLocaleDateString('de-DE'),{out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[e.type],e.b,e.to||'',e.c||'',e.n||'',e.p||'',e.a.toFixed(2).replace('.',',')]));
@@ -2759,6 +2761,9 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     ${tr?'':`<div class="cell plain"><label for="esub">Unterkategorie</label><input id="esub" list="subs" placeholder="optional" value="${esc(E.sc||'')}"><datalist id="subs">${[...new Set(S.exp.filter(e=>e.b==E.b&&e.c==E.c&&e.sc).map(e=>e.sc))].map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>`}
     <div class="cell plain"><label for="etags">Tags</label><input id="etags" placeholder="#urlaub #geschenk" value="${esc(E.tg||'')}"></div>
     ${tr?'':`<div class="cell plain"><label for="eperson">Person</label><input id="eperson" placeholder="optional" value="${esc(E.p)}"></div>`}
+    ${E.id&&E.type=='out'&&E.n&&bKey(E.n).length>=2?(()=>{const d=brandOf(E),sk=subKey(E.n),isNo=(S.subNo||[]).includes(sk),isAbo=(S.rec||[]).some(r=>subKey(r.n||r.c)==sk);return `<div class="cell plain"><label for="ebrand">Marke</label>${d?`<img class="blogo" src="${bLogo(d)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<input id="ebrand" placeholder="webseite.de · leer = kein Logo" autocapitalize="off" value="${esc(E.brand!=null?E.brand:(d||''))}"></div>
+    <div class="cell plain"><span>Abo</span><span style="flex:1"></span><div class="seg" id="eAbo" style="max-width:230px">${[['auto','Automatisch'],['yes','Ist Abo'],['no','Kein Abo']].map(([k,l])=>`<button data-v="${k}" class="${(isAbo?'yes':isNo?'no':'auto')==k?'on':''}">${l}</button>`).join('')}</div></div>
+    <div class="cell plain" style="padding-top:0"><div class="s" style="font-size:12px;color:var(--muted)">Korrekturen gelten für alle Buchungen mit „${esc(bKey(E.n))}“ und werden gemerkt.</div></div>`})():''}
     <div class="cell plain"><label for="eimg">Beleg</label>${E.img?`<img class="thumb" src="${E.img}" alt="Beleg"><button class="del" id="imgDel" aria-label="Beleg entfernen">${I('minus',22)}</button>`:`<span style="flex:1"></span><label for="eimg" style="color:var(--blue);cursor:pointer">Foto hinzufügen</label>`}<input id="eimg" type="file" accept="image/*" hidden></div>
     ${E.id?'':`<div class="cell plain"><label for="erep">Monatlich wiederholen</label><span style="flex:1"></span><input id="erep" type="checkbox" class="switch" ${E.rep?'checked':''}></div>
     ${E.rep&&E.type=='out'&&!isK(E.b)?`<div class="cell plain"><div class="s" style="font-size:12px;color:color-mix(in srgb,var(--warn) 75%,var(--fg))">Wiederkehrend aus ${esc(E.b)} belastet jeden Monat dein Budget. Fixkosten besser aufs Eingangskonto buchen.</div></div>`:''}
@@ -2768,7 +2773,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
    ${E.id?'<button class="btn danger" id="delE">Buchung löschen</button>':''}
   </div></div>`;
   if(sTop)document.querySelector('#sheetRoot .sheet-b').scrollTop=sTop;
-  const keep=keepS=()=>{if($('ekwh'))E.kwh=$('ekwh').value;if($('edate'))E.dt=$('edate').value||E.dt;E.n=$('enote').value;E.tg=$('etags').value;if($('esub'))E.sc=$('esub').value;if($('eperson'))E.p=$('eperson').value;if($('erep')){const was=E.rep;E.rep=$('erep').checked;if(was!==E.rep)setTimeout(drawSheet,0)}if($('efav'))E.fav=$('efav').checked};
+  const keep=keepS=()=>{if($('ekwh'))E.kwh=$('ekwh').value;if($('edate'))E.dt=$('edate').value||E.dt;E.n=$('enote').value;E.tg=$('etags').value;if($('esub'))E.sc=$('esub').value;if($('eperson'))E.p=$('eperson').value;if($('erep')){const was=E.rep;E.rep=$('erep').checked;if(was!==E.rep)setTimeout(drawSheet,0)}if($('efav'))E.fav=$('efav').checked;if($('ebrand'))E.brand=$('ebrand').value};
   const close=()=>$('sheetRoot').innerHTML='';
   $('scrim').onclick=$('cancel').onclick=close;
   $('eMore').onclick=()=>{keep();E.more=!E.more;drawSheet()};
@@ -2791,6 +2796,11 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     drawSheet()});
   $('eimg').onchange=ev=>{const f=ev.target.files[0];if(!f)return;keep();const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,500/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);E.img=cv.toDataURL('image/jpeg',.6);drawSheet()};im.src=rd.result};rd.readAsDataURL(f)};
   if($('imgDel'))$('imgDel').onclick=()=>{keep();E.img='';drawSheet()};
+  document.querySelectorAll('#eAbo button').forEach(b=>b.onclick=()=>{keep();const v=b.dataset.v,sk=subKey(E.n);S.subNo=(S.subNo||[]).filter(x=>x!=sk);
+    if(v=='no'){S.subNo.push(sk);toast('Gemerkt: „'+E.n+'“ ist kein Abo.')}
+    else if(v=='yes'){if(!(S.rec||[]).some(r=>subKey(r.n||r.c)==sk)){const nd=new Date(E.t||Date.now()),nx=new Date(nd.getFullYear(),nd.getMonth()+1,1);S.rec.push({id:uid(),type:'out',b:E.b,c:E.c||'Abos',a:Math.round(evalAmt(E.amt)*100)/100||E.orig&&E.orig.a||0,n:E.n,day:nd.getDate(),every:1,start:ymd(nx.getTime()),abo:true});toast('„'+E.n+'“ ist jetzt im Abo-Radar, ab nächstem Monat automatisch gebucht.')}}
+    else{S.rec=(S.rec||[]).filter(r=>!(r.abo&&subKey(r.n||r.c)==sk&&!S.exp.some(e=>e.rid==r.id)));toast('Abo-Erkennung wieder automatisch.')}
+    save();drawSheet()});
   if($('nowE'))$('nowE').onclick=()=>{E.dt=today();E.t=Date.now();if($('edate'))$('edate').value=E.dt;$('ok').click()};
   if($('delE'))$('delE').onclick=()=>{const s=snap();S.exp=S.exp.filter(e=>e.id!=E.id);save();close();render();toast('Buchung gelöscht.',()=>restore(s))};
   const voice=v=>{keep();if(voiceCmd(v))return;qp(v);drawSheet();toast('Verstanden: „'+v+'“')};
@@ -2804,6 +2814,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     if(!a){$('eerr').textContent='Bitte einen Betrag über das Tastenfeld eingeben.';return}
     if(E.type!='tr'&&!E.c){$('eerr').textContent='Bitte eine Kategorie antippen.';return}
     const[yy,mm,dd]=E.dt.split('-').map(Number),t=E.dt==today()?(E.id&&ymd(E.t)==today()?E.t:Date.now()):new Date(yy,mm-1,dd,12).getTime();
+    if(E.brand!=null&&E.n){const bk=bKey(E.n),nv=String(E.brand).trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,''),cur=brandOf({n:E.n,type:'out'})||'';if(bk&&nv!=cur){S.brandMap=S.brandMap||{};S.brandMap[bk]=nv}}
     const rec={id:E.id||uid(),type:E.type,b:E.b,c:E.type=='tr'?'':E.c,a,n:E.n,t};
     if(E.type=='tr'){rec.to=E.to;if(E.ovr)rec.ovr=E.ovr;if(E.alloc)rec.alloc=true}else{if(E.type=='out'&&pNum(E.kwh)>0)rec.kwh=Math.round(pNum(E.kwh)*100)/100;if(E.p)rec.p=E.p.trim();if(E.sc&&E.sc.trim())rec.sc=E.sc.trim()}const tg=(E.tg||'').split(/[\s,]+/).map(x=>x.replace(/^#/,'')).filter(Boolean);if(tg.length)rec.tg=tg;if(E.img)rec.img=E.img;if(E.rid){rec.rid=E.rid;rec.pk=E.pk}
     if(E.rep&&!E.id){const r={id:uid(),type:E.type,b:E.b,c:rec.c,a,n:E.n||E.c||'Umbuchung',day:dd};if(E.type=='tr')r.to=E.to;S.rec.push(r);rec.rid=r.id;rec.pk=pkey(period(0))}
@@ -2847,7 +2858,7 @@ $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.we
 
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
 /* ---------- push notifications ---------- */
-const PUSH_FN=`// Supabase Edge Function "push" v2: Mitteilungen + Daily Briefing für CashFlow (Web Push)
+const PUSH_FN=`// Supabase Edge Function "push" v3: Mitteilungen + Daily Briefing für CashFlow (Web Push)
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
@@ -2905,16 +2916,16 @@ async function compose(d, kind) {
   if (kind === "e" && d.sp && d.sp.d === B.ymd) L.push("Heute ausgegeben: " + E0(d.sp.v));
   if (d.pos && d.pos.length) {
     const mv = []; let tot = 0, val = 0;
-    for (const p of d.pos.slice(0, 15)) { const m = await move(p); if (m == null) continue; mv.push({ n: p.n, m }); tot += (p.v || 0) * m / 100; val += p.v || 0; }
+    let wsum = 0, wpc = 0; for (const p of d.pos.slice(0, 15)) { const m = await move(p); if (m == null) continue; mv.push({ n: p.n, m }); tot += (p.v || 0) * m / 100; val += p.v || 0; wsum += p.w || 0; wpc += (p.w || 0) * m; }
     if (mv.length) {
       mv.sort((a, b) => Math.abs(b.m) - Math.abs(a.m));
-      L.push((kind === "m" ? "Depot Vortag: " : "Depot heute: ") + (tot >= 0 ? "+" : "−") + E0(Math.abs(tot)) + (val ? " (" + PC(tot / val * 100) + ")" : ""));
+      L.push((kind === "m" ? "Depot Vortag: " : "Depot heute: ") + (val ? (tot >= 0 ? "+" : "−") + E0(Math.abs(tot)) + " (" + PC(tot / val * 100) + ")" : wsum ? PC(wpc / wsum) : ""));
       L.push(mv.slice(0, 5).map((x) => x.n + " " + PC(x.m)).join(" · "));
     }
     if (kind === "m" && (B.wd === "Sat" || B.wd === "Sun")) {
       const di = B.wd === "Sat" ? 5 : 6, ws = Date.parse(B.ymd + "T00:00:00Z") - di * 864e5 - 3600e3; const wv = []; let wt = 0, wval = 0;
-      for (const p of d.pos.slice(0, 15)) { const m = await move(p, ws); if (m == null) continue; wv.push({ n: p.n, m }); wt += (p.v || 0) * m / (100 + m); wval += (p.v || 0) / (1 + m / 100); }
-      if (wv.length) { wv.sort((a, b) => b.m - a.m); L.push("Woche: " + (wt >= 0 ? "+" : "−") + E0(Math.abs(wt)) + (wval ? " (" + PC(wt / wval * 100) + ")" : "")); L.push(wv.map((x) => x.n + " " + PC(x.m)).join(" · ")); }
+      let ww = 0, wwp = 0; for (const p of d.pos.slice(0, 15)) { const m = await move(p, ws); if (m == null) continue; wv.push({ n: p.n, m }); wt += (p.v || 0) * m / (100 + m); wval += (p.v || 0) / (1 + m / 100); ww += p.w || 0; wwp += (p.w || 0) * m; }
+      if (wv.length) { wv.sort((a, b) => b.m - a.m); L.push("Woche: " + (wval ? (wt >= 0 ? "+" : "−") + E0(Math.abs(wt)) + " (" + PC(wt / wval * 100) + ")" : ww ? PC(wwp / ww) : "")); L.push(wv.map((x) => x.n + " " + PC(x.m)).join(" · ")); }
     }
   }
   const days = kind === "m" ? 4 : 2, start = kind === "m" ? 0 : 1, ev = {};
@@ -2953,16 +2964,16 @@ Deno.serve(async (req) => {
     const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
     const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
     if (!uid) return J({ error: "not signed in" }, 401);
-    if (body.op === "key") return J({ key: c.vapid_public, v: 2 });
+    if (body.op === "key") return J({ key: c.vapid_public, v: 3 });
     if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
     if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
     if (body.op === "plan") {
       await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
       const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
       if (items.length) await sb.from("push_queue").insert(items);
-      return J({ ok: true, n: items.length, v: 2 });
+      return J({ ok: true, n: items.length, v: 3 });
     }
-    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 2 }); }
+    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 3 }); }
     if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); return J({ ok: true, sent: await sendTo(uid, m), msg: m }); }
     if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
     return J({ error: "unknown op" }, 400);
@@ -3002,18 +3013,19 @@ function pushItems(){const O=S.pushOpt||{},A=!!O.amt,E=v=>A?' ('+eur(v)+')':'',n
   if(O.rg!==false){if(!S.rgSince)S.rgSince=Date.now();S.exp.filter(e=>isKonsum(e)&&e.rg==null&&!isPlan(e)&&e.t>=S.rgSince-864e5&&e.t>now0-864e5).slice(-3).forEach(e=>add(new Date(e.t+24*36e5),'Reue-Check: '+(e.n||e.c),'Hat sich der Kauf'+(A?' für '+eur(e.a):'')+' gelohnt? Kurz in der App antworten.','rg-'+e.id))}
   if(S.urge&&S.urge.until>now0)L.push({at:S.urge.until,title:'10 Minuten sind um',body:'Wie geht es dir mit dem Kaufimpuls? Widerstanden?',tag:'urge'});
   return L.sort((a,b)=>a.at-b.at).slice(0,30)}
-function briefData(){const O=S.pushOpt||{},P=period(0),k=pkey(P),now0=Date.now(),D=864e5;
+function briefData(){const O=S.pushOpt||{},showAmt=!!O.amt,P=period(0),k=pkey(P),now0=Date.now(),D=864e5;
   const acc=S.accts.filter(a=>a.vis!==false&&!isTabu(a.n)&&!(pufAcc()&&a.n==pufAcc().n)&&!/comdirect/i.test(a.n)&&!vaultAccs().includes(a.n)&&!depot().some(h=>h.to==a.n)).map(a=>({n:SHORT[a.n]||a.n,v:Math.round(calc(a.n).rest)}));
   const V=vaultAccs(),vm=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&((e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b)))&&e.t<=now0&&e.t>=(acc(e.type=='tr'?e.to:e.b).baseD||new Date(2026,10,1).getTime())).reduce((s,e)=>s+e.a,0);
   const td=new Date();td.setHours(0,0,0,0);const sp=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&e.t>=td.getTime()&&TOT.includes(e.b)).reduce((s,e)=>s+e.a,0);
   const ev=[],dk=d=>ymd(d.getTime?d.getTime():d),add=(d,t)=>{const x=d.getTime?d.getTime():d;if(x>=td.getTime()&&x<td.getTime()+5*D)ev.push({d:dk(x),t})};
-  [0,1].forEach(o=>{const Pp=period(o),kk=pkey(Pp);(S.rec||[]).forEach(r=>{if(r.paused)return;const d=recDue(r,Pp);if(!d||S.exp.some(e=>e.rid==r.id&&e.pk==kk))return;if(r.type=='in')add(d,(r.n||r.c)+' +'+eur0(r.a));else if(r.a>=20&&!isTabu(r.to||''))add(d,(r.n||r.c)+' '+eur0(r.a))})});
-  S.exp.filter(e=>isPlan(e)).forEach(e=>add(new Date(e.t),(e.n||e.c)+' '+eur0(e.a)));
+  [0,1].forEach(o=>{const Pp=period(o),kk=pkey(Pp);(S.rec||[]).forEach(r=>{if(r.paused)return;const d=recDue(r,Pp);if(!d||S.exp.some(e=>e.rid==r.id&&e.pk==kk))return;if(r.type=='in')add(d,(r.n||r.c)+(showAmt?' +'+eur0(r.a):''));else if(r.a>=20&&!isTabu(r.to||''))add(d,(r.n||r.c)+(showAmt?' '+eur0(r.a):''))})});
+  S.exp.filter(e=>isPlan(e)).forEach(e=>add(new Date(e.t),(e.n||e.c)+(showAmt?' '+eur0(e.a):'')));
   (S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(x.kd)add(x.kd,'Kündigungsfrist '+c.n)});
-  (S.wish||[]).forEach(w=>{if(w.s=='offen')add(new Date(w.t+wait(w.p)),'Wartezeit vorbei: '+w.n)});
-  depot().forEach(h=>{if(h.rate){for(let i=0;i<5;i++){const d=new Date(td.getTime()+i*D);if(d.getDate()==(h.day||1))add(d,'Sparplan '+String(h.n||h.sym).split(/\s+/).slice(0,2).join(' ')+' '+eur0(h.rate))}}});
+  (S.wish||[]).forEach(w=>{if(w.s=='offen')add(new Date(w.t+wait(w.p)),showAmt?'Wartezeit vorbei: '+w.n:'Wartezeit eines Wunschs vorbei')});
+  depot().forEach(h=>{if(h.rate){for(let i=0;i<5;i++){const d=new Date(td.getTime()+i*D);if(d.getDate()==(h.day||1))add(d,'Sparplan '+String(h.n||h.sym).split(/\s+/).slice(0,2).join(' ')+(showAmt?' '+eur0(h.rate):''))}}});
   const fg=fixGuard();if(fg&&fg.min<0)add(fg.at.d,'⚠️ '+fg.n+' reicht nicht');
-  const pos=depot().filter(h=>h.sym&&!h.manual).map(h=>({n:String(h.n||h.sym).split(/\s+/).slice(0,2).join(' '),t:h.type=='krypto'?'krypto':'etf',s:h.type=='krypto'?String(h.sym).trim().toUpperCase():(h.ysym||String(h.sym).trim().toUpperCase()),v:Math.round(((h.qty||0)*(h.price||0)||h.pendVal||0))}));
+  const P0=depot().filter(h=>h.sym&&!h.manual),val=h=>((h.qty||0)*(h.price||0)||h.pendVal||0),TV=P0.reduce((s,h)=>s+val(h),0)||1;
+  const pos=P0.map(h=>Object.assign({n:String(h.n||h.sym).split(/\s+/).slice(0,2).join(' '),t:h.type=='krypto'?'krypto':'etf',s:h.type=='krypto'?String(h.sym).trim().toUpperCase():(h.ysym||String(h.sym).trim().toUpperCase()),w:Math.round(val(h)/TV*100)/100},showAmt?{v:Math.round(val(h))}:{}));
   return{v:1,at:now0,opt:{m:O.bm!==false,e:O.be!==false},acc,vm:Math.round(vm),sp:{d:ymd(now0),v:Math.round(sp)},ev:ev.slice(0,20),pos}}
 let briefLast='';async function briefSend(force){const O=S.pushOpt||{};if(O.bm===false&&O.be===false&&!force)return;const d=briefData(),h=JSON.stringify(Object.assign({},d,{at:0}));if(!force&&h==briefLast)return;try{await pushCall('brief',{data:d});briefLast=h;S.briefOld=false}catch(e){if(/unknown op/.test(String(e.message||e)))S.briefOld=true}}
 let pushT=null,pushLast='';async function pushPlan(force){if(!pushOn()||!syOn())return;briefSend(force);try{const items=pushItems(),h=JSON.stringify(items);if(!force&&h==pushLast)return;await pushCall('plan',{items});pushLast=h;S.pushAt=Date.now()}catch(e){}}
@@ -3072,7 +3084,12 @@ function openRecover(){$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"><
       $('sheetRoot').innerHTML='';await sync(false);render();toast('Wiederhergestellt (Stand '+row.ym+'). Neues Sync-Passwort ist aktiv.')}catch(e){E.textContent=e.message||String(e)}}}
 const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
 const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
-let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal'];
+let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal','wish','depot','shop.items'];
+const cGet=(st,c)=>{const[a,b]=c.split('.');const v=b?(st[a]&&st[a][b]):st[a];return Array.isArray(v)?v:[]},cSet=(st,c,v)=>{const[a,b]=c.split('.');if(b){if(st[a]&&typeof st[a]=='object')st[a][b]=v}else st[a]=v};
+const sh32=s=>{let x=0;for(let i=0;i<s.length;i++)x=Math.imul(x^s.charCodeAt(i),16777619);return (x>>>0).toString(36)};
+function syIds(st){COLS.forEach(c=>cGet(st,c).forEach(x=>{if(x&&typeof x=='object'&&!x.id)x.id='k'+sh32(String(x.t||'')+'|'+(x.n||x.sym||x.isin||''))}))}
+const SYTOP=s=>Object.keys(s).filter(k=>!['_m','_km','exp','rec','goals','contracts','debts','journal','wish','depot'].includes(k));let syKH={};
+function syMarkKeys(){S._km=S._km||{};const now0=Date.now();SYTOP(S).forEach(k=>{let j;try{j=JSON.stringify(k=='shop'?Object.assign({},S.shop,{items:0}):S[k])}catch(e){return}const hh=sh32(j||'');if(syKH[k]!==undefined&&syKH[k]!==hh)S._km[k]=now0;syKH[k]=hh})}
 const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 function b64big(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)}
 async function syDerive(pass,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
@@ -3088,19 +3105,23 @@ async function syAuthSet(j){if(!j.access_token)throw new Error(j.error_descripti
 async function syRefresh(){const r=await fetch(SY.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SY.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:SY.refresh})});
   const j=await r.json().catch(()=>({}));if(!r.ok){SY.refresh=null;SY.access=null;sySave();throw new Error('Sitzung abgelaufen. Bitte neu anmelden.')}await syAuthSet(j)}
 async function syGet(){const r=await syFetch('/rest/v1/cashflow?select=*&user_id=eq.'+SY.uid);if(!r.ok)throw new Error('Laden fehlgeschlagen ('+r.status+'). Ist die Tabelle angelegt?');const a=await r.json();return a[0]||null}
-function syBase(st){const b={};COLS.forEach(c=>b[c]=(st[c]||[]).map(x=>x.id).filter(Boolean));return b}
-function syMerge(loc,rem,base){const out=JSON.parse(JSON.stringify((loc._m||0)>=(rem._m||0)?loc:rem)),locNew=(loc._m||0)>=(rem._m||0);
-  COLS.forEach(c=>{const L=loc[c]||[],Rm=rem[c]||[],B=new Set((base&&base[c])||[]),lm=new Map(L.filter(x=>x&&x.id).map(x=>[x.id,x])),rm=new Map(Rm.filter(x=>x&&x.id).map(x=>[x.id,x])),res=[];
+setTimeout(()=>{try{syMarkKeys()}catch(e){}},0);
+function syBase(st){syIds(st);const b={};COLS.forEach(c=>b[c]=cGet(st,c).map(x=>x&&x.id).filter(Boolean));return b}
+function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.stringify((loc._m||0)>=(rem._m||0)?loc:rem)),locNew=(loc._m||0)>=(rem._m||0);
+  const lk=loc._km||{},rk=rem._km||{},km={};new Set([...SYTOP(loc),...SYTOP(rem)]).forEach(k=>{const lt=lk[k]||0,rt=rk[k]||0;
+    if(!(k in rem)){out[k]=JSON.parse(JSON.stringify(loc[k]));km[k]=lt;return}if(!(k in loc)){out[k]=JSON.parse(JSON.stringify(rem[k]));km[k]=rt;return}
+    const useL=lt!=rt?lt>rt:locNew;out[k]=JSON.parse(JSON.stringify(useL?loc[k]:rem[k]));km[k]=Math.max(lt,rt)});out._km=km;
+  COLS.forEach(c=>{const L=cGet(loc,c),Rm=cGet(rem,c),B=new Set((base&&base[c])||[]),lm=new Map(L.filter(x=>x&&x.id).map(x=>[x.id,x])),rm=new Map(Rm.filter(x=>x&&x.id).map(x=>[x.id,x])),res=[];
     const ids=[...new Set([...L.map(x=>x&&x.id),...Rm.map(x=>x&&x.id)])].filter(Boolean);
     ids.forEach(id=>{const a=lm.get(id),r=rm.get(id);if(a&&r)res.push(locNew?a:r);else if(a){if(!B.has(id))res.push(a)}else if(r){if(!B.has(id))res.push(r)}});
-    [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));out[c]=res});
+    [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));cSet(out,c,res)});
   return out}
-const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0}));let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}return (h2>>>0).toString(36)+(h1>>>0).toString(36)};
-function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
+const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0,_km:0}));let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}return (h2>>>0).toString(36)+(h1>>>0).toString(36)};
+function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;syMarkKeys();S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
 async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(!await syLoadKey()){syMsg='Sync-Passwort fehlt auf diesem Gerät.';return}
   syBusy=true;try{for(let tries=0;tries<3;tries++){const row=await syGet();
       if(row&&row.rev!==SY.rev){const rem=await syDec(row);const dirty=(S._m||0)>(SY.at||0);
-        if(!dirty){S=rem}else{S=syMerge(S,rem,SY.base);S._m=Date.now()}
+        if(!dirty){S=rem}else{S=syMerge(S,rem,SY.base);S._m=Date.now()}syKH={};syMarkKeys();DV++;
         try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);if(!dirty){SY.at=Date.now();SY.h=syHash()}sySave();if(!dirty){refreshA&&refreshA();render();syMsg='Aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
         render()}
       if((S._m||0)<=(SY.at||0)&&row){syMsg='Synchron · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
@@ -3121,7 +3142,7 @@ async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,'')
     if(row){try{await syDec(row)}catch(e){syKey=null;SY.k=null;SY.lost=true;sySave();render();setTimeout(()=>{if($('syErr'))$('syErr').textContent='Sync-Passwort passt nicht zu den gespeicherten Daten.'},50);return}}SY.lost=false;
     SY.k=keep?b64(await crypto.subtle.exportKey('raw',syKey)):null;SY.rev=null;SY.at=0;SY.base=null;sySave();
     if(row){const rem=await syDec(row);const hasLocal=S.exp&&S.exp.length&&!S.ex;
-      if(hasLocal&&!confirmMerge){S=syMerge(S,rem,{});S._m=Date.now()}else S=rem;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);SY.at=hasLocal?0:Date.now();if(!hasLocal)SY.h=syHash();sySave();refreshA();}
+      if(hasLocal&&!confirmMerge){S=syMerge(S,rem,{});S._m=Date.now()}else S=rem;syKH={};syMarkKeys();DV++;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);SY.at=hasLocal?0:Date.now();if(!hasLocal)SY.h=syHash();sySave();refreshA();}
     else{S._m=Date.now()}
     await sync(false);render();toast(row?'Verbunden. Deine Daten sind auf diesem Gerät.':'Verbunden. Deine Daten sind jetzt verschlüsselt online gesichert.')}
   catch(e){$('syErr').textContent=e.message||String(e)}}
@@ -3783,14 +3804,20 @@ async function bioSetup(){const rnd=n=>crypto.getRandomValues(new Uint8Array(n))
   localStorage.setItem(BIOK,JSON.stringify({id:waE(c.rawId),t:Date.now()}))}
 async function bioCheck(){const b=bioGet();if(!b)return false;const r=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:waD(b.id),transports:['internal','hybrid']}],userVerification:'required',timeout:60000}});
   if(!r||!r.response||!r.response.authenticatorData)return false;const f=new Uint8Array(r.response.authenticatorData)[32];return !!(f&4)}
-let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hidAt=Date.now();else if(hidAt&&S.pin&&!$('lockRoot').innerHTML){const m=S.lockAfter==null?5:S.lockAfter;if(m>=0&&Date.now()-hidAt>=m*6e4)lock()}});
-function lock(){if(!S.pin)return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='',bioBusy=false;const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential;
+let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hidAt=Date.now();else if(hidAt&&pinActive()&&!$('lockRoot').innerHTML){const m=S.lockAfter==null?5:S.lockAfter;if(m>=0&&Date.now()-hidAt>=m*6e4)lock()}});
+const PINK='cf_pin';function pinGet(){try{return JSON.parse(localStorage.getItem(PINK)||'null')}catch(e){return null}}
+async function pinHash(v,salt){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'|'+v));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function pinSet(v){if(!v){try{localStorage.removeItem(PINK)}catch(e){}S.pin='';save();return}const salt=Array.from(crypto.getRandomValues(new Uint8Array(12))).map(x=>x.toString(16).padStart(2,'0')).join('');try{localStorage.setItem(PINK,JSON.stringify({s:salt,h:await pinHash(v,salt)}))}catch(e){}S.pin='';save()}
+async function pinOk(v){const p=pinGet();if(p)return (await pinHash(v,p.s))===p.h;return !!S.pin&&S.pin!=='set'&&v===S.pin}
+const pinActive=()=>!!pinGet()||(!!S.pin&&S.pin!=='set');
+(async()=>{if(S.pin&&S.pin!=='set'&&!pinGet()){await pinSet(S.pin)}})();
+function lock(){if(!pinActive())return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='',bioBusy=false;const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential;
   const tryBio=async(auto)=>{if(bioBusy||!hasBio)return;bioBusy=true;try{if(await bioCheck()){$('lockRoot').innerHTML='';return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen. PIN eingeben oder nochmal tippen.')}finally{bioBusy=false}};const t0=Date.now();
   const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock">${hasBio?`<button class="biobtn" id="bioGo" aria-label="Mit ${bioName()} entsperren">${I('face',44)}<span>Mit ${bioName()} entsperren</span></button>`:''}<div style="font-size:17px;font-weight:600">${hasBio?'oder PIN eingeben':'PIN eingeben'}</div><div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
   <div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div><div class="note" style="min-height:18px;color:var(--bad)">${msg||''}</div>
   <div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>k?`<button data-k="${k}">${k=='⌫'?I('backspace',24):k}</button>`:'<span></span>').join('')}</div></div>`;
   document.querySelectorAll('.lock .pad button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;v=k=='⌫'?v.slice(0,-1):(v+k).slice(0,4);
-    if(v.length==4){if(v==S.pin){$('lockRoot').innerHTML='';return}v='';draw('Falsche PIN');return}draw()});if($('bioGo'))$('bioGo').onclick=()=>tryBio(false)};draw();if(hasBio)setTimeout(()=>tryBio(true),250)}
+    if(v.length==4){const tryV=v;pinOk(tryV).then(ok=>{if(ok){$('lockRoot').innerHTML='';return}v='';draw('Falsche PIN')});return}draw()});if($('bioGo'))$('bioGo').onclick=()=>tryBio(false)};draw();if(hasBio)setTimeout(()=>tryBio(true),250)}
 if(ALL.includes('Alltag')&&!ALL.includes('Flow'))renameAcct('Alltag','Flow');
 if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(r)S.debts.push({id:'d1',n:'Anyfin Umschuldungskredit',total:1482,interest:228,rate:r.a||60,start:r.start||'2026-12-30',match:'Anyfin',note:'iPhone 16 Pro (PayPal), Garmin Fenix 9 Pro (Advanzia)'});save()}
 if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
@@ -3814,6 +3841,9 @@ function goBack(){const b=backTarget();if(b){b.click();return true}while(NAVS.le
     if(act&&v){v.style.transition='none';v.style.transform=`translateX(${Math.max(0,dx)}px)`;v.style.boxShadow='-12px 0 24px rgba(0,0,0,.18)';document.body.classList.add('swback')}},{passive:true});
   const end=()=>{if(x0==null)return;x0=null;if(!act||!v){act=false;return}const go=dx>Math.min(110,W()*.3);v.style.transition='transform .22s ease';if(go){v.style.transform=`translateX(${W()}px)`;setTimeout(()=>{document.body.classList.remove('swback');goBack();const nv=document.querySelector('#app .view');if(nv){nv.style.transition='none';nv.style.transform='translateX(-18px)';nv.style.opacity='.6';requestAnimationFrame(()=>{nv.style.transition='transform .2s ease,opacity .2s ease';nv.style.transform='';nv.style.opacity=''})}},180)}else{v.style.transform='';setTimeout(()=>{v.style.boxShadow='';document.body.classList.remove('swback')},220)}act=false};
   document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true})})();
+/* Tageswechsel erkennen: "heute" neu setzen, wenn die App aus dem Hintergrund kommt oder Mitternacht vorbei ist */
+function dayRefresh(){const d=new Date();if(d.toDateString()===now.toDateString()){now=d;NOWT=d.getTime();return false}DV++;now=d;NOWT=d.getTime();try{applyRec();closeMonths()}catch(e){}if(!$('sheetRoot').innerHTML)render();else renderAsst();return true}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dayRefresh()});setInterval(()=>{if(document.visibilityState==='visible')dayRefresh()},60000);
 closeMonths();render();lock();setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();setTimeout(maybeAskPuf,1800);
 if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
 </script>
