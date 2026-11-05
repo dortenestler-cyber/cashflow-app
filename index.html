@@ -568,6 +568,11 @@ a.arow,a.arow:visited{text-decoration:none;color:inherit}
 .apop-b{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}.apop{overscroll-behavior:contain;touch-action:pan-y}
 body.asst-open{overflow:hidden!important;touch-action:none}body.asst-open .apop,body.asst-open .apop *{touch-action:pan-y}
 body.swback{overflow:hidden}body.swback #app{background:var(--bg)}
+.setup-c{background:var(--card);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}.setup-h{display:flex;align-items:center;gap:10px}.setup-h .t{flex:1;min-width:0}.setup-h .t b{font-size:15px}.setup-h .s{font-size:12px;color:var(--muted)}
+.setup-n{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.setup-st{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap}.setup-st.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}.setup-st.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}.setup-st.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}.setup-st.muted{color:var(--muted);background:var(--fill)}
+.setup-b{font-size:13.5px}.setup-w{font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:flex-start}.setup-a{display:flex;gap:8px}.setup-a .btn{margin:0}.setup-a .btn:first-child{flex:1;display:flex;justify-content:center;align-items:center;gap:6px}.setup-a .btn:last-child{width:52px;display:grid;place-items:center}
+.setup-code{max-height:220px;overflow:auto;font:11px/1.4 ui-monospace,Menlo,monospace;background:var(--fill);border-radius:10px;padding:8px;white-space:pre-wrap;word-break:break-all;user-select:all;-webkit-user-select:all}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -627,7 +632,7 @@ repeat:'<path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 
 star:'<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9z"/>',
 calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
 lifebuoy:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="m6.3 6.3 3.2 3.2M14.5 14.5l3.2 3.2M17.7 6.3l-3.2 3.2M9.5 14.5l-3.2 3.2"/>',
-face:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+face:'<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',code:'<path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',pin:'<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>',lock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
 export:'<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/>',
 search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
 backspace:'<path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z"/><path d="m12 9 5 6M17 9l-5 6"/>',
@@ -985,7 +990,7 @@ function tipsList(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='94 (05.11.)';
+const APP_VER='95 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -2300,8 +2305,33 @@ function viewMore(){const nav=(k,ico,l,s,c)=>`<button class="cell" data-set="${k
   ${sec('Daten','',
    nav('sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten',c6)+
    nav('export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel',c6)+
+   nav('setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql'].filter(k=>st[k]===true).length;return st.at?n+' von 5 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})(),c6)+
    nav('import','export','Import aus MoneyControl','Backup oder CSV übernehmen',c6))}
   <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
+/* ---------- Supabase-Einrichtung: alle Codes an einem Ort ---------- */
+const SETUP={st:(()=>{try{return JSON.parse(localStorage.getItem('cf_setup')||'{}')}catch(e){return{}}})(),busy:false};
+const SETUP_ITEMS=()=>[
+  {k:'db',t:'Tabelle für Online-Sync',w:'SQL',what:'Speichert deine verschlüsselten Daten für iPhone und PC.',where:'SQL Editor › New query › einfügen › Run',code:()=>SYSQL,need:'Online-Sync'},
+  {k:'bak',t:'Tabelle für Monats-Sicherung',w:'SQL',what:'Verschlüsselte Monats-Sicherungen für den Notfall-Schlüssel.',where:'SQL Editor › New query › einfügen › Run',code:()=>BAKSQL,need:'Notfall-Schlüssel'},
+  {k:'kurse',t:'Funktion „kurse“',w:'Edge Function',what:'Kurse, Kursverläufe bis 5 Jahre, Basisdaten, Analysten und News.',where:'Edge Functions › kurse › Code ersetzen › Deploy (neu: Deploy a new function › Via Editor, Name „kurse“)',code:()=>KURS_FN,need:'Depot & News'},
+  {k:'pushsql',t:'Tabellen & Zeitplan für Mitteilungen',w:'SQL',what:'Speicher für Mitteilungen, Briefing und den 10-Minuten-Takt.',where:'SQL Editor › New query › einfügen › Run',code:()=>PUSH_SQL(),need:'Mitteilungen & Briefing'},
+  {k:'push',t:'Funktion „push“',w:'Edge Function',what:'Verschickt Mitteilungen und das Daily Briefing.',where:'Edge Functions › push › Code ersetzen › Deploy. Danach unter Details „Verify JWT“ ausschalten.',code:()=>PUSH_FN,need:'Mitteilungen & Briefing'}];
+async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render();const st={at:Date.now()};
+  const t=async(f)=>{try{return await f()}catch(e){return false}};
+  st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
+  st.bak=await t(async()=>{const r=await syFetch('/rest/v1/cashflow_backup?select=ym&limit=1');return r.ok});
+  st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=7?true:'old'});
+  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=2?true:'old'});
+  st.pushsql=await t(async()=>{if(st.push!==true)return st.push===false?false:'?';const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'brief',data:briefData()})});const j=await r.json().catch(()=>({}));return r.ok&&j.ok?true:/push_brief|relation|does not exist/i.test(j.error||'')?'old':'err'});
+  SETUP.st=st;try{localStorage.setItem('cf_setup',JSON.stringify(st))}catch(e){}SETUP.busy=false;if(st.kurse===true)S.kursFnOld=false;if(st.push===true&&st.pushsql===true)S.briefOld=false;render()}
+function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','check']:v==='old'?['Veraltet, bitte neu einspielen','warn','up']:v===false?['Fehlt noch','bad','alert']:v==='err'?['Antwortet mit Fehler','bad','alert']:['Noch nicht geprüft','muted','dot'];
+  return `<div class="anchor">${I('lock',16)}<span>Hier liegt alles, was du in Supabase einfügen musst. Reihenfolge von oben nach unten. Ein erneutes Einfügen schadet nie: SQL und Code überschreiben nur die alte Version.</span></div>
+   ${syOn()?`<button class="btn" id="setupChk">${SETUP.busy?'Prüfe …':'Status prüfen'}</button>${st.at?`<div class="note" style="text-align:center;padding:0">Zuletzt geprüft ${new Date(st.at).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`:'<div class="tip">Zuerst unter Einstellungen › Online-Sync verbinden. Für Schritt 1 brauchst du nur das SQL unten.</div>'}
+   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]);return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
+     <div class="setup-b">${x.what}</div><div class="setup-w">${I('pin',13)} ${x.where}</div>
+     <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
+     <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
+   <div class="note">Supabase findest du unter supabase.com › dein Projekt. Den Secret Key brauchst du nirgends, nur den Publishable Key in der App.</div>`}
 function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr</button>`;
   if(k=='accts')return back+`<h1 class="lt">Konten</h1></div><div class="group">${S.accts.map((a,i)=>`<div class="cell" style="flex-wrap:wrap">
     <button class="cell" data-ae="${i}" style="padding:0;flex:1;min-width:0;min-height:0"><div class="ico" style="background:color-mix(in srgb,${a.col} 16%,transparent);color:${a.col}">${I(a.kind=='konto'?'wallet':'gauge')}</div>
@@ -2374,6 +2404,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    <div class="sec"><div class="sh">Puffer</div><div class="group"><div class="cell plain"><label for="pufA">Eingangskonto</label><select id="pufA"><option value="">keins</option>${S.accts.filter(a=>a.kind=='konto').map(a=>`<option ${a.puffer?'selected':''}>${esc(a.n)}</option>`).join('')}</select></div>
     <div class="cell plain"><div class="t">Puffer nach offenen Fixkosten</div><b>${eur(pufVal())}</b></div></div><div class="note">Puffer = Kontostand minus alle Fixkosten, die in diesem Monat noch abgehen. Ziel bis 1.000 €. Darüber schlägt der Assistent eine Umbuchung in den Vermögensaufbau vor.</div></div>
    <button class="btn soft" id="onbAgain">Einrichtung erneut starten</button>`}
+  if(k=='setup')return back+`<h1 class="lt">Supabase-Einrichtung</h1></div>`+setupHtml();
   if(k=='push'){const O=S.pushOpt||{fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false},sw=(id,on,l,s)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" data-po="${id}" ${on!==false?'checked':''}></div>`;
    return back+`<h1 class="lt">Mitteilungen</h1></div>
    <div class="group"><div class="cell plain"><div class="t"><div>Mitteilungen auf diesem Gerät</div><div class="s" id="pushSt">${pushOn()?'Aktiv'+(S.pushAt?' · Plan aktualisiert '+new Date(S.pushAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):''):!syOn()?'Braucht die Online-Synchronisierung':'Aus'}</div></div><input type="checkbox" class="switch" id="pushSw" ${pushOn()?'checked':''} ${syOn()?'':'disabled'}></div></div>
@@ -2385,6 +2416,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     <div class="note">Kurse holt Supabase frisch zum Versand. Kontostände und Termine stammen von deiner letzten App-Nutzung. Dafür liegen Kontostände, Termine und Depot-Positionen unverschlüsselt bei Supabase.</div></div>
    <div class="sec"><div class="sh">Datenschutz</div><div class="group">${sw('amt',O.amt===true,'Beträge in Mitteilungen','Aus: Texte ohne Euro-Beträge. Die Texte liegen bis zum Versand unverschlüsselt bei Supabase.')}</div>
    <div class="note">Nachts zwischen 22 und 7 Uhr kommt nichts, solche Mitteilungen werden auf 8 Uhr verschoben. Der Plan wird jedes Mal neu berechnet, wenn du die App benutzt.</div></div>
+   <button class="btn soft" data-gosetup="1">Alle Codes: Einstellungen › Supabase-Einrichtung</button>
    <div class="sec"><div class="sh">Einmalige Einrichtung in Supabase (5 Minuten)</div><div class="mmcard" style="padding:12px 14px"><ol class="steps" style="margin:0;padding-left:18px;font-size:14px;line-height:1.45">
     <li>Supabase öffnen › links <b>SQL Editor</b> › <b>New query</b>. Hier <button class="link" id="pushSqlCopy">SQL kopieren</button>, einfügen, <b>Run</b>.</li>
     <li>Links <b>Edge Functions</b> › <b>Deploy a new function</b> › <b>Via Editor</b>. Name genau <b>push</b>. Beispielcode löschen, hier <button class="link" id="pushFnCopy">Code kopieren</button>, einfügen, <b>Deploy function</b>.</li>
@@ -2410,7 +2442,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
      <div class="cell plain"><div class="t"><div>Monats-Sicherung online</div><div class="s">${SY.bakErr=='table'?'<span style="color:var(--bad)">Tabelle fehlt noch, siehe unten</span>':SY.bakAt?'Zuletzt '+new Date(SY.bakAt).toLocaleDateString('de-DE')+' · die letzten 6 Monate werden aufbewahrt':SY.rk?'Folgt beim nächsten Sync':'Startet mit dem Notfall-Schlüssel'}</div></div></div></div>
     ${SY.rk?`<button class="btn soft" id="bakCloud">Jetzt online sichern</button><button class="btn soft" id="rkNew">Neuen Notfall-Schlüssel erstellen</button>`:S.rkAt?`<button class="btn" id="rkAdd">Vorhandenen Schlüssel hier hinterlegen</button><button class="btn soft" id="rkNew">Stattdessen neuen Schlüssel erstellen</button><div class="note">Ein neuer Schlüssel ersetzt den alten: Die Sicherungen ab dann sind nur noch mit dem neuen lesbar.</div>`:`<button class="btn" id="rkNew">Notfall-Schlüssel erstellen</button>`}
     <div class="note">Einmal im Monat legt die App automatisch eine verschlüsselte Sicherung online ab, die nur mit dem Notfall-Schlüssel lesbar ist. Vergisst du das Sync-Passwort, stellst du damit unter Online-Sync alles wieder her.</div>
-    <div class="note">Einmalig in Supabase: SQL Editor › New query › <button class="link" id="bakSql">SQL kopieren</button> › Run.</div>`}</div>
+    <div class="note">Einmalig in Supabase: SQL Editor › New query › <button class="link" id="bakSql">SQL kopieren</button> › Run. Alle Codes gebündelt: <button class="link" data-gosetup="1">Supabase-Einrichtung</button></div>`}</div>
    <div class="note" id="expMsg"></div><textarea class="box" id="expOut" hidden readonly></textarea>
    <div class="sec"><div class="sh">Zurücksetzen</div>${S.ex?'<button class="btn danger" id="clearEx">Beispieldaten löschen</button>':''}<button class="btn danger" id="resetAll">Alles auf Anfang</button><div class="note" id="resetMsg"></div></div>
    <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}${navigator.serviceWorker?` · <button class="ed-link" id="updNow" style="color:var(--blue);font-size:13px">Nach Update suchen</button>`:''}</div>`;
@@ -2550,6 +2582,8 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   document.querySelectorAll('[data-po]').forEach(i=>i.onchange=()=>{S.pushOpt=Object.assign({fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false,bm:true,be:true},S.pushOpt||{});S.pushOpt[i.dataset.po]=i.checked;save();pushPlan(true);briefSend(true)});
   if($('pushSqlCopy'))$('pushSqlCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_SQL()).then(()=>toast('SQL kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   if($('pushFnCopy'))$('pushFnCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_FN).then(()=>toast('Code kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
+  on('setupChk',setupCheck);document.querySelectorAll('[data-setcp]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setcp);try{navigator.clipboard.writeText(x.code()).then(()=>toast((x.w=='SQL'?'SQL':'Code')+' kopiert. Jetzt in Supabase einfügen.'))}catch(e){const pr=$('setpre-'+x.k);pr.hidden=false;pr.textContent=x.code();toast('Kopieren ging nicht. Text unten markieren.')}});
+  document.querySelectorAll('[data-setsh]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setsh),pr=$('setpre-'+x.k);pr.hidden=!pr.hidden;if(!pr.hidden)pr.textContent=x.code()});
   on('pinSave',()=>{const v=$('pinin').value;if(!/^\d{4}$/.test(v)){$('pinMsg').textContent='Bitte genau vier Ziffern eingeben.';return}S.pin=v;save();render();$('pinMsg').textContent='PIN gespeichert. Beim nächsten Öffnen wird sie abgefragt.'});
   on('pinOff',()=>{S.pin='';try{localStorage.removeItem(BIOK)}catch(e){}save();render()});
   document.querySelectorAll('#lockAf button').forEach(b=>b.onclick=()=>{S.lockAfter=+b.dataset.v;save();render()});
@@ -2742,6 +2776,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     try{localStorage.setItem('dodo4',JSON.stringify(S));syDirty()}catch(e){if(rec.img){delete rec.img;save();}}
     close();render();toast(E.id?'Änderung gesichert.':(rec.type=='tr'?'Umbuchung gesichert: ':rec.type=='in'?'Einnahme gesichert: ':'Ausgabe gesichert: ')+eur(a),()=>restore(sn))}}
 $('fab').onclick=()=>openSheet();
+document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-gosetup]');if(g){e.preventDefault();$('sheetRoot').innerHTML='';prevTab=tab;tab='more';setView='setup';curB=null;render()}});
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tbNew'))openSheet()});
 function kbHelp(){showAnswer('Tastatur',`<div class="vhelp kbh">${[['N','Neue Buchung'],['1 – 6','Übersicht, Buchungen, Kalender, Auswertung, Impulse, Einstellungen'],['← →','Monat zurück / vor'],['/','Suchen in Buchungen'],['Esc','Fenster schließen, zurück'],['[ ]','Budget-Karte wechseln (Übersicht)'],['?','Diese Hilfe']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}
   <b>In der Buchung</b>${[['0–9 , ⌫','Betrag tippen'],['+ − =','Rechnen'],['Buchstaben','springt ins Suchfeld (z. B. „rewe“)'],['Tab','durch Kategorien und Felder'],['Enter','Sichern'],['A / E / U','Ausgabe, Einnahme, Umbuchung (mit Alt)']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}</div>`)}
@@ -2957,6 +2992,7 @@ const BAKSQL=`create table if not exists public.cashflow_backup (
   primary key (user_id, ym)
 );
 alter table public.cashflow_backup enable row level security;
+drop policy if exists "nur eigene Sicherungen" on public.cashflow_backup;
 create policy "nur eigene Sicherungen" on public.cashflow_backup
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
 const RKA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rkNorm=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/O/g,'0').replace(/I/g,'1');
@@ -3098,6 +3134,7 @@ const SYSQL=`create table if not exists public.cashflow (
   updated_at timestamptz not null default now()
 );
 alter table public.cashflow enable row level security;
+drop policy if exists "nur eigene Daten" on public.cashflow;
 create policy "nur eigene Daten" on public.cashflow
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
 function bindSync(){if(setView!='sync')return;const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
@@ -3332,7 +3369,7 @@ function newsHtml(){if(!newsTerms().length)return '';const C=NEWS?newsClean(NEWS
    ${NEWSDIAG?`<div class="note" style="padding:2px 4px 0">Treffer: ${newsTerms().filter((x,i,a)=>a.findIndex(y=>y.q==x.q)==i).map(x=>esc((x.h.n||x.q).slice(0,16))+' '+(typeof NEWSDIAG[x.q]=='number'?NEWSDIAG[x.q]:'–')).join(' · ')}</div>`:''}
    <div class="note">Letzte 7 Tage, gleiche Meldungen aus mehreren Quellen sind zusammengefasst (+n). Quellen: Google News (deutsch) und Yahoo Finance. ${NEWS?'Stand '+new Date(NEWS.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'.':''}</div>`
    :`<div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">${newsBusy?'News werden geladen …':S.newsFnOld?'Noch keine News.':'Keine aktuellen Meldungen der letzten 7 Tage.'}</div></div>`}</div>`}
-function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><div class="sh">${S.kursFnOld?'Kursfunktion aktualisieren (für den Kursverlauf)':'ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)'}</div>${S.kursFnOld?'<div class="note" style="padding:0 4px 6px">Deine Funktion „kurse“ ist von gestern. Für die Wertentwicklung bitte in Supabase die Funktion „kurse“ öffnen, den Code ersetzen und neu deployen.</div>':''}<div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
+function depSetupHtml(){return `<div class="sec" style="grid-column:1/-1"><button class="btn soft" data-gosetup="1" style="margin-bottom:8px">Zur Supabase-Einrichtung (alle Codes)</button><div class="sh">${S.kursFnOld?'Kursfunktion aktualisieren (für den Kursverlauf)':'ETF- und Aktienkurse automatisch (einmalig, 3 Minuten)'}</div>${S.kursFnOld?'<div class="note" style="padding:0 4px 6px">Deine Funktion „kurse“ ist von gestern. Für die Wertentwicklung bitte in Supabase die Funktion „kurse“ öffnen, den Code ersetzen und neu deployen.</div>':''}<div class="mmcard"><ol class="steps" style="padding:12px 14px 12px 32px;margin:0">
   <li>In Supabase links auf <b>Edge Functions</b> (Blitz-Symbol), dann <b>Deploy a new function</b> › <b>Via Editor</b>.</li>
   <li>Als Namen genau <b>kurse</b> eintragen.</li><li>Den Beispielcode im Editor komplett löschen, hier <b>Code kopieren</b> tippen und einfügen.</li><li>Unten rechts <b>Deploy function</b>. Fertig, hier dann „Kurse aktualisieren“.</li></ol>
   <div class="srow"><button class="btn soft" id="depFnCopy">Code kopieren</button><div class="s" style="font-size:12px;color:var(--muted)">${syOn()?'Funktioniert mit deinem Online-Sync-Konto.':'Dafür muss Online-Sync eingerichtet sein. Ohne trägst du Kurse von Hand ein.'}</div></div></div></div>`}
