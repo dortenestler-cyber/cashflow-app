@@ -1112,7 +1112,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='108 (05.11.)';
+const APP_VER='109 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -3187,7 +3187,7 @@ function pushItems(){const O=S.pushOpt||{},A=!!O.amt,E=v=>A?' ('+eur(v)+')':'',n
   if(S.urge&&S.urge.until>now0)L.push({at:S.urge.until,title:'10 Minuten sind um',body:'Wie geht es dir mit dem Kaufimpuls? Widerstanden?',tag:'urge'});
   return L.sort((a,b)=>a.at-b.at).slice(0,30)}
 function briefData(){const O=S.pushOpt||{},showAmt=!!O.amt,P=period(0),k=pkey(P),now0=Date.now(),D=864e5;
-  const acc=S.accts.filter(a=>a.vis!==false&&!isTabu(a.n)&&!(pufAcc()&&a.n==pufAcc().n)&&!/comdirect/i.test(a.n)&&!vaultAccs().includes(a.n)&&!depot().some(h=>h.to==a.n)).map(a=>{const c=calc(a.n);return{n:SHORT[a.n]||a.n,v:Math.round(c.rest),d:a.kind=='budget'&&!isK(a.n)?Math.max(0,Math.round(c.rest/Math.max(P.left||1,1))):null}});
+  const accL=S.accts.filter(a=>a.vis!==false&&!isTabu(a.n)&&!(pufAcc()&&a.n==pufAcc().n)&&!/comdirect/i.test(a.n)&&!vaultAccs().includes(a.n)&&!depot().some(h=>h.to==a.n)).map(a=>{const c=calc(a.n);return{n:SHORT[a.n]||a.n,v:Math.round(c.rest),d:a.kind=='budget'&&!isK(a.n)?Math.max(0,Math.round(c.rest/Math.max(P.left||1,1))):null}});
   const V=vaultAccs(),vm=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&((e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b)))&&e.t<=now0&&e.t>=(acc(e.type=='tr'?e.to:e.b).baseD||new Date(2026,10,1).getTime())).reduce((s,e)=>s+e.a,0);
   const td=new Date();td.setHours(0,0,0,0);const sp=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&e.t>=td.getTime()&&TOT.includes(e.b)).reduce((s,e)=>s+e.a,0);
   const ev=[],dk=d=>ymd(d.getTime?d.getTime():d),add=(d,t)=>{const x=d.getTime?d.getTime():d;if(x>=td.getTime()&&x<td.getTime()+5*D)ev.push({d:dk(x),t})};
@@ -3199,7 +3199,7 @@ function briefData(){const O=S.pushOpt||{},showAmt=!!O.amt,P=period(0),k=pkey(P)
   const fg=fixGuard();if(fg&&fg.min<0)add(fg.at.d,'⚠️ '+fg.n+' reicht nicht');
   const P0=depot().filter(h=>h.sym&&!h.manual),val=h=>((h.qty||0)*(h.price||0)||h.pendVal||0),TV=P0.reduce((s,h)=>s+val(h),0)||1;
   const pos=P0.map(h=>Object.assign({n:String(h.n||h.sym).split(/\s+/).slice(0,2).join(' '),t:h.type=='krypto'?'krypto':'etf',s:h.type=='krypto'?String(h.sym).trim().toUpperCase():(h.ysym||String(h.sym).trim().toUpperCase()),w:Math.round(val(h)/TV*100)/100},showAmt?{v:Math.round(val(h))}:{}));
-  return{v:1,at:now0,opt:{m:O.bm!==false,e:O.be!==false},acc,vm:Math.round(vm),sp:{d:ymd(now0),v:Math.round(sp)},ev:ev.slice(0,20),pos}}
+  return{v:1,at:now0,opt:{m:O.bm!==false,e:O.be!==false},acc:accL,vm:Math.round(vm),sp:{d:ymd(now0),v:Math.round(sp)},ev:ev.slice(0,20),pos}}
 let briefLast='';async function briefSend(force){const O=S.pushOpt||{};if(O.bm===false&&O.be===false&&!force)return;const d=briefData(),h=JSON.stringify(Object.assign({},d,{at:0}));if(!force&&h==briefLast)return;try{await pushCall('brief',{data:d});briefLast=h;S.briefOld=false}catch(e){if(/unknown op/.test(String(e.message||e)))S.briefOld=true}}
 let pushT=null,pushLast='';async function pushPlan(force){if(!pushOn()||!syOn())return;briefSend(force);try{const items=pushItems(),h=JSON.stringify(items);if(!force&&h==pushLast)return;await pushCall('plan',{items});pushLast=h;S.pushAt=Date.now()}catch(e){}}
 function pushSoon(){clearTimeout(pushT);pushT=setTimeout(()=>pushPlan(false),4000)}
