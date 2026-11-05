@@ -591,6 +591,42 @@ body.swback{overflow:hidden}body.swback #app{background:var(--bg)}
 .ico.bt{position:relative;overflow:visible;font-weight:700;font-size:13px;letter-spacing:-.02em;line-height:1}.ico.blg{background:#fff;box-shadow:inset 0 0 0 1px var(--line,rgba(0,0,0,.08))}.ico.blg img{width:70%;height:70%;object-fit:contain;border-radius:4px}
 .ico.bt .cb{position:absolute;right:-5px;bottom:-5px;width:18px;height:18px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--card);box-shadow:0 0 0 2px var(--card)}.ico.bt .cb .i,.ico.bt .cb svg{width:11px!important;height:11px!important}.bl-ic.bflat{font-size:13px}
 .bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}.bl-i{background:var(--card);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}.bl-i img{width:32px;height:32px;border-radius:8px;background:#fff}.bl-i span{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.bl-i small{font-size:11px;color:var(--muted)}
+/* ---------- Assistent im Glas-Stil (v111) ---------- */
+:root{--glbg:rgba(250,248,255,.8);--gledge:rgba(255,255,255,.78);--glcard:rgba(255,255,255,.56);--glchip:rgba(255,255,255,.62);--glpill:rgba(255,255,255,.74);--glshadow:0 -10px 40px rgba(20,10,60,.16)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glbg:rgba(28,24,40,.78);--gledge:rgba(255,255,255,.14);--glcard:rgba(255,255,255,.07);--glchip:rgba(255,255,255,.09);--glpill:rgba(255,255,255,.1);--glshadow:0 -10px 40px rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--glbg:rgba(28,24,40,.78);--gledge:rgba(255,255,255,.14);--glcard:rgba(255,255,255,.07);--glchip:rgba(255,255,255,.09);--glpill:rgba(255,255,255,.1);--glshadow:0 -10px 40px rgba(0,0,0,.45)}
+#asstRoot{left:max(16px,calc(env(safe-area-inset-left,0px) + 16px))!important;right:calc(max(18px,env(safe-area-inset-right,0px) + 18px) + 66px);bottom:calc(env(safe-area-inset-bottom,0px) + 71px)!important;z-index:20}
+body:not(.vf) #asstRoot,body.shopv #asstRoot{right:max(16px,calc(env(safe-area-inset-right,0px) + 16px))}
+body.asst-open #asstRoot{z-index:80}
+.abar{display:flex;align-items:center;height:46px;border-radius:23px;background:var(--glbg);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--gledge);box-shadow:0 8px 28px rgba(20,10,60,.16);overflow:hidden;transition:width .28s cubic-bezier(.2,.8,.2,1),opacity .25s,transform .28s;width:100%}
+.abar .abub{all:unset;flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:100%;padding:0 6px 0 14px;cursor:pointer;color:var(--muted);font-size:15px;box-shadow:none!important;background:none!important;width:auto!important;border-radius:0!important;animation:none!important;transform:none!important;opacity:1!important}
+.abar-r{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#8B5CF6,#D946EF)}
+.abar.bad .abar-r{background:linear-gradient(140deg,#ff5a4f,#d70015)}.abar.warn .abar-r{background:linear-gradient(140deg,#F5A64A,#E8607A)}
+.abar-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.abar .acnt{position:static!important;margin-left:auto;background:#e5484d;color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:2px 7px;min-width:0;height:auto;line-height:1.3;box-shadow:none;border:0}
+.abar-mic{border:0;background:none;color:var(--accent);width:44px;height:46px;display:grid;place-items:center;cursor:pointer;flex:none}
+.abar-mic.rec{color:#fff;background:var(--bad);border-radius:50%;width:38px;height:38px;margin-right:4px;animation:pulse 1.4s ease-in-out infinite}
+body.navving .abar:not(.open){width:46px;opacity:.55}body.navving .abar .abar-t,body.navving .abar .abar-mic,body.navving .abar .acnt{display:none}
+body.navving #asstRoot .abub{transform:none!important}
+#vfab{display:none!important}body.shopv #vfab:not([hidden]){display:grid!important}body.shopv #asstRoot{display:none}
+.adim{position:fixed;inset:0;background:rgba(10,5,30,.08);z-index:1;animation:fadeIn .2s ease-out}
+#asstRoot .apop{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;max-height:none!important;z-index:2;border-radius:28px 28px 0 0!important;background:var(--glbg)!important;-webkit-backdrop-filter:blur(28px) saturate(180%)!important;backdrop-filter:blur(28px) saturate(180%)!important;box-shadow:inset 0 1px 0 var(--gledge),var(--glshadow)!important;border:0!important;padding-bottom:env(safe-area-inset-bottom,0px);transition:height .28s cubic-bezier(.2,.8,.2,1);animation:sheetUp .28s cubic-bezier(.2,.8,.2,1)!important;transform-origin:bottom center}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes sheetUp{from{transform:translateY(40%);opacity:.4}to{transform:none;opacity:1}}
+.agrab{border:0;background:none;display:block;width:100%;padding:8px 0 2px;cursor:grab;touch-action:none}.agrab i{display:block;width:38px;height:5px;border-radius:3px;background:var(--muted);opacity:.45;margin:0 auto}
+#asstRoot .apop-h{padding:2px 16px 6px}#asstRoot .apop-h button{width:30px;height:30px;border-radius:50%;background:var(--glchip)}
+#asstRoot .apop-b{padding:0 14px 6px}
+#asstRoot .atip,#asstRoot .aq-a{background:var(--glcard)!important;border:1px solid var(--gledge);border-radius:18px!important;box-shadow:none!important}
+#asstRoot .aq-q{background:color-mix(in srgb,var(--accent) 85%,transparent)}
+.achips{display:flex;gap:7px;overflow-x:auto;padding:4px 14px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex:none}.achips::-webkit-scrollbar{display:none}
+.achip{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--gledge);background:var(--glchip);color:var(--fg);border-radius:16px;padding:7px 12px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;-webkit-user-select:none;user-select:none}
+.achip.fill{color:var(--accent)}.achip:active{transform:scale(.96)}
+#asstRoot .aq-in{border-top:0!important;padding:8px 14px 10px;gap:8px;align-items:center}
+.aq-pill{flex:1;min-width:0;display:flex;align-items:center;gap:4px;background:var(--glpill);border:1px solid var(--gledge);border-radius:22px;padding:2px 4px 2px 2px}
+#asstRoot .aq-pill input{background:none!important;padding:9px 8px 9px 2px!important;border-radius:0!important}
+#asstRoot .aq-pill .aq-mic{background:none!important;width:36px;height:36px}
+#asstRoot .apop-f{padding:0 0 8px}
+@media (min-width:900px){#asstRoot{left:96px!important;right:auto!important;width:420px;bottom:24px!important}#asstRoot .apop{left:96px!important;right:auto!important;width:480px!important;bottom:16px!important;border-radius:24px!important}.adim{display:none}}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -1113,7 +1149,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='110 (05.11.)';
+const APP_VER='111 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1180,21 +1216,66 @@ function asstAsk(q){q=String(q||'').trim();if(!q)return;if(/^(ich habe |hab )?(g
   if(JRX.test(q)){const j=jParse(q);S.journal=S.journal||[];S.journal.push(j);save();AQ.msgs.push({q,h:`<p><b>Im Journal gespeichert</b>${j.out=='resist'?' – stark, dass du widerstanden hast!':''}</p><div class="alist">${jRow(j)}</div><p class="a-s">${[j.g?'Gefühl: '+esc(j.g):'',j.tr?'Auslöser: '+esc(j.tr):'',JOUT[j.out][0]].filter(Boolean).join(' · ')}. Antippen zum Ergänzen.</p>`,a:[['Bearbeiten',()=>openJournal(j.id)],['Journal öffnen',()=>{tab='wish';wishV='Journal';setView=null;curB=null;render();scrollTo(0,0)}]]});asstOpen=true;renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}if(NEWSRX.test(q.toLowerCase())){const m={q,h:'<p class="a-s">Suche im Internet …</p>'};AQ.msgs.push(m);asstOpen=true;renderAsst();aNews(q).then(h=>{m.h=h}).catch(e=>{m.h='<p>Suche ging nicht: '+esc(e.message||e)+'</p>'}).finally(()=>{renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)});setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}
   let a;try{a=askAI(q)}catch(e){a={h:'<p>Da ist etwas schiefgelaufen: '+esc(e.message||e)+'</p>'}}AQ.msgs.push({q,h:a?a.h:'<p>Das habe ich nicht verstanden.</p>',a:a&&a.a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();
   setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
+/* ---------- Assistent: Höhe (⅓ · ½ · fast voll) und Eingabevorschläge ---------- */
+let ASH='third';const ASHV={third:'36vh',half:'54vh',full:'88vh'};
+function chipUse(t){S.chipUse=S.chipUse||{};S.chipUse[t]=(S.chipUse[t]||0)+1;save()}
+function asstChips(q){q=String(q||'').trim().toLowerCase();const out=[],add=(t,m,s)=>{if(!out.some(x=>x.t==t))out.push({t,m,s})};const hr=new Date().getHours(),P=period(0),dow=new Date().getDay();
+  // häufigste Buchungen mit üblichem Betrag
+  const fr={};S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.rid&&e.n&&e.t>Date.now()-120*864e5).forEach(e=>{const k=e.n.trim();if(k.length<2||k.length>24)return;(fr[k]=fr[k]||[]).push(e.a)});
+  const top=Object.entries(fr).sort((a,b)=>b[1].length-a[1].length).slice(0,12).map(([n,L])=>{const s=L.slice().sort((a,b)=>a-b),med=s[Math.floor(s.length/2)];return{n,a:med,c:L.length}});
+  if(q){const Q=[...ASKS.map(x=>({t:x,m:'ask'})),...top.map(x=>({t:x.n+' '+String(Math.round(x.a*100)/100).replace('.',','),m:'fill'})),...FILLS.map(x=>({t:x,m:'fill'}))];
+    Q.filter(x=>x.t.toLowerCase().startsWith(q)||x.t.toLowerCase().split(/\s+/).some(w=>w.startsWith(q)&&q.length>=2)).slice(0,6).forEach(x=>add(x.t,x.m,0));return out}
+  const B=BUDG.filter(b=>!isK(b)).map(b=>calc(b)),tight=B.some(c=>c.rest<0||c.rest/Math.max(P.left||1,1)<5);
+  if(tight)add('Was darf ich heute noch ausgeben?','ask',90);
+  if(S.urge&&Date.now()-(S.urge.t||0)<3600e3)add('Notbremse','ask',95);
+  if(hr>=18)add('Wie war mein Tag?','ask',70),add('Journal: ','fill',65);
+  if(P.left<=3)add('Monatsbilanz','ask',75);
+  if((S.wish||[]).some(w=>w.s=='offen'&&w.t+wait(w.p)<Date.now()))add('Wunsch entscheiden','ask',72);
+  if(dow==0)add('Wochen-Check-in','ask',68);
+  const last=AQ.msgs.length?String(AQ.msgs[AQ.msgs.length-1].q||'').toLowerCase():'';
+  if(/ausgegeben|wofür|kategorie|wie viel/.test(last))add('Vergleich zum Vormonat','ask',85);
+  if(/depot|aktie|etf|krypto/.test(last))add('Krypto-News','ask',80);
+  ['Was darf ich heute noch ausgeben?','Wie steht mein Puffer?','Wie steht mein Depot?','Was kommt diese Woche?','Wofür habe ich diesen Monat am meisten ausgegeben?','Welche Abos habe ich?'].forEach((t,i)=>add(t,'ask',40-i));
+  top.slice(0,3).forEach((x,i)=>add(x.n+' ','fill',36-i));
+  ['Journal: ','Wunsch  Euro','auf die Einkaufsliste'].forEach((t,i)=>add(t,'fill',30-i));
+  const U=S.chipUse||{},H=S.chipHide||[];return out.filter(x=>!H.includes(x.t)).map(x=>Object.assign(x,{s:x.s+Math.min(25,(U[x.t]||0)*3)})).sort((a,b)=>b.s-a.s).slice(0,10)}
+const ASKS=['Was darf ich heute noch ausgeben?','Wie steht mein Puffer?','Wie steht mein Depot?','Was kommt diese Woche?','Wofür habe ich diesen Monat am meisten ausgegeben?','Welche Abos habe ich?','Wie viel habe ich für Café ausgegeben?','Wie war mein Tag?','Monatsbilanz','Vergleich zum Vormonat','Krypto-News','Wochen-Check-in','Notbremse'];
+const FILLS=['Journal: ','Wunsch  Euro','auf die Einkaufsliste','Umbuchen 50 Euro von Flow nach Sinking Funds'];
+const chipLab=x=>x.t.replace(/^Wunsch  Euro$/,'Wunsch … Euro').replace(/^auf die Einkaufsliste$/,'… auf die Einkaufsliste').replace(/ $/,' …');
+function chipsHtml(q){const L=asstChips(q);return L.map((x,i)=>`<button type="button" class="achip ${x.m}" data-chip="${i}">${x.m=='fill'?I('pen',12):''}${esc(chipLab(x))}</button>`).join('')}
+function bindChips(){const box=$('aChips');if(!box)return;const L=asstChips($('aqI')&&$('aqI').value);
+  box.querySelectorAll('[data-chip]').forEach(b=>{const x=L[+b.dataset.chip];if(!x)return;let lp=null,long=false;
+    b.addEventListener('touchstart',()=>{long=false;lp=setTimeout(()=>{long=true;S.chipHide=[...new Set([...(S.chipHide||[]),x.t])];save();box.innerHTML=chipsHtml();bindChips();toast('Vorschlag ausgeblendet.',()=>{S.chipHide=(S.chipHide||[]).filter(t=>t!=x.t);save();renderAsst()})},550)},{passive:true});
+    b.addEventListener('touchend',()=>clearTimeout(lp));b.addEventListener('touchmove',()=>clearTimeout(lp),{passive:true});
+    b.onclick=e=>{e.stopPropagation();if(long)return;chipUse(x.t);const I0=$('aqI');
+      if(x.m=='ask'){const t=x.t=='Wochen-Check-in'?null:x.t;if(!t){asstOpen=false;renderAsst();openCheckin();return}if(t=='Notbremse'){asstOpen=false;renderAsst();openUrge(S.urge&&S.urge.jid);return}if(t=='Wunsch entscheiden'){asstOpen=false;renderAsst();tab='wish';wishV='Wünsche';render();return}I0.value='';asstAsk(t);return}
+      let v=x.t;if(v=='Wunsch  Euro'){I0.value='Wunsch  Euro';I0.focus();I0.setSelectionRange(7,7);return}if(v=='auf die Einkaufsliste'){I0.value=' auf die Einkaufsliste';I0.focus();I0.setSelectionRange(0,0);return}
+      I0.value=v;I0.focus();try{I0.setSelectionRange(v.length,v.length)}catch(_){}box.innerHTML=chipsHtml(v);bindChips()}})}
+function asstDrag(){const g=$('aGrab'),p=document.querySelector('#asstRoot .apop');if(!g||!p)return;let y0=null,h0=0;
+  g.onclick=e=>{e.stopPropagation();ASH=ASH=='third'?'half':ASH=='half'?'full':'third';p.style.height=ASHV[ASH]};
+  g.addEventListener('touchstart',e=>{y0=e.touches[0].clientY;h0=p.getBoundingClientRect().height;p.style.transition='none'},{passive:true});
+  g.addEventListener('touchmove',e=>{if(y0==null)return;const h=Math.max(80,Math.min(innerHeight*.92,h0+(y0-e.touches[0].clientY)));p.style.height=h+'px'},{passive:true});
+  g.addEventListener('touchend',()=>{if(y0==null)return;y0=null;p.style.transition='';const r=p.getBoundingClientRect().height/innerHeight;if(r<.22){asstOpen=false;renderAsst();return}ASH=r<.45?'third':r<.72?'half':'full';p.style.height=ASHV[ASH]})}
+
 function renderAsst(){const r=$('asstRoot');if(!r)return;document.body.classList.toggle('asst-open',!!asstOpen&&!$('sheetRoot').innerHTML);const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(hide){r.innerHTML='';return}
   const tkey0=0;const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');S.dismTips=(S.dismTips||[]).filter(k=>t0.some(x=>tkey(x)==k));const t=t0.filter(x=>!S.dismTips.includes(tkey(x)));S.seenTips=(S.seenTips||[]).filter(k=>t.some(x=>tkey(x)==k));const top=t.length?t[0].sev:'calm',hr=new Date().getHours(),loud=x=>x.sev=='bad'||(x.sev=='warn'&&hr>=7&&hr<22)||(hr>=18&&hr<22),n=t.filter(x=>!S.seenTips.includes(tkey(x))&&loud(x)).length;
-  r.innerHTML=`<button class="abub ${top}${t.length?'':' calm'}" id="abub" aria-label="Assistent${t.length?', '+t.length+' Hinweise':''}" aria-expanded="${asstOpen}">${ROBO}${n?`<span class="acnt">${n}</span>`:''}</button>
-   ${asstOpen?`<div class="apop" role="dialog" aria-label="Hinweise"><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${ROBO}</span>Dein Assistent</b><button id="aClose" aria-label="Schließen">${I('close',20)}</button></div>
+  document.body.classList.toggle('shopv',setView=='shop');
+  r.innerHTML=`<div class="abar ${top}${t.length?'':' calm'}${asstOpen?' open':''}"><button class="abub" id="abub" aria-label="Assistent öffnen${t.length?', '+t.length+' Hinweise':''}" aria-expanded="${asstOpen}"><span class="abar-r">${I('sparkle',16)}</span><span class="abar-t">Frag CashFlow …</span>${n?`<span class="acnt">${n}</span>`:''}</button><button class="abar-mic" id="abubMic" aria-label="Spracheingabe">${I('mic',18)}</button></div>
+   ${asstOpen?`<div class="adim" id="aDim"></div><div class="apop" role="dialog" aria-label="Assistent" style="height:${ASHV[ASH]}"><button class="agrab" id="aGrab" aria-label="Höhe ändern"><i></i></button><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${ROBO}</span>CashFlow</b><button id="aClose" aria-label="Schließen">${I('close',18)}</button></div>
     <div class="apop-b">${t.length?'':'<div class="a-s" style="padding:4px 4px 0">Keine neuen Hinweise. Frag mich etwas oder suche nach Buchungen.</div>'}${t.map((x,i)=>`<div class="atip ${x.sev}" data-tk="${esc(tkey(x))}" data-ti="${i}"><button class="atip-x0" data-adis="${i}" aria-label="Hinweis ausblenden" title="Ausblenden">${I('close',14)}</button><div class="atip-t">${asstNew.includes(tkey(x))?'<span class="newdot">Neu</span>':''}${I(x.sev=='bad'?'alert':x.sev=='warn'?'up':x.sev=='ok'?'check':'sparkle',15)}<b>${esc(x.ttl)}</b></div><div class="atip-x">${x.txt}</div>
      ${x.b||x.tab||x.act?`<div class="choices" style="margin-top:6px">${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='shopP'?`<button data-ashopp="${i}">Preise nachtragen</button>`:''}${x.act=='rg'?`<button data-arg="${i}|0">Hat sich gelohnt</button><button data-arg="${i}|1">Bereue ich</button>`:''}${x.act=='urge'?`<button data-aurge="${i}">Antworten</button>`:''}${x.act=='rk'?`<button data-ark="${i}">Jetzt einrichten</button>`:''}${x.act=='abg'?`<button data-aabg="${i}">Jetzt abgleichen</button>`:''}${x.act=='sub'?`<button data-asub="${i}">Ins Abo-Radar</button><button data-asubn="${i}">Kein Abo</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}
     ${AQ.msgs.map((m,mi)=>`${m.q?`<div class="aq-q">${esc(m.q)}</div>`:''}<div class="aq-a">${m.h}${(m.a||[]).map((x,xi)=>`<button class="chip" data-aact="${mi}|${xi}">${x[0]}</button>`).join('')}</div>`).join('')}</div>
-    <form class="aq-in" id="aqForm"><input id="aqI" placeholder="Frag mich oder suche …" autocomplete="off" enterkeyhint="send"><button type="button" class="aq-mic" id="aqMic" aria-label="Sprechen">${I('mic',18)}</button><button type="submit" class="aq-go" aria-label="Senden">${I('fwd',18)}</button></form>
+    <div class="achips" id="aChips">${chipsHtml()}</div>
+    <form class="aq-in" id="aqForm"><div class="aq-pill"><button type="button" class="aq-mic" id="aqMic" aria-label="Sprechen">${I('mic',18)}</button><input id="aqI" placeholder="Frag CashFlow oder sag eine Buchung …" autocomplete="off" enterkeyhint="send"></div><button type="submit" class="aq-go" aria-label="Senden">${I('fwd',18)}</button></form>
     <div class="apop-f">Wischen blendet Hinweise aus · Wichtiges sofort, Infos ab 18 Uhr${(S.dismTips||[]).length?` · <button class="link" id="aUndis" style="font-size:11px">${S.dismTips.length} ausgeblendet</button>`:''}${AQ.msgs.length?` · <button class="link" id="aClr" style="font-size:11px">Verlauf leeren</button>`:''}</div></div>`:''}`;
+  if($('abubMic'))$('abubMic').onclick=e=>{e.stopPropagation();voiceGo($('abubMic'))};
   $('abub').onclick=e=>{e.stopPropagation();asstOpen=!asstOpen;if(asstOpen){asstNew=t.filter(x=>!(S.seenTips||[]).includes(tkey(x))).map(tkey);S.seenTips=[...new Set([...(S.seenTips||[]),...t.map(tkey)])];save()}renderAsst()};
   if(asstOpen){r.querySelectorAll('.atip .choices button').forEach(b=>b.addEventListener('click',()=>{const k=b.closest('.atip').dataset.tk;S.dismTips=[...new Set([...(S.dismTips||[]),k])];save()},true));$('aClose').onclick=()=>{asstOpen=false;renderAsst()};r.querySelectorAll('[data-adis]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=t[b.dataset.adis];S.dismTips=[...new Set([...(S.dismTips||[]),tkey(x)])];save();renderAsst()});if($('aUndis'))$('aUndis').onclick=e=>{e.stopPropagation();S.dismTips=[];save();renderAsst()};r.querySelector('.apop').onclick=e=>e.stopPropagation();
     if($('aClr'))$('aClr').onclick=e=>{e.stopPropagation();AQ.msgs=[];renderAsst()};
     $('aqForm').onsubmit=e=>{e.preventDefault();const v=$('aqI').value;$('aqI').value='';asstAsk(v)};
     $('aqMic').onclick=()=>listen(v=>asstAsk(v),$('aqI'),'Ich höre zu …');
+    bindChips();asstDrag();if($('aDim'))$('aDim').onclick=e=>{e.stopPropagation();asstOpen=false;renderAsst()};$('aqI').oninput=()=>{const b=$('aChips');if(b){b.innerHTML=chipsHtml($('aqI').value);bindChips()}};
     r.querySelectorAll('[data-aq]').forEach(b=>b.onclick=()=>asstAsk(b.dataset.aq));
     r.querySelectorAll('[data-aact]').forEach(b=>b.onclick=()=>{const[mi,xi]=b.dataset.aact.split('|').map(Number);const f=AQ.msgs[mi]&&AQ.msgs[mi].a&&AQ.msgs[mi].a[xi];if(f){asstOpen=false;renderAsst();f[1]()}});
     r.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>openJournal(b.dataset.jr));
@@ -2992,11 +3073,12 @@ document.addEventListener('keydown',e=>{if($('lockRoot')&&$('lockRoot').innerHTM
   if((e.key=='['||e.key==']')&&$('car')){e.preventDefault();$(e.key=='['?'carP':'carN').click();return}
   if(e.key=='/'){e.preventDefault();tab='list';setView=null;showF=true;render();setTimeout(()=>$('q')&&$('q').focus(),30);return}});
 $('vfab').innerHTML=I('mic',24);
-$('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.webkitSpeechRecognition,shop=setView=='shop';
+function voiceGo(vf){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,shop=setView=='shop';
   if(vf.classList.contains('rec')&&curSR){try{curSR.stop()}catch(e){}return}
   if(!SR){if(shop){$('shN')&&$('shN').focus()}else{openSheet();setTimeout(()=>$('equick')&&$('equick').focus(),60)}toast('Tippe auf das Mikrofon unten auf der Tastatur und sprich.');return}
   vf.classList.add('rec');listen(v=>{vf.classList.remove('rec');if(shop&&!/^(zeig|öffne|geh|wie|was|einkauf)/i.test(v.trim())){const a=shopVoice(v);render();shopVoiceDone(a);return}if(voiceCmd(v))return;
-    openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))};
+    openSheet();qp(v);drawSheet();toast('Verstanden: „'+v+'“. Kurz prüfen und sichern.')},null,null,()=>vf.classList.remove('rec'))}
+$('vfab').onclick=()=>voiceGo($('vfab'));
 
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
 /* ---------- push notifications ---------- */
@@ -4064,7 +4146,7 @@ function bindPst(){if($('pstChk'))$('pstChk').onclick=async()=>{$('pstChk').text
 function briefCard(t,b){const L=String(b||'').split('\n').map(x=>x.trim()).filter(Boolean);const ic=l=>/^Depot|Woche:/.test(l)?'chart':/Tresor/.test(l)?'lock':/ausgegeben|Ausgaben/.test(l)?'cart':/^(Heute|Morgen|Mo|Di|Mi|Do|Fr|Sa|So|\d)/.test(l)?'calendar':'wallet';
   return `<div class="brf"><div class="brf-h">${esc(t||'Briefing')}</div>${L.map(l=>`<div class="brf-l"><span class="brf-i">${I(ic(l),14)}</span><span>${esc(l)}</span></div>`).join('')}</div>`}
 function notifOpen(n){if(!n)return;const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
-  if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='rep';repV='Vermögen';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
+  if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='rep';repV='Vermögen';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();ASH='half';asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
   const id=tag.replace(/^[a-z]+-/,'');
   if(/^due-/.test(tag)){const i=(S.rec||[]).findIndex(r=>r.id==id);tab='more';setView='rec';render();if(i>=0)setTimeout(()=>openRec(i),200);return}
   if(/^ctr-/.test(tag)){const i=(S.contracts||[]).findIndex(c=>c.id==id);tab='rep';repV='Verträge';render();if(i>=0)setTimeout(()=>openContract(i),200);return}
