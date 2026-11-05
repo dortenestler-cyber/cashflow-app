@@ -582,6 +582,9 @@ body.swback{overflow:hidden}body.swback #app{background:var(--bg)}
 .bflat{display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bc) 16%,transparent);color:var(--bc);font-weight:700;font-size:9px;letter-spacing:-.02em;line-height:1;font-family:inherit;text-transform:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .bflat{color:color-mix(in srgb,var(--bc) 28%,#fff);background:color-mix(in srgb,var(--bc) 45%,#24242a)}}:root[data-theme=dark] .bflat{color:color-mix(in srgb,var(--bc) 28%,#fff);background:color-mix(in srgb,var(--bc) 45%,#24242a)}
 .bl-ic{width:32px;height:32px;border-radius:9px}
+.bm{display:inline-flex;align-items:center;justify-content:center}.bm>i{display:block;width:62%;height:62%;background:currentColor;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}.blogo.bm{border-radius:5px}
+.ls-dk{display:inline-flex;padding:8px;border-radius:12px;background:#1b1726}.ls-dk .bm-dk{color:color-mix(in srgb,var(--bc) 28%,#fff)!important;background:color-mix(in srgb,var(--bc) 45%,#24242a)!important}.ls-big .ico{width:56px!important;height:56px!important;border-radius:16px}.ls-r{border:0;font:inherit;color:inherit;cursor:pointer}.ls-r.on{outline:2px solid var(--blue)}.ls-r span:last-child{font-size:12px;line-height:1.2}.cell .ico.bt,.ls-dk .ico,.ls-big .ico,.cell>.ico.bm{width:34px;height:34px;border-radius:11px}
+.ico.bt.bflat:not(.bm){padding-bottom:3px}
 .ico.bt{position:relative;overflow:visible;font-weight:700;font-size:13px;letter-spacing:-.02em;line-height:1}.ico.blg{background:#fff;box-shadow:inset 0 0 0 1px var(--line,rgba(0,0,0,.08))}.ico.blg img{width:70%;height:70%;object-fit:contain;border-radius:4px}
 .ico.bt .cb{position:absolute;right:-5px;bottom:-5px;width:18px;height:18px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--card);box-shadow:0 0 0 2px var(--card)}.ico.bt .cb .i,.ico.bt .cb svg{width:11px!important;height:11px!important}.bl-ic.bflat{font-size:13px}
 .bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}.bl-i{background:var(--card);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}.bl-i img{width:32px;height:32px;border-radius:8px;background:#fff}.bl-i span{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.bl-i small{font-size:11px;color:var(--muted)}
@@ -939,18 +942,84 @@ function brandOf(e){if(!e||e.type=='tr')return null;const k=bKey(e.n);if(!k)retu
 const bLogo=d=>`https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=64`;
 const BCOL={'rewe.de':'#cc071e','edeka.de':'#1d4e9e','aldi-sued.de':'#00205b','lidl.de':'#0050aa','kaufland.de':'#e10915','penny.de':'#cd1414','netto-online.de':'#d8001a','norma-online.de':'#e2001a','dm.de':'#2a4593','rossmann.de':'#c3002f','mueller.de':'#f39200','amazon.de':'#ff9900','netflix.com':'#e50914','spotify.com':'#1db954','paypal.com':'#003087','apple.com':'#6e6e73','google.com':'#4285f4','youtube.com':'#ff0000','bahn.de':'#ec0016','ikea.com':'#0058a3','mediamarkt.de':'#df0000','saturn.de':'#f39200','zalando.de':'#ff6900','shell.de':'#dd1d21','aral.de':'#0063af','esso.de':'#e10a0a','vodafone.de':'#e60000','telekom.de':'#e20074','o2online.de':'#0019a5','congstar.de':'#4d4d4d','adac.de':'#b38f00','mcdonalds.de':'#da291c','burgerking.de':'#d62300','starbucks.de':'#00704a','subway.com':'#008c15','lieferando.de':'#ff8000','wolt.com':'#009de0','uber.com':'#111111','bolt.eu':'#34d186','disneyplus.com':'#113ccf','primevideo.com':'#00a8e1','dazn.com':'#3a3a3a','sky.de':'#0072c9','audible.de':'#f8991c','ebay.de':'#e53238','otto.de':'#d4021d','hm.com':'#cc071e','zara.com':'#222222','primark.com':'#0b9ad8','douglas.de':'#2b2b2b','tchibo.de':'#0d5ba5','thalia.de':'#e2001a','decathlon.de':'#0082c3','deichmann.com':'#008b4b','tesla.com':'#cc0000','ionity.eu':'#3d2e75','enbw.com':'#000099','tk.de':'#009ee3','aok.de':'#005e3f','barmer.de':'#00a5a9','huk.de':'#00508c','allianz.de':'#003781','axa.de':'#00008f','ergo.de':'#bf1528','devk.de':'#003d7d','klarna.com':'#e5739b','revolut.com':'#191c1f','traderepublic.com':'#111111','scalable.capital':'#1c1c1c','comdirect.de':'#d6a400','coinbase.com':'#0052ff','bitpanda.com':'#1a7f4e','openai.com':'#10a37f','anthropic.com':'#c96442','airbnb.de':'#ff5a5f','booking.com':'#003580','lufthansa.com':'#05164d','ryanair.com':'#073590','flixbus.de':'#73d700','vag.de':'#e30613','mvg.de':'#0065ae','bvg.de':'#d9a400','garmin.com':'#007cc3','fitx.de':'#e5007d','mcfit.com':'#e2001a','temu.com':'#fb7701','shein.com':'#222222','1und1.de':'#003d8f'};
 const PALB=['#0a7aff','#ff7a1a','#8a5cf6','#1aa36f','#e5484d','#d6409f','#0a84c6','#b8860b'];
-const bColor=d=>BCOL[d]||PALB[parseInt(sh32(d),36)%PALB.length];
-const bMono=d=>{const b=String(d).replace(/^www\./,'').split('.')[0].replace(/-/g,' ');const w=b.split(/\s+/).filter(Boolean);if(b.length<=3)return b.toLowerCase();if(w.length>1)return (w[0][0]+w[1][0]).toUpperCase();return b[0].toUpperCase()+(/\d/.test(b[1])?b[1]:'')};
-const bFlat=(d,cls='blogo')=>{const c=bColor(d);return `<span class="${cls} bflat" style="--bc:${c}" aria-hidden="true">${esc(bMono(d))}</span>`};
-const bIcon=(d,cls='blogo',lazy=true)=>S.brandStyle=='logo'?`<img class="${cls}" src="${bLogo(d)}" alt="" ${lazy?'loading="lazy"':''} referrerpolicy="no-referrer" onerror="this.remove()">`:bFlat(d,cls);
+const bColor=d=>(bIco(d)&&bIco(d).c)||BCOL[d]||PALB[parseInt(sh32(d),36)%PALB.length];
+const bMono=d=>{const b=String(d).replace(/^(si|own):/,'').replace(/^www\./,'').split('.')[0].replace(/-/g,' ');const w=b.split(/\s+/).filter(Boolean);if(b.length<=3)return b.toLowerCase();if(w.length>1)return (w[0][0]+w[1][0]).toUpperCase();return b[0].toUpperCase()+(/\d/.test(b[1])?b[1]:'')};
+const bFlat=(d,cls='blogo')=>{const c=bColor(d),bi=bIco(d);if(bi)return `<span class="${cls} bflat bm" style="--bc:${c}" aria-hidden="true"><i style="-webkit-mask-image:url('${bi.m}');mask-image:url('${bi.m}')"></i></span>`;return `<span class="${cls} bflat" style="--bc:${c}" aria-hidden="true">${esc(bMono(d))}</span>`};
+const bIcon=(d,cls='blogo',lazy=true)=>S.brandStyle=='logo'&&!bIco(d)&&!/^(si|own):/.test(d)?`<img class="${cls}" src="${bLogo(d)}" alt="" ${lazy?'loading="lazy"':''} referrerpolicy="no-referrer" onerror="this.remove()">`:bFlat(d,cls);
 const bTile=(e,tag,cc,ci)=>{if(S.brandLogos===false||S.brandList===false||!e||e.type=='tr')return '';const d=brandOf(e);if(!d)return '';const badge=`<span class="cb" style="color:${cc}">${ci}</span>`;
-  return S.brandStyle=='logo'?`<${tag} class="ico bt blg"><img src="${bLogo(d)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('bflat');this.parentNode.style.setProperty('--bc','${bColor(d)}');this.outerHTML='${esc(bMono(d))}'">${badge}</${tag}>`:`<${tag} class="ico bt bflat" style="--bc:${bColor(d)}${bMono(d).length>2?';font-size:11px':''}">${esc(bMono(d))}${badge}</${tag}>`};
+  const bi=bIco(d);if(bi)return `<${tag} class="ico bt bflat bm" style="--bc:${bColor(d)}"><i style="-webkit-mask-image:url('${bi.m}');mask-image:url('${bi.m}')"></i>${badge}</${tag}>`;
+  return S.brandStyle=='logo'&&!/^(si|own):/.test(d)?`<${tag} class="ico bt blg"><img src="${bLogo(d)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('bflat');this.parentNode.style.setProperty('--bc','${bColor(d)}');this.outerHTML='${esc(bMono(d))}'">${badge}</${tag}>`:`<${tag} class="ico bt bflat" style="--bc:${bColor(d)}${bMono(d).length>2?';font-size:11px':''}">${esc(bMono(d))}${badge}</${tag}>`};
 const blogoHtml=e=>{if(S.brandLogos===false)return '';const d=brandOf(e);return d?bIcon(d):''};
+/* ---------- Logo-Suche: Simple Icons, Webseiten-Icon, eigenes Bild → flaches Icon in Original-Umrissen ---------- */
+const SI_CDN='https://cdn.jsdelivr.net/npm/simple-icons@16';let SIX=null,SIXP=null;
+const siSlug=t=>(String(t).replace(/\+/g,'plus').replace(/^\./,'dot-').replace(/\./g,'dot').replace(/&/g,'and').replace(/đ/g,'d').replace(/ħ/g,'h').replace(/ı/g,'i').replace(/ĸ/g,'k').replace(/ŀ/g,'l').replace(/ł/g,'l').replace(/ß/g,'ss').replace(/ŧ/g,'t').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''));
+async function siIndex(){if(SIX)return SIX;if(SIXP)return SIXP;SIXP=(async()=>{const u=SI_CDN+'/data/simple-icons.json';let r=null;try{const c=await caches.open('cf-logos');r=await c.match(u);if(!r){r=await fetch(u);if(r.ok)await c.put(u,r.clone())}}catch(e){r=await fetch(u)}
+  const d=await r.json();SIX=(Array.isArray(d)?d:d.icons||[]).map(x=>({t:x.title,hex:'#'+x.hex,slug:x.slug||siSlug(x.title),aka:[...((x.aliases&&x.aliases.aka)||[]),...Object.values((x.aliases&&x.aliases.loc)||{})].join(' ')}));return SIX})();try{return await SIXP}catch(e){SIXP=null;throw e}}
+const lnorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+function siFind(q){const n=lnorm(q);if(!n||!SIX)return[];const w=n.split(' ').filter(x=>x.length>=2);const sc=x=>{const t=lnorm(x.t),a=lnorm(x.aka);if(t==n)return 100;if(t.startsWith(n))return 80;if(w.some(k=>t==k))return 70;if(w.some(k=>t.split(' ').includes(k)))return 55;if(a&&w.some(k=>a.split(' ').includes(k)))return 45;if(t.includes(n))return 35;if(w.some(k=>k.length>=4&&t.includes(k)))return 20;return 0};
+  return SIX.map(x=>({x,s:sc(x)})).filter(o=>o.s>0).sort((a,b)=>b.s-a.s||a.x.t.length-b.x.t.length).slice(0,18).map(o=>o.x)}
+async function siMask(slug){const t=await (await fetch(SI_CDN+'/icons/'+slug+'.svg')).text();const ds=[...t.matchAll(/<path[^>]*\sd="([^"]+)"/g)].map(m=>m[1]);if(!ds.length)throw new Error('Kein Pfad');
+  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${ds.map(d=>`<path d="${d}"/>`).join('')}</svg>`)}
+const blobToURL=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)});
+async function favLoad(dom){dom=String(dom||'').toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');if(!/\./.test(dom))throw new Error('Bitte eine Webseite wie „marke.de“ eintragen.');
+  for(const u of ['https://www.google.com/s2/favicons?domain='+dom+'&sz=128','https://icons.duckduckgo.com/ip3/'+dom+'.ico']){try{const r=await fetch(u,{mode:'cors'});if(r.ok){const b=await r.blob();if(b.size>100)return blobToURL(b)}}catch(e){}}
+  if(syOn()){const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({img:dom})});const j=r.ok?await r.json().catch(()=>({})):{};if(j.img)return 'data:'+(j.type||'image/png')+';base64,'+j.img;if(!j.v||j.v<8)throw new Error('Für Webseiten-Icons die Funktion „kurse“ in der Supabase-Einrichtung aktualisieren.')}
+  else throw new Error('Webseiten-Icons brauchen den Online-Sync (Funktion „kurse“).');throw new Error('Kein Icon für '+dom+' gefunden.')}
+const loadImg=src=>new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>no(new Error('Bild konnte nicht gelesen werden.'));im.src=src});
+const hex2=n=>n.toString(16).padStart(2,'0');
+/* Raster → Silhouette: Hintergrundfarbe aus dem Rand schätzen, alles deutlich Abweichende wird Form; Farbe = gesättigtste häufige Vordergrundfarbe */
+async function rasterMask(src,thr=.35,inv=false){const im=await loadImg(src),N=96,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d',{willReadFrequently:true});const s=Math.min(N/im.width,N/im.height);const w=im.width*s,h=im.height*s;x.drawImage(im,(N-w)/2,(N-h)/2,w,h);
+  const D=x.getImageData(0,0,N,N),p=D.data;let br=0,bg=0,bb=0,ba=0,bn=0;for(let i=0;i<N;i++)for(const[a,b]of[[i,0],[i,N-1],[0,i],[N-1,i]]){const k=(b*N+a)*4;br+=p[k];bg+=p[k+1];bb+=p[k+2];ba+=p[k+3];bn++}br/=bn;bg/=bn;bb/=bn;ba/=bn;
+  const transBg=ba<128,lim=thr*441,col={};let fg=0;
+  for(let k=0;k<p.length;k+=4){let a=p[k+3]/255;let on;if(transBg)on=a;else{const d=Math.hypot(p[k]-br,p[k+1]-bg,p[k+2]-bb);on=a*Math.min(1,Math.max(0,(d-lim*.6)/(lim*.8+1)))}if(inv)on=(transBg?(a>.1?1:0):1)-on;on=Math.max(0,Math.min(1,on));
+    if(on>.6){fg++;const mx=Math.max(p[k],p[k+1],p[k+2]),mn=Math.min(p[k],p[k+1],p[k+2]);const q=((p[k]>>4)<<8)|((p[k+1]>>4)<<4)|(p[k+2]>>4);col[q]=(col[q]||0)+1+(mx-mn)/40}
+    p[k]=p[k+1]=p[k+2]=0;p[k+3]=Math.round(on*255)}
+  x.putImageData(D,0,0);let best=null,bv=0;for(const q in col)if(col[q]>bv){bv=col[q];best=+q}
+  let rgb=best==null?[85,85,85]:[(best>>8)&15,(best>>4)&15,best&15].map(v=>v*17);const sat=a=>Math.max(...a)-Math.min(...a),lum=a=>(.299*a[0]+.587*a[1]+.114*a[2])/255,bgc=[br,bg,bb].map(Math.round);
+  if(sat(rgb)<40&&!transBg&&sat(bgc)>=60)rgb=bgc;if(lum(rgb)>.82)rgb=sat(rgb)>=60?rgb.map(v=>Math.round(v*.75)):[85,85,85];
+  return{m:cv.toDataURL('image/png'),c:'#'+rgb.map(v=>hex2(Math.max(0,Math.min(255,v)))).join(''),fg:fg/(N*N)}}
+const bIco=d=>(S.brandIcons||{})[d]||null;
+let LS=null;
+function openLogoSearch(o={}){if(!o.key&&o.name)o.key=brandOf({n:o.name,type:'out'})||'';LS={q:o.name||(o.key?String(o.key).replace(/^(si|own):/,'').split('.')[0]:''),key:o.key||'',name:o.name||'',dom:o.key&&!/^si:/.test(o.key)?o.key:'',res:[],sel:null,thr:.35,inv:false,busy:'',err:''};lsDraw();lsSearch()}
+async function lsSearch(){if(!LS)return;LS.busy='si';LS.err='';lsDraw();try{await siIndex();LS.res=siFind(LS.q)}catch(e){LS.err='Logo-Sammlung nicht erreichbar. Bitte Internetverbindung prüfen.'}LS.busy='';lsDraw()}
+async function lsPickSI(i){const x=LS.res[i];LS.busy='pick';lsDraw();try{LS.sel={m:await siMask(x.slug),c:x.hex,src:'si',t:x.t,slug:x.slug}}catch(e){LS.err='Logo konnte nicht geladen werden.'}LS.busy='';lsDraw()}
+async function lsRaster(src,kind){LS.busy='pick';LS.err='';lsDraw();try{LS.raw=src;const r=await rasterMask(src,LS.thr,LS.inv);LS.sel={m:r.m,c:r.c,src:kind,t:kind=='fav'?LS.dom:'Eigenes Bild',raster:true};if(r.fg<.02)LS.err='Kaum Form erkannt. Regler „Detail“ verschieben oder „Umkehren“ probieren.'}catch(e){LS.err=e.message||String(e)}LS.busy='';lsDraw()}
+function lsDraw(){if(!LS)return;const L=LS,sel=L.sel,prevB=document.querySelector('#sheetRoot .sheet[aria-label="Logo suchen"] .sheet-b'),sTop=prevB?prevB.scrollTop:0;
+  const tile=(m,c,dark)=>`<span class="ico bt bflat bm ${dark?'bm-dk':''}" style="--bc:${c}"><i style="-webkit-mask-image:url('${m}');mask-image:url('${m}')"></i></span>`;
+  $('sheetRoot').innerHTML=`<div class="scrim" ${prevB?'style="animation:none"':''} id="scrim"></div><div class="sheet ${prevB?'noanim':''}" role="dialog" aria-label="Logo suchen"><div class="sheet-h"><button id="lsX">Abbrechen</button><b>Logo suchen</b><span style="min-width:70px"></span></div><div class="sheet-b">
+   <div class="search"><span style="color:var(--muted)">${I('search',16)}</span><input id="lsQ" value="${esc(L.q)}" placeholder="Marke, z. B. Rewe" autocomplete="off" enterkeyhint="search"></div>
+   ${sel?`<div class="sec"><div class="sh">Vorschau · ${esc(sel.t||'')}</div><div class="group"><div class="cell plain" style="gap:14px;justify-content:center;padding:16px">${tile(sel.m,sel.c,false)}<span class="ls-dk">${tile(sel.m,sel.c,true)}</span><span class="ls-big">${tile(sel.m,sel.c,false)}</span></div>
+     <div class="cell plain"><label for="lsC">Farbe</label><span style="flex:1"></span><span class="s" style="color:var(--muted);font-size:12px">automatisch aus dem Logo</span><input id="lsC" type="color" value="${esc(sel.c)}" style="width:44px;height:30px;border:0;background:none;padding:0"></div>
+     ${sel.raster?`<div class="cell plain"><label for="lsT">Detail</label><input id="lsT" type="range" min="5" max="80" value="${Math.round(L.thr*100)}" style="flex:1"></div><div class="cell plain"><span>Umkehren</span><span style="flex:1"></span><input id="lsI" type="checkbox" class="switch" ${L.inv?'checked':''}></div>`:''}
+     </div><button class="btn" id="lsOk">Übernehmen${L.name?' für „'+esc(L.name)+'“':''}</button></div>`:''}
+   ${L.err?`<div class="note" style="color:var(--bad)">${esc(L.err)}</div>`:''}
+   <div class="sec"><div class="sh">Logos ${L.busy=='si'?'· lädt …':L.res.length?'· '+L.res.length+' Treffer':''}</div>${L.res.length?`<div class="bl-grid">${L.res.map((x,i)=>`<button class="bl-i ls-r ${sel&&sel.slug==x.slug?'on':''}" data-lsi="${i}"><span class="bl-ic ico bt bflat bm" style="--bc:${x.hex}"><i style="-webkit-mask-image:url('${SI_CDN}/icons/${x.slug}.svg');mask-image:url('${SI_CDN}/icons/${x.slug}.svg')"></i></span><span>${esc(x.t)}</span></button>`).join('')}</div>`:L.busy?'':`<div class="note">${L.q?'Keine Treffer in der Logo-Sammlung. Probier die Webseite oder ein eigenes Bild.':'Gib einen Markennamen ein.'}</div>`}</div>
+   <div class="sec"><div class="sh">Von der Webseite</div><div class="group"><div class="cell plain"><input id="lsD" value="${esc(L.dom)}" placeholder="marke.de" autocapitalize="off" style="flex:1;text-align:left"><button class="ed-link" id="lsDGo" style="color:var(--blue)">Icon laden</button></div></div></div>
+   <div class="sec"><div class="sh">Eigenes Bild</div><div class="group"><label class="cell plain" for="lsF" style="color:var(--blue);cursor:pointer">${I('export',16)} Foto oder Screenshot wählen</label><input id="lsF" type="file" accept="image/*" hidden></div></div>
+   <div class="note">Logos aus der freien Sammlung Simple Icons. An die Suche gehen nur Markenname bzw. Webseite, keine Buchungsdaten. Nach dem Übernehmen liegt das Icon auf deinem Gerät und wird mit synchronisiert.</div>
+   ${bIco(L.key)?`<button class="btn soft" id="lsDel" style="color:var(--bad)">Eigenes Logo entfernen</button>`:''}
+  </div></div>`;
+  if(sTop)document.querySelector('#sheetRoot .sheet-b').scrollTop=sTop;
+  const close=()=>{$('sheetRoot').innerHTML='';LS=null;renderAsst()};$('scrim').onclick=$('lsX').onclick=close;
+  let tq=null;$('lsQ').oninput=()=>{L.q=$('lsQ').value;clearTimeout(tq);tq=setTimeout(()=>{L.res=SIX?siFind(L.q):[];const f=document.activeElement&&document.activeElement.id=='lsQ',pos=$('lsQ').selectionStart;lsDraw();if(f){$('lsQ').focus();try{$('lsQ').setSelectionRange(pos,pos)}catch(e){}}},250)};
+  $('lsQ').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();lsSearch()}};
+  document.querySelectorAll('[data-lsi]').forEach(b=>b.onclick=()=>lsPickSI(+b.dataset.lsi));
+  $('lsD').oninput=()=>{L.dom=$('lsD').value};$('lsDGo').onclick=async()=>{L.dom=$('lsD').value.trim();L.busy='pick';lsDraw();try{const src=await favLoad(L.dom);await lsRaster(src,'fav')}catch(e){L.busy='';L.err=e.message||String(e);lsDraw()}};
+  $('lsF').onchange=ev=>{const f=ev.target.files[0];if(!f)return;blobToURL(f).then(src=>lsRaster(src,'own'))};
+  if($('lsC'))$('lsC').oninput=()=>{L.sel.c=$('lsC').value;document.querySelectorAll('#sheetRoot .cell .bm').forEach(t=>t.style.setProperty('--bc',L.sel.c))};
+  if($('lsT'))$('lsT').onchange=()=>{L.thr=+$('lsT').value/100;const c=L.sel.c;rasterMask(L.raw,L.thr,L.inv).then(r=>{L.sel.m=r.m;L.sel.c=c;lsDraw()})};
+  if($('lsI'))$('lsI').onchange=()=>{L.inv=$('lsI').checked;const c=L.sel.c;rasterMask(L.raw,L.thr,L.inv).then(r=>{L.sel.m=r.m;L.sel.c=c;lsDraw()})};
+  if($('lsDel'))$('lsDel').onclick=()=>{delete S.brandIcons[L.key];save();close();render();toast('Eigenes Logo entfernt, das Kürzel-Icon ist zurück.')};
+  if($('lsOk'))$('lsOk').onclick=()=>{let key=L.key;if(!key)key=L.dom&&/\./.test(L.dom)?L.dom.toLowerCase().replace(/^www\./,''):sel.slug?'si:'+sel.slug:'own:'+sh32(L.name||String(Date.now()));
+    S.brandIcons=S.brandIcons||{};S.brandIcons[key]={m:sel.m,c:sel.c,src:sel.src,t:sel.t||''};if(L.name){const bk=bKey(L.name);if(bk&&brandOf({n:L.name,type:'out'})!==key){S.brandMap=S.brandMap||{};S.brandMap[bk]=key}}
+    save();close();render();toast('Logo übernommen.'+(L.name?' Gilt für alle Buchungen mit „'+L.name+'“.':''))}}
+
 function brandsHtml(){const M=S.brandMap||{},cnt={},none={};S.exp.forEach(e=>{if(e.type=='tr'||!e.n)return;const d=brandOf(e);if(d){cnt[d]=(cnt[d]||0)+1}else{const k=bKey(e.n);if(k.length>=3&&!/^(einkauf|sonstiges|bargeld|kontoabgleich|monatsabschluss|sparplan)/.test(k))none[k]=(none[k]||0)+1}});
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]),miss=Object.entries(none).sort((a,b)=>b[1]-a[1]).slice(0,20);
   return `<div class="group"><div class="cell plain"><div class="t"><div>Marken-Logos anzeigen</div><div class="s">In Buchungslisten, in der Buchung unter Details und hier${S.brandStyle=='logo'?' · einmal geladen, dann auf dem Gerät gespeichert':''}</div></div><input type="checkbox" class="switch" id="blOn" ${S.brandLogos!==false?'checked':''}></div>${S.brandLogos!==false?`<div class="cell plain"><div class="t"><div>In Listen statt Kategorie-Icon</div><div class="s">Marke links, die Kategorie als kleines Abzeichen</div></div><input type="checkbox" class="switch" id="blList" ${S.brandList!==false?'checked':''}></div>`:''}${S.brandLogos!==false?`<div class="cell plain"><span>Stil</span><span style="flex:1"></span><div class="seg" id="blSt" style="max-width:240px">${[['flat','Flaches Icon'],['logo','Original-Logo']].map(([k,l])=>`<button data-v="${k}" class="${(S.brandStyle||'flat')==k?'on':''}">${l}</button>`).join('')}</div></div>`:''}</div>
-   <div class="sec"><div class="sh">Erkannt in deinen Buchungen · ${top.length}</div><div class="bl-grid">${top.map(([d,n])=>`<div class="bl-i">${bIcon(d,'bl-ic',false)}<span>${esc(d.replace(/\.(de|com|eu|capital)$/,''))}</span><small>${n}×</small></div>`).join('')||'<div class="note">Noch keine Marken erkannt.</div>'}</div></div>
-   ${miss.length?`<div class="sec"><div class="sh">Ohne Logo · häufig</div><div class="group">${miss.map(([k,n],i)=>`<div class="cell plain"><div class="t" style="flex:1;min-width:0"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</div><div class="s">${n} Buchung${n>1?'en':''}</div></div><input data-bmk="${esc(k)}" placeholder="webseite.de" autocapitalize="off" style="max-width:130px;text-align:right"></div>`).join('')}</div>
+   <button class="btn soft" id="lsOpen" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('search',16)} Logo suchen und importieren</button>
+   <div class="sec"><div class="sh">Erkannt in deinen Buchungen · ${top.length}</div><div class="bl-grid">${top.map(([d,n])=>`<button class="bl-i ls-r" data-lsk="${esc(d)}">${bIcon(d,'bl-ic',false)}<span>${esc(d.replace(/\.(de|com|eu|capital)$/,''))}</span><small>${n}×${bIco(d)?' · eigenes':''}</small></button>`).join('')||'<div class="note">Noch keine Marken erkannt.</div>'}</div><div class="note">Tippe ein Logo an, um ein anderes zu suchen.</div></div>
+   ${miss.length?`<div class="sec"><div class="sh">Ohne Logo · häufig</div><div class="group">${miss.map(([k,n],i)=>`<div class="cell plain"><div class="t" style="flex:1;min-width:0"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</div><div class="s">${n} Buchung${n>1?'en':''}</div></div><input data-bmk="${esc(k)}" placeholder="webseite.de" autocapitalize="off" style="max-width:110px;text-align:right"><button class="ed-ic" data-lsn="${esc(k)}" aria-label="Logo suchen" style="color:var(--blue)">${I('search',18)}</button></div>`).join('')}</div>
     <div class="note">Trag die Webseite der Marke ein (z. B. „friseur-mueller.de“), dann erscheint ihr Logo bei allen passenden Buchungen. Leer lassen, wenn es keine Marke ist.</div></div>`:''}
    ${Object.keys(M).length?`<div class="sec"><div class="sh">Deine Zuordnungen</div><div class="group">${Object.entries(M).map(([k,d])=>`<div class="cell plain">${d?bIcon(d):''}<div class="t" style="flex:1"><div>${esc(k)}</div><div class="s">${esc(d)}</div></div><button class="del" data-bmx="${esc(k)}" aria-label="Entfernen">${I('minus',20)}</button></div>`).join('')}</div></div>`:''}
    <div class="note">${S.brandStyle=='logo'?'Die Original-Logos lädt die App über den Favicon-Dienst von Google. Dabei wird nur die Webseite der Marke abgefragt, keine Beträge oder Buchungsdaten.':'Flache Icons entstehen direkt in der App aus Markenfarbe und Kürzel. Dabei wird nichts aus dem Internet geladen.'}</div>`}
@@ -1038,7 +1107,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='101 (05.11.)';
+const APP_VER='102 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -2365,14 +2434,14 @@ const SETUP={st:(()=>{try{return JSON.parse(localStorage.getItem('cf_setup')||'{
 const SETUP_ITEMS=()=>[
   {k:'db',t:'Tabelle für Online-Sync',w:'SQL',what:'Speichert deine verschlüsselten Daten für iPhone und PC.',where:'SQL Editor › New query › einfügen › Run',code:()=>SYSQL,need:'Online-Sync'},
   {k:'bak',t:'Tabelle für Monats-Sicherung',w:'SQL',what:'Verschlüsselte Monats-Sicherungen für den Notfall-Schlüssel.',where:'SQL Editor › New query › einfügen › Run',code:()=>BAKSQL,need:'Notfall-Schlüssel'},
-  {k:'kurse',t:'Funktion „kurse“',w:'Edge Function',what:'Kurse, Kursverläufe bis 5 Jahre, Basisdaten, Analysten und News.',where:'Edge Functions › kurse › Code ersetzen › Deploy (neu: Deploy a new function › Via Editor, Name „kurse“)',code:()=>KURS_FN,need:'Depot & News'},
+  {k:'kurse',t:'Funktion „kurse“',w:'Edge Function',what:'Kurse, Kursverläufe bis 5 Jahre, Basisdaten, Analysten, News und Webseiten-Icons für die Logo-Suche.',where:'Edge Functions › kurse › Code ersetzen › Deploy (neu: Deploy a new function › Via Editor, Name „kurse“)',code:()=>KURS_FN,need:'Depot & News'},
   {k:'pushsql',t:'Tabellen & Zeitplan für Mitteilungen',w:'SQL',what:'Speicher für Mitteilungen, Briefing und den 10-Minuten-Takt.',where:'SQL Editor › New query › einfügen › Run',code:()=>PUSH_SQL(),need:'Mitteilungen & Briefing'},
   {k:'push',t:'Funktion „push“',w:'Edge Function',what:'Verschickt Mitteilungen und das Daily Briefing.',where:'Edge Functions › push › Code ersetzen › Deploy. Danach unter Details „Verify JWT“ ausschalten.',code:()=>PUSH_FN,need:'Mitteilungen & Briefing'}];
 async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render();const st={at:Date.now()};
   const t=async(f)=>{try{return await f()}catch(e){return false}};
   st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
   st.bak=await t(async()=>{const r=await syFetch('/rest/v1/cashflow_backup?select=ym&limit=1');return r.ok});
-  st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=7?true:'old'});
+  st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=8?true:'old'});
   st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();return (j.v||0)>=3?true:'old'});
   st.pushsql=await t(async()=>{const a=await syFetch('/rest/v1/push_brief?select=user_id&limit=1'),b=await syFetch('/rest/v1/push_queue?select=id&limit=1');return a.ok&&b.ok?true:b.ok?'old':false});
   SETUP.st=st;try{localStorage.setItem('cf_setup',JSON.stringify(st))}catch(e){}SETUP.busy=false;if(st.kurse===true)S.kursFnOld=false;if(st.push===true&&st.pushsql===true)S.briefOld=false;render()}
@@ -2636,6 +2705,7 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   document.querySelectorAll('[data-po]').forEach(i=>i.onchange=()=>{S.pushOpt=Object.assign({fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false,bm:true,be:true},S.pushOpt||{});S.pushOpt[i.dataset.po]=i.checked;save();pushPlan(true);briefSend(true)});
   if($('pushSqlCopy'))$('pushSqlCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_SQL()).then(()=>toast('SQL kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   if($('pushFnCopy'))$('pushFnCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_FN).then(()=>toast('Code kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
+  if($('lsOpen'))$('lsOpen').onclick=()=>openLogoSearch();document.querySelectorAll('[data-lsk]').forEach(b=>b.onclick=()=>{const d=b.dataset.lsk;openLogoSearch({key:d,name:'',dom:d})});document.querySelectorAll('[data-lsn]').forEach(b=>b.onclick=()=>openLogoSearch({name:b.dataset.lsn}));
   if($('blOn'))$('blOn').onchange=()=>{S.brandLogos=$('blOn').checked;save();render()};if($('blList'))$('blList').onchange=()=>{S.brandList=$('blList').checked;save();render()};document.querySelectorAll('#blSt button').forEach(b=>b.onclick=()=>{S.brandStyle=b.dataset.v;save();render()});document.querySelectorAll('[data-bmk]').forEach(i=>i.onchange=()=>{const d=i.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');if(!d)return;if(!/\./.test(d)){toast('Bitte eine Webseite wie marke.de eintragen.');return}S.brandMap=S.brandMap||{};S.brandMap[i.dataset.bmk]=d;save();render();toast('Logo zugeordnet.')});document.querySelectorAll('[data-bmx]').forEach(b=>b.onclick=()=>{delete S.brandMap[b.dataset.bmx];save();render()});
   on('setupChk',setupCheck);document.querySelectorAll('[data-setcp]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setcp);try{navigator.clipboard.writeText(x.code()).then(()=>toast((x.w=='SQL'?'SQL':'Code')+' kopiert. Jetzt in Supabase einfügen.'))}catch(e){const pr=$('setpre-'+x.k);pr.hidden=false;pr.textContent=x.code();toast('Kopieren ging nicht. Text unten markieren.')}});
   document.querySelectorAll('[data-setsh]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setsh),pr=$('setpre-'+x.k);pr.hidden=!pr.hidden;if(!pr.hidden)pr.textContent=x.code()});
@@ -2776,7 +2846,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     ${tr?'':`<div class="cell plain"><label for="esub">Unterkategorie</label><input id="esub" list="subs" placeholder="optional" value="${esc(E.sc||'')}"><datalist id="subs">${[...new Set(S.exp.filter(e=>e.b==E.b&&e.c==E.c&&e.sc).map(e=>e.sc))].map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>`}
     <div class="cell plain"><label for="etags">Tags</label><input id="etags" placeholder="#urlaub #geschenk" value="${esc(E.tg||'')}"></div>
     ${tr?'':`<div class="cell plain"><label for="eperson">Person</label><input id="eperson" placeholder="optional" value="${esc(E.p)}"></div>`}
-    ${E.id&&E.type=='out'&&E.n&&bKey(E.n).length>=2?(()=>{const d=brandOf(E),sk=subKey(E.n),isNo=(S.subNo||[]).includes(sk),isAbo=(S.rec||[]).some(r=>subKey(r.n||r.c)==sk);return `<div class="cell plain"><label for="ebrand">Marke</label>${d?bIcon(d):''}<input id="ebrand" placeholder="webseite.de · leer = kein Logo" autocapitalize="off" value="${esc(E.brand!=null?E.brand:(d||''))}"></div>
+    ${E.id&&E.type=='out'&&E.n&&bKey(E.n).length>=2?(()=>{const d=brandOf(E),sk=subKey(E.n),isNo=(S.subNo||[]).includes(sk),isAbo=(S.rec||[]).some(r=>subKey(r.n||r.c)==sk);return `<div class="cell plain"><label for="ebrand">Marke</label>${d?bIcon(d):''}<input id="ebrand" placeholder="webseite.de · leer = kein Logo" autocapitalize="off" value="${esc(E.brand!=null?E.brand:(d||''))}"><button class="ed-ic" id="eLogoS" aria-label="Logo suchen" style="color:var(--blue)">${I('search',18)}</button></div>
     <div class="cell plain"><span>Abo</span><span style="flex:1"></span><div class="seg" id="eAbo" style="max-width:230px">${[['auto','Automatisch'],['yes','Ist Abo'],['no','Kein Abo']].map(([k,l])=>`<button data-v="${k}" class="${(isAbo?'yes':isNo?'no':'auto')==k?'on':''}">${l}</button>`).join('')}</div></div>
     <div class="cell plain" style="padding-top:0"><div class="s" style="font-size:12px;color:var(--muted)">Korrekturen gelten für alle Buchungen mit „${esc(bKey(E.n))}“ und werden gemerkt.</div></div>`})():''}
     <div class="cell plain"><label for="eimg">Beleg</label>${E.img?`<img class="thumb" src="${E.img}" alt="Beleg"><button class="del" id="imgDel" aria-label="Beleg entfernen">${I('minus',22)}</button>`:`<span style="flex:1"></span><label for="eimg" style="color:var(--blue);cursor:pointer">Foto hinzufügen</label>`}<input id="eimg" type="file" accept="image/*" hidden></div>
@@ -2811,6 +2881,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     drawSheet()});
   $('eimg').onchange=ev=>{const f=ev.target.files[0];if(!f)return;keep();const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,500/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);E.img=cv.toDataURL('image/jpeg',.6);drawSheet()};im.src=rd.result};rd.readAsDataURL(f)};
   if($('imgDel'))$('imgDel').onclick=()=>{keep();E.img='';drawSheet()};
+  if($('eLogoS'))$('eLogoS').onclick=()=>{keep();const nm=E.n,d=brandOf({n:nm,type:'out'});openLogoSearch({name:nm,key:d||''})};
   document.querySelectorAll('#eAbo button').forEach(b=>b.onclick=()=>{keep();const v=b.dataset.v,sk=subKey(E.n);S.subNo=(S.subNo||[]).filter(x=>x!=sk);
     if(v=='no'){S.subNo.push(sk);toast('Gemerkt: „'+E.n+'“ ist kein Abo.')}
     else if(v=='yes'){if(!(S.rec||[]).some(r=>subKey(r.n||r.c)==sk)){const nd=new Date(E.t||Date.now()),nx=new Date(nd.getFullYear(),nd.getMonth()+1,1);S.rec.push({id:uid(),type:'out',b:E.b,c:E.c||'Abos',a:Math.round(evalAmt(E.amt)*100)/100||E.orig&&E.orig.a||0,n:E.n,day:nd.getDate(),every:1,start:ymd(nx.getTime()),abo:true});toast('„'+E.n+'“ ist jetzt im Abo-Radar, ab nächstem Monat automatisch gebucht.')}}
@@ -3225,7 +3296,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const H = { "User-Agent": "Mozilla/5.0" };
   const chart = async (s) => (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(s) + "?range=5d&interval=1d", { headers: H })).json()).chart.result[0].meta;
-  const { q = [], hist = false, news = null, info = null } = await req.json().catch(() => ({}));
+  const { q = [], hist = false, news = null, info = null, img = null } = await req.json().catch(() => ({}));
+  if (img) {
+    const dom = String(img).toLowerCase().replace(/[^a-z0-9.-]/g, "").slice(0, 80);
+    for (const u of ["https://www.google.com/s2/favicons?domain=" + dom + "&sz=128", "https://icons.duckduckgo.com/ip3/" + dom + ".ico"]) {
+      try { const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0" } }); if (!r.ok) continue; const b = new Uint8Array(await r.arrayBuffer()); if (b.length < 100) continue; let s = ""; for (let k = 0; k < b.length; k += 32768) s += String.fromCharCode(...b.subarray(k, k + 32768));
+        return new Response(JSON.stringify({ img: btoa(s), type: r.headers.get("content-type") || "image/png", v: 8 }), { headers: { ...cors, "Content-Type": "application/json" } }); } catch (_) {}
+    }
+    return new Response(JSON.stringify({ img: null, v: 8 }), { headers: { ...cors, "Content-Type": "application/json" } });
+  }
   if (info) {
     const isin = /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(info); let cands = [info];
     try { const j = await (await fetch("https://query2.finance.yahoo.com/v1/finance/search?quotesCount=10&newsCount=0&q=" + encodeURIComponent(info), { headers: H })).json(); const qs = (j.quotes || []).map((x) => x.symbol).filter(Boolean); cands = isin ? qs : [info, ...qs.filter((x) => x !== info)]; } catch (_) {}
@@ -3254,7 +3333,7 @@ Deno.serve(async (req) => {
         if (best.holdings.length && best.summary && (best.target.mean || best.type === "ETF" || best.holdings.length)) break;
       } catch (_) {}
     }
-    return new Response(JSON.stringify({ info: best, v: 7, crumb: !!cr }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ info: best, v: 8, crumb: !!cr }), { headers: { ...cors, "Content-Type": "application/json" } });
   }
   if (Array.isArray(news)) {
     const items = []; const diag = {};
@@ -3288,7 +3367,7 @@ Deno.serve(async (req) => {
       }
       diag[n.q] = c;
     }
-    return new Response(JSON.stringify({ __news: items, diag, v: 7 }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ __news: items, diag, v: 8 }), { headers: { ...cors, "Content-Type": "application/json" } });
   }
   const out = {}; const fx = {};
   for (const s of q.slice(0, 40)) {
@@ -3309,7 +3388,7 @@ Deno.serve(async (req) => {
       let k = 1, cur = m.currency;
       if (cur === "GBp") { k = 0.01; cur = "GBP"; }
       if (cur && cur !== "EUR") { fx[cur] = fx[cur] || (await chart(cur + "EUR=X")).regularMarketPrice; k *= fx[cur]; }
-      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 7 };
+      out[s] = { symbol: sym, name: m.longName || m.shortName || sym, price: m.regularMarketPrice * k, prev: (m.chartPreviousClose || m.previousClose) * k, time: m.regularMarketTime, v: 8 };
       if (hist) {
         const rg = { d: "range=1y&interval=1d", h: "range=5d&interval=60m", i: "range=1d&interval=5m", w: "range=2y&interval=1wk", m: "range=1mo&interval=1h", s: "range=6mo&interval=1d", f: "range=5y&interval=1wk" }[hist === true ? "d" : hist] || "range=1y&interval=1d";
         const r = (await (await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?" + rg, { headers: H })).json()).chart.result[0];
