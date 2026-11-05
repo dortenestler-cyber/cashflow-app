@@ -857,8 +857,10 @@ let saveWarn=0,DV=0;const save=()=>{DV++;try{localStorage.setItem('dodo4',JSON.s
 function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}
   if(d>=p.e)return null;if(r.start){const s=new Date(r.start+'T00:00');if(d<s)return null;const md=(d.getFullYear()-s.getFullYear())*12+d.getMonth()-s.getMonth();if((r.every||1)>1&&md%(r.every)!==0)return null}
   if(r.end&&d>new Date(r.end+'T23:59'))return null;return d}
+const budFor=(b,p)=>{const o=(S.monthOv||{})[pkey(p)];return o&&o.b&&o.b[b]!=null?o.b[b]:(S.budgets[b]||0)};
+const recA=(r,p)=>{const o=(S.monthOv||{})[pkey(p)];return o&&o.r&&o.r[r.id]!=null?o.r[r.id]:r.a};
 function applyRec(){const p=period(0),k=pkey(p);S.rec.forEach(r=>{if(r.paused)return;const d=recDue(r,p);
-  if(d&&d<=now&&!S.exp.some(e=>e.rid==r.id&&e.pk==k))S.exp.push({id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:r.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k})});save()}
+  if(d&&d<=now&&!S.exp.some(e=>e.rid==r.id&&e.pk==k))S.exp.push({id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:recA(r,p),n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k})});save()}
 applyRec();
 
 /* month close: leftovers of roll-accounts move to the roll target on the last minute of the month */
@@ -896,7 +898,7 @@ function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e
   const out=L.filter(e=>e.type=='out'&&e.b==b).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&e.b==b).reduce((s,e)=>s+e.a,0);
   const trO=L.filter(e=>e.type=='tr'&&e.b==b&&!e.alloc).reduce((s,e)=>s+e.a,0),trI=L.filter(e=>e.type=='tr'&&e.to==b&&!e.alloc).reduce((s,e)=>s+e.a,0);
   let carry=0;if(acc(b).carry&&p.s.getTime()>S.since)carry=Math.max(calc(b,off-1).rest,0);const sa=acc(b),st=(sa.start&&sa.startT===p.s.getTime())?sa.start:0;
-  const total=(S.budgets[b]||0)+inc+trI+carry+st,used=out+trO,rest=total-used,tag=p.left?Math.max(rest,0)/p.left:0;
+  const total=budFor(b,p)+inc+trI+carry+st,used=out+trO,rest=total-used,tag=p.left?Math.max(rest,0)/p.left:0;
   return{p,list:L.filter(e=>e.b==b||e.to==b),out,inc,trO,trI,carry,st,total,used,rest,tag,woche:Math.min(tag*7,Math.max(rest,0)),pct:total?used/total:0}}
 const zone=p=>p<.6?'var(--ok)':p<.85?'var(--warn)':'var(--bad)';
 /* budget state: ok, über Plan (more used than the plan allows by today), aufgebraucht (nothing left) */
@@ -1163,7 +1165,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='117 (05.11.)';
+const APP_VER='118 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1634,7 +1636,7 @@ const recKind=r=>r.type=='out'?'fix':r.type=='tr'?(acc(r.to).kind=='budget'&&!is
 function dupRecs(){const G={};(S.rec||[]).filter(r=>!r.paused&&r.type!='in').forEach(r=>{const k=r.type=='tr'?['tr',r.b,r.to,r.a].join('|'):['out',r.b,r.a,subKey(r.n||r.c)].join('|');(G[k]=G[k]||[]).push(r)});return Object.values(G).filter(L=>L.length>1)}
 function fcRec(an,o,open){const p=period(o),k=pkey(p);let inn=0,out=0;const items=[];
   (S.rec||[]).forEach(r=>{if(r.paused)return;const d=recDue(r,p);if(!d)return;if(open&&S.exp.some(e=>e.rid==r.id&&e.pk==k))return;
-    if((r.type=='in'&&r.b==an)||(r.type=='tr'&&r.to==an))inn+=r.a;else if((r.type=='out'||r.type=='tr')&&r.b==an){out+=r.a;items.push({n:r.n||r.c,a:r.a,d,b:an,every:r.every||1,k:recKind(r)})}});
+    const ra=recA(r,p);if((r.type=='in'&&r.b==an)||(r.type=='tr'&&r.to==an))inn+=ra;else if((r.type=='out'||r.type=='tr')&&r.b==an){out+=ra;items.push({n:r.n||r.c,a:ra,d,b:an,every:r.every||1,k:recKind(r)})}});
   S.exp.forEach(e=>{if(!isPlan(e)||!inP(e,p)||e.rid)return;if((e.type=='in'&&e.b==an)||(e.type=='tr'&&e.to==an))inn+=e.a;else if(e.b==an&&(e.type=='out'||e.type=='tr')){out+=e.a;items.push({n:e.n||e.c,a:e.a,d:new Date(e.t),b:an,plan:1,k:'plan'})}});
   return{inn,out,items}}
 /* ---------- Budget-Simulator ---------- */
@@ -1682,8 +1684,10 @@ function simHtml(){const pa=pufAcc();if(!pa)return `<div class="tip">Lege zuerst
    <div class="sec"><div class="sh">Sparen</div><div class="mmcard simgrp">${c.R.map(r=>simSlider('r:'+r.id,(r.n||'Sparrate')+' → '+(SHORT[r.to]||r.to),SIM.r[r.id]||0,r.a,Math.max(1000,Math.ceil(r.a*3/100)*100),'#2FB36B','')).join('')||'<div class="srow"><span class="a-s">Keine monatlichen Sparraten von '+esc(pa.n)+' gefunden. Lege sie im Depot oder als wiederkehrende Umbuchung an.</span></div>'}</div></div>
    <div class="sec"><div class="sh">Puffer auf ${esc(pa.n)} · nächste 6 Monate</div><div class="chartbox" id="simLine">${simLine(c)}</div><div class="note" id="simGrow">${simGrow(c)}</div></div>
    <div class="sec" id="simHints">${simHints(c)}</div>
-   <div class="sec"><div class="sh">Übernehmen</div><div class="seg" id="simWhen"><button class="${SIM.when=='now'?'on':''}" data-v="now">Ab sofort</button><button class="${SIM.when=='next'?'on':''}" data-v="next">Ab ${period(1).label}</button></div>
+   <div class="sec"><div class="sh">Übernehmen</div><div class="seg" id="simWhen"><button class="${SIM.when=='now'?'on':''}" data-v="now">Ab sofort</button><button class="${SIM.when=='next'?'on':''}" data-v="next">Ab ${period(1).label.split(' ')[0]}</button><button class="${SIM.when=='once'?'on':''}" data-v="once">Nur einen Monat</button></div>
+    ${SIM.when=='once'?`<div class="group" style="margin-top:8px"><div class="cell plain"><label for="simOnce">Gilt nur im</label><select id="simOnce" style="margin-left:auto">${[0,1,2,3,4,5,6,7,8,9,10,11].map(o=>{const pp=period(o);return `<option value="${pkey(pp)}" ${(SIM.pk||pkey(period(1)))==pkey(pp)?'selected':''}>${pp.label}</option>`}).join('')}</select></div></div><div class="note">Danach gelten automatisch wieder deine normalen Werte – z. B. für einen Urlaubsmonat oder Weihnachten.</div>`:''}
     <div style="display:flex;gap:8px;margin-top:8px"><button class="btn soft" id="simReset" style="flex:1;margin:0">Zurücksetzen</button><button class="btn" id="simApply" style="flex:2;margin:0">Übernehmen</button></div>
+    ${Object.keys(S.monthOv||{}).length?`<div class="sec" style="margin-top:6px"><div class="sh">Nur für einen Monat</div><div class="group">${Object.entries(S.monthOv).sort().map(([pk,o])=>`<div class="cell plain"><div class="t" style="flex:1"><div>${esc(o.label||pk)}</div><div class="s">${[...Object.entries(o.b||{}).map(([b,v])=>esc(SHORT[b]||b)+' '+eur0(v)),...Object.entries(o.r||{}).map(([id,v])=>{const x=(S.rec||[]).find(q=>q.id==id);return esc(x?(x.n||'Sparrate'):'Sparrate')+' '+eur0(v)})].join(' · ')}</div></div><button class="del" data-ovx="${esc(pk)}" aria-label="Entfernen">${I('minus',20)}</button></div>`).join('')}</div></div>`:''}
     ${S.planNext?`<div class="note">Vorgemerkt ab ${esc(S.planNext.label||'')}: ${Object.keys(S.planNext.b||{}).length} Budgets, ${Object.keys(S.planNext.r||{}).length} Sparraten. <button class="link" id="simPendX">Verwerfen</button></div>`:''}
     <div class="note">Fixkosten und Einnahmen änderst du wie gewohnt bei den wiederkehrenden Buchungen. Übernommen wird in die Monatsbudgets und die wiederkehrenden Umbuchungen – das Depot liest die Sparraten automatisch mit.</div></div>
    <div class="sec"><div class="sh">Szenarien</div><div class="group">${sc.map((x,i)=>`<div class="cell plain"><button class="link" data-sl="${i}" style="flex:1;text-align:left">${esc(x.n)}</button><span class="a-s" style="font-size:12px">${eur0(Object.values(x.b||{}).reduce((s,v)=>s+v,0))} Budgets · ${eur0(Object.values(x.r||{}).reduce((s,v)=>s+v,0))} Sparen</span><button class="del" data-sx="${i}" aria-label="Löschen">${I('minus',20)}</button></div>`).join('')}<div class="cell plain"><input id="simScN" placeholder="Name, z. B. „Urlaub sparen“" style="flex:1;text-align:left"><button class="link" id="simScS">Speichern</button></div></div></div>`}
@@ -1691,17 +1695,19 @@ function simGrow(c){const g6=c.sm.L.reduce((s,x)=>s+x.m.spar+x.x,0),g6c=c.cur.L.
 function simPaint(){const c=simCalc(SIM);if(!c)return;$('simTop').innerHTML=simTop(c);$('simBar').innerHTML=simBar(c);$('simLine').innerHTML=simLine(c);$('simGrow').innerHTML=simGrow(c);$('simHints').innerHTML=simHints(c)}
 function simApplyNow(b,r,from){Object.entries(b).forEach(([k,v])=>{S.budgets[k]=v;simAlloc(pufAcc(),k).forEach(x=>{if(x.a!==v){recSetA(x,v);if(from)x.hist[x.hist.length-1].ab=from}})});
   Object.entries(r).forEach(([id,v])=>{const x=(S.rec||[]).find(q=>q.id==id);if(x&&x.a!==v){recSetA(x,v);if(from)x.hist[x.hist.length-1].ab=from}})}
-function simPending(){const pn=S.planNext;if(!pn)return;if(pkey(period(0))!==pn.pk)return;simApplyNow(pn.b||{},pn.r||{},ymd(period(0).s.getTime()));delete S.planNext;save();try{toast('Neue Budgets und Sparraten aus dem Simulator gelten ab jetzt.')}catch(e){}}
+function simPending(){if(S.monthOv){const cur=pkey(period(0)),ks=Object.keys(S.monthOv);ks.forEach(k=>{if(k<cur&&!/[^0-9-]/.test(k))delete S.monthOv[k]})}const pn=S.planNext;if(!pn)return;if(pkey(period(0))!==pn.pk)return;simApplyNow(pn.b||{},pn.r||{},ymd(period(0).s.getTime()));delete S.planNext;save();try{toast('Neue Budgets und Sparraten aus dem Simulator gelten ab jetzt.')}catch(e){}}
 function bindSim(){if(!$('simTop'))return;
   const set=(id,v)=>{v=Math.max(0,Math.round((+v||0)*100)/100);const[t,k]=[id.slice(0,1),id.slice(2)];if(t=='b')SIM.b[k]=v;else SIM.r[k]=v;const cur=t=='b'?(S.budgets[k]||0):((S.rec||[]).find(x=>x.id==k)||{}).a||0;const dd=$('sd-'+id);if(dd)dd.textContent=Math.abs(v-cur)>=.5?(v>cur?'+':'−')+eur0(Math.abs(v-cur)):'';simPaint()};
   document.querySelectorAll('[data-sr]').forEach(r=>r.oninput=()=>{const id=r.dataset.sr,f=document.querySelector(`[data-sv="${CSS.escape(id)}"]`);if(f)f.value=r.value;set(id,r.value)});
   document.querySelectorAll('[data-sv]').forEach(f=>f.onchange=()=>{const id=f.dataset.sv,v=pNum(f.value)||0,r=document.querySelector(`[data-sr="${CSS.escape(id)}"]`);if(r){if(v>+r.max)r.max=Math.ceil(v/100)*100;r.value=v}set(id,v)});
   if($('simInc'))$('simInc').onchange=()=>{const v=$('simInc').value.trim();SIM.inc=v?(String(v).trim().startsWith('-')||String(v).trim().startsWith('−')?-1:1)*(pNum(v.replace(/^[-−+]/,''))||0):null;simPaint()};
-  document.querySelectorAll('#simWhen button').forEach(b=>b.onclick=()=>{SIM.when=b.dataset.v;render()});
+  document.querySelectorAll('#simWhen button').forEach(b=>b.onclick=()=>{SIM.when=b.dataset.v;render()});if($('simOnce'))$('simOnce').onchange=()=>{SIM.pk=$('simOnce').value};
+  document.querySelectorAll('[data-ovx]').forEach(b=>b.onclick=()=>{const k=b.dataset.ovx,o=S.monthOv[k];delete S.monthOv[k];save();render();toast('Einmal-Änderung für '+(o.label||k)+' entfernt.',()=>{S.monthOv[k]=o;save();render()})});
   $('simReset').onclick=()=>{simInit();render()};
   $('simApply').onclick=()=>{const ch={b:{},r:{}};Object.entries(SIM.b).forEach(([k,v])=>{if(v!==(S.budgets[k]||0))ch.b[k]=v});Object.entries(SIM.r).forEach(([k,v])=>{const x=(S.rec||[]).find(q=>q.id==k);if(x&&x.a!==v)ch.r[k]=v});
     const n=Object.keys(ch.b).length+Object.keys(ch.r).length;if(!n){toast('Keine Änderungen.');return}const snap0=JSON.stringify({b:S.budgets,rec:S.rec,pn:S.planNext||null});
     if(SIM.when=='now'){simApplyNow(ch.b,ch.r,null);toast(n+' Änderung'+(n>1?'en':'')+' übernommen.',()=>{const o=JSON.parse(snap0);S.budgets=o.b;S.rec=o.rec;save();simInit();render()})}
+    else if(SIM.when=='once'){Object.entries(ch.b).forEach(([b,v])=>simAlloc(pufAcc(),b).forEach(x=>{ch.r[x.id]=v}));const pk=SIM.pk||pkey(period(1)),lab=([0,1,2,3,4,5,6,7,8,9,10,11].map(o=>period(o)).find(pp=>pkey(pp)==pk)||period(1)).label;S.monthOv=S.monthOv||{};const prev=S.monthOv[pk]?JSON.parse(JSON.stringify(S.monthOv[pk])):null;S.monthOv[pk]={label:lab,b:Object.assign({},(prev||{}).b,ch.b),r:Object.assign({},(prev||{}).r,ch.r)};simInit();toast('Nur im '+lab+' übernommen.',()=>{if(prev)S.monthOv[pk]=prev;else delete S.monthOv[pk];save();render()})}
     else{S.planNext={pk:pkey(period(1)),label:period(1).label,b:ch.b,r:ch.r};toast('Vorgemerkt ab '+period(1).label+'.',()=>{const o=JSON.parse(snap0);if(o.pn)S.planNext=o.pn;else delete S.planNext;save();render()})}
     save();render()};
   if($('simPendX'))$('simPendX').onclick=()=>{delete S.planNext;save();render()};
