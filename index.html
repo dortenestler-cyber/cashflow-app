@@ -1080,6 +1080,7 @@ function subAdopt(k){const x=newSubs().find(y=>y.k==k);if(!x)return;const e=x.e,
   const r={id:uid(),type:'out',b:e.b,c:e.c||'Abos',a:e.a,n:e.n,day:nd.getDate(),every:1,start:ymd(nx.getTime()),abo:true};S.rec.push(r);save();render();toast(e.n+' ist jetzt im Abo-Radar, ab nächstem Monat automatisch gebucht.');setTimeout(()=>openAbo(r.id),200)}
 let TIPC={k:'',v:null};function tipsList(){const k=DV+'|'+Math.floor(Date.now()/3e5)+'|'+((S.dismTips||[]).length)+'|'+(S.exp||[]).length;if(TIPC.k===k&&TIPC.v)return TIPC.v.slice();const v=tipsList0();TIPC={k,v};return v.slice()}
 function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
+  {const ps=pstState();if(ps&&ps.fresh){const miss=[ps.m.k=='miss'||ps.m.k=='late'?'Morgen':'',ps.e.k=='miss'||ps.e.k=='late'?'Abend':''].filter(Boolean);if(miss.length||(!ps.cronOk&&ps.o.v>=5))t.push({sev:'warn',ttl:miss.length?miss.join(' und ')+'-Briefing ist ausgefallen':'Zeitplan für Mitteilungen läuft nicht',txt:'Einstellungen › Mitteilungen › Zustellung heute: dort steht der Grund und du kannst das Briefing nachholen.'})}}
   if((S.siriPend||[]).length)t.push({sev:'info',ttl:'Siri: '+S.siriPend.length+' Eintr'+(S.siriPend.length==1?'ag':'äge')+' prüfen',txt:'Einige gesprochene Einträge konnte ich nicht automatisch übernehmen. Einstellungen › Siri & Kurzbefehle.'});
   try{const js=jStats(Date.now()-60*864e5),gb=js.gBou[0];if(gb&&gb[1]>=3&&js.bou&&gb[1]/js.bou>=.4&&gb[0]!='neutral')t.push({sev:'info',ttl:'Muster im Journal: „'+gb[0]+'“',txt:`Bei ${gb[1]} von ${js.bou} Impulskäufen der letzten 60 Tage warst du ${gb[0]=='Belohnung'?'in Belohnungsstimmung':gb[0]}. Wenn du das nächste Mal so fühlst: erst 10 Minuten warten oder die Impuls-Notbremse nutzen.`})}catch(e){}
   BUDG.forEach(b=>{const c=calc(b),s=stat(c);
@@ -1111,7 +1112,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='107 (05.11.)';
+const APP_VER='108 (05.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -2493,14 +2494,14 @@ async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render
   st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
   st.bak=await t(async()=>{const r=await syFetch('/rest/v1/cashflow_backup?select=ym&limit=1');return r.ok});
   st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.kursev=j.v||0;return (j.v||0)>=9?true:'old'});
-  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;return (j.v||0)>=4?true:'old'});
+  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;pstSave(j);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});st.pushjwt=r2.status==401?'on':r2.ok?'off':'?'}catch(e){st.pushjwt='?'}return (j.v||0)>=5?true:'old'});
   st.pushsql=await t(async()=>{const a=await syFetch('/rest/v1/push_brief?select=user_id&limit=1'),b=await syFetch('/rest/v1/push_queue?select=id&limit=1'),c=await syFetch('/rest/v1/inbox?select=id&limit=1');return a.ok&&b.ok&&c.ok?true:b.ok?'old':false});
   SETUP.st=st;try{localStorage.setItem('cf_setup',JSON.stringify(st))}catch(e){}SETUP.busy=false;if(st.kurse===true)S.kursFnOld=false;if(st.push===true&&st.pushsql===true)S.briefOld=false;render()}
 function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','check']:v==='old'?['Veraltet, bitte neu einspielen','warn','up']:v===false?['Fehlt noch','bad','alert']:v==='err'?['Antwortet mit Fehler','bad','alert']:['Noch nicht geprüft','muted','dot'];
   return `<div class="anchor">${I('lock',16)}<span>Hier liegt alles, was du in Supabase einfügen musst. Reihenfolge von oben nach unten. Ein erneutes Einfügen schadet nie: SQL und Code überschreiben nur die alte Version.</span></div>
    ${syOn()?`<button class="btn" id="setupChk">${SETUP.busy?'Prüfe …':'Status prüfen'}</button>${st.at?`<div class="note" style="text-align:center;padding:0">Zuletzt geprüft ${new Date(st.at).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`:'<div class="tip">Zuerst unter Einstellungen › Online-Sync verbinden. Für Schritt 1 brauchst du nur das SQL unten.</div>'}
-   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,4]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
-     <div class="setup-b">${x.what}</div><div class="setup-w">${I('pin',13)} ${x.where}</div>
+   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,5]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
+     <div class="setup-b">${x.what}</div>${x.k=='push'&&pushOn()?pstHtml():''}<div class="setup-w">${I('pin',13)} ${x.where}</div>
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
    <div class="note">Supabase findest du unter supabase.com › dein Projekt. Den Secret Key brauchst du nirgends, nur den Publishable Key in der App.</div>`}
@@ -2585,7 +2586,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
    ${pushOn()?`<button class="btn soft" id="pushTest">Test-Mitteilung senden</button>`:''}
    <div class="sec"><div class="sh">Worüber</div><div class="group">${sw('fix',O.fix,'Fixkosten-Wächter','2 Tage bevor eine Abbuchung das Konto ins Minus zieht')}${sw('fc',O.fc,'Frühwarnung Budgets','Wenn ein Budget vor Monatsende leer wird')}${sw('due',O.due,'Große Abbuchungen','Am Vortag, ab 100 €')}${sw('ctr',O.ctr,'Kündigungsfristen','14 und 3 Tage vorher')}${sw('wish',O.wish,'Wunschliste','Wenn eine Wartezeit vorbei ist')}${sw('chk',O.chk,'Wochen-Check-in','Sonntags 18 Uhr')}${sw('rg',O.rg,'Reue-Check','24 Std. nach Käufen aus Gönn dir')}</div></div>
    <div class="sec"><div class="sh">Daily Briefing</div><div class="group">${sw('bm',O.bm,'Morgen-Briefing','Mo–Fr 6:30, Sa/So 8:00 · Konten, Tresor-Einzahlungen, Kurse vom Vortag, nächste 3 Tage · am Wochenende mit Wochenbilanz')}${sw('be',O.be,'Tageszusammenfassung','Täglich 18:00 · Ausgaben heute, Konten, Wertentwicklung')}</div>
-    ${pushOn()?`<div class="cell plain" style="gap:8px;padding:8px 0"><button class="btn soft" id="brT1" style="flex:1;margin:0">Morgen-Briefing testen</button><button class="btn soft" id="brT2" style="flex:1;margin:0">Abend testen</button></div>`:''}
+    ${pushOn()?`</div><div class="sec"><div class="sh">Zustellung heute</div>${pstHtml()}</div><div class="group"><div class="cell plain" style="gap:8px;padding:8px 0"><button class="btn soft" id="brT1" style="flex:1;margin:0">Morgen-Briefing testen</button><button class="btn soft" id="brT2" style="flex:1;margin:0">Abend testen</button></div>`:''}
     ${S.briefOld?'<div class="note" style="color:var(--bad)">Für das Briefing brauchst du die neue Version der Funktion „push“ und das aktualisierte SQL (siehe Einrichtung unten, Schritt 1 und 2 wiederholen).</div>':''}
     <div class="note">Kurse holt Supabase frisch zum Versand. Kontostände und Termine stammen von deiner letzten App-Nutzung. Bei Supabase liegen dafür nur Kontostände, Termine ohne Beträge und die Kürzel deiner Depotwerte mit ihrem Anteil – keine Stückzahlen oder Depotwerte. Mit „Beträge in Mitteilungen“ kommen Beträge dazu.</div></div>
    <div class="sec"><div class="sh">Datenschutz</div><div class="group">${sw('amt',O.amt===true,'Beträge in Mitteilungen','Aus: Texte ohne Euro-Beträge. Die Texte liegen bis zum Versand unverschlüsselt bei Supabase.')}</div>
@@ -2759,7 +2760,7 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   if($('pushSqlCopy'))$('pushSqlCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_SQL()).then(()=>toast('SQL kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   if($('pushFnCopy'))$('pushFnCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_FN).then(()=>toast('Code kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   if($('lsOpen'))$('lsOpen').onclick=()=>openLogoSearch();document.querySelectorAll('[data-lsk]').forEach(b=>b.onclick=()=>{const d=b.dataset.lsk;openLogoSearch({key:d,name:'',dom:d})});document.querySelectorAll('[data-lsn]').forEach(b=>b.onclick=()=>openLogoSearch({name:b.dataset.lsn}));
-  bindSiri();
+  bindSiri();bindPst();
   if($('blOn'))$('blOn').onchange=()=>{S.brandLogos=$('blOn').checked;save();render()};if($('blList'))$('blList').onchange=()=>{S.brandList=$('blList').checked;save();render()};document.querySelectorAll('#blSt button').forEach(b=>b.onclick=()=>{S.brandStyle=b.dataset.v;save();render()});document.querySelectorAll('[data-bmk]').forEach(i=>i.onchange=()=>{const d=i.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');if(!d)return;if(!/\./.test(d)){toast('Bitte eine Webseite wie marke.de eintragen.');return}S.brandMap=S.brandMap||{};S.brandMap[i.dataset.bmk]=d;save();render();toast('Logo zugeordnet.')});document.querySelectorAll('[data-bmx]').forEach(b=>b.onclick=()=>{delete S.brandMap[b.dataset.bmx];save();render()});
   on('setupChk',setupCheck);document.querySelectorAll('[data-setcp]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setcp);try{navigator.clipboard.writeText(x.code()).then(()=>toast((x.w=='SQL'?'SQL':'Code')+' kopiert. Jetzt in Supabase einfügen.'))}catch(e){const pr=$('setpre-'+x.k);pr.hidden=false;pr.textContent=x.code();toast('Kopieren ging nicht. Text unten markieren.')}});
   document.querySelectorAll('[data-setsh]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setsh),pr=$('setpre-'+x.k);pr.hidden=!pr.hidden;if(!pr.hidden)pr.textContent=x.code()});
@@ -2998,7 +2999,7 @@ $('vfab').onclick=()=>{const vf=$('vfab'),SR=window.SpeechRecognition||window.we
 
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
 /* ---------- push notifications ---------- */
-const PUSH_FN=`// Supabase Edge Function "push" v4: Mitteilungen + Daily Briefing für CashFlow (Web Push)
+const PUSH_FN=`// Supabase Edge Function "push" v5: Mitteilungen + Daily Briefing für CashFlow (Web Push)
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
@@ -3098,7 +3099,7 @@ Deno.serve(async (req) => {
         await sb.from("push_queue").update({ sent: true }).eq("id", m.id);
       }
       await sb.from("push_queue").delete().eq("sent", true).lt("at", new Date(Date.now() - 7 * 864e5).toISOString());
-      let b = 0; try { b = await briefs(); } catch (_) {}
+      let b = 0; try { b = await briefs(); } catch (_) {} try { await sb.from("push_cfg").update({ last_cron: new Date().toISOString() }).eq("id", 1); } catch (_) {}
       return J({ ok: true, n: (q || []).length, briefs: b });
     }
     if (body.op === "siri") {
@@ -3117,29 +3118,30 @@ Deno.serve(async (req) => {
         const evs = (d.ev || []).filter((e) => e.d >= B.ymd).slice(0, 4).map((e) => (e.d === B.ymd ? "heute " : "") + e.t); if (evs.length) L.push("Demnächst: " + evs.join(", ") + ".");
         if (d.pos && d.pos.length) { let ws = 0, wp = 0; for (const p of d.pos.slice(0, 10)) { const m = await move(p); if (m == null) continue; ws += p.w || 0; wp += (p.w || 0) * m; } if (ws) L.push("Depot heute " + PC(wp / ws) + "."); }
         if (at) L.push("Stand " + new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(at) + " Uhr.");
-        return J({ say: L.join(" ") || "Keine Daten vorhanden.", v: 4 });
+        return J({ say: L.join(" ") || "Keine Daten vorhanden.", v: 5 });
       }
       const txt = String(body.txt || "").trim().slice(0, 300); if (!txt) return J({ say: "Ich habe nichts verstanden." });
       const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su); if ((count || 0) >= 50) return J({ say: "Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter." });
       const { error } = await sb.from("inbox").insert({ user_id: su, txt }); if (error) return J({ say: "Konnte nicht speichern." }, 500);
-      return J({ say: "Notiert: " + txt, v: 4 });
+      return J({ say: "Notiert: " + txt, v: 5 });
     }
+    if (body.op === "ping") return J({ pong: true, v: 5 });
     const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
     const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
     if (!uid) return J({ error: "not signed in" }, 401);
-    if (body.op === "key") return J({ key: c.vapid_public, v: 4 });
+    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 5, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
     if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
     if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
     if (body.op === "plan") {
       await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
       const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
       if (items.length) await sb.from("push_queue").insert(items);
-      return J({ ok: true, n: items.length, v: 4 });
+      return J({ ok: true, n: items.length, v: 5 });
     }
-    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 4 }); }
-    if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); return J({ ok: true, sent: await sendTo(uid, m), msg: m }); }
-    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 4 }); }
-    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 4 }); }
+    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 5 }); }
+    if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); const n = await sendTo(uid, m); if (body.real && n) await sb.from("push_brief").update(body.kind === "e" ? { sent_e: berlin().ymd } : { sent_m: berlin().ymd }).eq("user_id", uid); return J({ ok: true, sent: n, msg: m }); }
+    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 5 }); }
+    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 5 }); }
     if (body.op === "inbox_del") { const ids = (body.ids || []).map(Number).filter(Boolean); if (ids.length) await sb.from("inbox").delete().eq("user_id", uid).in("id", ids); return J({ ok: true }); }
     if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
     return J({ error: "unknown op" }, 400);
@@ -3149,6 +3151,7 @@ const PUSH_SQL=()=>`create extension if not exists pg_cron;
 create extension if not exists pg_net;
 create table if not exists public.push_cfg (id int primary key default 1, secret text not null default gen_random_uuid()::text, vapid_public text, vapid_private text);
 insert into public.push_cfg (id) values (1) on conflict do nothing;
+alter table public.push_cfg add column if not exists last_cron timestamptz;
 create table if not exists public.push_subs (endpoint text primary key, user_id uuid not null references auth.users on delete cascade, sub jsonb not null, created_at timestamptz default now());
 create table if not exists public.push_queue (id bigserial primary key, user_id uuid not null references auth.users on delete cascade, at timestamptz not null, title text not null, body text, tag text, sent boolean not null default false);
 create table if not exists public.push_brief (user_id uuid primary key references auth.users on delete cascade, data jsonb, updated_at timestamptz default now(), sent_m text, sent_e text);
@@ -4032,6 +4035,27 @@ function bindSiri(){if(!$('siGen'))return;
   if($('siPull'))$('siPull').onclick=()=>siriPull(true);
   document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{const p=(S.siriPend||[]).find(x=>x.id==b.dataset.sp);if(!p)return;S.siriPend=S.siriPend.filter(x=>x.id!=p.id);save();if(voiceCmd(p.txt))return;openSheet();qp(p.txt);drawSheet()});
   document.querySelectorAll('[data-spx]').forEach(b=>b.onclick=()=>{S.siriPend=(S.siriPend||[]).filter(x=>x.id!=b.dataset.spx);save();render()})}
+
+/* ---------- Briefing-Zustellung überwachen ---------- */
+const PSTK='cf_pstat';const pstGet=()=>{try{return JSON.parse(localStorage.getItem(PSTK)||'null')}catch(e){return null}};
+function pstSave(j){if(!j||j.key===undefined)return;try{localStorage.setItem(PSTK,JSON.stringify({at:Date.now(),v:j.v||0,cron:j.cron||null,sm:j.sm||null,se:j.se||null,subs:j.subs,day:j.now||today()}))}catch(e){}}
+let pstBusy=false;async function pstCheck(force){if(pstBusy||!pushOn()||!syOn()||!navigator.onLine)return;const o=pstGet();if(!force&&o&&Date.now()-o.at<20*60000)return;pstBusy=true;try{pstSave(await pushCall('key'));DV++;renderAsst()}catch(e){}finally{pstBusy=false}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>pstCheck(),2500)});setTimeout(()=>pstCheck(),4000);
+function pstState(){const o=pstGet();if(!o||!pushOn())return null;const d=new Date(),min=d.getHours()*60+d.getMinutes(),we=d.getDay()==0||d.getDay()==6,tm=we?480:390,td=today(),O=S.pushOpt||{};
+  const cronAge=o.cron?(Date.now()-Date.parse(o.cron))/60000:null,cronOk=o.v>=5&&cronAge!=null&&cronAge<25;
+  const brief=(sent,t0,on)=>!on?{k:'off',t:'aus'}:sent==td?{k:'ok',t:'heute gesendet'}:min<t0?{k:'wait',t:'kommt um '+String(Math.floor(t0/60)).padStart(2,'0')+':'+String(t0%60).padStart(2,'0')}:min<t0+90?(min>=t0+20||!cronOk?{k:'late',t:'überfällig'}:{k:'wait',t:'wird gerade verschickt'}):{k:'miss',t:'heute ausgefallen'};
+  const m=brief(o.sm,tm,O.bm!==false),e=brief(o.se,1080,O.be!==false);
+  return{o,cronAge,cronOk,m,e,jwt:(SETUP.st||{}).pushjwt,fresh:Date.now()-o.at<30*60000}}
+function pstHtml(){const s=pstState();if(!pushOn())return '';if(!s)return `<div class="group"><div class="cell plain"><span style="color:var(--muted)">Zustellung noch nicht geprüft.</span><span style="flex:1"></span><button class="ed-link" id="pstChk" style="color:var(--blue)">Prüfen</button></div></div>`;
+  const col=k=>k=='ok'?'var(--ok)':k=='miss'||k=='late'?'var(--bad)':'var(--muted)',ago=m=>m<1?'gerade eben':m<60?'vor '+Math.round(m)+' Min.':'vor '+Math.round(m/60)+' Std.';
+  const cronT=s.o.v<5?'Funktion „push“ ist älter als v5 – Zeitplan-Meldung fehlt noch':s.cronAge==null?'Zeitplan hat sich noch nie gemeldet':s.cronOk?'Zeitplan lief zuletzt '+ago(s.cronAge):'Zeitplan läuft nicht (letzter Lauf '+ago(s.cronAge)+')';
+  const why=s.jwt=='on'?'Bei der Funktion „push“ ist „Verify JWT“ eingeschaltet – der Zeitplan wird abgewiesen. In Supabase › Edge Functions › push › Details ausschalten.':s.o.subs===0?'Für dein Konto ist kein Gerät für Mitteilungen registriert. Mitteilungen einmal aus- und wieder einschalten.':(!s.cronOk&&s.o.v>=5)?'Prüfe in Supabase: Gibt es die Funktion genau mit dem Namen „push“? Ist „Verify JWT“ aus? Wurde das SQL „Tabellen & Zeitplan“ ausgeführt?':'';
+  return `<div class="group"><div class="cell plain"><span style="color:${s.cronOk?'var(--ok)':'var(--bad)'}">●</span><div class="t" style="flex:1"><div>${cronT}</div><div class="s">Geprüft ${ago((Date.now()-s.o.at)/60000)}</div></div><button class="ed-link" id="pstChk" style="color:var(--blue)">Prüfen</button></div>
+   <div class="cell plain"><span style="color:${col(s.m.k)}">●</span><div class="t" style="flex:1">Morgen-Briefing · ${s.m.t}</div>${s.m.k=='miss'||s.m.k=='late'?'<button class="ed-link" id="pstM" style="color:var(--blue)">Jetzt senden</button>':''}</div>
+   <div class="cell plain"><span style="color:${col(s.e.k)}">●</span><div class="t" style="flex:1">Abend-Briefing · ${s.e.t}</div>${s.e.k=='miss'||s.e.k=='late'?'<button class="ed-link" id="pstE" style="color:var(--blue)">Jetzt senden</button>':''}</div>
+   ${why?`<div class="cell plain"><div class="s" style="color:var(--bad);font-size:12.5px;line-height:1.45">${why}</div></div>`:''}</div>`}
+function bindPst(){if($('pstChk'))$('pstChk').onclick=async()=>{$('pstChk').textContent='…';await pstCheck(true);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});SETUP.st=Object.assign(SETUP.st||{},{pushjwt:r2.status==401?'on':r2.ok?'off':'?'});localStorage.setItem('cf_setup',JSON.stringify(SETUP.st))}catch(e){}render()};
+  [['pstM','m'],['pstE','e']].forEach(([id,k])=>{if($(id))$(id).onclick=async()=>{$(id).textContent='Sende …';try{await briefSend(true);const j=await pushCall('brieftest',{kind:k,data:briefData(),real:true});toast(j.sent?(k=='e'?'Abend':'Morgen')+'-Briefing gesendet.':'Kein Gerät erreicht. Mitteilungen einmal aus- und einschalten.');await pstCheck(true);render()}catch(e){toast('Fehler: '+(e.message||e))}}})}
 
 /* ---------- summary for Claude ---------- */
 function share(){const P=period(0);let t=`Hallo Claude, hier mein Budget-Stand (${now.toLocaleDateString('de-DE')}, ${P.label}, noch ${P.left} Tage):\n`;
