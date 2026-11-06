@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#F6F4FB" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0E0B16" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="CashFlow">
@@ -660,6 +660,9 @@ body.navving .abar:not(.open){width:56px!important;transform:scale(.72);opacity:
 .fcv{margin-top:12px;border-radius:18px;background:var(--card);padding:10px 12px}.fcv-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px 8px}.fcv-h .s{font-size:12px;color:var(--muted)}.fcv.on .pos-kpi{margin-top:4px;grid-template-columns:repeat(2,1fr)}
 .fcrate{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-size:13px;color:var(--muted)}
 #fcMo{margin-top:8px}
+/* Kein Zoom: Doppeltippen ohne Zoom, Eingabefelder auf iPhone ≥ 16 px (kein Auto-Zoom) */
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@supports (-webkit-touch-callout:none){input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea{font-size:max(16px,1em)!important}}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -1205,7 +1208,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='125 (06.11.)';
+const APP_VER='126 (06.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1532,6 +1535,9 @@ function donut(parts){const tot=parts.reduce((s,x)=>s+x.v,0);if(!tot)return '<di
 const nice=v=>{v=Math.max(v,1);const m=Math.pow(10,Math.floor(Math.log10(v)));const f=v/m;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*m};
 const eyeBtn=()=>S.showWealth?'':`<button class="eyeb" data-eye aria-label="${depShow?'Werte verbergen':'Werte anzeigen'}" title="${depShow?'Werte verbergen':'Werte für diesen Besuch anzeigen'}">${I(depShow?'eyeoff':'eye',18)}</button>`;
 const axf=v=>(Math.abs(v)>=1000?(v/1000).toLocaleString('de-DE',{maximumFractionDigits:1})+'k':Math.round(v).toLocaleString('de-DE'))+' €';
+/* Zwei-Finger-Zoom sperren (iOS) */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
 const kfmt=v=>Math.abs(v)>=1000?(v/1000).toLocaleString('de-DE',{maximumFractionDigits:1})+'k':Math.round(v);
 const TCR={};let tcN=0,tcCur=null,tcDrag=false;
 const tcHead=t=>t?`<span class="th">${t}</span>`:'',tcRow=(n,v,c,mask)=>`<span class="tr">${c?`<i style="background:${c}"></i>`:''}${n?esc(n)+' ':''}<b>${mask?'•••':(typeof v=='number'?eur(v):v)}</b></span>`;
