@@ -656,6 +656,10 @@ body.navving .abar:not(.open){width:56px!important;transform:scale(.72);opacity:
 .histb{display:inline-block;margin-top:3px;font-size:11px;font-weight:600;color:var(--muted);background:color-mix(in srgb,var(--muted) 14%,transparent);border-radius:6px;padding:1px 6px}
 :root{--mk-buy:#2F7DF6;--mk-sell:#F08C2E;--mk-plan:#14A3A3}
 .pos-kpi.k4{margin-bottom:10px}
+.fcrow .fcdot{width:10px;height:10px;border-radius:50%;flex:none;margin-right:2px}
+.fcv{margin-top:12px;border-radius:18px;background:var(--card);padding:10px 12px}.fcv-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px 8px}.fcv-h .s{font-size:12px;color:var(--muted)}.fcv.on .pos-kpi{margin-top:4px;grid-template-columns:repeat(2,1fr)}
+.fcrate{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-size:13px;color:var(--muted)}
+#fcMo{margin-top:8px}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
@@ -1201,7 +1205,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='124 (06.11.)';
+const APP_VER='125 (06.11.)';
 const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
@@ -1590,7 +1594,7 @@ function barChart({vals,labels,ref,col,hi,h=150,top,flat,tipLab,tipName}){const 
 const isRecE=e=>!!(e.rid||e.tpl);
 let repK='Alle';const kOk=(e,kf)=>!kf||kf=='Alle'||(kf=='Wiederkehrend')==isRecE(e);
 const used=(e,bs,kf)=>!e.corr&&kOk(e,kf)&&((e.type=='out'&&bs.includes(e.b))||(e.type=='tr'&&!e.alloc&&bs.includes(e.b)&&!bs.includes(e.to)))?e.a:0;
-function recPlan(bs,o){const p=period(o);return (S.rec||[]).filter(r=>!r.paused&&bs.includes(r.b)&&(r.type=='out'||(r.type=='tr'&&!r.alloc&&!bs.includes(r.to)))&&recDue(r,p)).reduce((s,r)=>s+r.a,0)}
+function recPlan(bs,o){const p=period(o);return (S.rec||[]).filter(r=>!r.paused&&bs.includes(r.b)&&(r.type=='out'||(r.type=='tr'&&!r.alloc&&!bs.includes(r.to)))&&recDue(r,p)).reduce((s,r)=>s+recA(r,p),0)}
 function kindLim(bs,o,kf){const b=budOf(bs),rp=recPlan(bs,o),hasB=bs.some(x=>!isK(x));
   if(kf=='Wiederkehrend'){if(bs===ALL||bs.length==ALL.length){const F=fixInfo(o),lv=F.rw+F.perSum;return{v:lv,label:'Richtwert '+eur0(lv)}}return{v:rp,label:'Geplant '+eur0(rp)}}
   if(!hasB)return kf=='Einmalig'?null:{v:rp,label:'Fixkosten geplant '+eur0(rp)};
@@ -1758,11 +1762,51 @@ function bindSim(){if(!$('simTop'))return;
   document.querySelectorAll('[data-sl]').forEach(b=>b.onclick=()=>{const x=S.simScen[+b.dataset.sl];simInit();Object.assign(SIM.b,x.b||{});Object.keys(x.r||{}).forEach(k=>{if(k in SIM.r)SIM.r[k]=x.r[k]});SIM.inc=x.inc||null;render();toast('Szenario „'+x.n+'“ geladen – noch nicht übernommen.')});
   document.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{S.simScen.splice(+b.dataset.sx,1);save();render()})}
 
+/* ---------- Prognose: alle Konten, Budgets und Tresor im Verlauf (eine Quelle: fcRec/recA, budFor, fcOne, posVal) ---------- */
+let fcOff={},fcVault=false,fcMo=6;
+function fcAccModel({N,M,E0,x0,avg3,pa}){const lab=['jetzt',...Array.from({length:N},(_,k)=>period(k+1).s.toLocaleDateString('de-DE',{month:'short'}).replace('.',''))];
+  const VA=vaultAccs(),rows=[],col=(n,k)=>(acc(n).col||COL[n]||PCOL[k%PCOL.length]),rate=S.fcRate==null?7:S.fcRate,g=r=>Math.pow(1+r/100,1/12);
+  // Konten (ohne Tresor)
+  S.accts.filter(a=>!VA.includes(a.n)).forEach((a,k)=>{const n=a.n;
+    if(pa&&n==pa.n){rows.push({n,kind:'puf',col:col(n,k),vals:[E0,...M.map(m=>m.end)],sub:'Puffer, Überschuss über 1.000 € → Vermögensaufbau'});return}
+    if(isK(n)){const o0=fcRec(n,0,true),one=fcOne(a).one||0;let v=calc(n).rest+o0.inn-o0.out;const vals=[v];for(let o=1;o<=N;o++){const r=fcRec(n,o);v+=r.inn-r.out-one;vals.push(v)}
+      if(vals.some(x=>Math.abs(x)>0.5)||fcRec(n,1).inn)rows.push({n,kind:'konto',col:col(n,k),vals,sub:one?'inkl. Ø '+eur0(one)+' einmalig/Monat':'geplante Ein- und Ausgänge'});return}
+    const exp=Math.max(avg3([n],'Alle'),recPlan([n],1)),carry=!!a.carry;let v=calc(n).rest;const vals=[v];
+    for(let o=1;o<=N;o++){const P=period(o),bud=budFor(n,P);v=(carry?Math.max(v,0):0)+bud-exp;vals.push(v)}
+    rows.push({n,kind:'bud',col:col(n,k),vals,sub:`Budget ${eur0(budFor(n,period(1)))} · Ø Ausgaben ${eur0(exp)}${carry?' · Rest wird übertragen':''}`,exp})});
+  // Tresor
+  const vr=[],depA=Array(N+1).fill(0),grA=Array(N+1).fill(0);
+  const vaN=(S.accts.find(x=>x.verm)||S.accts.find(x=>x.n=='Vermögensaufbau')||{}).n,ovIn=o=>M[o-1]?M[o-1].x||0:0;
+  VA.forEach((n,k)=>{const D=depot().filter(x=>x.to==n),isDep=D.length>0,r=isDep?rate:(rateNow(n)||0);let v=isDep?D.reduce((s,x)=>s+posVal(x),0):calc(n).rest;const vals=[v];
+    for(let o=1;o<=N;o++){const inn=fcRec(n,o).inn+(n==vaN?ovIn(o):0),gr=v*(g(r)-1);v+=gr+inn;grA[o]+=gr;depA[o]+=inn;vals.push(v)}
+    if(vals.some(x=>Math.abs(x)>0.5))vr.push({n,kind:'vault',col:col(n,k+3),vals,sub:isDep?`Depot · Annahme ${String(r).replace('.',',')} % p. a.`:r?`Zinsen ${String(r).replace('.',',')} % p. a.`:'ohne Zinsen',r,mon:fcRec(n,1).inn})});
+  const loose=depot().filter(x=>!x.to||!VA.includes(x.to));if(loose.length){let v=loose.reduce((s,x)=>s+posVal(x),0);const vals=[v],mon=loose.reduce((s,x)=>s+(x.plan&&!x.paused&&!x.rid?(x.rate||0):0),0);for(let o=1;o<=N;o++){const gr=v*(g(rate)-1);v+=gr+mon;grA[o]+=gr;depA[o]+=mon;vals.push(v)}vr.push({n:'Depot',kind:'vault',col:PCOL[6],vals,sub:`ohne Tresor-Konto · Annahme ${rate} % p. a.`,r:rate,mon})}
+  if(!(vaN&&VA.includes(vaN))&&M.some(m=>m.x)){let v=0;const vals=[0];for(let o=1;o<=N;o++){const inn=ovIn(o);v+=inn;depA[o]+=inn;vals.push(v)}vr.push({n:'Puffer-Überschuss',kind:'vault',col:PCOL[2],vals,sub:'noch ohne Zielkonto · über 1.000 € Puffer',r:0,mon:0})}
+  return{lab,rows,vr,depA,grA,rate}}
+function fcAccHtml(ctx){const N=ctx.N,F=fcAccModel(ctx),mi=Math.min(Math.max(1,fcMo),N),V=F.vr,showV=fcVault,all=F.rows.concat(showV?V:[]);
+  if(!all.length)return '';const vis=all.filter(r=>!fcOff[r.n]);
+  const tot=V.length?V[0].vals.map((_,i)=>V.reduce((s,r)=>s+r.vals[i],0)):[];
+  const chart=vis.length?lineChart({n:N+1,series:vis.map(r=>({pts:r.vals,col:r.col,name:SHORT[r.n]||r.n,w:r.kind=='vault'?2.4:1.8,dash:r.kind=='bud'?'4 3':undefined})),labels:F.lab.map((t,i)=>({i,t,on:i==mi})),h:190,tipLab:i=>i?period(i).label:'Ende dieses Monats'}):'<div class="empty">Alle Linien ausgeblendet.</div>';
+  const row=r=>{const v0=r.vals[0],v=r.vals[mi],d=v-v0,neg=r.vals.slice(1).some(x=>x<0)&&r.kind!='vault';return `<div class="cell plain fcrow"><i class="fcdot" style="background:${r.col}"></i><div class="t"><div>${esc(SHORT[r.n]||r.n)}${r.kind=='bud'?' <span class="histb">Budget</span>':''}</div><div class="s">${esc(r.sub)}${neg?' · <b class="out">rutscht ins Minus</b>':''}</div></div><div class="v ${v<0?'out':''}">${eur0(v)}<div class="s ${r.kind=='bud'?(v<0?'out':''):d<0?'out':'in'}">${r.kind=='bud'?(v<0?'fehlt am Monatsende':'Rest am Monatsende'):(d>=0?'+':'−')+eur0(Math.abs(d))+' ggü. jetzt'}</div></div></div>`};
+  const moSeg=`<div class="seg" id="fcMo">${F.lab.slice(1).map((l,i)=>`<button class="${mi==i+1?'on':''}" data-fm="${i+1}">${l}</button>`).join('')}</div>`;
+  const tv=tot.length?tot[mi]:0,y10=(()=>{if(!V.length)return 0;let v=tot[0],m=V.reduce((s,r)=>s+(r.mon||0),0)+(ctx.M.reduce((s,x)=>s+(x.x||0),0)/N);const g=Math.pow(1+F.rate/100,1/12);for(let i=0;i<120;i++)v=v*g+m;return v})();
+  return `<div class="sec"><div class="sh"><span>Konten & Budgets · nächste ${N} Monate</span></div>
+   <div class="chartbox">${chart}
+    <div class="dlg">${all.map(r=>`<button class="dlg-i ${fcOff[r.n]?'off':''}" data-fcl="${esc(r.n)}"><i style="background:${r.col}"></i><span>${esc(SHORT[r.n]||r.n)}</span><b>${eur0(r.vals[mi])}</b><small class="${r.kind=='bud'?(r.vals[mi]<0?'out':''):r.vals[mi]-r.vals[0]<0?'out':'in'}">${r.kind=='bud'?'Rest':(r.vals[mi]-r.vals[0]>=0?'+':'−')+eur0(Math.abs(r.vals[mi]-r.vals[0]))}</small></button>`).join('')}</div></div>
+   ${moSeg}
+   <div class="note" style="padding:2px 4px 6px">Stand Ende ${period(mi).label}. Gestrichelt = Budgets (Rest am Monatsende).</div>
+   <div class="group">${F.rows.map(row).join('')}</div>
+   ${V.length?`<div class="fcv ${showV?'on':''}"><div class="fcv-h"><div><b>Tresor</b><div class="s">${showV?'Einzahlungen und angenommene Wertentwicklung':'ausgeblendet – zum Ansehen tippen'}</div></div><button class="eyeb" id="fcVault" aria-label="${showV?'Tresor ausblenden':'Tresor einblenden'}">${I(showV?'eyeoff':'eye',18)}</button></div>
+    ${showV?`<div class="pos-kpi k4"><div><span>Tresor Ende ${F.lab[mi]}</span><b>${eur0(tv)}</b></div><div><span>Einzahlung</span><b class="in">+${eur0(F.depA.slice(1,mi+1).reduce((s,x)=>s+x,0))}</b></div><div><span>Wertzuwachs</span><b class="in">+${eur0(F.grA.slice(1,mi+1).reduce((s,x)=>s+x,0))}</b><small>angenommen</small></div><div><span>in 10 Jahren</span><b class="in">${eur0(y10)}</b><small>bei gleicher Rate</small></div></div>
+     <div class="group">${V.map(row).join('')}</div>
+     <div class="fcrate"><span>Angenommene Rendite fürs Depot</span><div class="seg" id="fcRate">${[3,5,7,9].map(r=>`<button class="${F.rate==r?'on':''}" data-fr="${r}">${r} %</button>`).join('')}</div></div>
+     <div class="note" style="padding:4px 4px 0">Motivations-Rechnung, keine Garantie: Depotwerte wachsen mit der gewählten Rendite pro Jahr, Tresor-Konten mit ihrem Zinssatz. Dazu kommen deine geplanten Sparraten und der erwartete Puffer-Überschuss. Kurse können auch fallen.</div>`:''}</div>`:''}
+  </div>`}
 function forecastHtml(){const N=6,pa=pufAcc(),mn=o=>period(o).s.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
   const ds=dataStart(),outSum=(bs,o,kf)=>{const p=period(o);return S.exp.reduce((s,e)=>s+(inP(e,p)&&!isPlan(e)&&!e.corr&&e.type=='out'&&bs.includes(e.b)&&kOk(e,kf)?e.a:0),0)};
   const avg3=(bs,kf)=>{let s=0,n=0;for(let o=-1;o>=-3;o--){if(period(o).s.getTime()<ds)continue;s+=outSum(bs,o,kf);n++}if(n)return s/n;const P0=period(0),f=Math.max(P0.idx,1)/P0.len;return f>=.25?outSum(bs,0,kf)/f:outSum(bs,0,kf)};
   const M=[];let E=null,over=0;
-  if(pa){const o0=fcRec(pa.n,0,true);E=pufBal()+o0.inn-o0.out;const x0=Math.max(0,E-1000);over+=x0;E-=x0}
+  let x0=0;if(pa){const o0=fcRec(pa.n,0,true);E=pufBal()+o0.inn-o0.out;x0=Math.max(0,E-1000);over+=x0;E-=x0}const E0=E;
   const FO=fcOne(pa),oneFrom=FO.from,oneInfo=FO.info,one=pa?FO.one:0;
   for(let o=1;o<=N;o++){const r=pa?fcRec(pa.n,o):{inn:0,out:0,items:[]};let x=0;if(pa){E+=r.inn-r.out-one;x=Math.max(0,E-1000);E-=x;over+=x}const kk=k=>r.items.filter(it=>it.k==k).reduce((s,it)=>s+it.a,0);M.push({o,l:mn(o),inn:r.inn,fix:r.out,fx:kk('fix'),bud:kk('bud'),spar:kk('spar'),plan:kk('plan'),items:r.items,one,end:E,x})}
   const neg=M.filter(m=>m.end!=null&&m.end<0);
@@ -1789,6 +1833,7 @@ function forecastHtml(){const N=6,pa=pufAcc(),mn=o=>period(o).s.toLocaleDateStri
    <div class="legend"><span><i style="background:var(--ok)"></i>Eingänge</span><span><i style="background:var(--bad)"></i>Geplante Abgänge${one?' + Ø Einmaliges':''}</span><span><i style="background:var(--blue)"></i>Puffer</span></div></div>
    <div class="group">${M.map(m=>`<div class="cell plain"><div class="t"><div>${period(m.o).label}</div><div class="s">+${eur0(m.inn)} Eingänge · −${eur0(m.fx)} Fixkosten${m.bud?` · −${eur0(m.bud)} Budgets`:''}${m.spar?` · −${eur0(m.spar)} Sparen`:''}${m.plan?` · −${eur0(m.plan)} geplant`:''}${m.one?` · −${eur0(m.one)} Ø einmalig`:''}${m.x?` · ${eur0(m.x)} → Vermögensaufbau`:''}</div></div><div class="v ${m.end<0?'out':''}">${eur0(m.end)}</div></div>`).join('')}</div>
    <div class="note">Fixkosten = echte wiederkehrende Ausgaben. Budgets = Monatsverteilung auf deine Budgetkonten. Sparen = Sparraten und Umbuchungen in den Vermögensaufbau. Gerechnet wird mit Geplantem: Einnahmen, Fixkosten, Budget-Verteilung, Sparraten und bereits erfasste zukünftige Buchungen. Dazu „Ø einmalig“: deine echten Einzelausgaben von ${esc(pa.n)} (ohne Umbuchungen) erst ab ${new Date(oneFrom).toLocaleDateString('de-DE',{month:'long',year:'numeric'})} – ${oneInfo||'keine'}${one?': '+eur0(one)+' pro Monat':''}. Ältere Daten aus dem früheren System zählen nicht.</div></div>`:`<div class="note">Lege in den Einstellungen ein Eingangskonto fest, dann wird auch dein Puffer vorausberechnet.</div>`}
+  ${fcAccHtml({N,M,E0,x0,avg3,pa})}
   ${B.length?`<div class="sec"><div class="sh">Budgets im Schnitt</div><div class="group">${B.map(r=>`<div class="cell plain"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${I('wallet')}</div><div class="t"><div>${esc(SHORT[r.b]||r.b)}</div><div class="s">Budget ${eur0(r.bud)} · erwartet Ø ${eur0(r.exp)}/Monat</div></div><div class="v ${r.d<0?'out':'in'}">${r.d<0?'−':'+'}${eur0(Math.abs(r.d*N))}<div class="s">in 6 Monaten</div></div></div>`).join('')}</div><div class="note">Minus heißt: Bleibt es beim bisherigen Tempo, reicht das Budget nicht.</div></div>`:''}
   ${sav.length||over?`<div class="sec"><div class="sh">Sparen bis ${M[N-1].l}</div><div class="group">${sav.map(x=>`<div class="cell plain"><div class="t">${esc(SHORT[x.n]||x.n)}<div class="s">feste Sparraten</div></div><div class="v in">+${eur0(x.s)}</div></div>`).join('')}${over?`<div class="cell plain"><div class="t">Puffer-Überschuss<div class="s">geht in den Vermögensaufbau</div></div><div class="v in">+${eur0(over)}</div></div>`:''}</div></div>`:''}
   <button class="btn soft" id="toSim2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('gauge',16)} Mit Simulator ausprobieren</button>
@@ -2941,7 +2986,7 @@ function bind(){{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('j
   if($('repBsel'))$('repBsel').onchange=()=>{repB=$('repBsel').value;render()};
   on('toYear2',()=>{drill={k:'year'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
   document.querySelectorAll('#repK button').forEach(b=>b.onclick=()=>{repK=b.dataset.f;render()});
-  if($('toSim2'))$('toSim2').onclick=()=>{SIM=null;repV='Simulator';render()};bindSim();
+  if($('toSim2'))$('toSim2').onclick=()=>{SIM=null;repV='Simulator';render()};document.querySelectorAll('[data-fcl]').forEach(b=>b.onclick=()=>{const k=b.dataset.fcl;fcOff[k]=!fcOff[k];render()});document.querySelectorAll('[data-fm]').forEach(b=>b.onclick=()=>{fcMo=+b.dataset.fm;render()});if($('fcVault'))$('fcVault').onclick=()=>{fcVault=!fcVault;render()};document.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{S.fcRate=+b.dataset.fr;save();render()});bindSim();
   document.querySelectorAll('[data-recid]').forEach(b=>b.onclick=()=>{const i=(S.rec||[]).findIndex(r=>r.id==b.dataset.recid);if(i>=0)openRec(i)});
   document.querySelectorAll('#devR button').forEach(b=>b.onclick=()=>{S.devSel.r=b.dataset.v;save();render()});if($('devC'))$('devC').onchange=()=>{S.devSel.c=$('devC').value;save();render()};if($('devQ')){$('devQ').onchange=()=>{S.devSel.q=$('devQ').value.trim();save();render()};$('devQ').onkeydown=e=>{if(e.key=='Enter')$('devQ').blur()}}
   document.querySelectorAll('#repG button').forEach(b=>b.onclick=()=>{const g=REPG.find(x=>x[0]==b.dataset.f);S.repLast=S.repLast||{};const last=S.repLast[g[0]];repV=last&&g[2].some(x=>x[0]==last)?last:g[2][0][0];drill=null;yOff=0;render()});
