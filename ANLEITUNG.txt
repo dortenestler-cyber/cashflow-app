@@ -31,6 +31,10 @@ Sag „Hey Siri, Buchung“ und z. B. „12,50 Rewe“ oder „Kaffee 3,50 und B
 
 Apple Pay automatisch (Automation, ab iOS 17):
 1. Kurzbefehle › Automation › „+“ › „Wallet“ › Karten wählen › „Sofort ausführen“.
-2. Neuer leerer Kurzbefehl: Aktion „Text“ mit „Apple Pay “ + Kurzbefehleingabe › Betrag + Leerzeichen + Kurzbefehleingabe › Händler.
-3. Aktion „In Zwischenablage kopieren“.
-Beim nächsten Öffnen fragt der Assistent: „Apple-Pay-Zahlung erkannt … Buchen?“. Nur die letzte Zahlung liegt in der Zwischenablage.
+2. Aktion „Zwischenablage abrufen“.
+3. Aktion „Text“, zwei Zeilen:
+   Zeile 1: Variable „Zwischenablage“
+   Zeile 2: „Apple Pay “ + Transaktion › Händler + Leerzeichen + Transaktion › Betrag + Leerzeichen + „Aktuelles Datum“
+4. Aktion „In Zwischenablage kopieren“ (Eingabe: Text).
+So sammeln sich mehrere Zahlungen, auch wenn du CashFlow zwischendurch nicht öffnest. Die App übernimmt nur Zeilen mit „Apple Pay“, bucht nichts doppelt und nimmt die Uhrzeit der Zahlung.
+Ist der Einkaufszettel abgehakt, gleicht der Assistent nach dem Buchen ab: geplant gegen tatsächlich. Ab ±10 % oder 3 € Abweichung fragt er nach, sonst entfernt er die abgehakten Artikel selbst.

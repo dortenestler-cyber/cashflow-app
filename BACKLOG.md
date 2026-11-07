@@ -2,7 +2,7 @@
 
 Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
-## 1. Einkauf mit Einkaufszettel abgleichen (Konzept, 2026-11-07)
+## 1. Einkauf mit Einkaufszettel abgleichen (umgesetzt in v147)
 
 **Ziel:** Eine per Kurzbefehl erfasste Buchung (z. B. „Norma 25 €“ über Apple Pay oder Siri) wird mit dem Einkaufszettel verglichen: Was war geplant, was hat es wirklich gekostet?
 
@@ -37,7 +37,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - „Zettel abschließen“ entfernt nur die abgehakten Artikel.
 - Mehrere Läden: Jede Zahlung wird mit den seit dem letzten Abgleich abgehakten Artikeln verglichen. Kommen mehrere Zahlungen gleichzeitig, wird die Summe verglichen („Norma + Rewe: 33,47 € · geplant ca. 29 €“).
 
-## 2. Apple Pay: mehrere Zahlungen sammeln (Konzept, 2026-11-07)
+## 2. Apple Pay: mehrere Zahlungen sammeln (umgesetzt in v147)
 
 **Problem:** In der Zwischenablage liegt nur die letzte Zahlung. Zwei Zahlungen ohne Öffnen der App dazwischen bedeuten, dass eine verloren geht.
 
