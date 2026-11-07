@@ -28,7 +28,7 @@ Kurzbefehl „Buchung“: genauso, Zeile 2: Buchung: [Diktierter Text] · [Aktue
 
 Automation „Apple Pay“ (Wallet, Sofort ausführen):
 1. Zwischenablage abrufen
-2. Text, zwei Zeilen:  [Zwischenablage]  ⏎  Apple Pay [Transaktion › Händler] [Transaktion › Betrag] · [Aktuelles Datum]
+2. Text, zwei Zeilen:  [Zwischenablage]  ⏎  Apple Pay [Transaktion › Händler] [Transaktion › Betrag] · Karte: [Transaktion › Karte] · [Aktuelles Datum]   (Karte optional, für Regeln je Karte)
 3. In Zwischenablage kopieren (Eingabe: Text)
 
 In CashFlow: Beim Öffnen fragt der Assistent „Von Siri übernehmen?“ › „Übernehmen“. Einkäufe kommen sofort auf den Zettel, Buchungen und Zahlungen zeigt er zur Bestätigung (Alle buchen, einzeln bearbeiten, verwerfen). Nichts wird doppelt übernommen.
@@ -38,3 +38,7 @@ Wechselgeld (Einstellungen › Wechselgeld):
 Jede Apple-Pay- oder Siri-Buchung wird aufgerundet, die Differenz als Umbuchung aus dem Budget des Einkaufs ins Ziel gebucht (z. B. Robo-Advisor). Multiplikator wie bei Revolut einstellen. Mit Depot-Position wächst der Depotwert mit. In der Buchungsmaske pro Buchung abschaltbar oder umleitbar. Löschen oder Ändern der Ausgabe passt das Wechselgeld mit an.
 
 Einkaufszettel: nach Supermarkt-Gruppen sortiert. Nach einer Supermarkt-Buchung gleicht der Assistent mit den abgehakten Artikeln ab (ab ±10 % oder 3 € fragt er nach).
+
+Einkaufszettel › „Einkauf buchen“: bucht die abgehakten Artikel mit dem Betrag laut Kassenbon, inklusive Wechselgeld (Schalter im Fenster). Gibt es schon eine Apple-Pay- oder Siri-Buchung mit gleichem Betrag (letzte 36 Stunden), wird sie übernommen statt doppelt gebucht.
+Doppelte Apple-Pay-Zahlungen: Ist ein Betrag schon gebucht, überspringt der Assistent die Zahlung und bietet „Trotzdem buchen“ an.
+Wechselgeld je Karte: Einstellungen › Wechselgeld › Karten. Erscheint, sobald eine Zahlung mit „Karte:“ übernommen wurde. Je Karte: wie oben, anderes Ziel oder kein Wechselgeld.

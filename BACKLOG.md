@@ -90,4 +90,4 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Zeilen ohne Stichwort werden wie bisher erkannt.
 - Grenze: Kopiert man selbst etwas, ist alles Nicht-Übernommene weg. Verlustsicher wäre nur die Server-Ablage („Siri & Kurzbefehle“).
 
-**Noch nicht umgesetzt aus Punkt 3:** mehrere Regeln je Karte (braucht „Transaktion › Karte“ im Kurzbefehl) und eine Wechselgeld-Zeile in der Übersicht. Die Statistik steht unter Einstellungen › Wechselgeld und in Future › Kaufkraft.
+**Nachgezogen in v149:** Regeln je Karte und Wechselgeld-Zeile in der Übersicht.
