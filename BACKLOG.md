@@ -46,3 +46,34 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - App: liest alle Zeilen, die mit „Apple Pay“ beginnen, und ignoriert alle anderen. Bereits übernommene Zeilen (Händler + Betrag + Uhrzeit) merkt sie sich und bucht sie nicht doppelt.
 - Der Assistent zeigt alle neuen Zahlungen in einer Vorschau: „Alle buchen“ oder jede einzeln bearbeiten.
 - Die Uhrzeit wird als Buchungszeit übernommen, statt der Zeit des Öffnens.
+
+## 3. Wechselgeld (Aufrunden) als Split-Buchung (Konzept, 2026-11-07)
+
+**Ziel:** Revolut rundet jede Kartenzahlung auf und legt die Differenz im Robo-Advisor an. Die App bildet das automatisch ab: Jede passende Zahlung erzeugt die Ausgabe und eine verknüpfte Umbuchung.
+
+**Beispiel:** Norma 21,37 € → Ausgabe 21,37 € (Lebensmittel, von Flow) + Umbuchung 0,63 € Flow → Robo-Advisor.
+
+**Regeln (Einstellungen › Wechselgeld)**
+- Ein/aus, mehrere Regeln möglich (z. B. je Karte ein anderes Ziel).
+- Gilt für: Apple-Pay-Zahlungen, bestimmte Karten (Kartenname aus der Wallet-Automation), optional auch manuelle Buchungen von einem gewählten Konto.
+- Aufrunden: auf volle 1 € und Multiplikator ×1 / ×2 / ×5 / ×10, wie bei Revolut. Glatte Beträge ergeben 0 €, dann entsteht keine Umbuchung.
+- Quelle: wie die Ausgabe (Standard) oder ein festes Konto.
+- Ziel: frei wählbar (Standard Robo-Advisor), auch Tresor- oder Sparkonto. Ist das Ziel ein Depot-Konto, wächst der Depotwert mit.
+- Notfallbremse: Wechselgeld in ein gesperrtes Konto ist erlaubt, weil Geld hineingeht und nicht heraus.
+
+**Verknüpfung**
+- Ausgabe und Umbuchung zeigen aufeinander. Wird der Betrag geändert, rechnet die App das Wechselgeld neu. Beim Löschen der Ausgabe fragt sie, ob die Umbuchung mitgelöscht wird (Standard: ja).
+- Buchungsmaske: Chip „Wechselgeld 0,63 € → Robo-Advisor“, pro Buchung abschaltbar und Ziel änderbar.
+- Rückgängig im Assistenten nimmt beide Buchungen zurück.
+
+**Über die ganze App**
+- Budgets: Wechselgeld ist eine Umbuchung, kein Konsum. Es zählt nicht als Ausgabe in Kategorien und Auswertungen, verringert aber den freien Betrag der Quelle.
+- Einkaufszettel: Der Abgleich vergleicht den Einkaufsbetrag ohne Wechselgeld. Im Verlauf steht es extra („+0,63 € angelegt“). Der Budget-Check rechnet das erwartete Wechselgeld (Ø der letzten Einkäufe) mit ein, wenn die Quelle das Einkaufsbudget ist.
+- Future: Ø Wechselgeld pro Monat zählt als Sparrate (Unabhängigkeit, Ziel-Rechner). Eigene Zeile „Wechselgeld in 20 Jahren“.
+- Auswertung/Übersicht: „Wechselgeld diesen Monat: 12,40 € in 23 Zahlungen“.
+- Apple-Pay-Kurzbefehl: optional zusätzlich „Transaktion › Karte“ in die Zeile, damit Regeln je Karte greifen.
+
+**Offene Fragen**
+- Gibt es den Robo-Advisor schon als Konto oder Depot in der App?
+- Welcher Multiplikator ist bei Revolut eingestellt?
+- Soll das Wechselgeld aus dem Einkaufsbudget kommen (Flow zahlt 0,63 € mehr) oder aus einem eigenen Konto?
