@@ -32,7 +32,17 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Pro Einkauf ein Eintrag: Datum, Händler, Buchungs-ID, Artikel (Name, Menge, geschätzter Preis), Summe geplant, Summe tatsächlich.
 - Die Buchung verweist auf den Einkauf, damit der Abgleich später noch einmal geöffnet werden kann.
 
-**Offene Fragen**
-- Ab welcher Abweichung soll der Assistent nachfragen? Vorschlag: ab ±10 % oder 3 €.
-- Soll „Zettel abschließen“ den Zettel automatisch leeren oder nur die abgehakten Artikel?
-- Was ist mit Teil-Einkäufen in mehreren Läden am selben Tag?
+**Entscheidungen (2026-11-07)**
+- Nachfragen ab ±10 % oder 3 € Abweichung.
+- „Zettel abschließen“ entfernt nur die abgehakten Artikel.
+- Mehrere Läden: Jede Zahlung wird mit den seit dem letzten Abgleich abgehakten Artikeln verglichen. Kommen mehrere Zahlungen gleichzeitig, wird die Summe verglichen („Norma + Rewe: 33,47 € · geplant ca. 29 €“).
+
+## 2. Apple Pay: mehrere Zahlungen sammeln (Konzept, 2026-11-07)
+
+**Problem:** In der Zwischenablage liegt nur die letzte Zahlung. Zwei Zahlungen ohne Öffnen der App dazwischen bedeuten, dass eine verloren geht.
+
+**Lösung**
+- Kurzbefehl: „Zwischenablage abrufen“, dann Text `[Zwischenablage]` ⏎ `Apple Pay [Händler] [Betrag] [Aktuelles Datum mit Uhrzeit]`, dann „In Zwischenablage kopieren“.
+- App: liest alle Zeilen, die mit „Apple Pay“ beginnen, und ignoriert alle anderen. Bereits übernommene Zeilen (Händler + Betrag + Uhrzeit) merkt sie sich und bucht sie nicht doppelt.
+- Der Assistent zeigt alle neuen Zahlungen in einer Vorschau: „Alle buchen“ oder jede einzeln bearbeiten.
+- Die Uhrzeit wird als Buchungszeit übernommen, statt der Zeit des Öffnens.
