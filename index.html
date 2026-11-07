@@ -4988,6 +4988,7 @@ Object.assign(TIPFN,{
  clipGo:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}t=(t||'').trim();
   const say=(h,a)=>{AQ.msgs.push({q:t?'Von Siri: „'+t.slice(0,80)+'“':'',h,a:a||[]});asstOpen=true;renderAsst()};
   if(!t){say('<p>Die Zwischenablage ist leer oder das Einfügen wurde nicht erlaubt.</p>',[['Einkaufsliste einfügen',()=>{shopS().paste='';prevTab=tab;tab='more';setView='shop';render()}],['Neue Buchung',()=>openSheet()]]);return}
+  if(!t.replace(/^(apple ?pay|buchung|einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,'').trim()){say(`<p>Siri hat nur „${esc(t)}“ übergeben, der gesprochene Teil fehlt. Prüfe im Kurzbefehl, ob in der Aktion „Text“ hinter dem Wort die Variable <b>Diktierter Text</b> als blaues Feld steht.</p>`);return}
   if(t===S.clipLast){say('<p>Das habe ich schon übernommen.</p>');return}
   const k=clipKind(t);S.clipLast=t;save();
   if(k=='shop'){const a=shopVoice(t.replace(/^(einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,''));save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a);return}
