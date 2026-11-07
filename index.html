@@ -107,6 +107,8 @@ textarea.box{background:var(--card);border-radius:12px;padding:10px 12px;font-si
 .amount{text-align:center;font-family:var(--round);font-size:46px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .amount small{font-size:24px;color:var(--muted)}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.shpop{max-height:70vh;overflow:auto;min-width:220px}.shpop button{width:100%;font-size:15px;padding:9px 12px}.shpop button.on{color:var(--blue);font-weight:600}.shpop-h{font-size:12px;color:var(--muted);padding:8px 12px 4px}.shedit{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.clipb{background:var(--fill);border-radius:10px;padding:8px 10px;margin:6px 0}.clipb .s{font-size:12px;color:var(--muted);margin-top:2px}
 .fut-hero{padding:14px 16px}.fut-k{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:6px}.fut-u{font-size:15px;font-weight:500;color:var(--muted)}.bad{color:var(--bad)}.fut-bars{width:100%;height:auto;display:block}
 .shpaste{display:flex;flex-direction:column;gap:8px;padding:0 12px 12px}.shpaste textarea{width:100%;min-height:72px;border:0;border-radius:10px;background:var(--fill);color:var(--fg);font:inherit;font-size:15px;padding:10px;resize:vertical;box-sizing:border-box}
 .fut-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.fut-mid{font-size:22px;font-weight:700}.fut-mid.in{color:var(--ok)}
@@ -1426,7 +1428,7 @@ function asstDrag(){const g=$('aGrab'),p=document.querySelector('#asstRoot .apop
   g.addEventListener('touchmove',e=>{if(y0==null)return;const h=Math.max(80,Math.min(innerHeight*.92,h0+(y0-e.touches[0].clientY)));p.style.height=h+'px'},{passive:true});
   g.addEventListener('touchend',()=>{if(y0==null)return;y0=null;p.style.transition='';const r=p.getBoundingClientRect().height/innerHeight;if(r<.22){asstOpen=false;renderAsst();return}ASH=r<.45?'third':r<.72?'half':'full';p.style.height=ASHV[ASH]})}
 
-function renderAsst(){const r=$('asstRoot');if(!r)return;document.body.classList.toggle('asst-open',!!asstOpen&&!$('sheetRoot').innerHTML);const t0=(typeof clipAsk!='undefined'&&clipAsk&&featOn('shop')&&featOn('shopclip')?[CLIPTIP]:[]).concat(tipsList()),hide=!!$('sheetRoot').innerHTML||setView=='import';
+function renderAsst(){const r=$('asstRoot');if(!r)return;document.body.classList.toggle('asst-open',!!asstOpen&&!$('sheetRoot').innerHTML);const t0=(typeof clipAsk!='undefined'&&clipAsk&&featOn('shopclip')?[CLIPTIP]:[]).concat(tipsList()),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(hide){r.innerHTML='';return}
   const tkey0=0;const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');S.dismTips=(S.dismTips||[]).filter(k=>t0.some(x=>tkey(x)==k));const t=t0.filter(x=>!S.dismTips.includes(tkey(x)));S.seenTips=(S.seenTips||[]).filter(k=>t.some(x=>tkey(x)==k));const top=t.length?t[0].sev:'calm',hr=new Date().getHours(),loud=x=>x.sev=='bad'||(x.sev=='warn'&&hr>=7&&hr<22)||(hr>=18&&hr<22),n=t.filter(x=>!S.seenTips.includes(tkey(x))&&loud(x)).length;
   document.body.classList.toggle('shopv',setView=='shop');
@@ -2516,6 +2518,21 @@ function openShopPrices(){const sh=shopS(),K=Object.keys(sh.unk||{});if(!K.lengt
   $('spS').onclick=()=>{K.forEach((k,i)=>{const el=$('spP'+i);if(!el)return;const v=pNum(el.value);if(!isNaN(v)&&v>0){sh.prices[k]=v;delete sh.unk[k];phAdd(k,v)}});const n=shopMatch();save();close();toast(n?n+' Artikel auf dem Zettel aktualisiert.':'Preise gemerkt.')}}
 function dbPrice(x){const lv=PLEVEL[(S.shop&&S.shop.level)||'disc'][0];return Math.round(x.p*lv*100)/100}
 /* ---------- Einkaufszettel mit Budget-Check ---------- */
+/* ---------- Einkaufszettel: Gruppen in Laufreihenfolge ---------- */
+const SHOPG=['Obst & Gemüse','Brot & Backwaren','Milch & Eier','Fleisch & Fisch','Wurst & Aufschnitt','Vorrat & Konserven','Öl & Gewürze','Süßes & Snacks','Getränke','Tiefkühl','Drogerie & Haushalt','Tierbedarf','Sonstiges'];
+const SHOPKW=[[/^tk\b|tiefkühl|pizza|pommes|gefror|fischstäbchen|eiscreme/,9],[/apfel|äpfel|banane|birne|orange|zitron|limette|traube|beere|salat|tomate|gurke|paprika|zwiebel|knoblauch|kartoffel|karotte|möhre|brokkoli|zucchini|pilz|champignon|avocado|kräuter|obst|gemüse|mango|kiwi|melone|lauch|spinat|kohl|ingwer/,0],
+ [/brot|brötchen|toast|baguette|croissant|semmel|laugen|kuchen|brezel|wrap/,1],[/milch|käse|joghurt|quark|sahne|butter|^eier?$|eier|mozzarella|skyr|schmand|kefir/,2],
+ [/fleisch|hähnchen|huhn|pute|rind|schwein|hack|steak|lachs|fisch|thunfisch|garnele|schnitzel/,3],[/wurst|salami|schinken|aufschnitt|würstchen|speck/,4],
+ [/nudel|pasta|spaghetti|reis|mehl|zucker|dose|konserve|linsen|bohnen|mais|haferflocken|müsli|cornflakes|tomatenmark|passata|brühe|honig|marmelade|kaffee|tee\b|kakao/,5],
+ [/öl\b|olivenöl|essig|salz|pfeffer|gewürz|senf|ketchup|mayo|soße|sauce|oregano|curry/,6],[/schoko|chips|keks|gummi|bonbon|süß|snack|nüsse|riegel|^eis$/,7],
+ [/wasser|saft|cola|limo|bier|wein|sekt|sprudel|getränk|schorle|mate|energy/,8],
+ [/klopapier|toilettenpapier|küchenrolle|spül|waschmittel|shampoo|duschgel|zahnpasta|zahnbürste|seife|deo|creme|tampon|binde|windel|müllbeutel|reiniger|schwamm|taschentuch|rasier|watte/,10],[/katze|hund|tierfutter|streu|leckerli/,11]];
+function shopGrp(x){const sh=shopS(),k=String(x.n||'').toLowerCase().trim();if(sh.grp&&sh.grp[k])return sh.grp[k];const d=dbExact(x.n);if(d&&d.g&&SHOPG.includes(d.g))return d.g;for(const[re,i]of SHOPKW)if(re.test(k))return SHOPG[i];return 'Sonstiges'}
+function shopMovePop(el,id){const sh=shopS(),x=sh.items.find(i=>i.id==id);if(!x)return;document.querySelectorAll('.catpop').forEach(p=>p.remove());const p=document.createElement('div'),cur=shopGrp(x);p.className='catpop shpop';
+ p.innerHTML=`<div class="shpop-h">„${esc(x.n)}“ verschieben nach</div>`+SHOPG.map(g=>`<button data-g="${esc(g)}" class="${g==cur?'on':''}">${esc(g)}${g==cur?' ✓':''}</button>`).join('');document.body.appendChild(p);
+ const r=el.getBoundingClientRect();p.style.left=Math.max(8,Math.min(innerWidth-p.offsetWidth-8,r.left))+'px';p.style.top=Math.max(8,Math.min(innerHeight-p.offsetHeight-8,r.bottom+4))+'px';
+ const close=()=>{p.remove();removeEventListener('pointerdown',out,true)},out=e=>{if(!p.contains(e.target))close()};setTimeout(()=>addEventListener('pointerdown',out,true),0);
+ p.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{sh.grp=sh.grp||{};sh.grp[x.n.toLowerCase().trim()]=b.dataset.g;save();close();render();toast(`„${x.n}“ liegt jetzt unter ${b.dataset.g}. Gemerkt.`)})}
 function shopS(){if(!S.shop)S.shop={items:[],acct:BUDG.includes('Flow')?'Flow':BUDG[0],prices:{},hist:{}};return S.shop}
 function shopCheck(){const sh=shopS(),c=calc(sh.acct),P=c.p,left=Math.max(P.left,1),est=sh.items.reduce((s,x)=>s+(x.p||0)*(x.q||1),0),rest=Math.max(c.rest,0),after=rest-est,tagA=after/left;
   let k='ok',txt='',cut=[];
@@ -2549,7 +2566,7 @@ function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),o
    ${sh.paste!=null?`<div class="shpaste"><textarea id="shPT" rows="3" placeholder="Liste einfügen, z. B. Milch, 2 Brot, Eier">${esc(sh.paste)}</textarea><button class="btn" id="shPOk">Übernehmen</button></div>`:`<button class="ed-link" id="shClip" style="align-self:flex-start;margin:4px 12px 10px;color:var(--blue);font-size:14px">${I('cart',15)} Einkauf übernehmen</button>`}
    ${sug.length?`<div class="chips" style="padding:0 12px 10px">${sug.map(([n])=>`<button class="chip" data-shs="${esc(n)}">${esc(n.charAt(0).toUpperCase()+n.slice(1))}${sh.prices[n]?' '+eur(sh.prices[n]):''}</button>`).join('')}</div>`:''}</div>
   ${(()=>{const U=Object.keys(sh.unk||{});return U.length?`<div class="mmcard" style="margin-top:10px"><button class="cell shunk" id="shUnk"><div class="ico" style="background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)">${I('alert',18)}</div><div class="t"><div>${U.length} Artikel ohne Preis</div><div class="s">${U.slice(0,4).map(k=>esc(sh.unk[k].n)).join(', ')}${U.length>4?' …':''} · Abgleich ${sh.lastSync?'zuletzt '+new Date(sh.lastSync).toLocaleDateString('de-DE'):'wöchentlich'}</div></div><span class="chev">›</span></button></div>`:''})()}
-  ${open.length?`<div class="sec"><div class="sh">Noch zu kaufen · ${open.length}</div><div class="mmcard">${open.map(row).join('')}</div></div>`:''}
+  ${open.length?(()=>{const by={};open.forEach(x=>{const g=shopGrp(x);(by[g]=by[g]||[]).push(x)});return `<div class="note" style="padding:10px 4px 0">Noch zu kaufen · ${open.length} · Namen lange drücken verschiebt in eine andere Gruppe</div>`+SHOPG.filter(g=>by[g]).map(g=>{const su=by[g].reduce((s,x)=>s+(x.p||0)*(x.q||1),0);return `<div class="sec"><div class="sh"><span>${esc(g)} · ${by[g].length}</span><span>${su?'ca. '+eur(su):''}</span></div><div class="mmcard">${by[g].map(row).join('')}</div></div>`}).join('')})():''}
   ${sh.items.length?`<div class="note" style="padding:4px 4px 0">Nach links wischen zum Bearbeiten oder Entfernen · Name antippen öffnet ebenfalls die Bearbeitung.</div>`:''}
   ${done.length?`<div class="sec"><div class="sh">Im Wagen · ${done.length}</div><div class="mmcard">${done.map(row).join('')}</div></div>`:''}
   ${!sh.items.length?'<div class="mmcard"><div class="empty">Dein Zettel ist leer. Tipp oben einen Artikel ein, die App merkt sich Preise für das nächste Mal.</div></div>':''}
@@ -2636,6 +2653,7 @@ function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const s
   const shImp=v=>{const a=shopVoice(v);save();render();shopVoiceDone(a)};
   on('shClip',async()=>{let t='';try{t=await navigator.clipboard.readText()}catch(e){}if(t&&t.trim())shImp(t);else{sh.paste='';render();setTimeout(()=>$('shPT')&&$('shPT').focus(),0)}});
   if($('shPT'))$('shPT').oninput=e=>{sh.paste=e.target.value};
+  document.querySelectorAll('.shedit').forEach(b=>{let lp;const id=b.dataset.she,st=()=>{b.__lng=false;clearTimeout(lp);lp=setTimeout(()=>{b.__lng=true;try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}shopMovePop(b,id)},450)},cl=()=>clearTimeout(lp);b.addEventListener('touchstart',st,{passive:true});b.addEventListener('touchend',cl);b.addEventListener('touchmove',cl,{passive:true});b.addEventListener('mousedown',st);b.addEventListener('mouseup',cl);b.oncontextmenu=e=>e.preventDefault();b.addEventListener('click',e=>{if(b.__lng){b.__lng=false;e.stopImmediatePropagation();e.preventDefault()}},true)});
   on('shPOk',()=>{const t=(sh.paste||'').trim();if(!t){toast('Bitte erst eine Liste einfügen.');return}sh.paste=null;shImp(t)});
   on('pdbOpen',()=>{setView='pdb';pdbQ='';render();scrollTo(0,0)});
   document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbExact(x.n);if(d)x.p=dbPrice(d)}});save();render()});
@@ -3341,7 +3359,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- Konfiguration: Funktionen ein- und ausblenden ---------- */
-const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,1,1]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Einkauf beim Öffnen anbieten',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
+const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,1,1]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Siri & Apple Pay beim Öffnen anbieten',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
 const FEATP=['Einfach','Standard','Alles'];
 const FEATK=Object.fromEntries(FEATS.flatMap(([,l])=>l.map(([k,n,p])=>[k,{n,p}])));
 function featOn(k){const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?1:S.featP]:true}
@@ -4943,15 +4961,44 @@ function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[];cons
   if(S.urgePend){delete S.urgePend;save();setTimeout(()=>openUrge(),600)}return{done,pend}}
 let siriBusy=false;async function siriPull(force){if(siriBusy||!syOn()||!navigator.onLine)return;if(!force&&!siriGet())return;siriBusy=true;try{const j=await pushCall('inbox');const it=j.items||[];if(it.length){siriApplyAll(it);await pushCall('inbox_del',{ids:it.map(x=>x.id)})}else if(force)toast('Keine neuen Einträge von Siri.')}catch(e){if(force)toast('Ablage nicht erreichbar: '+(e.message||e))}finally{siriBusy=false}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>siriPull(),1500)});setTimeout(()=>siriPull(),3000);
-/* ---------- Einkauf aus der Zwischenablage über den Assistenten anbieten ---------- */
+/* ---------- Siri & Apple Pay über die Zwischenablage: Assistent bietet beim Öffnen an ---------- */
 let clipAsk=false,clipHidAt=0;
-const CLIPTIP={sev:'ok',ttl:'Einkaufsliste übernehmen?',txt:'Hast du per Siri eine Einkaufsliste diktiert? Ein Tipp holt sie aus der Zwischenablage auf deinen Einkaufszettel.',btns:[{l:'In Einkaufszettel übernehmen',fn:'clipShop'},{l:'Nicht jetzt',fn:'clipNo'}]};
-function clipPrompt(){if(!featOn('shop')||!featOn('shopclip'))return;if(Date.now()-(S.clipAskAt||0)<3*60e3)return;S.clipAskAt=Date.now();clipAsk=true;if(!$('sheetRoot').innerHTML)asstOpen=true;renderAsst()}
+const CLIPTIP={sev:'ok',ttl:'Von Siri übernehmen?',txt:'Hast du gerade etwas diktiert oder mit Apple Pay bezahlt? Ein Tipp holt es aus der Zwischenablage: Einkauf, Buchung, Wunsch oder Frage.',btns:[{l:'Übernehmen',fn:'clipGo'},{l:'Nicht jetzt',fn:'clipNo'}]};
+function clipPrompt(){if(!featOn('shopclip'))return;if(Date.now()-(S.clipAskAt||0)<3*60e3)return;S.clipAskAt=Date.now();clipAsk=true;if(!$('sheetRoot').innerHTML)asstOpen=true;renderAsst()}
+function clipKind(v){const l=v.toLowerCase().trim();
+ if(/^apple ?pay\b/.test(l))return 'pay';
+ if(/^(buchung|ausgabe|einnahme|umbuchung)\b/.test(l))return 'book';
+ if(/^(einkauf|einkaufsliste|einkaufszettel)\b/.test(l)||isShopVoice(v))return 'shop';
+ if(/^(notbremse|impuls\b|hilfe,? ich will)/.test(l))return 'urge';
+ if(/^(wunsch|ich wünsche mir|wunschliste|auf die wunschliste)/.test(l)||JRX.test(l))return 'misc';
+ if(/\?$|^(wie ?viel|was|wann|welche|kann ich|darf ich|wo)\b/.test(l))return 'ask';
+ if(/\d\s*(kg|g|gramm|l|liter|ml|stück|packung|pack|dose|dosen|flasche|flaschen)\b/i.test(l)&&!/€|euro/.test(l))return 'shop';
+ if(/\d+[,.]\d{1,2}\b|\d+\s*(€|euro|eur)\b/i.test(l))return 'book';
+ return 'shop'}
+function clipParse(v,tag){const sv=E,recs=[],bad=[];v=v.replace(/^(apple ?pay|buchung)\s*:?\s*/i,'');const parts=spoken(v).split(/,\s+|\s+(?:und|plus|sowie)\s+/).filter(Boolean);
+ (parts.length>1&&parts.every(p=>/\d/.test(p))?parts:[v]).forEach(p=>{E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};qp(p);const a=Math.round((pNum(E.amt)||0)*100)/100;if(!a){bad.push(p);return}
+  if(!E.n){const n=p.replace(/[-+]?\d+(?:[.,]\d+)?\s*(€|euro|eur)?/gi,'').replace(/\s+/g,' ').trim();if(n)E.n=n.charAt(0).toUpperCase()+n.slice(1)}
+  if(!E.c&&E.type!='tr')E.c=((cats(E.b)||[]).find(k=>/sonst/i.test(k[0]))||(cats(E.b)||[['Sonstiges']])[0])[0];
+  recs.push({type:E.type,b:E.b,to:E.to,c:E.type=='tr'?'':E.c,a,n:E.n,dt:E.dt||today(),tag})});E=sv;return{recs,bad}}
+function clipCommit(recs){const sn=snap(),done=[],bad=[];recs.forEach(r=>{if(r.type!='in'&&isTabu(r.b)){bad.push(r.b+' ist tabu');return}if(r.type=='tr'&&isLock(r.to)){bad.push('Notfallbremse '+r.to);return}if(r.type=='out'&&isLock(r.b)&&calc(r.b).rest-r.a<0){bad.push(r.b+' reicht nicht');return}
+ const[yy,mm,dd]=r.dt.split('-').map(Number),rec={id:uid(),type:r.type,b:r.b,c:r.c,a:r.a,n:r.n,t:r.dt==today()?Date.now():new Date(yy,mm-1,dd,12).getTime(),tg:[r.tag]};if(r.type=='tr')rec.to=r.to;S.exp.push(rec);if(r.type=='out')S.lastAcc=r.b;done.push(r)});
+ save();render();toast(done.length?`${done.length} Buchung${done.length>1?'en':''} gesichert${bad.length?' · '+bad.join(', '):''}`:'Nichts gebucht: '+bad.join(', '),done.length?()=>restore(sn):undefined)}
+const clipLine=r=>`<div class="clipb"><b>${r.type=='in'?'+':r.type=='tr'?'':'−'}${eur(r.a)}</b> ${esc(r.n||r.c||'Umbuchung')}<div class="s">${r.type=='in'?'Einnahme':r.type=='tr'?'Umbuchung':'Ausgabe'}${r.c?' · '+esc(r.c):''} · ${r.type=='in'?'auf':'von'} ${esc(SHORT[r.b]||r.b)}${r.type=='tr'?' → '+esc(SHORT[r.to]||r.to):''}${r.dt!=today()?' · '+new Date(r.dt+'T12:00').toLocaleDateString('de-DE'):''}</div></div>`;
 Object.assign(TIPFN,{
- clipShop:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}t=(t||'').trim();const sh=shopS();
-  if(t&&t===S.clipLast){toast('Diese Liste ist schon auf dem Zettel.');prevTab=tab;tab='more';setView='shop';render();return}
-  if(t){const a=shopVoice(t);S.clipLast=t;save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a)}
-  else{sh.paste='';prevTab=tab;tab='more';setView='shop';render();toast('Zwischenablage leer oder nicht freigegeben. Füge die Liste ins Feld ein.');setTimeout(()=>$('shPT')&&$('shPT').focus(),0)}},
+ clipGo:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}t=(t||'').trim();
+  const say=(h,a)=>{AQ.msgs.push({q:t?'Von Siri: „'+t.slice(0,80)+'“':'',h,a:a||[]});asstOpen=true;renderAsst()};
+  if(!t){say('<p>Die Zwischenablage ist leer oder das Einfügen wurde nicht erlaubt.</p>',[['Einkaufsliste einfügen',()=>{shopS().paste='';prevTab=tab;tab='more';setView='shop';render()}],['Neue Buchung',()=>openSheet()]]);return}
+  if(t===S.clipLast){say('<p>Das habe ich schon übernommen.</p>');return}
+  const k=clipKind(t);S.clipLast=t;save();
+  if(k=='shop'){const a=shopVoice(t.replace(/^(einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,''));save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a);return}
+  if(k=='urge'){openUrge();return}
+  if(k=='ask'){asstAsk(t);return}
+  if(k=='misc'){const r=siriApplyOne(t);save();render();toast(r.ok?r.lab:'Nicht übernommen: '+r.why);return}
+  const P=clipParse(t,k=='pay'?'applepay':'siri');
+  if(!P.recs.length){say('<p>Ich habe keinen Betrag erkannt. Sag z. B. „12,50 Rewe“.</p>',[['Neue Buchung',()=>openSheet()]]);return}
+  const one=P.recs.length==1,r0=P.recs[0];
+  say(`<p>${k=='pay'?'Apple-Pay-Zahlung':one?'Buchung':'Buchungen'} erkannt:</p>${P.recs.map(clipLine).join('')}${P.bad.length?`<p class="s">Nicht erkannt: ${esc(P.bad.join(', '))}</p>`:''}`,
+   [[one?'Buchen':'Alle buchen',()=>clipCommit(P.recs)],...(one?[['Bearbeiten',()=>openSheet(null,{type:r0.type,b:r0.b,to:r0.to,c:r0.c,amt:String(r0.a),n:r0.n,dt:r0.dt})]]:[]),['Verwerfen',()=>{}]])},
  clipNo:()=>{clipAsk=false;renderAsst()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')clipHidAt=Date.now();else if(clipHidAt&&Date.now()-clipHidAt>10e3)setTimeout(clipPrompt,600)});
 setTimeout(clipPrompt,1500);
