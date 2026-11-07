@@ -1426,7 +1426,7 @@ function asstDrag(){const g=$('aGrab'),p=document.querySelector('#asstRoot .apop
   g.addEventListener('touchmove',e=>{if(y0==null)return;const h=Math.max(80,Math.min(innerHeight*.92,h0+(y0-e.touches[0].clientY)));p.style.height=h+'px'},{passive:true});
   g.addEventListener('touchend',()=>{if(y0==null)return;y0=null;p.style.transition='';const r=p.getBoundingClientRect().height/innerHeight;if(r<.22){asstOpen=false;renderAsst();return}ASH=r<.45?'third':r<.72?'half':'full';p.style.height=ASHV[ASH]})}
 
-function renderAsst(){const r=$('asstRoot');if(!r)return;document.body.classList.toggle('asst-open',!!asstOpen&&!$('sheetRoot').innerHTML);const t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
+function renderAsst(){const r=$('asstRoot');if(!r)return;document.body.classList.toggle('asst-open',!!asstOpen&&!$('sheetRoot').innerHTML);const t0=(typeof clipAsk!='undefined'&&clipAsk&&featOn('shop')&&featOn('shopclip')?[CLIPTIP]:[]).concat(tipsList()),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(hide){r.innerHTML='';return}
   const tkey0=0;const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');S.dismTips=(S.dismTips||[]).filter(k=>t0.some(x=>tkey(x)==k));const t=t0.filter(x=>!S.dismTips.includes(tkey(x)));S.seenTips=(S.seenTips||[]).filter(k=>t.some(x=>tkey(x)==k));const top=t.length?t[0].sev:'calm',hr=new Date().getHours(),loud=x=>x.sev=='bad'||(x.sev=='warn'&&hr>=7&&hr<22)||(hr>=18&&hr<22),n=t.filter(x=>!S.seenTips.includes(tkey(x))&&loud(x)).length;
   document.body.classList.toggle('shopv',setView=='shop');
@@ -3341,7 +3341,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- Konfiguration: Funktionen ein- und ausblenden ---------- */
-const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,1,1]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
+const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,1,1]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Einkauf beim Öffnen anbieten',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
 const FEATP=['Einfach','Standard','Alles'];
 const FEATK=Object.fromEntries(FEATS.flatMap(([,l])=>l.map(([k,n,p])=>[k,{n,p}])));
 function featOn(k){const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?1:S.featP]:true}
@@ -4943,6 +4943,19 @@ function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[];cons
   if(S.urgePend){delete S.urgePend;save();setTimeout(()=>openUrge(),600)}return{done,pend}}
 let siriBusy=false;async function siriPull(force){if(siriBusy||!syOn()||!navigator.onLine)return;if(!force&&!siriGet())return;siriBusy=true;try{const j=await pushCall('inbox');const it=j.items||[];if(it.length){siriApplyAll(it);await pushCall('inbox_del',{ids:it.map(x=>x.id)})}else if(force)toast('Keine neuen Einträge von Siri.')}catch(e){if(force)toast('Ablage nicht erreichbar: '+(e.message||e))}finally{siriBusy=false}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>siriPull(),1500)});setTimeout(()=>siriPull(),3000);
+/* ---------- Einkauf aus der Zwischenablage über den Assistenten anbieten ---------- */
+let clipAsk=false,clipHidAt=0;
+const CLIPTIP={sev:'ok',ttl:'Einkaufsliste übernehmen?',txt:'Hast du per Siri eine Einkaufsliste diktiert? Ein Tipp holt sie aus der Zwischenablage auf deinen Einkaufszettel.',btns:[{l:'In Einkaufszettel übernehmen',fn:'clipShop'},{l:'Nicht jetzt',fn:'clipNo'}]};
+function clipPrompt(){if(!featOn('shop')||!featOn('shopclip'))return;if(Date.now()-(S.clipAskAt||0)<3*60e3)return;S.clipAskAt=Date.now();clipAsk=true;if(!$('sheetRoot').innerHTML)asstOpen=true;renderAsst()}
+Object.assign(TIPFN,{
+ clipShop:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}t=(t||'').trim();const sh=shopS();
+  if(t&&t===S.clipLast){toast('Diese Liste ist schon auf dem Zettel.');prevTab=tab;tab='more';setView='shop';render();return}
+  if(t){const a=shopVoice(t);S.clipLast=t;save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a)}
+  else{sh.paste='';prevTab=tab;tab='more';setView='shop';render();toast('Zwischenablage leer oder nicht freigegeben. Füge die Liste ins Feld ein.');setTimeout(()=>$('shPT')&&$('shPT').focus(),0)}},
+ clipNo:()=>{clipAsk=false;renderAsst()}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')clipHidAt=Date.now();else if(clipHidAt&&Date.now()-clipHidAt>10e3)setTimeout(clipPrompt,600)});
+setTimeout(clipPrompt,1500);
+
 /* Kurzbefehl öffnet die App mit ?sag=… oder ?frage=… */
 setTimeout(()=>{try{const q=new URLSearchParams(location.search),sag=q.get('sag'),fr=q.get('frage');if(!sag&&!fr)return;history.replaceState(history.state,'',location.pathname);
   if(sag)siriApplyAll([{txt:sag,created_at:new Date().toISOString()}]);else if(fr){asstOpen=true;asstAsk(fr);renderAsst()}}catch(e){}},900);
