@@ -14,3 +14,11 @@ Danach in der App: Einstellungen › Import aus MoneyControl › MoneyControl-Um
 Deine Daten liegen nur auf deinem iPhone. Im Code auf GitHub stehen keine persönlichen Daten.
 Sicherung: Einstellungen › Export & Backup › „Sicherung als Datei speichern“ › in iCloud Drive ablegen.
 Update der App: neue index.html auf GitHub hochladen, App einmal schließen und neu öffnen.
+
+Einkaufsliste per Siri (Kurzbefehl „Einkauf“):
+1. App „Kurzbefehle“ › „+“ › Name: Einkauf.
+2. Aktion „Text abfragen“, Frage: „Was soll auf die Einkaufsliste?“
+3. Aktion „In Zwischenablage kopieren“ (Eingabe: Ergebnis von Schritt 2).
+4. Aktion „Benachrichtigung zeigen“: „Kopiert. Öffne CashFlow und tippe auf Einkauf übernehmen.“
+5. Fertig. Sag „Hey Siri, Einkauf“ und diktiere z. B. „Milch, 2 Brot und Eier“.
+In CashFlow: Einstellungen › Einkaufszettel › „Einkauf übernehmen“. iOS fragt einmal, ob Einfügen erlaubt ist.
