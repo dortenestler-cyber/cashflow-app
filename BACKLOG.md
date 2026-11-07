@@ -99,3 +99,8 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Kacheln mit Auswahlliste: Datum, Kategorie | Konto (Umbuchung: Von | Nach), Person | Projekt, Notiz + Belegfoto.
 - Schnell erfassen im Notizfeld (Mikrofon, Vorschläge): „Rewe 25“ füllt nur leere Felder.
 - Alles andere unter „Weitere Angaben“.
+
+## 6. Wechselgeld nur über Einstellungen (umgesetzt in v154)
+
+- Einstellungen › Wechselgeld › „Von diesen Konten und Budgets“: Auswahl gilt für Apple Pay, Siri und manuelle Buchungen. Cash/Bargeld ist anfangs abgewählt.
+- Buchungsmaske ohne Wechselgeld-Knopf, nur Infozeile im Kopf („+ 0,63 € Wechselgeld → Ziel“).
