@@ -73,7 +73,19 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Auswertung/Übersicht: „Wechselgeld diesen Monat: 12,40 € in 23 Zahlungen“.
 - Apple-Pay-Kurzbefehl: optional zusätzlich „Transaktion › Karte“ in die Zeile, damit Regeln je Karte greifen.
 
-**Offene Fragen**
-- Gibt es den Robo-Advisor schon als Konto oder Depot in der App?
-- Welcher Multiplikator ist bei Revolut eingestellt?
-- Soll das Wechselgeld aus dem Einkaufsbudget kommen (Flow zahlt 0,63 € mehr) oder aus einem eigenen Konto?
+**Entscheidungen (2026-11-07)**
+- Ziel: der Robo-Advisor, der als Depot in der App existiert. Die Umbuchung geht auf das Depot-Konto und ist mit der Robo-Advisor-Position verknüpft (wie ein Sparplan), damit der Depotwert mitwächst.
+- Multiplikator: aktuell ×1, in den Regeln wählbar (×1 bis ×10), Änderung jederzeit.
+- Quelle: immer das Budget der jeweiligen Ausgabe (Flow-Einkauf → Wechselgeld aus Flow, Gönn-dir-Einkauf → aus Gönn dir).
+
+## 4. Alle Kurzbefehle sammeln in der Zwischenablage (Konzept, 2026-11-07)
+
+**Problem:** „Einkauf“ und „Buchung“ überschreiben die Zwischenablage. Was vorher drin lag (z. B. eine Apple-Pay-Zahlung), geht verloren.
+
+**Lösung**
+- Alle drei Kurzbefehle: „Zwischenablage abrufen“, dann Text `[Zwischenablage]` ⏎ `Stichwort: … · [Aktuelles Datum]`, dann „In Zwischenablage kopieren“.
+- Stichworte: `Einkauf:`, `Buchung:`, `Apple Pay`.
+- Die App verarbeitet jede Zeile einzeln nach ihrem Stichwort und merkt sich übernommene Zeilen (inklusive Uhrzeit), damit nichts doppelt ankommt.
+- Der Assistent zeigt eine Sammelübersicht („2 Artikel · 1 Apple-Pay-Zahlung · 1 Buchung“) mit „Alles übernehmen“ oder einzeln bearbeiten.
+- Zeilen ohne Stichwort werden wie bisher erkannt.
+- Grenze: Kopiert man selbst etwas, ist alles Nicht-Übernommene weg. Verlustsicher wäre nur die Server-Ablage („Siri & Kurzbefehle“).
