@@ -107,6 +107,7 @@ textarea.box{background:var(--card);border-radius:12px;padding:10px 12px;font-si
 .amount{text-align:center;font-family:var(--round);font-size:46px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .amount small{font-size:24px;color:var(--muted)}
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ruchip{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}.rusel{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:4px}.rusel select{font:inherit;font-size:13px;max-width:150px}
 .shpop{max-height:70vh;overflow:auto;min-width:220px}.shpop button{width:100%;font-size:15px;padding:9px 12px}.shpop button.on{color:var(--blue);font-weight:600}.shpop-h{font-size:12px;color:var(--muted);padding:8px 12px 4px}.shedit{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .clipb{background:var(--fill);border-radius:10px;padding:8px 10px;margin:6px 0}.clipb .s{font-size:12px;color:var(--muted);margin-top:2px}
 .fut-hero{padding:14px 16px}.fut-k{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:6px}.fut-u{font-size:15px;font-weight:500;color:var(--muted)}.bad{color:var(--bad)}.fut-bars{width:100%;height:auto;display:block}
@@ -1234,8 +1235,8 @@ function debtCard(d){const x=debtInfo(d);return `<button class="debt" data-set="
 let toastT=null;
 function toast(msg,undo){const r=$('toastRoot');clearTimeout(toastT);r.innerHTML=`<div class="toast" role="status"><span>${esc(msg)}</span>${undo?'<button id="tUndo">Rückgängig</button>':''}</div>`;
   if(undo)$('tUndo').onclick=()=>{r.innerHTML='';undo();toast('Rückgängig gemacht.')};toastT=setTimeout(()=>r.innerHTML='',undo?5000:2600)}
-const snap=()=>JSON.stringify({exp:S.exp,rec:S.rec,fav:S.fav});
-const restore=s=>{const o=JSON.parse(s);S.exp=o.exp;S.rec=o.rec;S.fav=o.fav;save();render()};
+const snap=()=>JSON.stringify({exp:S.exp,rec:S.rec,fav:S.fav,dep:S.depot});
+const restore=s=>{const o=JSON.parse(s);S.exp=o.exp;S.rec=o.rec;S.fav=o.fav;if(o.dep)S.depot=o.dep;save();render()};
 /* ---------- assistant: floating bubble with hints ---------- */
 let asstOpen=false,asstNew=[];
 /* ---------- smarter assistant: forecast, fixed-cost guard, outliers, new subscriptions ---------- */
@@ -2534,7 +2535,7 @@ function shopMovePop(el,id){const sh=shopS(),x=sh.items.find(i=>i.id==id);if(!x)
  const close=()=>{p.remove();removeEventListener('pointerdown',out,true)},out=e=>{if(!p.contains(e.target))close()};setTimeout(()=>addEventListener('pointerdown',out,true),0);
  p.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{sh.grp=sh.grp||{};sh.grp[x.n.toLowerCase().trim()]=b.dataset.g;save();close();render();toast(`„${x.n}“ liegt jetzt unter ${b.dataset.g}. Gemerkt.`)})}
 function shopS(){if(!S.shop)S.shop={items:[],acct:BUDG.includes('Flow')?'Flow':BUDG[0],prices:{},hist:{}};return S.shop}
-function shopCheck(){const sh=shopS(),c=calc(sh.acct),P=c.p,left=Math.max(P.left,1),est=sh.items.reduce((s,x)=>s+(x.p||0)*(x.q||1),0),rest=Math.max(c.rest,0),after=rest-est,tagA=after/left;
+function shopCheck(){const sh=shopS(),c=calc(sh.acct),P=c.p,left=Math.max(P.left,1),est=sh.items.reduce((s,x)=>s+(x.p||0)*(x.q||1),0)+(sh.items.length&&S.ru&&S.ru.on&&S.ru.apple&&S.ru.to!=sh.acct?ruAvg():0),rest=Math.max(c.rest,0),after=rest-est,tagA=after/left;
   let k='ok',txt='',cut=[];
   if(!est){k='none';txt='Trag Artikel mit geschätztem Preis ein, dann prüfe ich, ob der Einkauf passt.'}
   else if(est>rest){k='bad';let need=est-rest;const opt=sh.items.filter(x=>x.opt).sort((a,b)=>(b.p||0)*(b.q||1)-(a.p||0)*(a.q||1));for(const x of opt){if(need<=0)break;cut.push(x);need-=(x.p||0)*(x.q||1)}
@@ -2861,7 +2862,7 @@ function viewClose(){const o=closeTarget(),P=period(o),pk=pkey(P),done=(S.closeD
   ${step(3,'Ziele prüfen',`<div class="group" style="margin:6px 0">${Y.map(x=>`<div class="cell plain"><div class="t"><div>${esc(x.n)}</div><div class="s">${MN[x.m-1]} · ${eur0(x.got)} von ${eur0(x.a)}</div></div><div class="v ${x.ok?'in':'out'}">${x.ok?'auf Kurs':'−'+eur0(x.behind)}</div></div>`).join('')||'<div class="empty">Keine Ziele im Jahresplaner.</div>'}</div><div class="choices"><button id="clYp">Jahresplaner</button><button id="clSim">Simulator</button></div>`)}
   ${step(4,'Rückblick',`<div class="ns-f" style="margin:6px 0 8px"><span>Ausgaben <b>${eur0(S.exp.filter(e=>inP(e,P)&&realOut(e)&&TOT.includes(e.b)).reduce((s,e)=>s+e.a,0))}</b></span><span>Einnahmen <b>${eur0(S.exp.filter(e=>inP(e,P)&&e.type=='in'&&!isPlan(e)&&!e.corr).reduce((s,e)=>s+e.a,0))}</b></span></div>${rv.good.length||rv.bad.length?`<div class="note" style="padding:0 0 8px">${rv.good.slice(0,2).map(esc).join(' · ')}${rv.bad.length?' · <span class="out">'+rv.bad.slice(0,2).map(esc).join(' · ')+'</span>':''}</div>`:''}<div class="choices"><button id="clRev">Monatsrückblick öffnen</button></div>`)}
   <button class="btn" id="clDone">${done?'Erledigt ✓':'Monat abschließen'}</button>`}
-function closeMove(b,to){const o=closeTarget(),P=period(o),pk=pkey(P),c=calc(b,o),a=Math.floor(c.rest*100)/100;if(a<=0)return;const t=o==0?Date.now():P.e.getTime()-36e5,x={id:uid(),type:'tr',b,to,a,n:'Monatsabschluss: Rest '+(SHORT[b]||b),t,closeOf:pk};S.exp.push(x);save();render();toast(eur(a)+' nach '+(SHORT[to]||to)+' verschoben.',()=>{S.exp=S.exp.filter(e=>e.id!==x.id);save();render()})}
+function closeMove(b,to){const o=closeTarget(),P=period(o),pk=pkey(P),c=calc(b,o),a=Math.floor(c.rest*100)/100;if(a<=0)return;const t=o==0?Date.now():P.e.getTime()-36e5,x={id:uid(),type:'tr',b,to,a,n:'Monatsabschluss: Rest '+(SHORT[b]||b),t,closeOf:pk};S.exp.push(x);save();render();toast(eur(a)+' nach '+(SHORT[to]||to)+' verschoben.',()=>{exDel(x.id);save();render()})}
 /* Tipps aus dem Ideen-Pool */
 function ideaTips(t){try{
   priceWatch().slice(0,3).forEach(w=>{const yr=w.d*12/(w.r.every||1);t.push({sev:'warn',ttl:`${w.r.n||w.r.c} ${w.d>0?'teurer':'günstiger'}: ${w.d>0?'+':'−'}${eur(Math.abs(w.d))}`,txt:`Abgebucht ${eur(w.e.a)} am ${dShort(w.e.t)}, geplant waren ${eur(w.plan)} – das sind ${w.d>0?'+':'−'}${eur0(Math.abs(yr))} im Jahr.${w.d>0?' Lohnt sich ein Wechsel oder eine Kündigung?':''}`,btns:[{l:'Neuen Betrag übernehmen',fn:'pwTake',arg:w.r.id+'|'+w.e.a},{l:'Ignorieren',fn:'pwIgn',arg:w.r.id+'|'+w.e.a}]})});
@@ -3185,7 +3186,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>!featOn(k)?'':`<button class="cell"
    nav('month','calendar','Finanzmonat','Beginnt am '+S.start+'.',c1))}
   ${sec('Planen & Sparen','',
    nav('yplan','calendar','Jahresplaner','Sonderausgaben, monatliche Rücklage',c2)+
-   nav('ng','lock','Tresor',(S.vaultHide?'Karte ausgeblendet · ':'')+vaultAccs().length+' Konten · Sparraten, Anzeige, Ziele',c2)+
+   nav('ru','coins','Wechselgeld',(S.ru&&S.ru.on===false?'Aus':'Aufrunden ×'+((S.ru&&S.ru.mult)||1))+' · '+eur(ruStats(0).a)+' diesen Monat',c2)+nav('ng','lock','Tresor',(S.vaultHide?'Karte ausgeblendet · ':'')+vaultAccs().length+' Konten · Sparraten, Anzeige, Ziele',c2)+
    nav('debts','target','Schuldenfrei',(S.debts||[]).length?((S.debts||[]).map(d=>eur0(debtInfo(d).rest)+' offen').join(' · ')):'Kredite und Raten abbauen',c2)+
    nav('abos','repeat','Abo-Radar',eur0(aboList().reduce((s,x)=>s+x.year,0))+' im Jahr · Kündigungsfristen',c2)+
    nav('proj','target','Projekte',projActive().length?projActive().length+' aktiv':'Urlaub, Umzug … mit eigenem Budget',c2)+
@@ -3241,6 +3242,7 @@ function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','chec
    <div class="note">Supabase findest du unter supabase.com › dein Projekt. Den Secret Key brauchst du nirgends, nur den Publishable Key in der App.</div>`}
 function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr</button>`;
   if(k=='cfg')return viewCfg();
+  if(k=='ru')return viewRu();
   if(k=='accts')return back+`<h1 class="lt">Konten</h1></div><div class="group">${S.accts.map((a,i)=>`<div class="cell" style="flex-wrap:wrap">
     <button class="cell" data-ae="${i}" style="padding:0;flex:1;min-width:0;min-height:0"><div class="ico" style="background:color-mix(in srgb,${a.col} 16%,transparent);color:${a.col}">${I(a.kind=='konto'?'wallet':'gauge')}</div>
      <div class="t"><div>${esc(a.n)}</div><div class="s">${a.kind=='konto'?'Konto mit Saldo · '+(WH(a.n)?MASK:eur(calc(a.n).rest)):'Budget · '+eur0(S.budgets[a.n]||0)+' im Monat'}${a.vis?'':' · ausgeblendet'}${a.kind=='budget'&&!a.tot?' · nicht im Gesamt':''}</div></div><span class="chev">›</span></button>
@@ -3360,7 +3362,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- Konfiguration: Funktionen ein- und ausblenden ---------- */
-const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,1,1]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Siri & Apple Pay beim Öffnen anbieten',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
+const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,1,1]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['ru','Wechselgeld',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Siri & Apple Pay beim Öffnen anbieten',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
 const FEATP=['Einfach','Standard','Alles'];
 const FEATK=Object.fromEntries(FEATS.flatMap(([,l])=>l.map(([k,n,p])=>[k,{n,p}])));
 function featOn(k){const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?1:S.featP]:true}
@@ -3385,7 +3387,7 @@ function futData(){const now=Date.now(),since=now-365*864e5,by={};let t0=now;
 const futFV=(m,r,y)=>{const i=r/1200,n=y*12;return i?m*((1+i)**n-1)/i:m*n};
 function futBase(D,F){return F.c=='*K'?D.K:F.c=='*V'?D.V:((D.L.find(x=>x.c==F.c)||{}).m||0)}
 function futSpend(c,o){return S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!isTabu(e.b)&&(!c||e.c==c)&&inP(e,period(o))).reduce((s,e)=>s+e.a,0)}
-function futIndep(F){try{const B=tresorBase(),W=B.dep+B.cash,sp=avgSpend(),goal=sp*12*25,m=B.plans.reduce((s,p)=>s+p.a,0)+B.cashIn+(B.ov||0),i=Math.pow(1+(S.fcRate==null?7:S.fcRate)/100,1/12)-1;
+function futIndep(F){try{const B=tresorBase(),W=B.dep+B.cash,sp=avgSpend(),goal=sp*12*25,m=B.plans.reduce((s,p)=>s+p.a,0)+B.cashIn+(B.ov||0)+ruMonthly(),i=Math.pow(1+(S.fcRate==null?7:S.fcRate)/100,1/12)-1;
   if(!(sp>0))return null;let w=W,n=0;while(w<goal&&n<720){w=w*(1+i)+m;n++}
   return{W,goal,sp,m,n,pc:Math.min(W/goal,1),year:new Date().getFullYear()+Math.round(n/12)}}catch(e){return null}}
 function futHero(F,V){const X=futIndep(F);
@@ -3402,13 +3404,14 @@ function futOut(F){const D=futData(),base=futBase(D,F),sv=base*F.p/100,fv=futFV(
  <svg viewBox="0 0 ${W} ${H+4}" class="fut-ch" preserveAspectRatio="none"><polygon points="0,${H} ${line} ${W},${H}" fill="color-mix(in srgb,var(--blue) 14%,transparent)"/><polyline points="${lin}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/><polyline points="${line}" fill="none" stroke="var(--blue)" stroke-width="2.5"/></svg>
  <div class="fut-leg"><span><i style="background:var(--blue)"></i>mit Rendite</span><span><i style="background:var(--muted)"></i>nur eingezahlt</span></div>
  ${F.p<100&&base?`<div class="note" style="padding:6px 0 0">Würdest du komplett verzichten, wären es ${eur0(all)}.</div>`:''}`}
-function futGoal(F){const i=F.r/1200,n=F.gY*12,T=F.gT,pm=i?T*i/((1+i)**n-1):T/n,B=(()=>{try{const b=tresorBase();return b.plans.reduce((s,p)=>s+p.a,0)+b.cashIn}catch(e){return 0}})(),gap=pm-B;
+function futGoal(F){const i=F.r/1200,n=F.gY*12,T=F.gT,pm=i?T*i/((1+i)**n-1):T/n,B=(()=>{try{const b=tresorBase();return b.plans.reduce((s,p)=>s+p.a,0)+b.cashIn+ruMonthly()}catch(e){return 0}})(),gap=pm-B;
  return `<div class="fut-big">${eur0(pm)} <span class="fut-u">im Monat</span></div><div class="fut-s">Dafür brauchst du ${eur0(T)} in ${F.gY} ${F.gY==1?'Jahr':'Jahren'}, bei ${futPct(F.r)} % Rendite.</div><div class="fut-s" style="margin-top:6px">Schon eingeplant: ${eur0(B)} im Monat. ${gap>0?`<b class="bad">Es fehlen ${eur0(gap)} im Monat.</b>`:'<b class="in">Das ist schon gedeckt.</b>'}</div>`}
 function futImp(F){const A=+F.iA||0,v=A*Math.pow(1+F.r/100,F.y);return `<div class="fut-big">${eur0(v)}</div><div class="fut-s">Ein Kauf über ${eur0(A)}, den du stattdessen anlegst, wäre in ${F.y} Jahren so viel wert (bei ${futPct(F.r)} % Rendite).</div>`}
 function futKraft(F){const sp=avgSpend(),inf=(S.pension&&+S.pension.infl)||2,ry=y=>new Date().getFullYear()+y;let h='';
  if(sp>0)h+=[10,20,30].map(y=>`<div class="cell plain"><div class="t"><div>${ry(y)}</div><div class="s">Heute 1.000 € = dann ${eur0(1000/Math.pow(1+inf/100,y))}</div></div><div class="v">${eur0(sp*Math.pow(1+inf/100,y))}<div class="s">deine Monatsausgaben</div></div></div>`).join('');
  const nb=[...(S.wish||[]).filter(w=>w.s=='verworfen'),...(S.goals||[]).filter(g=>g.dropped).map(g=>({p:g.ziel}))],sum=nb.reduce((s,w)=>s+(+w.p||0),0);
  if(sum>0)h+=`<div class="cell plain"><div class="t"><div>${nb.length} verworfene Käufe</div><div class="s">zusammen ${eur0(sum)}</div></div><div class="v in">${eur0(sum*Math.pow(1+F.r/100,F.y))}<div class="s">angelegt in ${F.y} J.</div></div></div>`;
+ const rm=ruMonthly();if(rm>0)h+=`<div class="cell plain"><div class="t"><div>Wechselgeld</div><div class="s">Ø ${eur(rm)} im Monat</div></div><div class="v in">${eur0(futFV(rm,F.r,F.y))}<div class="s">in ${F.y} J.</div></div></div>`;
  return h||'<div class="empty">Noch nichts zu zeigen.</div>'}
 function futHist(){const L=[6,5,4,3,2,1].map(k=>({v:futSpend(null,-k),l:period(-k).s.toLocaleDateString('de-DE',{month:'short'})})),mx=Math.max(...L.map(x=>x.v),1),W=320,H=100,bw=W/6;
  const bars=L.map((x,j)=>{const h=Math.max(2,x.v/mx*(H-20));return `<rect x="${(j*bw+bw*.2).toFixed(1)}" y="${(H-20-h).toFixed(1)}" width="${(bw*.6).toFixed(1)}" height="${h.toFixed(1)}" rx="4" style="fill:${j==5?'var(--blue)':'var(--muted)'};opacity:${j==5?1:.4}"/><text x="${(j*bw+bw/2).toFixed(1)}" y="${H-4}" text-anchor="middle" style="font-size:11px;fill:var(--muted)">${x.l}</text>`}).join('');
@@ -3455,9 +3458,9 @@ function bindSwipe(){document.querySelectorAll('.swr').forEach(w=>{const row=w.l
   w.addEventListener('touchmove',e=>{if(x0==null)return;dx=e.touches[0].clientX-x0;const dy=e.touches[0].clientY-y0;if(Math.abs(dy)>Math.abs(dx)){x0=null;row.style.transform='';return}
     row.style.transform=`translateX(${Math.min(0,Math.max(-150,dx+(open?-140:0)))}px)`},{passive:true});
   w.addEventListener('touchend',()=>{if(x0==null)return;row.style.transition='';open=(dx+(open?-140:0))<-60;row.style.transform=open?'translateX(-140px)':'';if(open){document.querySelectorAll('.swr').forEach(o=>{if(o!==w)o.lastElementChild.style.transform=''})}x0=null},{passive:true})});
-  document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();S.exp=S.exp.filter(e=>e.id!=b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
+  document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const s=snap();exDel(b.dataset.sdel);save();render();toast('Buchung gelöscht.',()=>restore(s))});
   document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const o=S.exp.find(e=>e.id==b.dataset.dup);if(!o)return;const s=snap();const c=Object.assign({},o,{id:uid(),t:Date.now()});delete c.rid;delete c.pk;delete c.imp;delete c.roll;S.exp.push(c);save();render();toast('Kopie für heute angelegt.',()=>restore(s))})}
-function bind(){if(tab=='fut'&&!setView&&!curB)try{bindFut()}catch(e){}if(setView=='cfg')try{bindCfg()}catch(e){}{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('jUrge');if(u)u.onclick=()=>openUrge();const mp=$('moodP'),mn=$('moodN');if(mp)mp.onclick=()=>{moodOff--;render()};if(mn)mn.onclick=()=>{if(moodOff<0){moodOff++;render()}};document.querySelectorAll('[data-mday]').forEach(b=>b.onclick=()=>{tab='cal';calDay=b.dataset.mday;const d=new Date(b.dataset.mday);off=0;for(let o=-24;o<=0;o++){const P=period(o);if(d>=P.s&&d<P.e){off=o;break}}render();scrollTo(0,0)})}document.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>openJournal(b.dataset.jr));{const k=$('kAbg');if(k)k.onclick=()=>openAbgleich(k.dataset.kb)}document.querySelectorAll('[data-eye]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();depShow=!depShow;render()});if(!window.__pk){window.__pk=1;addEventListener('keydown',e=>{if(tab=='rep'&&repV=='Vermögen'&&posView&&!$('sheetRoot').innerHTML&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'')){if(e.key=='ArrowRight')posGo(1);else if(e.key=='ArrowLeft')posGo(-1)}})}bindSwipe();bindVault();bindVaultSet();bindIdeas();bindCats2();bindPension();try{bindTresorSim()}catch(e){};bindSync();bindDepot();bindAbos();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
+function bind(){if(tab=='fut'&&!setView&&!curB)try{bindFut()}catch(e){}if(setView=='cfg')try{bindCfg()}catch(e){}if(setView=='ru')try{bindRu()}catch(e){}{const n=$('jNew');if(n)n.onclick=()=>openJournal();const u=$('jUrge');if(u)u.onclick=()=>openUrge();const mp=$('moodP'),mn=$('moodN');if(mp)mp.onclick=()=>{moodOff--;render()};if(mn)mn.onclick=()=>{if(moodOff<0){moodOff++;render()}};document.querySelectorAll('[data-mday]').forEach(b=>b.onclick=()=>{tab='cal';calDay=b.dataset.mday;const d=new Date(b.dataset.mday);off=0;for(let o=-24;o<=0;o++){const P=period(o);if(d>=P.s&&d<P.e){off=o;break}}render();scrollTo(0,0)})}document.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>openJournal(b.dataset.jr));{const k=$('kAbg');if(k)k.onclick=()=>openAbgleich(k.dataset.kb)}document.querySelectorAll('[data-eye]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();depShow=!depShow;render()});if(!window.__pk){window.__pk=1;addEventListener('keydown',e=>{if(tab=='rep'&&repV=='Vermögen'&&posView&&!$('sheetRoot').innerHTML&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'')){if(e.key=='ArrowRight')posGo(1);else if(e.key=='ArrowLeft')posGo(-1)}})}bindSwipe();bindVault();bindVaultSet();bindIdeas();bindCats2();bindPension();try{bindTresorSim()}catch(e){};bindSync();bindDepot();bindAbos();{const pm=$('pufMove');if(pm)pm.onclick=()=>openPufMove()}{const pb=$('pufBtn');if(pb)pb.onclick=()=>{showPuf=!showPuf;render()}}{const tc=$('toCtr');if(tc)tc.onclick=()=>{tab='rep';repV='Verträge';setView=null;render();scrollTo(0,0)}}
   document.querySelectorAll('[data-ctr]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctr));{const ca=$('ctrAdd');if(ca)ca.onclick=()=>openContract(-1)}
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=(window._up||[])[+b.dataset.up];if(!x)return;
     if(x.pl){const e=S.exp.find(q=>q.id==x.r.id);if(e)openSheet(e);return}
@@ -3717,6 +3720,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
 
    <div class="amount ${inc?'in':''}">${inc?'+':''}${shown}<small> €</small>${/[+−]/.test(E.amt)?`<div class="calcres">= ${eur(evalAmt(E.amt))}</div>`:''}</div>
    ${impact?`<div class="impact">${impact}</div>`:''}
+   ${E.type=='out'&&ruS().on&&a&&ruAmt(a)?(()=>{const on=ruDef(E),old=E.id&&S.exp.find(e=>e.id==E.id),tr=old&&old.ru&&S.exp.find(e=>e.id==old.ru),to=E.ruTo||(tr&&tr.to)||ruS().to;return `<div class="ruchip"><button class="pill ${on?'on':''}" id="eRu">${I('coins',14)} Wechselgeld ${on?eur(ruAmt(a)):'aus'}</button>${on?`<label class="rusel">→ <select id="eRuTo">${ALL.map(b=>`<option value="${esc(b)}" ${to==b?'selected':''}>${esc(SHORT[b]||b)}</option>`).join('')}</select></label>`:''}</div>`})():''}
    ${E.adj?`<div class="adjinfo">${I('pen',13)}<span>Angepasste Buchung · ${esc(E.adj.lab||'')} · normal ${eur(E.adj.base)}</span>${!E.id&&E.adj.kind!='new'?'<button class="link" id="adjReset">Zurücksetzen</button>':''}</div>`:''}
    <div class="ctx">${pill('type',typL)}${pill('acc',(tr?'von ':inc?'auf ':'von ')+esc(SHORT[E.b]),isLock(E.b)||isTabu(E.b)?'lock':'wallet')}${tr?pill('to','nach '+esc(SHORT[E.to]),isLock(E.to)?'lock':null):''}</div>
    <div class="chips datechips">${[0,1,2].map(d=>{const v=ymd(Date.now()-d*864e5);return `<button class="chip ${E.dt==v?'on':''}" data-dq="${v}">${['Heute','Gestern','Vorgestern'][d]}</button>`}).join('')}<button class="chip ${[0,1,2].some(d=>ymd(Date.now()-d*864e5)==E.dt)?'':'on'}" data-pick="date">${I('calendar',14)} ${[0,1,2].some(d=>ymd(Date.now()-d*864e5)==E.dt)?'Datum':dtL}</button></div>
@@ -3770,6 +3774,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
   document.querySelectorAll('#accT button').forEach(b=>b.onclick=()=>{keep();E.to=b.dataset.v;E.pick=null;drawSheet()});
   document.querySelectorAll('.cat').forEach(b=>{let lp,lng=false;const st=()=>{lng=false;clearTimeout(lp);lp=setTimeout(()=>{lng=true;try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}catPop(b,b.dataset.c,()=>{keep();drawSheet()})},450)},cl=()=>clearTimeout(lp);b.addEventListener('touchstart',st,{passive:true});b.addEventListener('touchend',cl);b.addEventListener('touchmove',cl,{passive:true});b.addEventListener('mousedown',st);b.addEventListener('mouseup',cl);b.addEventListener('mouseleave',cl);b.oncontextmenu=e=>e.preventDefault();b.onclick=e=>{if(lng){lng=false;e.preventDefault();return}keep();const qa=(S.favAmt||{})[b.dataset.c];if(qa&&!evalAmt(E.amt)&&!E.id&&E.type=='out'){E.c=b.dataset.c;if(!E.accManual)E.b=bestAcc(E.c);E.amt=String(qa);E.cq='';drawSheet();$('ok').click();return}E.cq='';E.c=b.dataset.c;if(!E.accManual&&E.type=='out')E.b=bestAcc(E.c);E.allCats=false;drawSheet()}});
   if($('eHint'))$('eHint').onclick=()=>{keep();E.hint=!E.hint;drawSheet()};
+  if($('eRu'))$('eRu').onclick=()=>{keep();E.ruOn=!ruDef(E);drawSheet()};if($('eRuTo'))$('eRuTo').onchange=e=>{E.ruTo=e.target.value};
   document.querySelectorAll('[data-dq]').forEach(b=>b.onclick=()=>{keep();E.dt=b.dataset.dq;E.pick=null;drawSheet()});
   if($('ecq')){$('ecq').value=E.cq||'';const fl=()=>{const q=$('ecq').value.trim().toLowerCase();E.cq=$('ecq').value;let hd=null,vis=0;[...$('ecats').children].forEach(el=>{if(el.classList.contains('cats-h')){if(hd)hd.hidden=!vis;hd=el;vis=0;return}const ok=!q||el.dataset.c.toLowerCase().includes(q);el.hidden=!ok;if(ok)vis++});if(hd)hd.hidden=!vis};fl();$('ecq').oninput=fl;$('ecq').onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();const f=[...$('ecats').querySelectorAll('.cat')].find(x=>!x.hidden);if(f)f.click()}}}
   if($('calcOn'))$('calcOn').onclick=()=>{keep();E.calc=true;drawSheet()};
@@ -3791,7 +3796,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     else{S.rec=(S.rec||[]).filter(r=>!(r.abo&&subKey(r.n||r.c)==sk&&!S.exp.some(e=>e.rid==r.id)));toast('Abo-Erkennung wieder automatisch.')}
     save();drawSheet()});
   if($('nowE'))$('nowE').onclick=()=>{E.dt=today();E.t=Date.now();if($('edate'))$('edate').value=E.dt;$('ok').click()};
-  if($('delE'))$('delE').onclick=()=>{const s=snap();S.exp=S.exp.filter(e=>e.id!=E.id);save();close();render();toast('Buchung gelöscht.',()=>restore(s))};
+  if($('delE'))$('delE').onclick=()=>{const s=snap();exDel(E.id);save();close();render();toast('Buchung gelöscht.',()=>restore(s))};
   const voice=v=>{keep();if(voiceCmd(v))return;qp(v);drawSheet();toast('Verstanden: „'+v+'“')};
   if($('vHelp'))$('vHelp').onclick=()=>voiceHelp();
   if($('eMic'))$('eMic').onclick=()=>listen(voice,$('equick'));
@@ -3810,7 +3815,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     if(E.type=='out'&&!E.id)S.lastAcc=E.b;
     if(E.fav&&!E.id&&E.type=='out')S.fav.push({b:E.b,c:E.c,n:E.n,a});
     if(rec.ovr&&!E.id){S.ovrLog=S.ovrLog||[];S.ovrLog.push({id:rec.id,t:rec.t,from:rec.b,to:rec.to,a,reason:rec.ovr.reason,ans:rec.ovr.ans})}
-    const sn=snap();if(E.id)S.exp=S.exp.map(e=>e.id==E.id?rec:e);else S.exp.push(rec);
+    const sn=snap();{const old=E.id&&S.exp.find(e=>e.id==E.id);if(old){if(old.ru)rec.ru=old.ru;if(old.shop)rec.shop=old.shop;if(old.ruOf)rec.ruOf=old.ruOf;if((old.tg||[]).includes('wechselgeld'))rec.tg=[...new Set([...(rec.tg||[]),'wechselgeld'])]}}if(E.src&&!E.id)rec.tg=[...new Set([...(rec.tg||[]),E.src])];if(E.id)S.exp=S.exp.map(e=>e.id==E.id?rec:e);else S.exp.push(rec);try{if(!rec.ruOf&&(rec.type=='out'||rec.ru))ruSync(rec,{on:rec.type=='out'&&ruDef(E),to:E.ruTo})}catch(e){}
     try{localStorage.setItem('dodo4',JSON.stringify(S));syDirty()}catch(e){if(rec.img){delete rec.img;save();}}
     close();render();if(!E.id&&rec.type=='out'&&isGro(rec))setTimeout(()=>shopMatch([rec]),500);toast(E.id?'Änderung gesichert.':(rec.type=='tr'?'Umbuchung gesichert: ':rec.type=='in'?'Einnahme gesichert: ':'Ausgabe gesichert: ')+eur(a),()=>restore(sn))}}
 $('fab').onclick=()=>openSheet();
@@ -4962,6 +4967,37 @@ function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[];cons
   if(S.urgePend){delete S.urgePend;save();setTimeout(()=>openUrge(),600)}return{done,pend}}
 let siriBusy=false;async function siriPull(force){if(siriBusy||!syOn()||!navigator.onLine)return;if(!force&&!siriGet())return;siriBusy=true;try{const j=await pushCall('inbox');const it=j.items||[];if(it.length){siriApplyAll(it);await pushCall('inbox_del',{ids:it.map(x=>x.id)})}else if(force)toast('Keine neuen Einträge von Siri.')}catch(e){if(force)toast('Ablage nicht erreichbar: '+(e.message||e))}finally{siriBusy=false}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>siriPull(),1500)});setTimeout(()=>siriPull(),3000);
+/* ---------- Wechselgeld (Aufrunden wie bei Revolut) ---------- */
+function ruS(){const R=S.ru=S.ru||{on:true,mult:1,apple:true,siri:true,manual:false,accs:[]};if(R.dep===undefined){const h=depot().find(x=>/robo/i.test((x.n||'')+' '+(x.sym||'')));R.dep=h?h.id:'';if(h&&!R.to)R.to=posAcc(h)}if(!R.to){const d=depAccs()[0];if(d)R.to=d}return R}
+const ruAmt=a=>{const c=Math.round(a*100),u=Math.ceil(c/100)*100-c;return Math.round(u*(ruS().mult||1))/100};
+function ruFor(rec,src){const R=ruS();if(!R.on||!R.to||rec.type!='out'||rec.b==R.to)return false;if(src=='applepay')return !!R.apple;if(src=='siri')return !!R.siri;return !!R.manual&&(!(R.accs||[]).length||R.accs.includes(rec.b))}
+function ruDef(E){if(E.type!='out')return false;if(E.ruOn!=null)return E.ruOn;const old=E.id&&S.exp.find(e=>e.id==E.id);if(old)return !!old.ru;return ruFor({type:'out',b:E.b},E.src)}
+function ruDepAdd(tr){const R=ruS(),h=R.dep&&depot().find(x=>x.id==R.dep);if(!h||posAcc(h)!=tr.to)return;const a=tr.a;let q=0,pv=0;if(h.price){q=Math.round(a/h.price*1e8)/1e8;h.qty=Math.round(((h.qty||0)+q)*1e8)/1e8}else if(!h.qty){pv=a;h.pendVal=Math.round(((h.pendVal||0)+a)*100)/100}h.inv=Math.round(((h.inv||0)+a)*100)/100;h.tx=h.tx||[];h.tx.push({id:uid(),t:tr.t,type:'plan',q,p:h.price||0,fee:0,a,ru:tr.id,pv});try{h.avg=avgOf(h)}catch(e){}}
+function ruDepDel(trId){depot().forEach(h=>{const i=(h.tx||[]).findIndex(t=>t.ru==trId);if(i<0)return;const t=h.tx[i];h.qty=Math.max(0,Math.round(((h.qty||0)-(t.q||0))*1e8)/1e8);h.inv=Math.max(0,Math.round(((h.inv||0)-t.a)*100)/100);if(t.pv)h.pendVal=Math.max(0,Math.round(((h.pendVal||0)-t.pv)*100)/100);h.tx.splice(i,1);try{h.avg=avgOf(h)}catch(e){}})}
+/* Wechselgeld zu einer Ausgabe anlegen, anpassen oder entfernen. opt.on: an/aus (ohne Angabe: bestehendes nachführen) · opt.to: Zielkonto */
+function ruSync(rec,opt){opt=opt||{};const R=ruS();let tr=rec.ru&&S.exp.find(e=>e.id==rec.ru);const on='on' in opt?opt.on:!!tr,want=on&&rec.type=='out'?ruAmt(rec.a):0,to=opt.to||(tr&&tr.to)||R.to;
+ if(tr){ruDepDel(tr.id);if(!want){S.exp=S.exp.filter(e=>e.id!=tr.id);delete rec.ru;return null}Object.assign(tr,{a:want,b:rec.b,to,t:rec.t,n:'Wechselgeld '+(rec.n||rec.c||'')});ruDepAdd(tr);return tr}
+ if(!want||!to||to==rec.b)return null;tr={id:uid(),type:'tr',b:rec.b,to,a:want,c:'',n:'Wechselgeld '+(rec.n||rec.c||''),t:rec.t,tg:['wechselgeld'],ruOf:rec.id};S.exp.push(tr);rec.ru=tr.id;ruDepAdd(tr);return tr}
+function exDel(id){const e=S.exp.find(x=>x.id==id);if(!e)return;if(e.ru)ruDepDel(e.ru);if(e.ruOf){ruDepDel(e.id);const p=S.exp.find(x=>x.id==e.ruOf);if(p)delete p.ru}S.exp=S.exp.filter(x=>x.id!=id&&x.ruOf!=id)}
+const ruList=()=>S.exp.filter(e=>e.type=='tr'&&(e.tg||[]).includes('wechselgeld'));
+function ruStats(o){const P=period(o||0),L=ruList().filter(e=>inP(e,P));return{n:L.length,a:Math.round(L.reduce((s,e)=>s+e.a,0)*100)/100}}
+function ruMonthly(){const L=ruList();if(!L.length)return 0;const t0=Math.min(...L.map(e=>e.t)),mon=Math.max(1,(Date.now()-t0)/(30.44*864e5));return L.reduce((s,e)=>s+e.a,0)/mon}
+function ruAvg(){const L=ruList().slice(-30);return L.length?L.reduce((s,e)=>s+e.a,0)/L.length:0.5*(ruS().mult||1)}
+function viewRu(){const R=ruS(),st=ruStats(0),tot=ruList().reduce((s,e)=>s+e.a,0),D=depot();
+ const sw=(id,l,s,on)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" id="${id}" ${on?'checked':''}></div>`;
+ return appbar({title:'Wechselgeld',back:'setBack',noGear:true,sub:'Aufrunden und anlegen wie bei Revolut'})+
+ `<div class="sec"><div class="group">${sw('ruOn','Wechselgeld aufrunden','Jede passende Kartenzahlung erzeugt eine Umbuchung der Differenz',R.on)}<div class="cell plain"><div class="t"><div>Beispiel: Einkauf 21,37 €</div><div class="s">Umbuchung aus dem Budget des Einkaufs</div></div><div class="v in">+${eur(ruAmt(21.37))}</div></div></div></div>
+ <div class="sec"><div class="sh">Multiplikator</div><div class="seg" id="ruMult">${[1,2,5,10].map(m=>`<button class="${(R.mult||1)==m?'on':''}" data-m="${m}">×${m}</button>`).join('')}</div><div class="note">Stell hier denselben Wert ein wie in Revolut.</div></div>
+ <div class="sec"><div class="sh">Ziel</div><div class="group"><div class="cell plain"><label for="ruTo">Konto</label><select id="ruTo" style="margin-left:auto;max-width:60%">${R.to?'':'<option value="">bitte wählen</option>'}${ALL.map(b=>`<option value="${esc(b)}" ${R.to==b?'selected':''}>${esc(SHORT[b]||b)}${depAccs().includes(b)?' · Depot':''}</option>`).join('')}</select></div>
+ ${depAccs().includes(R.to)?`<div class="cell plain"><label for="ruDep">Depot-Position</label><select id="ruDep" style="margin-left:auto;max-width:60%"><option value="">keine</option>${D.filter(h=>posAcc(h)==R.to).map(h=>`<option value="${esc(h.id)}" ${R.dep==h.id?'selected':''}>${esc(h.n||h.sym||'Position')}</option>`).join('')}</select></div>`:''}</div><div class="note">Mit Depot-Position wächst ihr Wert mit jeder Umbuchung, wie bei einem Sparplan.</div></div>
+ <div class="sec"><div class="sh">Gilt für</div><div class="group">${sw('ruApple','Apple-Pay-Zahlungen','aus der Wallet-Automation',R.apple)}${sw('ruSiri','Buchungen per Siri','aus dem Kurzbefehl „Buchung“',R.siri)}${sw('ruMan','Manuelle Buchungen','in der Buchungsmaske',R.manual)}${R.manual?BUDG.map(b=>`<label class="cell plain"><span style="flex:1;padding-left:12px">${esc(SHORT[b]||b)}</span><input type="checkbox" data-rua="${esc(b)}" ${!(R.accs||[]).length||R.accs.includes(b)?'checked':''}></label>`).join(''):''}</div><div class="note">Das Wechselgeld kommt immer aus dem Budget des Einkaufs. In der Buchungsmaske lässt es sich pro Buchung abschalten oder umleiten.</div></div>
+ <div class="sec"><div class="sh">Bisher</div><div class="group"><div class="cell plain"><div class="t">Diesen Monat</div><div class="v">${eur(st.a)}<div class="s">${st.n} Zahlung${st.n==1?'':'en'}</div></div></div><div class="cell plain"><div class="t">Insgesamt angelegt</div><div class="v in">${eur(tot)}</div></div></div></div>`}
+function bindRu(){const R=ruS(),sv=()=>{save();render()};
+ const on=(id,k)=>{const el=$(id);if(el)el.onchange=()=>{R[k]=el.checked;sv()}};on('ruOn','on');on('ruApple','apple');on('ruSiri','siri');on('ruMan','manual');
+ document.querySelectorAll('#ruMult [data-m]').forEach(b=>b.onclick=()=>{R.mult=+b.dataset.m;sv()});
+ if($('ruTo'))$('ruTo').onchange=e=>{R.to=e.target.value;const h=depot().find(x=>posAcc(x)==R.to&&/robo/i.test((x.n||'')+(x.sym||'')))||depot().find(x=>posAcc(x)==R.to);R.dep=h?h.id:'';sv()};
+ if($('ruDep'))$('ruDep').onchange=e=>{R.dep=e.target.value;sv()};
+ document.querySelectorAll('[data-rua]').forEach(c=>c.onchange=()=>{const all=[...document.querySelectorAll('[data-rua]')],ch=all.filter(x=>x.checked).map(x=>x.dataset.rua);R.accs=ch.length==all.length?[]:ch;sv()})}
 /* ---------- Siri & Apple Pay über die Zwischenablage: Assistent bietet beim Öffnen an ---------- */
 let clipAsk=false,clipHidAt=0;
 const CLIPTIP={sev:'ok',ttl:'Von Siri übernehmen?',txt:'Hast du gerade etwas diktiert oder mit Apple Pay bezahlt? Ein Tipp holt es aus der Zwischenablage: Einkauf, Buchung, Wunsch oder Frage.',btns:[{l:'Übernehmen',fn:'clipGo'},{l:'Nicht jetzt',fn:'clipNo'}]};
@@ -4995,18 +5031,18 @@ function clipParse(v,tag){const sv=E,recs=[],bad=[];v=v.replace(/^(buchung)\s*:?
   if(!E.n){const n=p.replace(/[-+]?\d+(?:[.,]\d+)?\s*(€|euro|eur)?/gi,'').replace(/\s+/g,' ').trim();if(n)E.n=n.charAt(0).toUpperCase()+n.slice(1)}
   if(!E.c&&E.type!='tr')E.c=((cats(E.b)||[]).find(k=>/sonst/i.test(k[0]))||(cats(E.b)||[['Sonstiges']])[0])[0];
   recs.push({type:E.type,b:E.b,to:E.to,c:E.type=='tr'?'':E.c,a,n:E.n,dt:E.dt||today(),tag})});E=sv;return{recs,bad}}
-function clipCommit(recs){const sn=snap(),done=[],bad=[];recs.forEach(r=>{if(r.type!='in'&&isTabu(r.b)){bad.push(r.b+' ist tabu');return}if(r.type=='tr'&&isLock(r.to)){bad.push('Notfallbremse '+r.to);return}if(r.type=='out'&&isLock(r.b)&&calc(r.b).rest-r.a<0){bad.push(r.b+' reicht nicht');return}
- const[yy,mm,dd]=r.dt.split('-').map(Number),rec={id:uid(),type:r.type,b:r.b,c:r.c,a:r.a,n:r.n,t:r.t||(r.dt==today()?Date.now():new Date(yy,mm-1,dd,12).getTime()),tg:[r.tag]};if(r.type=='tr')rec.to=r.to;S.exp.push(rec);if(r.type=='out')S.lastAcc=r.b;done.push(rec)});
- save();render();toast(done.length?`${done.length} Buchung${done.length>1?'en':''} gesichert${bad.length?' · '+bad.join(', '):''}`:'Nichts gebucht: '+bad.join(', '),done.length?()=>restore(sn):undefined);
+function clipCommit(recs){const sn=snap(),done=[],bad=[];let ruN=0;recs.forEach(r=>{if(r.type!='in'&&isTabu(r.b)){bad.push(r.b+' ist tabu');return}if(r.type=='tr'&&isLock(r.to)){bad.push('Notfallbremse '+r.to);return}if(r.type=='out'&&isLock(r.b)&&calc(r.b).rest-r.a<0){bad.push(r.b+' reicht nicht');return}
+ const[yy,mm,dd]=r.dt.split('-').map(Number),rec={id:uid(),type:r.type,b:r.b,c:r.c,a:r.a,n:r.n,t:r.t||(r.dt==today()?Date.now():new Date(yy,mm-1,dd,12).getTime()),tg:[r.tag]};if(r.type=='tr')rec.to=r.to;S.exp.push(rec);if(r.type=='out')S.lastAcc=r.b;if(rec.type=='out'&&ruFor(rec,r.tag)){const tr=ruSync(rec,{on:true});if(tr)ruN+=tr.a}done.push(rec)});
+ save();render();toast(done.length?`${done.length} Buchung${done.length>1?'en':''} gesichert${ruN?' · '+eur(ruN)+' Wechselgeld angelegt':''}${bad.length?' · '+bad.join(', '):''}`:'Nichts gebucht: '+bad.join(', '),done.length?()=>restore(sn):undefined);
  const gro=done.filter(isGro);if(gro.length)setTimeout(()=>shopMatch(gro),500)}
-const clipLine=r=>`<div class="clipb"><b>${r.type=='in'?'+':r.type=='tr'?'':'−'}${eur(r.a)}</b> ${esc(r.n||r.c||'Umbuchung')}<div class="s">${r.type=='in'?'Einnahme':r.type=='tr'?'Umbuchung':'Ausgabe'}${r.c?' · '+esc(r.c):''} · ${r.type=='in'?'auf':'von'} ${esc(SHORT[r.b]||r.b)}${r.type=='tr'?' → '+esc(SHORT[r.to]||r.to):''}${r.t?' · '+new Date(r.t).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):r.dt!=today()?' · '+new Date(r.dt+'T12:00').toLocaleDateString('de-DE'):''}</div></div>`;
-const clipPre=r=>({type:r.type,b:r.b,to:r.to,c:r.c,amt:String(r.a),n:r.n,dt:r.dt});
+const clipLine=r=>`<div class="clipb"><b>${r.type=='in'?'+':r.type=='tr'?'':'−'}${eur(r.a)}</b> ${esc(r.n||r.c||'Umbuchung')}<div class="s">${r.type=='in'?'Einnahme':r.type=='tr'?'Umbuchung':'Ausgabe'}${r.c?' · '+esc(r.c):''} · ${r.type=='in'?'auf':'von'} ${esc(SHORT[r.b]||r.b)}${r.type=='out'&&ruFor({type:'out',b:r.b},r.tag)&&ruAmt(r.a)?' · +'+eur(ruAmt(r.a))+' Wechselgeld':''}${r.type=='tr'?' → '+esc(SHORT[r.to]||r.to):''}${r.t?' · '+new Date(r.t).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):r.dt!=today()?' · '+new Date(r.dt+'T12:00').toLocaleDateString('de-DE'):''}</div></div>`;
+const clipPre=r=>({type:r.type,b:r.b,to:r.to,c:r.c,amt:String(r.a),n:r.n,dt:r.dt,src:r.tag});
 /* ---------- Einkauf mit dem Einkaufszettel abgleichen ---------- */
 const isGro=r=>r&&r.type=='out'&&(/lebensmittel|drogerie|haushalt|supermarkt/i.test(r.c||'')||SUPRX.test(r.n||''));
 function shopMatch(recs){const sh=shopS(),D=sh.items.filter(x=>x.done);if(!D.length||!recs.length)return;
  const act=Math.round(recs.reduce((s,r)=>s+r.a,0)*100)/100,est=Math.round(D.reduce((s,x)=>s+(x.p||0)*(x.q||1),0)*100)/100,unk=D.filter(x=>!x.p),diff=Math.round((act-est)*100)/100,pct=est?diff/est*100:0,store=[...new Set(recs.map(r=>r.n||r.c))].join(' + ');
  const learn=unk.length==1&&diff>0?Math.round(diff/(unk[0].q||1)*100)/100:0;
- const close=spont=>{const id=uid(),sn=JSON.stringify(sh);sh.trips=sh.trips||[];const est2=Math.round(D.reduce((s,x)=>s+(x.p||0)*(x.q||1),0)*100)/100;sh.trips.unshift({id,t:Date.now(),store,bids:recs.map(r=>r.id),items:D.map(x=>({n:x.n,q:x.q||1,p:x.p||0})),est:est2,act,spont:spont||0});sh.trips=sh.trips.slice(0,60);
+ const close=spont=>{const id=uid(),sn=JSON.stringify(sh);sh.trips=sh.trips||[];const est2=Math.round(D.reduce((s,x)=>s+(x.p||0)*(x.q||1),0)*100)/100;sh.trips.unshift({id,t:Date.now(),store,bids:recs.map(r=>r.id),items:D.map(x=>({n:x.n,q:x.q||1,p:x.p||0})),est:est2,act,spont:spont||0,ru:Math.round(recs.reduce((s,r)=>{const e=S.exp.find(q=>q.id==r.id),t=e&&e.ru&&S.exp.find(q=>q.id==e.ru);return s+(t?t.a:0)},0)*100)/100});sh.trips=sh.trips.slice(0,60);
    recs.forEach(r=>{const e=S.exp.find(q=>q.id==r.id);if(e){e.shop=id;if(spont)e.tg=[...new Set([...(e.tg||[]),'ungeplant'])]}});
    const st=(recs[0].n||'').toLowerCase().split(' ')[0];if(recs.length==1&&st){sh.pricesBy=sh.pricesBy||{};sh.pricesBy[st]=sh.pricesBy[st]||{};D.forEach(x=>{if(x.p)sh.pricesBy[st][x.n.toLowerCase()]=x.p})}
    sh.items=sh.items.filter(x=>!x.done);save();render();return sn};
@@ -5021,28 +5057,13 @@ function shopMatch(recs){const sh=shopS(),D=sh.items.filter(x=>x.done);if(!D.len
  a.push(['Später',()=>{}]);
  AQ.msgs.push({q:'Einkauf abgleichen',h,a});asstOpen=true;renderAsst()}
 function shopHistHtml(){const H=(shopS().trips||[]).filter(h=>h.est>0);if(!H.length)return '';const dev=h=>(h.act-h.est)/h.est*100,avg=H.reduce((s,h)=>s+dev(h),0)/H.length,by={};H.forEach(h=>{(by[h.store]=by[h.store]||[]).push(dev(h))});const f=v=>(v>=0?'+':'−')+Math.abs(Math.round(v))+' %';
- return `<div class="sec"><div class="sh"><span>Einkäufe im Vergleich zum Zettel</span><span>Ø ${f(avg)}</span></div><div class="mmcard">${H.slice(0,6).map(h=>{const d=h.act-h.est;return `<div class="cell plain"><div class="t"><div>${esc(h.store)}${h.spont?' · ungeplant':''}</div><div class="s">${new Date(h.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${h.items.length} Artikel · geplant ca. ${eur(h.est)}</div></div><div class="v ${d>0?'out':'in'}">${eur(h.act)}<div class="s">${d>=0?'+':'−'}${eur(Math.abs(d))}</div></div></div>`}).join('')}</div>
+ return `<div class="sec"><div class="sh"><span>Einkäufe im Vergleich zum Zettel</span><span>Ø ${f(avg)}</span></div><div class="mmcard">${H.slice(0,6).map(h=>{const d=h.act-h.est;return `<div class="cell plain"><div class="t"><div>${esc(h.store)}${h.spont?' · ungeplant':''}</div><div class="s">${new Date(h.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${h.items.length} Artikel · geplant ca. ${eur(h.est)}${h.ru?' · +'+eur(h.ru)+' angelegt':''}</div></div><div class="v ${d>0?'out':'in'}">${eur(h.act)}<div class="s">${d>=0?'+':'−'}${eur(Math.abs(d))}</div></div></div>`}).join('')}</div>
  ${Object.keys(by).length>1?`<div class="note">Ø Abweichung je Händler: ${Object.entries(by).map(([k,v])=>esc(k)+' '+f(v.reduce((a,b)=>a+b,0)/v.length)).join(' · ')}</div>`:''}<div class="note">${avg>=3?`Du kaufst im Schnitt ${Math.round(avg)} % mehr als geplant.`:'Du bleibst im Schnitt im Plan.'}</div></div>`}
-Object.assign(TIPFN,{
- clipGo:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}t=(t||'').trim();
-  const say=(h,a,q)=>{AQ.msgs.push({q:q!=null?q:(t?'Von Siri: „'+t.slice(0,80)+(t.length>80?'…':'')+'“':''),h,a:a||[]});asstOpen=true;renderAsst()};
-  if(!t){say('<p>Die Zwischenablage ist leer oder das Einfügen wurde nicht erlaubt.</p>',[['Einkaufsliste einfügen',()=>{shopS().paste='';prevTab=tab;tab='more';setView='shop';render()}],['Neue Buchung',()=>openSheet()]]);return}
-  const k=clipKind(t);
-  if(k=='pay'){const seen=S.paySeen||[],lines=t.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean),L=lines.filter(x=>/^apple ?pay\b/i.test(x)),fresh=L.filter(x=>!seen.includes(x.toLowerCase())),rest=lines.filter(x=>!/^apple ?pay\b/i.test(x)).join(', ');
-   const mark=keys=>{S.paySeen=[...(S.paySeen||[]),...keys].slice(-300);save()};let extra='';
-   if(rest&&rest!==S.clipLast&&clipKind(rest)=='shop'){const a=shopVoice(rest.replace(/^(einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,''));S.clipLast=rest;save();if(a&&a.length)extra=`<p class="s">Außerdem auf den Einkaufszettel: ${esc(a.join(', '))}</p>`}
-   if(!fresh.length){say('<p>Diese Apple-Pay-Zahlungen habe ich schon übernommen.</p>'+extra);return}
-   const recs=[],noAmt=[];fresh.forEach(x=>{const r=clipPay(x);r?recs.push(r):noAmt.push(x)});
-   const na=noAmt.map(x=>{const W=clipWhen(x),m=clipMerchant(W.s)||'Apple Pay',g=clipGuess(m),pre={type:'out',n:m,dt:W.ts?ymd(W.ts):today()};if(g){pre.c=g.c;pre.b=g.b}return{x,pre}});
-   const acts=[];if(recs.length)acts.push([recs.length==1?'Buchen':'Alle '+recs.length+' buchen',()=>{mark(recs.map(r=>r.key));clipCommit(recs)}]);
-   (recs.length==1?recs:recs.slice(0,3)).forEach(r=>acts.push([recs.length==1?'Bearbeiten':'Bearbeiten: '+esc(r.n),()=>{mark([r.key]);openSheet(null,clipPre(r))}]));
-   na.slice(0,3).forEach(o=>acts.push(['Betrag eingeben: '+esc(o.pre.n),()=>{mark([o.x.toLowerCase()]);openSheet(null,o.pre)}]));
-   acts.push(['Verwerfen',()=>mark(fresh.map(x=>x.toLowerCase()))]);
-   say(`${recs.length?`<p>${recs.length==1?'Apple-Pay-Zahlung':recs.length+' Apple-Pay-Zahlungen'} erkannt:</p>${recs.map(clipLine).join('')}`:''}${na.length?`<p>${na.map(o=>'Apple Pay bei <b>'+esc(o.pre.n)+'</b>'+(o.pre.c?' · '+esc(o.pre.c):'')).join('<br>')}<br><span class="s">Ohne Betrag, bitte kurz eintippen.</span></p>`:''}${extra}`,acts,recs.length+na.length>1?'Von Apple Pay: '+(recs.length+na.length)+' Zahlungen':undefined);return}
+/* Einzelner Text ohne Stichwort (alte Kurzbefehle): wie bisher erkennen */
+function clipOne(t,say){
   if(t===S.clipLast){say('<p>Das habe ich schon übernommen.</p>');return}
-  if(!t.replace(/^(buchung|einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,'').trim()){say(`<p>Siri hat nur „${esc(t)}“ übergeben, der gesprochene Teil fehlt. Prüfe im Kurzbefehl, ob in der Aktion „Text“ hinter dem Wort die Variable <b>Diktierter Text</b> als blaues Feld steht.</p>`);return}
-  S.clipLast=t;save();
-  if(k=='shop'){const a=shopVoice(t.replace(/^(einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,''));save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a);return}
+  const k=clipKind(t);S.clipLast=t;save();
+  if(k=='shop'){const a=shopVoice(t);save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a);return}
   if(k=='urge'){openUrge();return}
   if(k=='ask'){asstAsk(t);return}
   if(k=='misc'){const r=siriApplyOne(t);save();render();toast(r.ok?r.lab:'Nicht übernommen: '+r.why);return}
@@ -5050,7 +5071,38 @@ Object.assign(TIPFN,{
   if(!P.recs.length){say('<p>Ich habe keinen Betrag erkannt. Sag z. B. „12,50 Rewe“.</p>',[['Neue Buchung',()=>openSheet()]]);return}
   const one=P.recs.length==1,r0=P.recs[0];
   say(`<p>${one?'Buchung':'Buchungen'} erkannt:</p>${P.recs.map(clipLine).join('')}${P.bad.length?`<p class="s">Nicht erkannt: ${esc(P.bad.join(', '))}</p>`:''}`,
-   [[one?'Buchen':'Alle buchen',()=>clipCommit(P.recs)],...(one?[['Bearbeiten',()=>openSheet(null,clipPre(r0))]]:[]),['Verwerfen',()=>{}]])},
+   [[one?'Buchen':'Alle buchen',()=>clipCommit(P.recs)],...(one?[['Bearbeiten',()=>openSheet(null,clipPre(r0))]]:[]),['Verwerfen',()=>{}]])}
+const CLIPPFX=/^(apple ?pay\b|buchung\s*:|einkauf(?:sliste|szettel)?\s*:)/i;
+Object.assign(TIPFN,{
+ clipGo:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}t=(t||'').trim();
+  const say=(h,a,q)=>{AQ.msgs.push({q:q!=null?q:(t?'Von Siri: „'+t.slice(0,80)+(t.length>80?'…':'')+'“':''),h,a:a||[]});asstOpen=true;renderAsst()};
+  if(!t){say('<p>Die Zwischenablage ist leer oder das Einfügen wurde nicht erlaubt.</p>',[['Einkaufsliste einfügen',()=>{shopS().paste='';prevTab=tab;tab='more';setView='shop';render()}],['Neue Buchung',()=>openSheet()]]);return}
+  const lines=t.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length==1&&!CLIPPFX.test(lines[0]))return clipOne(t,say);
+  const seen=new Set([...(S.clipSeen||[]),...(S.paySeen||[])]);
+  const items=lines.map(x=>{const W=clipWhen(x.replace(/\s*·\s*/g,' ')),body=W.s.trim(),strip=body.replace(/^(apple ?pay|buchung|einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,'').trim();
+   const kind=/^apple ?pay\b/i.test(body)?'pay':/^buchung\b/i.test(body)?'book':/^einkauf/i.test(body)?'shop':clipKind(body);return{x,key:x.toLowerCase(),body,strip,ts:W.ts,kind:strip?kind:'empty',dd:!!W.ts||kind=='pay'}});
+  const fresh=items.filter(o=>o.dd?!seen.has(o.key):t!==S.clipLast);
+  if(!fresh.length){say('<p>Das habe ich schon alles übernommen.</p>');return}
+  const mark=keys=>{S.clipSeen=[...(S.clipSeen||[]),...keys].slice(-400);save()};S.clipLast=t;
+  const shopN=[];fresh.filter(o=>o.kind=='shop').forEach(o=>shopN.push(...(shopVoice(o.strip)||[])));
+  const misc=fresh.filter(o=>o.kind=='misc').map(o=>{const r=siriApplyOne(o.body);return r.ok?r.lab:'Nicht übernommen: '+r.why});
+  const asks=fresh.filter(o=>o.kind=='ask'),urge=fresh.some(o=>o.kind=='urge'),empty=fresh.filter(o=>o.kind=='empty');
+  mark(fresh.filter(o=>!['pay','book'].includes(o.kind)).map(o=>o.key));
+  const recs=[],open=[];fresh.filter(o=>o.kind=='pay'||o.kind=='book').forEach(o=>{
+   if(o.kind=='pay'){const r=clipPay(o.x.replace(/\s*·\s*/g,' '));if(r){r.key=o.key;recs.push(r)}else{const m=clipMerchant(o.body)||'Apple Pay',g=clipGuess(m),pre={type:'out',n:m,dt:o.ts?ymd(o.ts):today(),src:'applepay'};if(g){pre.c=g.c;pre.b=g.b}open.push({key:o.key,pre,lab:'Apple Pay bei <b>'+esc(m)+'</b>'+(pre.c?' · '+esc(pre.c):'')+' · ohne Betrag'})}}
+   else{const P=clipParse(o.strip,'siri');P.recs.forEach(r=>{r.key=o.key;if(o.ts){r.t=o.ts;r.dt=ymd(o.ts)}recs.push(r)});if(!P.recs.length)open.push({key:o.key,pre:{type:'out',n:o.strip,src:'siri'},lab:'„'+esc(o.strip)+'“ · kein Betrag erkannt'})}});
+  save();render();
+  if(!recs.length&&!open.length&&!misc.length&&!empty.length&&shopN.length){prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(shopN)}
+  else{const cnt=[shopN.length&&shopN.length+' Artikel',recs.filter(r=>r.tag=='applepay').length&&recs.filter(r=>r.tag=='applepay').length+' Apple Pay',recs.filter(r=>r.tag!='applepay').length&&recs.filter(r=>r.tag!='applepay').length+' Buchung'+(recs.filter(r=>r.tag!='applepay').length>1?'en':''),open.length&&open.length+' offen'].filter(Boolean).join(' · ');
+   const h=`${shopN.length?`<p>${I('cart',14)} Auf den Einkaufszettel: ${esc(shopN.join(', '))}</p>`:''}${misc.length?`<p>${misc.map(esc).join('<br>')}</p>`:''}${recs.length?`<p>Bitte bestätigen:</p>${recs.map(clipLine).join('')}`:''}${open.length?`<p>${open.map(o=>o.lab).join('<br>')}</p>`:''}${empty.length?`<p class="s">Leer übergeben: ${empty.map(o=>'„'+esc(o.body)+'“').join(', ')}. Prüfe im Kurzbefehl, ob die Variable <b>Diktierter Text</b> im Text steht.</p>`:''}`;
+   const acts=[];if(recs.length)acts.push([recs.length==1?'Buchen':'Alle '+recs.length+' buchen',()=>{mark(recs.map(r=>r.key));clipCommit(recs)}]);
+   recs.slice(0,3).forEach(r=>acts.push([recs.length==1?'Bearbeiten':'Bearbeiten: '+esc(r.n||r.c),()=>{mark([r.key]);openSheet(null,clipPre(r))}]));
+   open.slice(0,3).forEach(o=>acts.push(['Eingeben: '+esc(o.pre.n).slice(0,24),()=>{mark([o.key]);openSheet(null,o.pre)}]));
+   if(recs.length||open.length)acts.push(['Verwerfen',()=>mark([...recs.map(r=>r.key),...open.map(o=>o.key)])]);
+   if(shopN.length)acts.push(['Zettel öffnen',()=>{prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0)}]);
+   say(h,acts,'Von Siri & Apple Pay: '+(cnt||'nichts Neues'))}
+  asks.forEach(o=>asstAsk(o.body));if(urge)openUrge()},
  clipNo:()=>{clipAsk=false;renderAsst()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')clipHidAt=Date.now();else if(clipHidAt&&Date.now()-clipHidAt>10e3)setTimeout(clipPrompt,600)});
 setTimeout(clipPrompt,1500);

@@ -47,7 +47,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Der Assistent zeigt alle neuen Zahlungen in einer Vorschau: „Alle buchen“ oder jede einzeln bearbeiten.
 - Die Uhrzeit wird als Buchungszeit übernommen, statt der Zeit des Öffnens.
 
-## 3. Wechselgeld (Aufrunden) als Split-Buchung (Konzept, 2026-11-07)
+## 3. Wechselgeld (Aufrunden) als Split-Buchung (umgesetzt in v148)
 
 **Ziel:** Revolut rundet jede Kartenzahlung auf und legt die Differenz im Robo-Advisor an. Die App bildet das automatisch ab: Jede passende Zahlung erzeugt die Ausgabe und eine verknüpfte Umbuchung.
 
@@ -78,7 +78,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Multiplikator: aktuell ×1, in den Regeln wählbar (×1 bis ×10), Änderung jederzeit.
 - Quelle: immer das Budget der jeweiligen Ausgabe (Flow-Einkauf → Wechselgeld aus Flow, Gönn-dir-Einkauf → aus Gönn dir).
 
-## 4. Alle Kurzbefehle sammeln in der Zwischenablage (Konzept, 2026-11-07)
+## 4. Alle Kurzbefehle sammeln in der Zwischenablage (umgesetzt in v148)
 
 **Problem:** „Einkauf“ und „Buchung“ überschreiben die Zwischenablage. Was vorher drin lag (z. B. eine Apple-Pay-Zahlung), geht verloren.
 
@@ -89,3 +89,5 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Der Assistent zeigt eine Sammelübersicht („2 Artikel · 1 Apple-Pay-Zahlung · 1 Buchung“) mit „Alles übernehmen“ oder einzeln bearbeiten.
 - Zeilen ohne Stichwort werden wie bisher erkannt.
 - Grenze: Kopiert man selbst etwas, ist alles Nicht-Übernommene weg. Verlustsicher wäre nur die Server-Ablage („Siri & Kurzbefehle“).
+
+**Noch nicht umgesetzt aus Punkt 3:** mehrere Regeln je Karte (braucht „Transaktion › Karte“ im Kurzbefehl) und eine Wechselgeld-Zeile in der Übersicht. Die Statistik steht unter Einstellungen › Wechselgeld und in Future › Kaufkraft.

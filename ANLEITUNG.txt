@@ -15,26 +15,26 @@ Deine Daten liegen nur auf deinem iPhone. Im Code auf GitHub stehen keine persö
 Sicherung: Einstellungen › Export & Backup › „Sicherung als Datei speichern“ › in iCloud Drive ablegen.
 Update der App: neue index.html auf GitHub hochladen, App einmal schließen und neu öffnen.
 
-Einkaufsliste per Siri (Kurzbefehl „Einkauf“):
-1. App „Kurzbefehle“ › „+“ › Name: Einkauf.
-2. Aktion „Text diktieren“ (blaues Mikrofon).
-3. Aktion „In Zwischenablage kopieren“ (Eingabe: „Diktierter Text“).
-4. Aktion „Benachrichtigung zeigen“: „Kopiert. Öffne CashFlow und tippe auf Einkauf übernehmen.“
-5. Fertig. Sag „Hey Siri, Einkauf“ und diktiere z. B. „Milch, 2 Brot und Eier“.
-In CashFlow: Beim Öffnen fragt der Assistent „Einkaufsliste übernehmen?“ › „In Einkaufszettel übernehmen“. iOS fragt, ob Einfügen erlaubt ist.
+Siri & Apple Pay (ab v148): Alle drei Kurzbefehle sammeln in der Zwischenablage
+Jeder Kurzbefehl hängt eine Zeile an, statt die Zwischenablage zu überschreiben. Die App übernimmt beim Öffnen alles auf einmal.
 
-Buchungen per Siri (Kurzbefehl „Buchung“):
-1. Kurzbefehl „Einkauf“ duplizieren und in „Buchung“ umbenennen.
-2. Zwischen „Text diktieren“ und „In Zwischenablage kopieren“ die Aktion „Text“ einfügen: „Buchung: “ + Diktierter Text.
-3. „In Zwischenablage kopieren“ auf das Ergebnis von „Text“ umstellen.
-Sag „Hey Siri, Buchung“ und z. B. „12,50 Rewe“ oder „Kaffee 3,50 und Bäcker 4,20“. Beim Öffnen zeigt der Assistent eine Vorschau: Buchen, Bearbeiten oder Verwerfen.
+Kurzbefehl „Einkauf“:
+1. Text diktieren
+2. Zwischenablage abrufen
+3. Text, zwei Zeilen:  [Zwischenablage]  ⏎  Einkauf: [Diktierter Text] · [Aktuelles Datum]
+4. In Zwischenablage kopieren (Eingabe: Text)
 
-Apple Pay automatisch (Automation, ab iOS 17):
-1. Kurzbefehle › Automation › „+“ › „Wallet“ › Karten wählen › „Sofort ausführen“.
-2. Aktion „Zwischenablage abrufen“.
-3. Aktion „Text“, zwei Zeilen:
-   Zeile 1: Variable „Zwischenablage“
-   Zeile 2: „Apple Pay “ + Transaktion › Händler + Leerzeichen + Transaktion › Betrag + Leerzeichen + „Aktuelles Datum“
-4. Aktion „In Zwischenablage kopieren“ (Eingabe: Text).
-So sammeln sich mehrere Zahlungen, auch wenn du CashFlow zwischendurch nicht öffnest. Die App übernimmt nur Zeilen mit „Apple Pay“, bucht nichts doppelt und nimmt die Uhrzeit der Zahlung.
-Ist der Einkaufszettel abgehakt, gleicht der Assistent nach dem Buchen ab: geplant gegen tatsächlich. Ab ±10 % oder 3 € Abweichung fragt er nach, sonst entfernt er die abgehakten Artikel selbst.
+Kurzbefehl „Buchung“: genauso, Zeile 2: Buchung: [Diktierter Text] · [Aktuelles Datum]
+
+Automation „Apple Pay“ (Wallet, Sofort ausführen):
+1. Zwischenablage abrufen
+2. Text, zwei Zeilen:  [Zwischenablage]  ⏎  Apple Pay [Transaktion › Händler] [Transaktion › Betrag] · [Aktuelles Datum]
+3. In Zwischenablage kopieren (Eingabe: Text)
+
+In CashFlow: Beim Öffnen fragt der Assistent „Von Siri übernehmen?“ › „Übernehmen“. Einkäufe kommen sofort auf den Zettel, Buchungen und Zahlungen zeigt er zur Bestätigung (Alle buchen, einzeln bearbeiten, verwerfen). Nichts wird doppelt übernommen.
+Grenze: Kopierst du zwischendurch selbst etwas, ist alles noch nicht Übernommene weg.
+
+Wechselgeld (Einstellungen › Wechselgeld):
+Jede Apple-Pay- oder Siri-Buchung wird aufgerundet, die Differenz als Umbuchung aus dem Budget des Einkaufs ins Ziel gebucht (z. B. Robo-Advisor). Multiplikator wie bei Revolut einstellen. Mit Depot-Position wächst der Depotwert mit. In der Buchungsmaske pro Buchung abschaltbar oder umleitbar. Löschen oder Ändern der Ausgabe passt das Wechselgeld mit an.
+
+Einkaufszettel: nach Supermarkt-Gruppen sortiert. Nach einer Supermarkt-Buchung gleicht der Assistent mit den abgehakten Artikeln ab (ab ±10 % oder 3 € fragt er nach).
