@@ -104,3 +104,8 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 - Einstellungen › Wechselgeld › „Von diesen Konten und Budgets“: Auswahl gilt für Apple Pay, Siri und manuelle Buchungen. Cash/Bargeld ist anfangs abgewählt.
 - Buchungsmaske ohne Wechselgeld-Knopf, nur Infozeile im Kopf („+ 0,63 € Wechselgeld → Ziel“).
+
+## 7. Altersvorsorge in die Prognose, Future ausgeblendet (umgesetzt in v155)
+
+- Auswertung › Prognose hat unten den Bereich „Altersvorsorge“ (Rentenlücke, führt zur Altersvorsorge-Seite).
+- Reiter Future einmalig ausgeblendet; lässt sich unter Einstellungen › Funktionen wieder einschalten.
