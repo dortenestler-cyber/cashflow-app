@@ -4975,7 +4975,13 @@ function clipKind(v){const l=v.toLowerCase().trim();
  if(/\d\s*(kg|g|gramm|l|liter|ml|stück|packung|pack|dose|dosen|flasche|flaschen)\b/i.test(l)&&!/€|euro/.test(l))return 'shop';
  if(/\d+[,.]\d{1,2}\b|\d+\s*(€|euro|eur)\b/i.test(l))return 'book';
  return 'shop'}
-function clipParse(v,tag){const sv=E,recs=[],bad=[];v=v.replace(/^(apple ?pay|buchung)\s*:?\s*/i,'');const parts=spoken(v).split(/,\s+|\s+(?:und|plus|sowie)\s+/).filter(Boolean);
+function clipGuess(m){const ml=m.toLowerCase(),sv=E;let r=null;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}if(E.c&&!/sonst/i.test(E.c))r={c:E.c,b:E.b};E=sv;
+ const w=ml.split(' ')[0],last=[...S.exp].reverse().find(e=>e.type=='out'&&e.n&&e.c&&!/sonst/i.test(e.c)&&e.n.toLowerCase().split(' ')[0]==w);if(last)return{c:last.c,b:last.b};if(r)return r;
+ if(/rewe|edeka|aldi|lidl|norma|netto|penny|kaufland|tegut|globus|real\b|denns|alnatura|bio company/.test(ml)){const L=catList().find(x=>/lebensmittel/i.test(x.c));if(L)return{c:L.c,b:bestAcc(L.c)}}return null}
+function clipPay(v){let t=v.replace(/^apple ?pay\s*:?\s*/i,'');const am=t.match(/[-+]?\d{1,3}(?:[.\s]\d{3})*(?:,\d{1,2})|[-+]?\d+(?:[.,]\d{1,2})?/g);if(!am)return null;const raw=am[am.length-1],a=Math.round(Math.abs(pNum(raw.replace(/[.\s](?=\d{3})/g,'')))*100)/100;if(!a)return null;
+ let m=t.replace(raw,' ').replace(/€|\beuro?\b|\beur\b/gi,' ').replace(/\s+sagt danke\b/i,' ').replace(/[.,]\s*$/,'').replace(/\s+/g,' ').trim()||'Apple Pay';const g=clipGuess(m)||{c:((cats(BN[0])||[]).find(k=>/sonst/i.test(k[0]))||['Sonstiges'])[0],b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0]};
+ return{type:'out',b:g.b,c:g.c,a,n:m,dt:today(),tag:'applepay'}}
+function clipParse(v,tag){if(tag=='applepay'){const r=clipPay(v);return r?{recs:[r],bad:[]}:{recs:[],bad:[v]}}const sv=E,recs=[],bad=[];v=v.replace(/^(apple ?pay|buchung)\s*:?\s*/i,'');const parts=spoken(v).split(/,\s+|\s+(?:und|plus|sowie)\s+/).filter(Boolean);
  (parts.length>1&&parts.every(p=>/\d/.test(p))?parts:[v]).forEach(p=>{E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};qp(p);const a=Math.round((pNum(E.amt)||0)*100)/100;if(!a){bad.push(p);return}
   if(!E.n){const n=p.replace(/[-+]?\d+(?:[.,]\d+)?\s*(€|euro|eur)?/gi,'').replace(/\s+/g,' ').trim();if(n)E.n=n.charAt(0).toUpperCase()+n.slice(1)}
   if(!E.c&&E.type!='tr')E.c=((cats(E.b)||[]).find(k=>/sonst/i.test(k[0]))||(cats(E.b)||[['Sonstiges']])[0])[0];
@@ -4996,7 +5002,7 @@ Object.assign(TIPFN,{
   if(k=='ask'){asstAsk(t);return}
   if(k=='misc'){const r=siriApplyOne(t);save();render();toast(r.ok?r.lab:'Nicht übernommen: '+r.why);return}
   const P=clipParse(t,k=='pay'?'applepay':'siri');
-  if(k=='pay'&&!P.recs.length){const m=t.replace(/^apple ?pay\s*:?\s*/i,'').replace(/\s+sagt danke\b.*$/i,'').trim(),sv=E;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}const pre={type:'out',n:E.n||m};if(E.c){pre.c=E.c;pre.b=E.b}E=sv;if(!pre.c){const ml=m.toLowerCase(),last=[...S.exp].reverse().find(e=>e.type=='out'&&e.n&&e.c&&(e.n.toLowerCase().startsWith(ml.split(' ')[0])||ml.startsWith(e.n.toLowerCase())));if(last){pre.c=last.c;pre.b=last.b}else if(/rewe|edeka|aldi|lidl|norma|netto|penny|kaufland|tegut|globus|real\b|denns|alnatura|bio company/.test(ml)){const L=catList().find(x=>/lebensmittel/i.test(x.c));if(L){pre.c=L.c;pre.b=bestAcc(L.c)}}}
+  if(k=='pay'&&!P.recs.length){const m=t.replace(/^apple ?pay\s*:?\s*/i,'').replace(/\s+sagt danke\b.*$/i,'').trim(),sv=E;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}E=sv;const pre={type:'out',n:m},g=clipGuess(m);if(g){pre.c=g.c;pre.b=g.b}
    say(`<p>Apple Pay bei <b>${esc(pre.n)}</b>${pre.c?' · '+esc(pre.c):''}. Den Betrag liefert iOS nicht mit, tipp ihn kurz ein.</p>`,[['Betrag eingeben',()=>openSheet(null,pre)],['Verwerfen',()=>{}]]);return}
   if(!P.recs.length){say('<p>Ich habe keinen Betrag erkannt. Sag z. B. „12,50 Rewe“.</p>',[['Neue Buchung',()=>openSheet()]]);return}
   const one=P.recs.length==1,r0=P.recs[0];
