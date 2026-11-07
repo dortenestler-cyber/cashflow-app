@@ -109,3 +109,26 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 - Auswertung › Prognose hat unten den Bereich „Altersvorsorge“ (Rentenlücke, führt zur Altersvorsorge-Seite).
 - Reiter Future einmalig ausgeblendet; lässt sich unter Einstellungen › Funktionen wieder einschalten.
+
+## 8. Design-Prüfung (2026-11-07, umgesetzt in v161)
+
+*Hoch*
+1. Dunkelmodus: Haupt-Buttons mit weißer Schrift auf hellem Lila (2,7:1) → kontrastreicher.
+2. Kalender: Beträge in Tageszellen abgeschnitten → kompakt ohne Cent.
+3. Tab-Leiste: höchstens 5 Reiter, Rest unter „Mehr“; Name einheitlich „Mehr“.
+4. Einnahmen-Grün im Hellmodus zu schwach (3,4:1) → dunkler.
+5. Touch-Ziele unter 44 px (Rechenzeichen, Segmente, „Alle“, Stift, Monatsziel-Chips) vergrößern.
+
+*Mittel*
+6. Auswertung: Segment-Leisten einheitlich im Stil.
+7. Schwebende Knöpfe verdecken Inhalt → mehr Abstand unten.
+8. Buchungsmaske: Rechentasten-Spalte entzerren.
+9. Trends: laufender Monat nicht als „−100 %“ werten.
+10. Vermögen: Supabase-Anleitung aus der Auswertung in die Einstellungen.
+11. Übersicht-Karte: Titel bricht um → Monat kleiner darunter.
+
+*Niedrig*
+12. Einstellungen: schlanker Kopf.
+13. Einstellungsliste: Suche.
+14. Impulse-Segmente passend ohne Anschnitt.
+15. Ungenutztes Glas-Design-CSS entfernen.
