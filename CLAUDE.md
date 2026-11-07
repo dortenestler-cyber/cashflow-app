@@ -5,6 +5,10 @@
 - Alles in `index.html` (~5000 Zeilen, Vanilla JS/CSS). `sw.js` = Offline-Cache.
 - Nutzerdaten liegen nur lokal auf dem iPhone, nie personenbezogene Daten ins Repo.
 
+## Arbeitsweise
+- Änderungswünsche erst sammeln (Liste führen), umsetzen erst nach Freigabe des Nutzers.
+- Bugs immer sofort beheben und pushen.
+
 ## Sparsam arbeiten
 - index.html NIE komplett lesen. Erst mit grep die relevante Stelle suchen,
   dann nur diese Zeilen lesen (offset/limit).
