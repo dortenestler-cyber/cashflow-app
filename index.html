@@ -4996,6 +4996,8 @@ Object.assign(TIPFN,{
   if(k=='ask'){asstAsk(t);return}
   if(k=='misc'){const r=siriApplyOne(t);save();render();toast(r.ok?r.lab:'Nicht übernommen: '+r.why);return}
   const P=clipParse(t,k=='pay'?'applepay':'siri');
+  if(k=='pay'&&!P.recs.length){const m=t.replace(/^apple ?pay\s*:?\s*/i,'').replace(/\s+sagt danke\b.*$/i,'').trim(),sv=E;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}const pre={type:'out',n:E.n||m};if(E.c){pre.c=E.c;pre.b=E.b}E=sv;if(!pre.c){const ml=m.toLowerCase(),last=[...S.exp].reverse().find(e=>e.type=='out'&&e.n&&e.c&&(e.n.toLowerCase().startsWith(ml.split(' ')[0])||ml.startsWith(e.n.toLowerCase())));if(last){pre.c=last.c;pre.b=last.b}else if(/rewe|edeka|aldi|lidl|norma|netto|penny|kaufland|tegut|globus|real\b|denns|alnatura|bio company/.test(ml)){const L=catList().find(x=>/lebensmittel/i.test(x.c));if(L){pre.c=L.c;pre.b=bestAcc(L.c)}}}
+   say(`<p>Apple Pay bei <b>${esc(pre.n)}</b>${pre.c?' · '+esc(pre.c):''}. Den Betrag liefert iOS nicht mit, tipp ihn kurz ein.</p>`,[['Betrag eingeben',()=>openSheet(null,pre)],['Verwerfen',()=>{}]]);return}
   if(!P.recs.length){say('<p>Ich habe keinen Betrag erkannt. Sag z. B. „12,50 Rewe“.</p>',[['Neue Buchung',()=>openSheet()]]);return}
   const one=P.recs.length==1,r0=P.recs[0];
   say(`<p>${k=='pay'?'Apple-Pay-Zahlung':one?'Buchung':'Buchungen'} erkannt:</p>${P.recs.map(clipLine).join('')}${P.bad.length?`<p class="s">Nicht erkannt: ${esc(P.bad.join(', '))}</p>`:''}`,
