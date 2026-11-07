@@ -91,3 +91,11 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - Grenze: Kopiert man selbst etwas, ist alles Nicht-Übernommene weg. Verlustsicher wäre nur die Server-Ablage („Siri & Kurzbefehle“).
 
 **Nachgezogen in v149:** Regeln je Karte und Wechselgeld-Zeile in der Übersicht.
+
+## 5. Buchungsmaske neu, nach Vorlage (umgesetzt in v153)
+
+- Farbiger Kopf je Typ (Ausgabe rot, Einnahme grün, Umbuchung blau), ✕ links, ✓ rechts, Typ-Umschalter, großer Betrag, Wirkung darunter.
+- Tastatur als eigenes Panel mit AC + − × ÷ =; offen nur bei neuen Buchungen, schließt per Wischen oder beim Antippen eines Feldes. Dabei „Zuletzt verwendete Kategorien“ im Kopf.
+- Kacheln mit Auswahlliste: Datum, Kategorie | Konto (Umbuchung: Von | Nach), Person | Projekt, Notiz + Belegfoto.
+- Schnell erfassen im Notizfeld (Mikrofon, Vorschläge): „Rewe 25“ füllt nur leere Felder.
+- Alles andere unter „Weitere Angaben“.
