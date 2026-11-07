@@ -42,3 +42,8 @@ Einkaufszettel: nach Supermarkt-Gruppen sortiert. Nach einer Supermarkt-Buchung 
 Einkaufszettel › „Einkauf buchen“: bucht die abgehakten Artikel mit dem Betrag laut Kassenbon, inklusive Wechselgeld (Schalter im Fenster). Gibt es schon eine Apple-Pay- oder Siri-Buchung mit gleichem Betrag (letzte 36 Stunden), wird sie übernommen statt doppelt gebucht.
 Doppelte Apple-Pay-Zahlungen: Ist ein Betrag schon gebucht, überspringt der Assistent die Zahlung und bietet „Trotzdem buchen“ an.
 Wechselgeld je Karte: Einstellungen › Wechselgeld › Karten. Erscheint, sobald eine Zahlung mit „Karte:“ übernommen wurde. Je Karte: wie oben, anderes Ziel oder kein Wechselgeld.
+
+Ab v150:
+- Buchungsliste: Einkauf und Wechselgeld stehen in einer Zeile mit glattem Betrag (z. B. Norma −22,00 €, darunter „21,37 € + 0,63 € Wechselgeld → MSCI World“). Die Umbuchung erscheint nicht mehr als eigene Zeile.
+- Wechselgeld-Ziel: In den Einstellungen, im Einkauf-buchen-Fenster und im Chip der Buchungsmaske lässt sich der konkrete ETF wählen. „Gebucht auf Konto“ legt fest, wohin das Geld in den Budgets fließt.
+- Einzelwert-Karten (Auswertung › Vermögen): Transaktionen zeigen Käufe, Verkäufe, Sparplan-Ausführungen (auch berechnete) und Wechselgeld, auch beim Robo-Depot.
