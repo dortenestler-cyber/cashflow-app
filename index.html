@@ -459,7 +459,7 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .qty button{border:0;background:none;color:var(--blue);font:inherit;font-size:18px;font-weight:600;width:34px;height:30px;cursor:pointer;display:grid;place-items:center;padding:0}
 .qty button:disabled{color:var(--muted);opacity:.4}.qty b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
 .pdbrow small.bon{color:var(--ok);display:flex;gap:3px;align-items:center}
-.tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button svg{width:23px;height:23px}
+.tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button[data-t]{flex:1 1 auto}.tabbar button svg{width:23px;height:23px}
 .pufl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.pufl b{color:var(--fg);font-weight:500;text-align:right}.pufl span b{font-weight:700}
 .ed-ic{border:0;background:none;color:var(--muted);padding:4px;cursor:pointer;display:inline-flex;border-radius:6px}.ed-ic:hover{background:var(--fill)}.ed-link{border:0;background:none;padding:0;color:var(--blue);font:inherit;cursor:pointer;text-align:left}
 .sheet.noanim{animation:none}.es{display:flex;flex-direction:column;gap:12px}.ctx{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.pill{border:0;background:var(--card);color:var(--fg);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;font-weight:500;display:inline-flex;gap:5px;align-items:center;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}.pill.on{box-shadow:0 0 0 2px var(--blue)}.pill .caret{color:var(--muted);font-size:10px}.impact{text-align:center;font-size:14px;font-weight:500;margin-top:-8px;color:var(--muted)}.es .chips:empty{display:none}
@@ -932,8 +932,8 @@ const EMO={'🛒':'cart','🧴':'bottle','💇‍♀️':'scissors','🏠':'home
 const uid=()=>Math.random().toString(36).slice(2,9);
 const $=id=>document.getElementById(id);
 const NF2=new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}),NF0=new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
-const eur=x=>NF2.format(x)+' €';
-const eur0=x=>NF0.format(x)+' €';
+const eur=x=>NF2.format(x)+'\u00a0€';
+const eur0=x=>NF0.format(x)+'\u00a0€';
 /* Eine Monats-Fortschreibung für alle Termine: Tag 29–31 wird auf den Monatsletzten gekürzt (wie recDue) */
 const dueIn=(y,m,day)=>{const f=new Date(y,m,1),yy=f.getFullYear(),mm=f.getMonth(),dim=new Date(yy,mm+1,0).getDate();return new Date(yy,mm,Math.min(Math.max(1,day||1),dim),12)};
 const nextDue=(ds,day)=>{const d=new Date(ds+'T12:00');return ymd(dueIn(d.getFullYear(),d.getMonth()+1,day||d.getDate()).getTime())};
