@@ -679,11 +679,11 @@ body.navving #asstRoot .abub{transform:none!important}
 
 /* v115: geschlossen wieder kleine Bubble in Größe des Plus-Knopfs */
 #asstRoot{right:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 66px)!important}
-.abar{width:56px!important;height:56px;border-radius:50%;border:0;background:linear-gradient(140deg,#8B5CF6,#D946EF);box-shadow:0 6px 16px rgba(139,92,246,.4);overflow:visible;-webkit-backdrop-filter:none;backdrop-filter:none}
+.abar{width:64px!important;height:64px;border-radius:50%;border:0;background:linear-gradient(140deg,#8B5CF6,#D946EF);box-shadow:0 6px 16px rgba(139,92,246,.4);overflow:visible;-webkit-backdrop-filter:none;backdrop-filter:none}
 .abar.bad{background:linear-gradient(140deg,#ff5a4f,#d70015);box-shadow:0 6px 16px rgba(215,0,21,.35)}.abar.warn{background:linear-gradient(140deg,#F5A64A,#E8607A)}.abar.calm{background:linear-gradient(140deg,#8B7FC9,#A78BDA);box-shadow:0 6px 16px rgba(110,75,216,.25)}
 .abar .abub{justify-content:center;padding:0!important;color:#fff;position:relative}
 .abar-r{width:auto;height:auto;background:none!important;color:#fff}.abar-r svg{width:30px;height:30px}
-.abar{background:none!important;box-shadow:none!important}.abar-r svg.penny{width:54px;height:54px;filter:drop-shadow(0 5px 10px rgba(124,92,255,.45))}.robo-mini{background:none!important}.aq-pf{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}.aq-pf svg{flex:none}
+.abar{background:none!important;box-shadow:none!important}.abar-r svg.penny{width:62px;height:62px;filter:drop-shadow(0 5px 10px rgba(124,92,255,.45))}.robo-mini{background:none!important}.aq-pf{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}.aq-pf svg{flex:none}
 .abar .acnt{position:absolute!important;top:-3px;right:-3px;margin:0;border:2px solid var(--bg)}
 body.navving .abar:not(.open){width:56px!important;transform:scale(.72);opacity:.38}
 .simtop{position:sticky;top:8px;z-index:6;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;border-radius:18px;background:var(--glbg);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--gledge);box-shadow:0 6px 20px rgba(0,0,0,.08);margin-bottom:6px}
@@ -917,7 +917,7 @@ body[data-pz] .penny.pa .pn-eyes{transform:scaleY(.12)}body[data-pz] .penny.pa .
 @keyframes pnConf{0%{opacity:0;transform:translateY(10px) scale(.5)}15%{opacity:1;transform:translateY(-10px) scale(1.2)}100%{opacity:0;transform:translateY(30px) rotate(40deg)}}@keyframes pnTurn{50%{transform:scaleX(-1)}}
 @keyframes pnDizzy{0%{opacity:0;transform:rotate(0)}10%,85%{opacity:1}100%{opacity:0;transform:rotate(720deg)}}@keyframes pnWobble{25%{transform:rotate(-6deg)}50%{transform:rotate(5deg)}75%{transform:rotate(-3deg)}}
 @keyframes pnZ{0%{opacity:0;transform:translate(0,4px)}40%{opacity:1}100%{opacity:0;transform:translate(4px,-6px)}}
-#pnSay{position:fixed;z-index:40;max-width:220px;padding:8px 12px;border-radius:14px 14px 14px 4px;background:var(--card,#fff);color:var(--fg,#111);font-size:14px;font-weight:600;line-height:1.3;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none;opacity:0;transform:translateY(6px) scale(.9);transform-origin:0 100%;transition:opacity .2s,transform .25s cubic-bezier(.3,1.5,.5,1)}#pnSay.on{opacity:1;transform:none}
+#pnSay{position:fixed;z-index:40;max-width:220px;padding:8px 12px;border-radius:14px 14px 14px 4px;background:var(--card,#fff);color:var(--fg,#111);font-size:14px;font-weight:600;line-height:1.3;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none;opacity:0;transform:translateY(6px) scale(.9);transform-origin:0 100%;transition:opacity .2s,transform .25s cubic-bezier(.3,1.5,.5,1)}#pnSay.on{opacity:1;transform:none}#pnSay.dn{border-radius:14px 4px 14px 14px;transform-origin:100% 0}
 body.pn-sync .penny.pa .pn-ant{animation:pnSat 1s linear infinite}body.pn-off .penny.pa .pn-ant{transform:rotate(38deg) translate(-1px,2px)}body.pn-off .penny.pa .pn-ball{fill:#9CA3AF;animation:none}
 .penny .pn-halo{animation:pnHalo 3s ease-in-out infinite}.penny .pn-flame{transform-origin:50% 100%;animation:pnFlame .5s ease-in-out infinite alternate}
 .penny .pn-chl{stroke-dasharray:24;stroke-dashoffset:0}.penny .pn-pgf{transform-origin:0 50%;transform:scaleX(var(--pnp,.5))}
@@ -952,6 +952,8 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
 @keyframes pnBask{0%,100%{opacity:0}10%,85%{opacity:1}30%{transform:translateY(-6px)}50%{transform:none}65%{transform:translateY(-3px)}}
 @keyframes pnCape{0%,100%{opacity:0;transform:none}15%,85%{opacity:1}35%{transform:skewX(-8deg)}60%{transform:skewX(6deg)}}
 @keyframes pnFill{from{transform:scaleX(0)}}@keyframes pnTroph{0%,100%{opacity:0;transform:translateY(10px)}20%,85%{opacity:1;transform:translateY(-6px)}}@keyframes pnHold{0%,100%{opacity:0;transform:none}20%,85%{opacity:1;transform:translate(1px,-6px)}}
+.bk-pn{position:absolute;right:20px;top:118px;line-height:0;z-index:2;pointer-events:none}.bk-pn svg.penny{width:36px;height:36px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
+#asstRoot .abub{transition:transform .25s,opacity .25s;transform-origin:0 100%}body[data-tab=list].fabaway #asstRoot .abub{transform:none!important;opacity:1!important;pointer-events:auto}body[data-tab=list].pn-down #asstRoot .abub{transform:scale(.7)!important;opacity:.5!important}
 @media (prefers-reduced-motion:reduce){.penny *{animation:none!important}body[data-pi=blink] .penny .pn-eyes{animation:pnBlink .3s!important}}
 </style>
 
@@ -1611,8 +1613,13 @@ function pnLS(k,v){try{if(v===undefined)return JSON.parse(localStorage[k]||'null
 function pnNoSpend(){const d=new Date().toDateString();return!(S.exp||[]).some(e=>e.type=='out'&&!e.corr&&new Date(e.t).toDateString()==d)}
 function pnAcc(){let o='';try{if(new Date().getHours()>=18&&pnNoSpend())o+=`<ellipse class="pn-halo" cx="32" cy="-3" rx="11" ry="3" fill="none" stroke="#FDE047" stroke-width="2"/>`;const k=pnLS('pnStk');if(k&&k.n>=7)o+=`<path class="pn-flame" d="M32 -6q-4 4-2.6 7.6q-2.6-1.2-1.8-4.4q-3.2 4 .4 7.6h8q3.6-3.6.4-7.6q.8 3.2-1.8 4.4q1.4-3.6-2.6-7.6z" fill="#FB923C" stroke="#F97316" stroke-width=".6"/>`}catch(e){}return o}
 const PNSAY={pop:['Da bin ich!','Was gibt’s?','Zu Diensten!'],yawn:['Uaah … guten Morgen!'],bye:['Bis gleich!','Tschüss!'],nod:['Verstanden.','Bin dran!'],ear:['Ich höre zu …'],idea:['Hab’s!','Aha!'],shrug:['Hmm, schwierig …'],gulp:['Lecker Münze!','Gebucht.'],rain:['Geld regnet!','Zahltag!','Ka-ching!'],blow:['Weg damit!','Pfff – weg.'],gasp:['Uff, ganz schön viel!','Oha!'],alarm:['Ich hab was für dich!'],salute:['Zu Befehl!','Alles klar.'],facepalm:['Budget überschritten …','Autsch.'],party:['Geschafft! 🎉','Ziel erreicht!'],tickle:['Hihi, das kitzelt!'],dizzy:['Mir ist schwindelig …'],startle:['Huch! Ich war gar nicht weg!'],coins:['Ab ins Sparschwein!','Kleinvieh macht auch Mist.'],pling:['Pling! Runde Summe gespart!'],chart:['Ab ins Depot!','Lass es wachsen.'],bull:['Der Bulle rennt! 📈'],bear:['Kopf hoch, das wird wieder.'],stamp:['Sparplan erledigt ✓'],juggle:['Hin und her …','Umgebucht!'],cal:['Notiert für später.'],tear:['Gekündigt! Ritsch-ratsch.'],sip:['Schmeckt’s?','Gönn dir.'],fuel:['Schon wieder Tanken?','Puh, Sprit …'],basket:['Vorräte aufgefüllt!'],hero:['Held des Verzichts!','Stark geblieben!'],skeptic:['Hm, wirklich nötig?','Na gut …'],progress:['Weiter so!'],trophy:['Periode im Plus! 🏆'],coffee:['Erst mal Kaffee ☕'],wave:['Hallo!'],read:['Mal sehen …'],scan:['Was steht an?'],shine:['Interessant …'],tongue:['Bätsch, Vermögen!'],brow:['Impulse im Griff?'],star:['Blick in die Zukunft ✨'],tie:['Einstellungssache.'],yay:['Läuft!'],sweat:['Oh oh, knapp.']};
-let pnSayT=null;function pnSay(t){try{if(!t)return;const an=asstOpen?document.querySelector('.pw-face svg')||$('abub'):$('abub');if(!an)return;const r=an.getBoundingClientRect();if(!r.width)return;let el=$('pnSay');if(!el){el=document.createElement('div');el.id='pnSay';el.setAttribute('role','status');document.body.appendChild(el)}
-  el.textContent=t;el.classList.remove('on');void el.offsetWidth;el.style.left=Math.max(8,Math.min(innerWidth-230,r.left+(asstOpen?r.width/2-40:0)))+'px';el.style.bottom=(innerHeight-r.top+8)+'px';el.classList.add('on');clearTimeout(pnSayT);pnSayT=setTimeout(()=>el.classList.remove('on'),2300)}catch(e){}}
+let pnSayT=null;function pnSay(t){try{if(!t)return;const an=document.querySelector('#sheetRoot .bk-pn svg')||(asstOpen?document.querySelector('.pw-face svg')||$('abub'):$('abub'));if(!an)return;const r=an.getBoundingClientRect();if(!r.width)return;let el=$('pnSay');if(!el){el=document.createElement('div');el.id='pnSay';el.setAttribute('role','status');document.body.appendChild(el)}
+  el.textContent=t;el.classList.remove('on');void el.offsetWidth;const sh=!!an.closest('#sheetRoot');el.classList.toggle('dn',sh);if(sh){el.style.bottom='auto';el.style.top=(r.bottom+6)+'px';el.style.left='auto';el.style.right=Math.max(8,innerWidth-r.right)+'px'}else{el.style.top='auto';el.style.right='auto';el.style.left=Math.max(8,Math.min(innerWidth-230,r.left+(asstOpen?r.width/2-40:0)))+'px';el.style.bottom=(innerHeight-r.top+8)+'px'}el.classList.add('on');clearTimeout(pnSayT);pnSayT=setTimeout(()=>el.classList.remove('on'),2300)}catch(e){}}
+let pnSK=null;function pnSheet(){try{if(!$('bkAmt')||typeof E=='undefined'||!E){pnSK=null;return}const a=Math.round((evalAmt(E.amt)||0)*100)/100,t=((E.c||'')+' '+(E.n||'')).toLowerCase(),
+    c=E.type=='in'?(a>0?'rain':''):E.type=='tr'?(a>0?'juggle':''):/tank|sprit|benzin|diesel|aral|shell|esso/.test(t)?'fuel':/restaurant|café|cafe|kaffee|coffee|bäcker|imbiss/.test(t)?'sip':/lebensmittel|supermarkt|rewe|edeka|aldi|lidl|netto|penny|kaufland/.test(t)?'basket':'',
+    k=E.type+'|'+(a>=100?'big':'')+'|'+c;if(pnSK==null){pnSK=k;return}if(k==pnSK)return;const o=pnSK.split('|');pnSK=k;
+    if(a>=100&&o[1]!='big'&&E.type=='out')pnReact('gasp');else if(c&&c!=o[2])pnReact(c)}catch(e){}}
+setInterval(()=>{if($('bkAmt'))pnSheet();else pnSK=null},400);
 setInterval(()=>{try{const b=document.body;b.classList.toggle('pn-sync',!!(typeof syBusy!='undefined'&&syBusy));b.classList.toggle('pn-off',!navigator.onLine)}catch(e){}},1000);
 let pnSayX=null,pnSt=null,pnLast=Date.now(),pnTaps=[],pnLP=false,pnTT=null;
 function pnTick(){try{const m=pMood(),ex=S.exp||[],ids=new Set(ex.map(e=>e.id)),tl=tipsList(),bad=tl.filter(x=>x.sev=='bad').length,W=S.wish||[],P0=period(0);
@@ -4402,7 +4409,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
   <div class="bk-hd">
    <div class="bk-top"><button class="bk-rb" id="cancel" aria-label="Abbrechen">${I('close',22)}</button><b>${E.id?'Buchung bearbeiten':'Neue Buchung'}</b><button class="bk-rb ${ready?'':'dim'}" id="ok" aria-label="Sichern">${I('check',22)}</button></div>
    <div class="bk-typ" id="typ">${[['out','Ausgabe'],['in','Einnahme'],['tr','Umbuchung']].map(t=>`<button class="${E.type==t[0]?'on':''}" data-v="${t[0]}">${t[1]}</button>`).join('')}</div>
-   <button class="bk-amt ${zero?'zero':''}" id="bkAmt" aria-label="Betrag eingeben">${inc&&!zero?'+':''}${zero?'0,00':shown}<small>€</small></button>
+   <button class="bk-amt ${zero?'zero':''}" id="bkAmt" aria-label="Betrag eingeben">${inc&&!zero?'+':''}${zero?'0,00':shown}<small>€</small></button><span class="bk-pn" aria-hidden="true">${penny(pMood(),41)}</span>
    ${ops?`<div class="bk-calc">= ${eur(evalAmt(E.amt))}</div>`:''}
    ${impact?`<div class="bk-imp">${impact}</div>`:''}
    ${E.type=='out'&&a&&ruAmt(a)&&ruDef(E)?(()=>{const old=E.id&&S.exp.find(e=>e.id==E.id),t=old&&old.ru&&S.exp.find(e=>e.id==old.ru),to=t?t.to:ruTo({card:E.card}),dep=t?(t.dep||''):ruDepOf({card:E.card});return `<div class="bk-imp">+ ${eur(ruAmt(a))} Wechselgeld → ${esc(ruLab(to,dep))}</div>`})():''}
@@ -6193,7 +6200,8 @@ if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_toke
 
 /* Plus & Assistent: beim Scrollen (hoch und runter) ganz ausblenden, sobald der Bildschirm steht wieder einblenden */
 (()=>{let t=null;const show=()=>document.body.classList.remove('fabaway');
-  addEventListener('scroll',e=>{const el=e.target;if(asstOpen){clearTimeout(t);show();return}
+  let ly=0;addEventListener('scroll',e=>{const el=e.target;if(asstOpen){clearTimeout(t);show();return}
+    if(tab=='list'&&!setView&&!curB){const y=el&&el.nodeType==1&&el.scrollHeight>el.clientHeight+1?el.scrollTop:(window.scrollY||document.body.scrollTop||0);if(Math.abs(y-ly)>4){document.body.classList.toggle('pn-down',y>ly&&y>40);ly=y}}
     if(el&&el.nodeType==1){if(el.closest('#asstRoot,.sheet,#sheetRoot'))return;if(el.scrollHeight<=el.clientHeight+1)return}
     document.body.classList.add('fabaway');clearTimeout(t);t=setTimeout(show,350)},{passive:true,capture:true})})();
 
