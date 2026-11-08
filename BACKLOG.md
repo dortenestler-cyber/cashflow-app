@@ -268,3 +268,11 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Linke Spalte (Monatssummen + Geplant) bleibt unter dem Kopf stehen, als feste Seitenleiste – keine leere Hälfte mehr beim Scrollen.
 - Spaltenaufteilung ca. 40 : 60 zugunsten der Buchungsliste, damit Kategorien nicht abgeschnitten werden.
 - Auf großen Bildschirmen schrumpft der Kopf erst nach ca. 200 px; die schmale Leiste zeigt zusätzlich den Monatssaldo.
+
+## 13. Siri-Übernahmen im Assistenten anzeigen (offen, wartet auf Freigabe)
+
+**Ziel:** Nach jeder Übernahme von Siri-Einträgen zeigt der Assistent einmalig eine Karte mit den übernommenen Buchungen, damit sie sich direkt nachbearbeiten lassen.
+
+- Karte: „Von Siri übernommen: 3 Buchungen“ mit Liste (Händler, Betrag, Kategorie).
+- Antippen einer Zeile öffnet die Buchung zum Bearbeiten.
+- Knopf „Passt so“ blendet die Karte aus; sie erscheint pro Übernahme nur einmal.
