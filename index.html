@@ -5,7 +5,30 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="CashFlow">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png">
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 -apple-system,system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}
+/* v181: fester Kopf schrumpft beim Scrollen auf allen Seiten */
+.stickhead .hcard{transition:padding .2s,border-radius .2s}.stickhead .hc-month b{transition:font-size .2s}
+.stickhead.cmp{gap:6px}
+.stickhead.cmp .hcard b{color:inherit;font-weight:800}
+.stickhead.cmp .hcard{flex-direction:row;align-items:center;gap:8px;padding:7px 10px;border-radius:18px}
+.stickhead.cmp .hcard>*:not(.hc-row):not(.hc-month):not(.hc-big){display:none!important}
+.stickhead.cmp .hc-row{order:1;flex:1;min-width:0;min-height:30px}
+.stickhead.cmp .hcm .hc-t{display:none}
+.stickhead.cmp .hcm .hc-row{flex:none;order:2}
+.stickhead.cmp .hcm .hc-row:not(:has(button)){display:none}
+.stickhead.cmp .hcm .hc-month{order:1;flex:1;min-width:0}
+.stickhead.cmp .hc-month b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stickhead.cmp .hc-bigt{order:3;flex:none;max-width:50%}.stickhead.cmp .hc-bigt .hc-sp,.stickhead.cmp .hc-bigt.dup{display:none}.stickhead.cmp .hc-bigt b{font-size:15px;font-weight:700}
+.stickhead.cmp .hc-ic,.stickhead.cmp .hcard .ab-ic{width:30px;height:30px}
+.stickhead.cmp .hc-big{order:3;flex:none;flex-direction:row}
+.stickhead.cmp .hc-big span{display:none}
+.stickhead.cmp .hc-big b{font-size:18px}
+.lthead{position:sticky;top:env(safe-area-inset-top,0px);z-index:7;background:var(--bg);margin:-10px calc(-1*max(16px,env(safe-area-inset-right,0px))) 0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));transition:padding .2s,box-shadow .2s}
+.lthead .lt{transition:font-size .2s}
+.lthead.cmp{display:flex;align-items:center;min-height:36px;padding-top:6px;padding-bottom:6px;box-shadow:0 .5px 0 var(--sep)}
+.lthead.cmp .lt{position:absolute;left:96px;right:96px;font-size:17px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.stickhead .hcard,.stickhead .hc-month b,.lthead,.lthead .lt{transition:none}}
+</style>
 <title>CashFlow</title>
 </head><body>
 
@@ -1152,14 +1175,16 @@ document.addEventListener('input',e=>{if(e.target.id!='moreQ')return;const q=e.t
 function renderTabs(){$('tabbar').innerHTML=`<button class="tb-new" id="tbNew" aria-label="Neue Buchung" title="Neue Buchung (N)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Neue Buchung</span></button>`+TABS.filter(t=>['dash','list','more'].includes(t[0])||featOn(t[0])).map(t=>`<button class="${tab==t[0]?'on':''} ${['cal','fut'].includes(t[0])?'tb-x':''} ${t[0]=='more'&&['cal','fut'].includes(tab)?'on2':''}" data-t="${t[0]}" title="${t[1]}"><svg viewBox="0 0 24 24">${t[2]}</svg><span>${t[1]}</span></button>`).join('');
   $('tabbar').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
 function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class="${o.tabs.cur==v?'on':''}" data-f="${esc(v)}">${l}${n?` <span class="cnt">${n}</span>`:''}</button>`).join(''):'';
-  return `<div class="stickhead"><header class="hcard" style="${bgStyle(o.bg||'Gesamt')}"><div class="hc-row">${o.back?`<button class="hc-ic" id="${o.back}" aria-label="Zurück">${I('back',20)}</button>`:(o.left||'')}<h1 class="hc-t">${o.title}</h1>
+  return `<div class="stickhead"><header class="hcard${o.month?' hcm':''}" style="${bgStyle(o.bg||'Gesamt')}"><div class="hc-row">${o.back?`<button class="hc-ic" id="${o.back}" aria-label="Zurück">${I('back',20)}</button>`:(o.left||'')}<h1 class="hc-t">${o.title}</h1>
    <div class="hc-r">${o.right||''}</div></div>
    ${o.sub?`<div class="hc-sub">${o.sub}</div>`:''}
    ${o.month?`<div class="hc-month"><button class="hc-ic" id="prevM" aria-label="Voriger Monat">${I('back',18)}</button><b>${period(off).label}</b><button class="hc-ic" id="nextM" aria-label="Nächster Monat" ${off>=((tab=='list'||tab=='cal')?12:0)?'disabled':''}>${I('fwd',18)}</button></div>${off?'<button class="hc-today" id="todayM">Zurück zu heute</button>':''}`:''}
-   ${!o.month&&!o.stats&&!o.back&&!o.slim?`<div class="hc-month"><span class="hc-sp"></span><b>${o.big||o.title}</b><span class="hc-sp"></span></div>`:''}
+   ${!o.month&&!o.stats&&!o.back&&!o.slim?`<div class="hc-month hc-bigt${o.big?'':' dup'}"><span class="hc-sp"></span><b>${o.big||o.title}</b><span class="hc-sp"></span></div>`:''}
    ${o.stats||''}</header>
    ${o.tabs?`<div class="seg" id="${o.tabs.id}">${items}</div>`:''}</div>`}
-function stickCmp(){const sh=document.querySelector('#app .stickhead');if(!sh||!sh.querySelector('.carw'))return;const y=scrollY||document.documentElement.scrollTop||document.body.scrollTop||0,on=sh.classList.contains('cmp');if(!on&&y>120)sh.classList.add('cmp');else if(on&&y<16)sh.classList.remove('cmp')}
+function stickCmp(){const sh=document.querySelector('#app .stickhead,#app .lthead');if(!sh)return;const de=document.scrollingElement||document.documentElement,bd=document.body,y=scrollY||de.scrollTop||bd.scrollTop||0,th=sh.querySelector('.carw')?120:56,on=sh.classList.contains('cmp'),room=Math.max(de.scrollHeight-de.clientHeight,bd.scrollHeight-bd.clientHeight);
+  if(!on&&y>th&&room>th+160)sh.classList.add('cmp');else if(on&&y<16)sh.classList.remove('cmp')}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.stickhead.cmp .hc-t,.stickhead.cmp .hc-big,.stickhead.cmp .hc-month b,.lthead.cmp .lt');if(t){scrollTo({top:0,behavior:'smooth'});document.body.scrollTo({top:0,behavior:'smooth'})}});
 addEventListener('scroll',stickCmp,{passive:true,capture:true});
 function stickSeg(){setTimeout(stickCmp,0);document.querySelectorAll('#app .stickhead').forEach(h=>{let n=h.nextElementSibling;while(n&&n.classList.contains('seg')){const m=n.nextElementSibling;h.appendChild(n);n=m}})}
 const monthNav=()=>'';const monthNav0=()=>`<div class="monthnav"><button id="prevM" aria-label="Voriger Monat">‹</button><b>${period(off).label}</b><button id="nextM" aria-label="Nächster Monat" ${off>=(tab=='list'?12:0)?'disabled':''}>›</button></div>${off?'<button class="link" id="todayM" style="align-self:center;margin-top:-12px">Zurück zu heute</button>':''}`;
@@ -2766,7 +2791,7 @@ function detectRec(batch){const L=S.exp.filter(e=>e.imp==batch&&e.type!='tr'),g=
     const days=es.map(e=>new Date(e.t).getDate()).sort((a,b)=>a-b),day=days[Math.floor(days.length/2)],spread=days[days.length-1]-days[0];if(spread>8)return;
     const e=es.sort((a,b)=>b.t-a.t)[0];cands.push({type:e.type,b:e.b,c:e.c,a:e.a,n:e.n||e.c,day,cnt:ms.size,on:true})});
   return cands.sort((a,b)=>b.a-a.a)}
-function viewImport(){const back=`<div><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Daten importieren</h1></div>`;
+function viewImport(){const back=`<div class="lthead"><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Daten importieren</h1></div>`;
   if(!IMP||IMP.err)return back+`<div class="mmcard"><div class="srow"><b>So holst du deine Daten aus MoneyControl</b>
     <ol class="steps"><li><b>Umzugsdatei:</b> Das MoneyControl-Backup (.mcbak) wandelt Claude in eine Umzugsdatei (.json) mit allen Konten, Buchungen und Daueraufträgen um.</li><li><b>Oder CSV:</b> In MoneyControl den CSV-Export öffnen und den gesamten Zeitraum exportieren.</li><li>Die Datei in „Dateien“ sichern oder dir selbst per AirDrop schicken.</li><li>Hier die Datei auswählen. Bei CSV werden die Spalten automatisch erkannt, du kannst sie prüfen und anpassen.</li></ol></div></div>
    <label class="btn" for="impFile" style="text-align:center;box-sizing:border-box">Umzugs- oder CSV-Datei auswählen</label><input id="impFile" type="file" accept=".csv,.txt,.json,text/csv,text/plain,application/json" hidden>
@@ -3576,7 +3601,7 @@ function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','chec
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
    <div class="note">Supabase findest du unter supabase.com › dein Projekt. Den Secret Key brauchst du nirgends, nur den Publishable Key in der App.</div>`}
-function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr</button>`;
+function viewSet(k){const back=`<div class="lthead"><button class="back" id="setBack">‹ Mehr</button>`;
   if(k=='cfg')return viewCfg();
   if(k=='ru')return viewRu();
   if(k=='accts')return back+`<h1 class="lt">Konten</h1></div><div class="group">${S.accts.map((a,i)=>`<div class="cell" style="flex-wrap:wrap">

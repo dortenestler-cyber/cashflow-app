@@ -232,7 +232,7 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Penny liefert am Ende „[mood: …]“; das steuert das Gesicht an der Antwort.
 - Entscheidung Nutzer: Variante C mit Monokel.
 
-## 12. Fester Kopf, der beim Scrollen schrumpft, auf allen Seiten (Konzept 2026-11-08, offen)
+## 12. Fester Kopf, der beim Scrollen schrumpft, auf allen Seiten (umgesetzt in v181)
 
 **Ausgangslage**
 - Übersicht: Kopf sitzt fest und klappt ab 120 px Scrollen zur schmalen Leiste ein (Titel + Betrag), unter 16 px wieder groß (v179).
@@ -261,3 +261,5 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 **Offene Fragen**
 - Umschalter in der schmalen Leiste behalten (Empfehlung: ja)?
 - Schwelle 56 px für alle anderen Seiten passend oder lieber wie Übersicht 120 px?
+
+**Entscheidungen (2026-11-08):** Umschalter bleiben in der schmalen Leiste; Schwelle 56 px (Übersicht weiter 120 px).
