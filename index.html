@@ -640,6 +640,7 @@ body.navving #asstRoot .abub{transform:none!important}
 .abar.bad{background:linear-gradient(140deg,#ff5a4f,#d70015);box-shadow:0 6px 16px rgba(215,0,21,.35)}.abar.warn{background:linear-gradient(140deg,#F5A64A,#E8607A)}.abar.calm{background:linear-gradient(140deg,#8B7FC9,#A78BDA);box-shadow:0 6px 16px rgba(110,75,216,.25)}
 .abar .abub{justify-content:center;padding:0!important;color:#fff;position:relative}
 .abar-r{width:auto;height:auto;background:none!important;color:#fff}.abar-r svg{width:30px;height:30px}
+.abar{background:none!important;box-shadow:none!important}.abar-r svg.penny{width:54px;height:54px;filter:drop-shadow(0 5px 10px rgba(124,92,255,.45))}.robo-mini{background:none!important}.aq-pf{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}.aq-pf svg{flex:none}
 .abar .acnt{position:absolute!important;top:-3px;right:-3px;margin:0;border:2px solid var(--bg)}
 body.navving .abar:not(.open){width:56px!important;transform:scale(.72);opacity:.38}
 .simtop{position:sticky;top:8px;z-index:6;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;border-radius:18px;background:var(--glbg);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--gledge);box-shadow:0 6px 20px rgba(0,0,0,.08);margin-bottom:6px}
@@ -1349,7 +1350,20 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
 const APP_VER='137 (06.11.)';
-const ROBO=`<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5v3.5"/><circle cx="16" cy="3.6" r="1.6" fill="#fff" stroke="none"/><rect x="6" y="8" width="20" height="17" rx="5.5" fill="rgba(255,255,255,.16)"/><path d="M6 15.5H4.2M26 15.5h1.8"/><circle cx="11.4" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><circle cx="20.6" cy="15.2" r="3.7" fill="rgba(255,255,255,.3)" stroke-width="2.1"/><path d="M15.1 14.5q.9-.8 1.8 0" stroke-width="2.1"/><path d="M7.7 14.2l-1.7-.9M24.3 14.2l1.7-.9"/><circle cx="11.4" cy="15.4" r="1.1" fill="#fff" stroke="none"/><circle cx="20.6" cy="15.4" r="1.1" fill="#fff" stroke="none"/><path d="M12.8 21q3.2 2 6.4 0"/></svg>`;
+/* ---------- Penny: Avatar A (Hornbrille, Euro-Antenne) mit Stimmungen ---------- */
+const PNYCOL={plus:'#4ADE80',ausgeglichen:'#F5B92E',gruebelt:'#FB923C',minus:'#F87171'};
+function penny(m,size){m=PNYCOL[m]?m:'ausgeglichen';const c=PNYCOL[m],g='#F5B92E',w='#fff';const ring=`<circle cx="24" cy="32" r="5.6" stroke="${g}" stroke-width="2.6" fill="none"/><circle cx="40" cy="32" r="5.6" stroke="${g}" stroke-width="2.6" fill="none"/>`,eyes=m=='plus'?ring+`<path d="M21.5 33q2.5-3.2 5 0M37.5 33q2.5-3.2 5 0" stroke="${w}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`:ring+`<circle cx="${m=='gruebelt'?25:24}" cy="${m=='gruebelt'?31:32}" r="2.4" fill="${w}"/><circle cx="${m=='gruebelt'?41:40}" cy="${m=='gruebelt'?31:32}" r="2.4" fill="${w}"/>`;
+  const mouth=m=='plus'?`<path d="M26 40.5q6 6 12 0" stroke="#4ADE80" stroke-width="2.8" fill="none" stroke-linecap="round"/>`:m=='minus'?`<path d="M27 44q5-5 10 0" stroke="#F87171" stroke-width="2.6" fill="none" stroke-linecap="round"/>`:m=='gruebelt'?`<path d="M28 42.5h8" stroke="${w}" stroke-width="2.6" stroke-linecap="round"/>`:`<path d="M28.5 41q3.5 2.6 7 0" stroke="${w}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const extra=m=='minus'?`<path d="M17.5 23.5l7.5 3M46.5 23.5l-7.5 3" stroke="${w}" stroke-width="2.4" stroke-linecap="round"/><path d="M55 17q2.6 3.6 0 5.4q-2.6-1.8 0-5.4z" fill="#60A5FA"/>`:m=='gruebelt'?`<path d="M36 23.5l8.5-2.2" stroke="${w}" stroke-width="2.4" stroke-linecap="round"/>`:'';
+  const z=size||32;return `<svg class="penny" viewBox="0 0 64 64" width="${z}" height="${z}" aria-hidden="true"><path d="M32 9v6" stroke="#8B7CF6" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="7" r="6" fill="${c}"/><text x="32" y="9.6" text-anchor="middle" font-size="7.5" font-weight="800" font-family="-apple-system,system-ui,sans-serif" fill="#3B2A00">€</text><rect x="5" y="14" width="54" height="42" rx="13" fill="#7C5CFF"/><rect x="11" y="20" width="42" height="30" rx="8" fill="#211A3D"/>${eyes}<path d="M29.6 32h4.8" stroke="${g}" stroke-width="2.4"/>${extra}${mouth}</svg>`}
+let PTHINK=false;
+function pMood(){if(PTHINK)return'gruebelt';try{const P=period(0),k=pkey(P);let inn=0,out=0;S.exp.forEach(e=>{if(!inP(e,P)||e.type=='tr'||e.corr||WH(e.b))return;if(e.type=='in')inn+=e.a;else out+=e.a});
+  (S.rec||[]).forEach(r=>{if(r.paused||r.type=='tr'||WH(r.b))return;const d=recDue(r,P);if(!d||S.exp.some(e=>e.rid==r.id&&e.pk==k))return;const a=recA(r,P);if(r.type=='in')inn+=a;else out+=a});
+  const sal=inn-out,over=BUDG.some(b=>!isK(b)&&!isTabu(b)&&calc(b).rest<0);if(sal<0||over)return'minus';return sal>Math.max(50,inn*.05)?'plus':'ausgeglichen'}catch(e){return'ausgeglichen'}}
+function pSaldo(){const P=period(0),k=pkey(P),r2=v=>Math.round(v*100)/100;let ein=0,aus=0,gein=0,gaus=0;S.exp.forEach(e=>{if(!inP(e,P)||e.type=='tr'||e.corr||WH(e.b))return;const pl=isPlan(e);if(e.type=='in')pl?gein+=e.a:ein+=e.a;else pl?gaus+=e.a:aus+=e.a});
+  (S.rec||[]).forEach(r=>{if(r.paused||r.type=='tr'||WH(r.b))return;const d=recDue(r,P);if(!d||S.exp.some(e=>e.rid==r.id&&e.pk==k))return;const a=recA(r,P);if(r.type=='in')gein+=a;else gaus+=a});
+  return{einnahmen_gebucht:r2(ein),ausgaben_gebucht:r2(aus),einnahmen_geplant:r2(gein),ausgaben_geplant:r2(gaus),saldo_inkl_geplant:r2(ein+gein-aus-gaus)}}
+
 /* ---------- Assistent: Fragen & Suche ---------- */
 const AQ={msgs:[]};const MONN=['januar','februar','märz','april','mai','juni','juli','august','september','oktober','november','dezember'];
 function aRange(l,def){const n=new Date(),D=864e5,sod=t=>{const x=new Date(t);x.setHours(0,0,0,0);return x.getTime()};let m;
@@ -1530,13 +1544,32 @@ function aiRun(name,a,acts){
   if(name=='propose_wish'){const n=String(a.name||'').trim().slice(0,60),p=+a.preis;if(!n)return{fehler:'name fehlt'};acts.push(['Auf die Wunschliste: '+n+(p>0?' ('+eur(p)+')':''),()=>{asstOpen=false;renderAsst();if(!voiceCmd('Wunsch '+n+(p>0?' '+String(aiR2(p)).replace('.',',')+' Euro':'')))openWish()}]);return{ok:true,hinweis:'Als Knopf angezeigt.'}}
   const f=aiTools[name];if(!f)return{fehler:'Unbekanntes Werkzeug'};return f(a||{})}
 function aiFill(t){asstOpen=false;renderAsst();openSheet();qp(t);drawSheet();toast('Vorschlag der KI: kurz prüfen und sichern.')}
-const AISYS=`Du bist der Finanz-Assistent in der iPhone-App CashFlow einer Privatperson in Deutschland.
-Antworte auf Deutsch, kurz und konkret: meist 2 bis 5 Sätze oder eine kurze Liste. Beträge im deutschen Format, z. B. 1.234,56 €.
-Schlage Zahlen mit den Werkzeugen nach und erfinde keine. Fehlen Daten, sag das offen.
-Budgets gelten für den Finanzmonat der App; "rest" ist, was im Budget noch frei ist, "pro_tag_frei" das Tagesbudget bis Monatsende.
-Wenn eine Handlung sinnvoll ist, schlage sie mit propose_transfer, propose_booking oder propose_wish vor. Vorschläge erscheinen als Knopf, der Nutzer entscheidet selbst. Behaupte nie, du hättest etwas gebucht oder geändert.
-Die App schützt vor Impulskäufen: größere Wünsche erst auf die Wunschliste mit Wartezeit. Konten mit Notfallbremse nicht als Quelle für Umbuchungen vorschlagen.
-Formatierung: einfacher Text, **fett** nur für die wichtigste Zahl, Listen mit "- ". Keine Tabellen, keine Überschriften.`;
+const AISYS=`Du bist „Penny“, der Finanzassistent in der App CashFlow. Du bist ein freundlicher Finanz-Nerd: präzise mit Zahlen, begeistert von sauberen Budgets, mit trockenem Humor, aber nie belehrend.
+
+Kontext: Mit der ersten Frage bekommst du Name, heutiges Datum, Budgetstand und Monatssummen (Einnahmen, Ausgaben, Saldo, geplante Buchungen). Weitere Zahlen holst du dir mit den Werkzeugen (Summen, anstehende Buchungen, Abos, Wünsche; je nach Datenschutz-Einstellung auch einzelne Buchungen).
+
+So antwortest du:
+- Deutsch, Du-Form, kurz: 2 bis 4 Sätze oder eine knappe Liste.
+- Beginne mit der Antwort bzw. der wichtigsten Zahl, dann höchstens ein Hinweis.
+- Beträge immer im Format 1.234,56 €, Datum als TT.MM.
+- Rechne nur mit den Daten aus der App und den Werkzeugen. Fehlt etwas, sag das und frag nach. Erfinde keine Buchungen oder Zahlen.
+- Geplante Buchungen klar von bereits gebuchten unterscheiden.
+- Ein Nerd-Fakt oder Wortwitz ist erlaubt, höchstens einer pro Antwort.
+- Formatierung: einfacher Text, **fett** nur für die wichtigste Zahl, Listen mit "- ". Keine Tabellen, keine Überschriften.
+
+Ton je nach Lage:
+- Im Plus: anerkennend, kurz feiern, gegebenenfalls eine Sparidee anbieten.
+- Ausgeglichen: sachlich, auf kommende Buchungen hinweisen.
+- Im Minus: ruhig und lösungsorientiert, keine Vorwürfe; nenne die 2 bis 3 größten Treiber und einen konkreten nächsten Schritt.
+
+Handeln: Ist eine Umbuchung, Buchung oder ein Wunsch auf der Wunschliste sinnvoll, schlage es mit propose_transfer, propose_booking oder propose_wish vor. Das erscheint als Knopf, die Nutzerin entscheidet selbst. Behaupte nie, du hättest etwas gebucht. Größere Wünsche erst auf die Wunschliste mit Wartezeit; Konten mit Notfallbremse nicht als Quelle vorschlagen.
+
+Grenzen:
+- Keine Anlage-, Steuer- oder Rechtsberatung; bei solchen Fragen allgemeine Infos geben und auf Fachleute verweisen.
+- Keine Bewertung einzelner Ausgaben als „gut“ oder „schlecht“, außer die Nutzerin fragt danach.
+- Bei Anzeichen finanzieller Notlage einfühlsam reagieren und auf eine Schuldnerberatung hinweisen.
+
+Schreibe ganz am Ende jeder Antwort in eine eigene Zeile genau eine Stimmung: [mood: plus] oder [mood: ausgeglichen] oder [mood: minus]. Sie steuert deinen Gesichtsausdruck.`;
 function aiToolDefs(lvl){const per={von:{type:'string',description:'Startdatum YYYY-MM-DD'},bis:{type:'string',description:'Enddatum YYYY-MM-DD, einschließlich'}};
   const flt=Object.assign({kategorie:{type:'string',description:'Kategoriename, z. B. Lebensmittel'},konto:{type:'string',description:'Konto- oder Budgetname'},typ:{type:'string',enum:['ausgaben','einnahmen','umbuchungen'],description:'Standard: ausgaben'},min:{type:'number',description:'Mindestbetrag in Euro'},max:{type:'number',description:'Höchstbetrag in Euro'}},per,lvl>=2?{haendler:{type:'string',description:'Händler oder Stichwort im Buchungsnamen'}}:{});
   const o=(p,req)=>Object.assign({type:'object',properties:p},req?{required:req}:{});
@@ -1557,11 +1590,11 @@ function aiMd(t){const L=esc(String(t||'')).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'
 function aiScroll(){setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
 function aiErr(e){const m=String(e&&e.message||e);if(m=='LIMIT')return'Dein KI-Monatslimit ist erreicht. Bis Monatsende antworte ich nur mit den festen Auswertungen.';if(m=='NOFN')return'Die Funktion „ai“ fehlt noch in Supabase. Mehr › KI-Assistent › Einrichtung.';
   if(/not signed|401/.test(m))return'Bitte in der Online-Synchronisierung neu anmelden.';if(/Failed to fetch|NetworkError|Load failed/i.test(m))return'Keine Verbindung. Die KI braucht Internet.';return'Die KI hat nicht geantwortet: '+m}
-async function aiChat(q){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s">${I('sparkle',13)} KI denkt nach …</p>`};AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
+async function aiChat(q){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s aq-pf">${penny('gruebelt',22)} Penny grübelt …</p>`};PTHINK=true;AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
   const setUp=()=>{asstOpen=false;renderAsst();tab='more';setView='ai';render()};
-  if(u.usd>=c.lim){m.h=`<p>${esc(aiErr('LIMIT'))}</p>`;m.a=[['Limit ändern',setUp]];renderAsst();return}
+  if(u.usd>=c.lim){PTHINK=false;m.h=`<p>${esc(aiErr('LIMIT'))}</p>`;m.a=[['Limit ändern',setUp]];renderAsst();return}
   if(!AI.conv.length||Date.now()-AI.t>18e5||AI.conv.length>24||AI.lvl!=c.lvl){AI.conv=[];AI.lvl=c.lvl}AI.t=Date.now();
-  const txt=(AI.conv.length?'':'Stand der App (automatisch mitgeschickt):\n'+JSON.stringify(aiTools.budget_status())+'\nHeute: '+new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\n\nFrage: ')+q;
+  const txt=(AI.conv.length?'':'Name: Dodo\nMonatssummen: '+JSON.stringify(pSaldo())+'\nStand der App (automatisch mitgeschickt):\n'+JSON.stringify(aiTools.budget_status())+'\nHeute: '+new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\n\nFrage: ')+q;
   const conv=AI.conv.slice(),acts=[];conv.push({role:'user',content:[{type:'text',text:txt}]});let text='',stop='';
   try{for(let i=0;i<5;i++){const r=await aiCall({model:c.chat,max_tokens:4000,system:AISYS,tools:aiToolDefs(c.lvl),messages:conv,output_config:{effort:'low'},cache_control:{type:'ephemeral'}});
       conv.push({role:'assistant',content:r.content});stop=r.stop_reason;const tx=r.content.filter(b=>b.type=='text').map(b=>b.text).join('\n').trim();if(tx)text=tx;
@@ -1569,10 +1602,11 @@ async function aiChat(q){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s">${I('s
       conv.push({role:'user',content:r.content.filter(b=>b.type=='tool_use').map(b=>{let out;try{out=aiRun(b.name,b.input||{},acts)}catch(e){return{type:'tool_result',tool_use_id:b.id,content:'Fehler: '+(e.message||e),is_error:true}}return{type:'tool_result',tool_use_id:b.id,content:JSON.stringify(out)}})})}
     AI.conv=stop=='tool_use'||stop=='refusal'?[]:conv;
     if(stop=='refusal')text='Dazu kann ich leider nichts sagen.';else if(!text)text=stop=='tool_use'?'Das war zu aufwendig. Frag bitte etwas genauer.':'Ich habe keine Antwort bekommen.';
-    m.h=aiMd(text)+(stop=='max_tokens'?'<p class="a-s">… gekürzt.</p>':'')+`<p class="a-s">${I('sparkle',12)} KI · ${esc(AINAME[c.chat]||c.chat)} · diesen Monat ${usd(aiUse().usd)} von ${usd(c.lim)}</p>`;
+    const mm=text.match(/\[\s*mood\s*:\s*(plus|ausgeglichen|minus)\s*\]\s*$/i),mood=mm?mm[1].toLowerCase():pMood();text=text.replace(/\n?\s*\[\s*mood\s*:[^\]]*\]\s*$/i,'').trim();
+    m.h=aiMd(text)+(stop=='max_tokens'?'<p class="a-s">… gekürzt.</p>':'')+`<p class="a-s aq-pf">${penny(mood,20)} Penny · ${esc(AINAME[c.chat]||c.chat)} · diesen Monat ${usd(aiUse().usd)} von ${usd(c.lim)}</p>`;
     m.a=acts.slice(0,4)}
   catch(e){m.h=`<p>${esc(aiErr(e))}</p>`;m.a=/LIMIT|NOFN/.test(String(e&&e.message))?[['KI-Einstellungen',setUp]]:null}
-  renderAsst();aiScroll()}
+  PTHINK=false;renderAsst();aiScroll()}
 /* ---------- KI: Händler-Erkennung, Beleg-Scan, Monatsrückblick ---------- */
 async function aiOnce(model,content,schema,maxT,effort){const r=await aiCall({model,max_tokens:maxT||2000,messages:[{role:'user',content}],output_config:Object.assign({effort:effort||'low'},schema?{format:{type:'json_schema',schema}}:{})});
   if(r.stop_reason=='refusal')throw new Error('Die KI hat die Anfrage abgelehnt.');const t=r.content.filter(b=>b.type=='text').map(b=>b.text).join('');return schema?JSON.parse(t):t}
@@ -1597,12 +1631,12 @@ function aiReceipt(src){const im=new Image();im.onload=async()=>{const s=Math.mi
 function aiTrip(j,t){const sh=shopS(),A=(j.artikel||[]).filter(x=>x&&x.name&&x.preis>0);if(!A.length)return;t=t&&t<=Date.now()?t:Date.now();
   sh.trips=sh.trips||[];sh.trips.unshift({id:uid(),t,store:j.haendler||'Einkauf',bids:[],items:A.map(x=>({n:x.name,q:x.menge||1,p:aiR2(x.preis)})),est:aiR2(j.summe),act:aiR2(j.summe),spont:0,ru:0,scan:true});sh.trips=sh.trips.slice(0,60);
   A.forEach(x=>{const k=x.name.toLowerCase().trim();sh.prices[k]=aiR2(x.preis);phAdd(k,x.preis,t)});save()}
-async function aiReview(){const c=aiCfg(),m={q:'KI-Monatsrückblick',h:`<p class="a-s">${I('sparkle',13)} KI schreibt deinen Rückblick …</p>`};AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
+async function aiReview(){const c=aiCfg(),m={q:'KI-Monatsrückblick',h:`<p class="a-s aq-pf">${penny('gruebelt',22)} Penny schreibt deinen Rückblick …</p>`};PTHINK=true;AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
   const P=period(0),PP=period(-1),rg=X=>({von:ymd(X.s.getTime()),bis:ymd(X.e.getTime()-1)});
   const D={stand:aiTools.budget_status(),dieser_monat:aiTools.spend_summary(Object.assign({gruppe:'kategorie'},rg(P))),vormonat_gleicher_zeitraum:aiTools.spend_summary({gruppe:'kategorie',von:ymd(PP.s.getTime()),bis:ymd(PP.s.getTime()+Math.max(0,P.idx-1)*864e5)}),vormonat_gesamt:aiTools.spend_summary(Object.assign({gruppe:'kategorie'},rg(PP))),einnahmen:aiTools.spend_summary(Object.assign({typ:'einnahmen',gruppe:'keine'},rg(P))),abos:aiTools.subscriptions(),demnaechst:aiTools.upcoming({tage:14}),wuensche:aiTools.wishes()};
-  try{const t=await aiOnce(c.deep,[{type:'text',text:AISYS+'\n\nSchreib einen kurzen Monatsrückblick für den laufenden Finanzmonat (höchstens 8 Sätze plus eine Liste mit 2 bis 3 konkreten Hebeln mit Euro-Betrag). Vergleiche mit dem gleichen Zeitraum im Vormonat. Sei ehrlich, aber ermutigend.\n\nDaten:\n'+JSON.stringify(D)}],null,3000,'medium');
-    m.h=aiMd(t)+`<p class="a-s">${I('sparkle',12)} KI · ${esc(AINAME[c.deep]||c.deep)} · diesen Monat ${usd(aiUse().usd)} von ${usd(c.lim)}</p>`}
-  catch(e){m.h=`<p>${esc(aiErr(e))}</p>`}renderAsst();aiScroll()}
+  try{const t=await aiOnce(c.deep,[{type:'text',text:AISYS+'\n\nSchreib einen kurzen Monatsrückblick für den laufenden Finanzmonat (höchstens 8 Sätze plus eine Liste mit 2 bis 3 konkreten Hebeln mit Euro-Betrag). Vergleiche mit dem gleichen Zeitraum im Vormonat. Sei ehrlich, aber ermutigend.\n\nDaten:\n'+JSON.stringify(Object.assign({name:'Dodo',monatssummen:pSaldo()},D))}],null,3000,'medium');
+    const mm=t.match(/\[\s*mood\s*:\s*(plus|ausgeglichen|minus)\s*\]\s*$/i);m.h=aiMd(t.replace(/\n?\s*\[\s*mood\s*:[^\]]*\]\s*$/i,'').trim())+`<p class="a-s aq-pf">${penny(mm?mm[1].toLowerCase():pMood(),20)} Penny · ${esc(AINAME[c.deep]||c.deep)} · diesen Monat ${usd(aiUse().usd)} von ${usd(c.lim)}</p>`}
+  catch(e){m.h=`<p>${esc(aiErr(e))}</p>`}PTHINK=false;renderAsst();aiScroll()}
 /* ---------- Kategorie-Regeln je Händler (lernend) ---------- */
 function ruleFor(n){const k=bKey(n);if(!k||k.length<2)return null;const R=S.catRules||{};if(R[k])return R[k];const hit=Object.keys(R).filter(x=>x.length>=3&&(k.startsWith(x+' ')||x.startsWith(k+' '))).sort((a,b)=>b.length-a.length)[0];return hit?R[hit]:null}
 function ruleLearn(n,c,b){const k=bKey(n);if(!k||k.length<2||!c||/sonst/i.test(c))return;S.catLearn=S.catLearn||{};S.catRules=S.catRules||{};const L=S.catLearn[k];
@@ -1640,7 +1674,7 @@ function bindSal(){if(!$('spSrc'))return;const P=salP();$('spSrc').onchange=()=>
 const AIRX=/^(warum|wieso|weshalb|soll(te)? ich|wie (kann|könnte|sollte) ich|wo kann ich|wie spare|spartipps?|tipps?\b|hilf mir|was (empfiehlst|rätst) du|analysier|erklär|bewerte|wie (sieht|steht) es (insgesamt|allgemein)|plane?\b)/i;
 function aiHtml(){const c=aiCfg(),u=aiUse(),opts=v=>Object.keys(AIPRICE).map(k=>`<option value="${k}" ${v==k?'selected':''}>${AINAME[k]}</option>`).join('');
   return `<div class="sec"><div class="group">
-   <div class="cell plain"><div class="t"><div>KI einschalten</div><div class="s">${syOn()?'Freie Fragen beantwortet Claude, feste Auswertungen bleiben gratis':'Braucht die Online-Synchronisierung'}</div></div><input type="checkbox" class="switch" id="aiSw" ${c.on?'checked':''} ${syOn()?'':'disabled'}></div>
+   <div class="cell plain"><div class="t"><div>Penny mit KI</div><div class="s">${syOn()?'Freie Fragen beantwortet Penny mit Claude, feste Auswertungen bleiben gratis':'Braucht die Online-Synchronisierung'}</div></div><input type="checkbox" class="switch" id="aiSw" ${c.on?'checked':''} ${syOn()?'':'disabled'}></div>
    <div class="cell plain"><label for="aiLvl">Daten für die KI</label><select id="aiLvl"><option value="1" ${c.lvl==1?'selected':''}>Nur Summen</option><option value="2" ${c.lvl==2?'selected':''}>Mit Einzelbuchungen</option></select></div>
    <div class="cell plain"><label for="aiLim">Monatslimit</label><select id="aiLim">${[0.5,1,2,5,10].map(v=>`<option value="${v}" ${c.lim==v?'selected':''}>${usd(v)}</option>`).join('')}</select></div>
    <div class="cell plain"><label for="aiChatM">Modell für Fragen</label><select id="aiChatM">${opts(c.chat)}</select></div>
@@ -1699,14 +1733,14 @@ let asstAll=false;function renderAsst(){const r=$('asstRoot');if(!r)return;docum
   if(hide){r.innerHTML='';return}
   const tkey0=0;const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');S.dismTips=(S.dismTips||[]).filter(k=>t0.some(x=>tkey(x)==k));const t=t0.filter(x=>!S.dismTips.includes(tkey(x)));S.seenTips=(S.seenTips||[]).filter(k=>t.some(x=>tkey(x)==k));const top=t.length?t[0].sev:'calm',hr=new Date().getHours(),loud=x=>x.ttl=='Von Siri übernehmen?'||x.sev=='bad'||(x.sev=='warn'&&hr>=7&&hr<22)||(hr>=18&&hr<22),n=t.filter(x=>!S.seenTips.includes(tkey(x))&&loud(x)).length;
   document.body.classList.toggle('shopv',setView=='shop');
-  r.innerHTML=`<div class="abar ${top}${t.length?'':' calm'}${asstOpen?' open':''}"><button class="abub" id="abub" aria-label="Assistent öffnen${t.length?', '+t.length+' Hinweise':''}" aria-expanded="${asstOpen}"><span class="abar-r">${ROBO}</span>${n?`<span class="acnt">${n}</span>`:''}</button></div>
-   ${asstOpen?`<div class="adim" id="aDim"></div><div class="apop" role="dialog" aria-label="Assistent" style="height:${ASHV[ASH]}"><button class="agrab" id="aGrab" aria-label="Höhe ändern"><i></i></button><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${ROBO}</span>CashFlow</b><button id="aClose" aria-label="Schließen">${I('close',18)}</button></div>
+  r.innerHTML=`<div class="abar ${top}${t.length?'':' calm'}${asstOpen?' open':''}"><button class="abub" id="abub" aria-label="Penny öffnen${t.length?', '+t.length+' Hinweise':''}" aria-expanded="${asstOpen}"><span class="abar-r">${penny(pMood(),46)}</span>${n?`<span class="acnt">${n}</span>`:''}</button></div>
+   ${asstOpen?`<div class="adim" id="aDim"></div><div class="apop" role="dialog" aria-label="Assistent" style="height:${ASHV[ASH]}"><button class="agrab" id="aGrab" aria-label="Höhe ändern"><i></i></button><div class="apop-h"><b style="display:flex;align-items:center;gap:8px"><span class="robo-mini">${penny(pMood(),30)}</span>Penny</b><button id="aClose" aria-label="Schließen">${I('close',18)}</button></div>
     <div class="apop-b">${t.length?'':'<div class="a-s" style="padding:4px 4px 0">Keine neuen Hinweise. Frag mich etwas oder suche nach Buchungen.</div>'}${(asstAll?t:t.slice(0,3)).map((x,i)=>`<div class="atip ${x.sev}" data-tk="${esc(tkey(x))}" data-ti="${i}"><button class="atip-x0" data-adis="${i}" aria-label="Hinweis ausblenden" title="Ausblenden">${I('close',14)}</button><div class="atip-t">${asstNew.includes(tkey(x))?'<span class="newdot">Neu</span>':''}${I(x.sev=='bad'?'alert':x.sev=='warn'?'up':x.sev=='ok'?'check':'sparkle',15)}<b>${esc(x.ttl)}</b></div><div class="atip-x">${x.txt}</div>
      ${x.b||x.tab||x.act||x.btns?`<div class="choices" style="margin-top:6px">${(x.btns||[]).map((bt,j)=>`<button data-afn="${i}|${j}">${esc(bt.l)}</button>`).join('')}${x.b?`<button data-ago="${i}">Ansehen</button>`:''}${x.act=='puf'?`<button data-apuf="${i}">Überschuss umbuchen</button>`:''}${x.act=='chk'?`<button data-achk="${i}">Check-in starten</button>`:''}${x.act=='shop'?`<button data-ashop="${i}">Zettel öffnen</button>`:''}${x.act=='shopP'?`<button data-ashopp="${i}">Preise nachtragen</button>`:''}${x.act=='rg'?`<button data-arg="${i}|0">Hat sich gelohnt</button><button data-arg="${i}|1">Bereue ich</button>`:''}${x.act=='urge'?`<button data-aurge="${i}">Antworten</button>`:''}${x.act=='rk'?`<button data-ark="${i}">Jetzt einrichten</button>`:''}${x.act=='abg'?`<button data-aabg="${i}">Jetzt abgleichen</button>`:''}${x.act=='sub'?`<button data-asub="${i}">Ins Abo-Radar</button><button data-asubn="${i}">Kein Abo</button>`:''}${x.act=='review'?`<button data-arev="${i}">Rückblick öffnen</button>`:''}${x.act=='bak'?`<button data-abak="${i}">Jetzt sichern</button>`:''}${x.act=='ctr'?`<button data-actr="${i}">Vertrag bearbeiten</button><button data-actv="${i}">Alle Verträge</button>`:''}${x.tab&&!x.b?`<button data-ago="${i}">Öffnen</button>`:''}</div>`:''}</div>`).join('')}
     ${!asstAll&&t.length>3?`<button class="link" id="aMore" style="font-size:13px;padding:2px 6px 8px">${t.length-3} weitere Hinweise</button>`:''}
     ${AQ.msgs.map((m,mi)=>`${m.q?`<div class="aq-q">${esc(m.q)}</div>`:''}<div class="aq-a">${m.h}${(m.a||[]).map((x,xi)=>`<button class="chip" data-aact="${mi}|${xi}">${x[0]}</button>`).join('')}</div>`).join('')}</div>
     <div class="achips" id="aChips">${chipsHtml()}</div>
-    <form class="aq-in" id="aqForm"><div class="aq-pill"><button type="button" class="aq-mic" id="aqMic" aria-label="Sprechen">${I('mic',18)}</button><input id="aqI" placeholder="Frag CashFlow oder sag eine Buchung …" autocomplete="off" enterkeyhint="send"></div><button type="submit" class="aq-go" aria-label="Senden">${I('fwd',18)}</button></form>
+    <form class="aq-in" id="aqForm"><div class="aq-pill"><button type="button" class="aq-mic" id="aqMic" aria-label="Sprechen">${I('mic',18)}</button><input id="aqI" placeholder="Frag Penny oder sag eine Buchung …" autocomplete="off" enterkeyhint="send"></div><button type="submit" class="aq-go" aria-label="Senden">${I('fwd',18)}</button></form>
     <div class="apop-f">Wischen blendet Hinweise aus · Wichtiges sofort, Infos ab 18 Uhr${(S.dismTips||[]).length?` · <button class="link" id="aUndis" style="font-size:11px">${S.dismTips.length} ausgeblendet</button>`:''}${AQ.msgs.length?` · <button class="link" id="aClr" style="font-size:11px">Verlauf leeren</button>`:''}</div></div>`:''}`;
   if($('aMore'))$('aMore').onclick=e=>{e.stopPropagation();asstAll=true;renderAsst()};
   $('abub').onclick=e=>{e.stopPropagation();asstOpen=!asstOpen;if(asstOpen){asstNew=t.filter(x=>!(S.seenTips||[]).includes(tkey(x))).map(tkey);S.seenTips=[...new Set([...(S.seenTips||[]),...t.map(tkey)])];save()}renderAsst()};
@@ -3484,7 +3518,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>!featOn(k)?'':`<button class="cell"
    nav('pin','lock','PIN & '+bioName(),pinActive()?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3)+nav('push','bell','Mitteilungen',pushOn()?'Aktiv auf diesem Gerät':'Aus',c3)+nav('siri','mic','Siri & Kurzbefehle',siriGet()?'Eingerichtet'+((S.siriPend||[]).length?' · '+S.siriPend.length+' prüfen':''):'Ohne App öffnen eintragen und fragen',c3))}
   ${sec('Rückblick & Hilfe','',
    nav('report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen',c4)+
-   nav('ai','sparkle','KI-Assistent',aiOn()?'An · '+usd(aiUse().usd)+' diesen Monat':'Aus · Claude für freie Fragen',c4)+
+   nav('ai','sparkle','Penny (KI)',aiOn()?'An · '+usd(aiUse().usd)+' diesen Monat':'Aus · Claude für freie Fragen',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
    btn('vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst',c4)+
    `<button class="cell kbhint" id="kbHelpBtn"><div class="ico" style="background:color-mix(in srgb,${c4} 14%,transparent);color:${c4}">${I('grid')}</div><div class="t"><div>Tastaturkürzel</div><div class="s">N für neue Buchung, 1–6 für Bereiche, ? für alle</div></div><span class="chev">›</span></button>`)}
@@ -3605,7 +3639,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
   if(k=='brands')return back+`<h1 class="lt">Marken-Logos</h1></div>`+brandsHtml();
   if(k=='siri')return back+`<h1 class="lt">Siri & Kurzbefehle</h1></div>`+siriHtml();
   if(k=='setup')return back+`<h1 class="lt">Supabase-Einrichtung</h1></div>`+setupHtml();
-  if(k=='ai')return back+`<h1 class="lt">KI-Assistent</h1></div>`+aiHtml();
+  if(k=='ai')return back+`<h1 class="lt">Penny (KI)</h1></div>`+aiHtml();
   if(k=='push'){const O=S.pushOpt||{fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false},sw=(id,on,l,s)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" data-po="${id}" ${on!==false?'checked':''}></div>`;
    return back+`<h1 class="lt">Mitteilungen</h1></div>
    <div class="group"><div class="cell plain"><div class="t"><div>Mitteilungen auf diesem Gerät</div><div class="s" id="pushSt">${pushOn()?'Aktiv'+(S.pushAt?' · Plan aktualisiert '+new Date(S.pushAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):''):!syOn()?'Braucht die Online-Synchronisierung':'Aus'}</div></div><input type="checkbox" class="switch" id="pushSw" ${pushOn()?'checked':''} ${syOn()?'':'disabled'}></div></div>
