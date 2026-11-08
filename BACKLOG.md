@@ -155,8 +155,8 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 *Automatisierungen*
 - C1. (umgesetzt v169) Apple Pay standardmäßig über Server-Ablage statt Zwischenablage (Anleitung anpassen).
-- C2. (offen; heute über wiederkehrende Umbuchungen abgedeckt, Mitteilung „Gehalt da“ seit v172) Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
-- C3. Lernende Kategorie-Regeln je Händler, Liste in den Einstellungen.
+- C2. (umgesetzt v174) Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
+- C3. (umgesetzt v174) Lernende Kategorie-Regeln je Händler, Liste in den Einstellungen.
 - C4. (umgesetzt v172) Abo-Wächter per Mitteilung (Preisänderung ±5 %, neue Abos aus newSubs).
 - C5. (umgesetzt v173) Kalender-Abo (.ics) für Abbuchungen, Fristen, Sparpläne.
 - C6. (umgesetzt v173) Mehr Siri-Antworten ohne App-Öffnen („Kann ich mir 80 € leisten?“, „Was kommt diese Woche?“).
