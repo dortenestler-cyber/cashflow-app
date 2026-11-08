@@ -1773,7 +1773,7 @@ async function aiChat(q){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s aq-pf">
   const setUp=()=>{asstOpen=false;renderAsst();tab='more';setView='ai';render()};
   if(u.usd>=c.lim){PTHINK=false;m.h=`<p>${esc(aiErr('LIMIT'))}</p>`;m.a=[['Limit ändern',setUp]];renderAsst();return}
   if(!AI.conv.length||Date.now()-AI.t>18e5||AI.conv.length>24||AI.lvl!=c.lvl){AI.conv=[];AI.lvl=c.lvl}AI.t=Date.now();
-  const txt=(AI.conv.length?'':'Name: Dodo\nMonatssummen: '+JSON.stringify(pSaldo())+'\nStand der App (automatisch mitgeschickt):\n'+JSON.stringify(aiTools.budget_status())+'\nHeute: '+new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\n\nFrage: ')+q;
+  const txt=(AI.conv.length?'':(AQ.ctx?'Vom Nutzer geöffnete Zusammenfassung:\n'+AQ.ctx+'\n':'')+'Name: Dodo\nMonatssummen: '+JSON.stringify(pSaldo())+'\nStand der App (automatisch mitgeschickt):\n'+JSON.stringify(aiTools.budget_status())+'\nHeute: '+new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\n\nFrage: ')+q;
   const conv=AI.conv.slice(),acts=[];conv.push({role:'user',content:[{type:'text',text:txt}]});let text='',stop='';
   try{for(let i=0;i<5;i++){const r=await aiCall({model:c.chat,max_tokens:4000,system:AISYS,tools:aiToolDefs(c.lvl),messages:conv,output_config:{effort:'low'},cache_control:{type:'ephemeral'}});
       conv.push({role:'assistant',content:r.content});stop=r.stop_reason;const tx=r.content.filter(b=>b.type=='text').map(b=>b.text).join('\n').trim();if(tx)text=tx;
@@ -1930,7 +1930,7 @@ let asstAll=false,asstTips=false,asstPlus=false,asstOpTip=0;function renderAsst(
   if(asstOpen){r.querySelectorAll('.atip .choices button').forEach(b=>b.addEventListener('click',()=>{const k=b.closest('.atip').dataset.tk;S.dismTips=[...new Set([...(S.dismTips||[]),k])];save()},true));$('aClose').onclick=()=>{asstOpen=false;renderAsst()};r.querySelectorAll('[data-adis]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=t[b.dataset.adis];S.dismTips=[...new Set([...(S.dismTips||[]),tkey(x)])];save();renderAsst()});if($('aUndis'))$('aUndis').onclick=e=>{e.stopPropagation();S.dismTips=[];save();renderAsst()};r.querySelector('.apop').onclick=e=>e.stopPropagation();
     if($('aClr'))$('aClr').onclick=e=>{e.stopPropagation();chatsPut(chatsGet().filter(c=>c.id!=AQ.id));AQ.msgs=[];AQ.id=0;renderAsst()};
     {const ho=()=>{asstHist=true;asstTips=false;asstPlus=false;renderAsst()},hx=()=>{asstHist=false;renderAsst()};$('aHist').onclick=ho;if($('aPill'))$('aPill').onclick=ho;if($('ahX'))$('ahX').onclick=hx;if($('ahDim'))$('ahDim').onclick=hx;
-     if($('ahNew'))$('ahNew').onclick=()=>{AQ.msgs=[];AQ.id=0;asstHist=false;renderAsst()};
+     if($('ahNew'))$('ahNew').onclick=()=>{AQ.msgs=[];AQ.id=0;AQ.ctx=null;asstHist=false;renderAsst()};
      r.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=+b.dataset.hdel;chatsPut(chatsGet().filter(c=>c.id!=id));if(id==AQ.id){AQ.msgs=[];AQ.id=0}renderAsst()});
      r.querySelectorAll('[data-hc]').forEach(b=>{const f=()=>{const c=chatsGet().find(x=>x.id==+b.dataset.hc);if(!c)return;AQ.msgs=c.msgs.map(m=>({...m}));AQ.id=c.id;asstHist=false;renderAsst();aiScroll()};b.onclick=f;b.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();f()}}})}
     $('aqForm').onsubmit=e=>{e.preventDefault();const v=$('aqI').value;$('aqI').value='';asstAsk(v)};
@@ -1996,7 +1996,7 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   ${dashExtras()}
   ${up.length?`<div class="sec"><div class="sh">Demnächst geplant</div><div class="group">${up.map((x,ui)=>`<button class="cell" data-up="${ui}"><div class="ico" style="background:color-mix(in srgb,${COL[x.r.b]} 16%,transparent);color:${COL[x.r.b]}">${icoOf(x.r.b,x.r.c)}</div><div class="t"><div>${esc(x.r.n)}</div><div class="s">${x.d.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} · ${SHORT[x.r.b]}</div>${x.pl?'':adjTag({adj:adjOf(x.r,P)})}</div><div class="v ${x.r.type=='in'?'in':''}">${x.r.type=='in'?'+':x.r.type=='tr'?'':'−'}${eur(x.pl?x.r.a:recA(x.r,P))}</div><span class="chev">›</span></button>`).join('')}</div></div>`:''}
   <div class="sec"><div class="sh"><span>Letzte Buchungen</span><button class="link" id="allTx">Alle</button></div><div class="group">${S.exp.filter(e=>inP(e,P)).sort((a,b)=>b.t-a.t).slice(0,4).map(e=>rowOf(e,true)).join('')||'<div class="empty">Noch nichts gebucht. Tippe auf +.</div>'}</div></div>
-  <button class="btn soft" id="shareBtn">Zusammenfassung für Claude kopieren</button><div class="note" id="shareHint"></div>`}
+  <button class="btn soft" id="shareBtn">Mit Penny besprechen</button>`}
 
 function miniCum(){const{p,v}=dayVals(TOT,0),lim=budOf(TOT),n=p.len,W=300,H=54;let c=0;const pts=[];v.forEach((x,i)=>{c+=x;if(i<p.idx)pts.push([i/(n-1)*W,H-4-c/lim*(H-8)])});
   const ideal=`M0 ${H-4} L${W} 4`,d=pts.length?'M0 '+(H-4)+' L'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L'):'';const L=pts[pts.length-1]||[0,H-4];
@@ -2243,7 +2243,7 @@ function viewReport(bs,head){const R=reportData(bs),outs=R.cat.filter(c=>c.type=
    <div class="rp-f">Erstellt am ${new Date().toLocaleDateString('de-DE')}</div></div>
   <div class="group"><div class="cell plain"><label for="rpList">Einzelbuchungen anhängen</label><span style="flex:1"></span><input id="rpList" type="checkbox" class="switch" ${rpList?'checked':''}></div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn soft" id="rpCopy">Bericht kopieren</button><button class="btn soft" id="rpCsv">Als CSV kopieren</button></div>
-  <div class="note" id="rpMsg">Den kopierten Bericht kannst du in Notizen, eine Mail oder bei Claude einfügen. PDF und Drucken kommen mit der echten App.</div><textarea class="box" id="rpOut" hidden readonly></textarea>`}
+  <div class="note" id="rpMsg">Den kopierten Bericht kannst du in Notizen oder eine Mail einfügen. PDF und Drucken kommen mit der echten App.</div><textarea class="box" id="rpOut" hidden readonly></textarea>`}
 let drill=null,yOff=0;
 const MN=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 function monthOff(Y,m){const c=period(0).s;return (Y*12+m)-(c.getFullYear()*12+c.getMonth())}
@@ -3660,7 +3660,7 @@ function reviewBody(o){const R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]
   ${R.bad.length?`<div class="sec"><div class="sh">Was nicht so gut lief</div><div class="mmcard">${R.bad.map(t=>`<div class="srow" style="flex-direction:row;gap:8px;align-items:center;color:var(--bad)">${I('alert',16)}<span style="color:var(--fg)">${t}</span></div>`).join('')}</div></div>`:''}
   ${R.top.length?`<div class="sec"><div class="sh">Größte Posten</div><div class="mmcard">${R.top.map(([c,v])=>`<div class="srow"><div class="srow-h"><span>${esc(c)}</span><span></span><b>${eur(v)}</b></div></div>`).join('')}${R.big?`<div class="srow"><div class="s" style="font-size:12px;color:var(--muted)">Größte Einzelausgabe: ${esc(R.big.n||R.big.c)} · ${eur(R.big.a)}</div></div>`:''}</div></div>`:''}
   <div class="group"><div class="cell plain" style="flex-direction:column;align-items:stretch;gap:6px"><label for="rvG">Meine Notiz: Was nehme ich mit?</label><textarea id="rvG" rows="3" style="text-align:left;background:var(--fill);border-radius:8px;padding:8px">${esc(note.t||'')}</textarea></div></div>
-  <button class="btn soft" id="rvCopy">Rückblick für Claude kopieren</button><div class="note" id="rvMsg"></div><textarea class="box" id="rvOut" hidden readonly></textarea>`}
+  <button class="btn soft" id="rvCopy">Rückblick mit Penny besprechen</button>`}
 function bindPlan(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   const addY=(n,a,m)=>{if(!n||!a)return;goalNew({n,ziel:a,m:+m,yearly:true,from:'Jahresplaner'});save();render();toast(n+' ist jetzt ein Sparziel – auch unter Impulse › Sparziele.')};
   on('ypAdd',()=>addY($('ypN').value.trim(),pNum($('ypA').value),$('ypM').value));
@@ -3670,7 +3670,7 @@ function bindPlan(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   ['ngT','ngV','ngR'].forEach(id=>{const el=$(id);if(el)el.onchange=()=>{S.ng=S.ng||{};const v=el.value.trim();if(id=='ngT')S.ng.target=pNum(v)||null;if(id=='ngV')S.ng.manual=v===''?null:pNum(v);if(id=='ngR')S.ng.rate=pNum(v)||150;save();render()}});
   on('rvP',()=>{S.revOff=(S.revOff??-1)-1;render()});on('rvN',()=>{if((S.revOff??-1)<0){S.revOff=(S.revOff??-1)+1;render()}});
   if($('rvG'))$('rvG').onchange=()=>{S.reviews=S.reviews||{};S.reviews[pkey(period(S.revOff??-1))]={t:$('rvG').value};save()};
-  on('rvCopy',()=>{const R=reviewData(S.revOff??-1);const t=`Mein Monatsrückblick ${R.p.label}:\n`+R.bs.map(x=>`- ${x.b}: ${eur(x.c.used)} von ${eur(x.c.total)} (${x.c.rest>=0?'übrig '+eur(x.c.rest):'überzogen '+eur(-x.c.rest)})`).join('\n')+`\nGut: ${R.good.join('; ')||'–'}\nNicht so gut: ${R.bad.join('; ')||'–'}\nGrößte Posten: ${R.top.map(([c,v])=>c+' '+eur(v)).join(', ')}\n${(()=>{const A=anaData(S.revOff??-1);return `Einnahmen ${eur(A.I1)}, Ausgaben ${eur(A.O1)}, in den Tresor ${eur(A.saved)} (Sparquote ${Math.round(A.quote*100)} %), Fixkosten ${eur(A.fix)}, Konsum-Anteil ${A.O1?Math.round(A.kons/A.O1*100):0} %`})()}\nMeine Notiz: ${($('rvG')||{}).value||'–'}\nWas sollte ich nächsten Monat anders machen?`;copy(t,$('rvMsg'),$('rvOut'))})}
+  on('rvCopy',()=>pennyTalk('rev'))}
 /* small celebration */
 const growFrom={};
 function celebrate(msg,big){const r=$('modalRoot'),C=['#6E4BD8','#D946EF','#F0657A','#22A699','#F2A23A','#4F6BED','#1F9D6B'];
@@ -4011,7 +4011,7 @@ function bind(){{const main=!setView&&!curB;if(main){if(tab=='list'&&bind.lastMa
   if(curB){const v=document.querySelector('.view');let x0=null,y0=null;v.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
     v.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
       if(Math.abs(dx)>60&&Math.abs(dx)>2*Math.abs(dy)){const SL=swL(),i=SL.indexOf(curB),ni=(i+(dx<0?1:-1)+SL.length)%SL.length;swipeDir=dx<0?'swl':'swr';curB=SL[ni];render()}},{passive:true})}on('setBack',()=>{setView=null;render()});
-  on('allTx',()=>{tab='list';off=0;render()});on('shareBtn',share);
+  on('allTx',()=>{tab='list';off=0;render()});on('shareBtn',()=>pennyTalk('mon'));
   on('todayM',()=>{off=0;calDay=null;wk=null;render()});on('prevM',()=>{off--;calDay=null;wk=null;render()});on('nextM',()=>{if(off<((tab=='list'||tab=='cal')?12:0)){off++;calDay=null;wk=null;render()}});
   if($('q'))$('q').oninput=()=>{q=$('q').value;const pos=$('q').selectionStart;render();$('q').focus();$('q').setSelectionRange(pos,pos)};
   document.querySelectorAll('#flt button').forEach(b=>b.onclick=()=>{flt=b.dataset.f;render()});
@@ -5990,13 +5990,19 @@ function notifOpen(n){if(!n)return;if(pinActive()&&$('lockRoot').innerHTML){noti
 try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.cfNotif){const n=e.data.cfNotif;setTimeout(()=>{if(Date.now()-visSince<3000)lock();notifOpen(n)},450)}})}catch(e){}
 setTimeout(()=>{try{const q=new URLSearchParams(location.search),n=q.get('n');if(!n)return;history.replaceState(history.state,'',location.pathname);notifOpen(JSON.parse(n))}catch(e){}},1000);
 /* ---------- summary for Claude ---------- */
-function share(){const P=period(0);let t=`Hallo Claude, hier mein Budget-Stand (${now.toLocaleDateString('de-DE')}, ${P.label}, noch ${P.left} Tage):\n`;
-  BUDG.forEach(b=>{const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
-    t+=`- ${b}: ${eur(c.used)} von ${eur(c.total)} verbraucht, Rest ${eur(c.rest)}, ${eur(c.tag)} pro Tag. Kategorien: ${Object.entries(by).map(([k,v])=>k+' '+eur(v)).join(', ')||'keine'}\n`});
-  ALL.filter(isK).filter(b=>!WH(b)).forEach(b=>{t+=`- Konto ${b}: Kontostand ${eur(calc(b).rest)}\n`});
-  t+=`- Puffer: ${eur(pufVal())} von 1.000 €\n- Offene Wünsche: ${S.wish.filter(w=>w.s=='offen').map(w=>`${w.n} (${eur(w.p)}, ${w.g})`).join(', ')||'keine'}\n- Sparziele: ${S.goals.filter(g=>!g.done&&!g.dropped).map(g=>`${g.n} (${eur(g.dep.reduce((a,d)=>a+d.a,0))} von ${eur(g.ziel)})`).join(', ')||'keine'}\n- Gespart durch Verzicht: ${eur(gespartV())}\nWie mache ich mich? Hast du Tipps?`;
-  const h=$('shareHint');try{navigator.clipboard.writeText(t).then(()=>h.textContent='Kopiert. Jetzt in der Claude-App einfügen.',fb)}catch(e){fb()}
-  function fb(){h.innerHTML=`<textarea class="box" readonly style="width:100%">${esc(t)}</textarea>Text markieren und kopieren.`}}
+/* Übersicht und Rückblick direkt mit Penny besprechen */
+function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><div class="srow-h"><span>${esc(a)}</span><span></span><b>${b}</b></div>${c?`<div class="a-s" style="font-size:12px">${c}</div>`:''}</div>`;let q,h,f,ctx=null;
+  if(kind=='rev'){const off=S.revOff??-1,R=reviewData(off),A=anaData(off),note=(($('rvG')||{}).value||'').trim();q='Rückblick '+R.p.label+' besprechen';
+    h=`<p><b>Rückblick ${esc(R.p.label)}</b></p>`+R.bs.map(x=>sr(x.b,eur(x.c.used)+' von '+eur(x.c.total),x.c.rest>=0?'übrig '+eur(x.c.rest):'überzogen '+eur(-x.c.rest))).join('')
+     +(R.good.length?`<p class="a-s">Gut: ${esc(R.good.join('; '))}</p>`:'')+(R.bad.length?`<p class="a-s">Nicht so gut: ${esc(R.bad.join('; '))}</p>`:'')
+     +`<p class="a-s">Einnahmen ${eur(A.I1)} · Ausgaben ${eur(A.O1)} · Tresor ${eur(A.saved)} (${Math.round(A.quote*100)} %)${R.top.length?' · Größte Posten: '+R.top.slice(0,3).map(([c,v])=>esc(c)+' '+eur(v)).join(', '):''}</p>`;
+    ctx=`Monatsrückblick ${R.p.label}: `+R.bs.map(x=>`${x.b} ${eur(x.c.used)} von ${eur(x.c.total)}`).join('; ')+`. Gut: ${R.good.join('; ')||'–'}. Nicht so gut: ${R.bad.join('; ')||'–'}. Größte Posten: ${R.top.map(([c,v])=>c+' '+eur(v)).join(', ')}. Einnahmen ${eur(A.I1)}, Ausgaben ${eur(A.O1)}, Tresor ${eur(A.saved)}, Fixkosten ${eur(A.fix)}.${note?' Notiz: '+note:''}`;
+    f=ai?['KI-Rückblick','Was sollte ich nächsten Monat anders machen?','Vergleich zum Vormonat']:['Vergleich zum Vormonat','Monatsbilanz','Was kommt demnächst?']}
+  else{const P=period(0),top=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&inP(e,P)).sort((a,b)=>b.a-a.a).slice(0,3);q='Monat besprechen';
+    h=`<p><b>${esc(P.label)} · noch ${P.left} Tage</b></p>`+BUDG.map(b=>{const c=calc(b);return sr(b,eur(c.rest)+' übrig',`von ${eur(c.total)} · ${eur(c.tag)} pro Tag`)}).join('')
+     +(top.length?`<p class="a-s" style="margin-top:6px">Größte Ausgaben</p><div class="alist">${top.map(aRow).join('')}</div>`:'');
+    f=ai?['Reicht es bis Monatsende?','Wo kann ich sparen?','Was ist auffällig?']:['Reicht es bis Monatsende?','Was kommt demnächst?','Vergleich zum Vormonat']}
+  AQ.msgs=[{q,h,f}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;renderAsst();aiScroll()}
 
 /* ---------- PIN lock ---------- */
 function openOnb(){let st=0;const draw=()=>{const steps=[
