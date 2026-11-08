@@ -5793,7 +5793,7 @@ function goBack(){const b=backTarget();if(b){b.click();return true}while(NAVS.le
 function dayRefresh(){const d=new Date();if(d.toDateString()===now.toDateString()){now=d;NOWT=d.getTime();return false}DV++;now=d;NOWT=d.getTime();try{applyRec();closeMonths()}catch(e){}if(!$('sheetRoot').innerHTML)render();else renderAsst();return true}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dayRefresh()});setInterval(()=>{if(document.visibilityState==='visible')dayRefresh()},60000);
 closeMonths();render();lock();setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();
-if(syOn()){sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())}
+if(syOn())sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())
 </script>
 
 <script>if('serviceWorker' in navigator){let rl=false;const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl||!had)return;rl=true;const sr=document.getElementById('sheetRoot');if(sr&&sr.innerHTML){document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')location.reload()});return}location.reload()});
