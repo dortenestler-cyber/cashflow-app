@@ -387,7 +387,8 @@ body.mm .chartbox,body.mm .group,body.mm .mmcard,body.mm .kpis,body.mm .report,b
 body.mm .sh{padding-inline:4px}
 
 /* ===== header card (master: Übersicht) ===== */
-.stickhead .cdots{margin:-4px 0 -2px}.stickhead{position:sticky;top:env(safe-area-inset-top,0px);z-index:7;display:flex;flex-direction:column;gap:12px;background:var(--bg);margin:-10px calc(-1*max(16px,env(safe-area-inset-right,0px))) 0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.stickhead .cdots{margin:-4px 0 -2px}.stickhead .slide,.stickhead .bal{transition:padding .2s,font-size .2s,min-height .2s}.stickhead.cmp .slide{min-height:0!important;padding:10px 16px;flex-direction:row;align-items:center;justify-content:space-between;gap:10px}.stickhead.cmp .slide>*:not(.lbl):not(.bal){display:none!important}.stickhead.cmp .slide .lbl{padding-right:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stickhead.cmp .bal{font-size:22px}.stickhead.cmp .cdots{margin:-6px 0 -4px}
+.stickhead{position:sticky;top:env(safe-area-inset-top,0px);z-index:7;display:flex;flex-direction:column;gap:12px;background:var(--bg);margin:-10px calc(-1*max(16px,env(safe-area-inset-right,0px))) 0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
 .hcard{border-radius:24px;color:#fff;padding:14px 14px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 14px 34px rgba(0,0,0,.16);text-shadow:0 1px 8px rgba(0,0,0,.18)}
 .hc-row{display:flex;align-items:center;gap:8px;min-height:34px}
 .hc-t{margin:0;flex:1;font-size:15px;font-weight:600;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1158,7 +1159,9 @@ function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class
    ${!o.month&&!o.stats&&!o.back&&!o.slim?`<div class="hc-month"><span class="hc-sp"></span><b>${o.big||o.title}</b><span class="hc-sp"></span></div>`:''}
    ${o.stats||''}</header>
    ${o.tabs?`<div class="seg" id="${o.tabs.id}">${items}</div>`:''}</div>`}
-function stickSeg(){document.querySelectorAll('#app .stickhead').forEach(h=>{let n=h.nextElementSibling;while(n&&n.classList.contains('seg')){const m=n.nextElementSibling;h.appendChild(n);n=m}})}
+function stickCmp(){const sh=document.querySelector('#app .stickhead');if(!sh||!sh.querySelector('.carw'))return;const y=scrollY||document.documentElement.scrollTop||document.body.scrollTop||0,on=sh.classList.contains('cmp');if(!on&&y>120)sh.classList.add('cmp');else if(on&&y<16)sh.classList.remove('cmp')}
+addEventListener('scroll',stickCmp,{passive:true,capture:true});
+function stickSeg(){setTimeout(stickCmp,0);document.querySelectorAll('#app .stickhead').forEach(h=>{let n=h.nextElementSibling;while(n&&n.classList.contains('seg')){const m=n.nextElementSibling;h.appendChild(n);n=m}})}
 const monthNav=()=>'';const monthNav0=()=>`<div class="monthnav"><button id="prevM" aria-label="Voriger Monat">‹</button><b>${period(off).label}</b><button id="nextM" aria-label="Nächster Monat" ${off>=(tab=='list'?12:0)?'disabled':''}>›</button></div>${off?'<button class="link" id="todayM" style="align-self:center;margin-top:-12px">Zurück zu heute</button>':''}`;
 
 /* ---------- shared pieces ---------- */
