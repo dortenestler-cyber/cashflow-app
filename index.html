@@ -5879,8 +5879,9 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
    <div class="sec"><div class="sh">Kurzbefehl 4 · Apple Pay (Automation)</div><div class="group">${cp('siP',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Kurzbefehle › Automation › + › Wallet','Alle Karten, „Sofort ausführen“ an, „Bei Ausführung benachrichtigen“ aus.')}
      ${step(2,'„Text“','Apple Pay [Transaktion › Händler] [Transaktion › Betrag] · Karte: [Transaktion › Karte] · [Aktuelles Datum]')}
-     ${step(3,'„Text URL-codieren“','Nimmt automatisch den Text aus Schritt 2.')}
-     ${step(4,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}</div>
+     ${step(3,'„URL codieren“','Ins Feld nur die Variable „Text“ aus Schritt 2, nie die Adresse.')}
+     ${step(4,'Zweite Aktion „Text“','Adresse oben über „Kopieren“ einfügen, ohne Leerzeichen direkt dahinter die Variable „URL-codierter Text“.')}
+     ${step(5,'„Inhalte von URL abrufen“','Feld leeren, „Variable auswählen“ › die Text-Aktion aus Schritt 4 antippen. Im Feld steht dann nur „Text“, keine Adresse.')}</div>
      <div class="note">Die Zwischenablage wird beim Öffnen nicht mehr geprüft. Wer noch alte Kurzbefehle nutzt, schaltet das unter Mehr › Funktionen &amp; Ansicht › „Zwischenablage beim Öffnen prüfen“ wieder ein; dann werden nur Texte von Kurzbefehlen übernommen.</div>
      <div class="note">Ersetzt den alten Weg über die Zwischenablage: Jede Zahlung landet sicher in deiner Ablage, auch wenn du zwischendurch etwas kopierst. Mit eingeschalteten Mitteilungen kommt sofort ein Hinweis, wie viel im Budget noch übrig ist. Beim Öffnen der App bestätigst du alle Zahlungen auf einmal.</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 5 · „CashFlow leisten“</div><div class="group">${cp('siL',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=leisten&txt=')}</div><div class="mmcard">
