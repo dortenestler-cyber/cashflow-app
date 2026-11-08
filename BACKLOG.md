@@ -138,7 +138,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 **Befund:** Assistent nur feste Satzmuster ohne Folgefragen-Kontext und ohne Aktionen. Mitteilungen werden nur beim Schließen der App geplant, spätere Ereignisse (Apple Pay) lösen nichts aus. Apple Pay läuft über die Zwischenablage (verlustanfällig), obwohl die Server-Ablage („inbox“) existiert. Kein Badge. Ruhe- und Briefing-Zeiten fest.
 
 *Assistent*
-- A1. Optionale KI (Claude) über eigene Supabase-Function „ai“, Schlüssel als Supabase-Secret. Nur Aggregate senden (Budgets, Kategorie-Summen, Termine), keine Einzelbuchungen. Antwort als Text + Aktionsvorschläge, nie automatisch ausgeführt. Regex-Antworten bleiben als Offline-Weg.
+- A1. Optionale KI (Claude) über eigene Supabase-Function „ai“, Schlüssel als Supabase-Secret. Nur Aggregate senden (Budgets, Kategorie-Summen, Termine), keine Einzelbuchungen. Antwort als Text + Aktionsvorschläge, nie automatisch ausgeführt. Regex-Antworten bleiben als Offline-Weg. Details: Abschnitt 10.
 - A2. Antworten mit Aktionsknöpfen (Umbuchung vorausgefüllt, Rest ins Sparziel, Frist vormerken) inkl. Rückgängig.
 - A3. Folgefragen mit Kontext („und im Oktober?“, „nur Rewe“).
 - A4. Beim Öffnen max. 3 Hinweise nach Dringlichkeit („Nächster Schritt“).
@@ -164,3 +164,57 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 **Vorgeschlagene Reihenfolge:** C1+B1 → B3+B4 → A2–A4 → A1 → Rest.
 Hinweis: Änderungen an der Function „push“ (PUSH_FN) auf v7, abwärtskompatibel; muss danach neu eingespielt werden.
+
+## 10. A1 im Detail: KI-Anbindung über Supabase (Konzept 2026-11-08, offen)
+
+**Aufbau**
+- App → neue Edge Function „ai“ (Login per Supabase-JWT wie bei „push“) → Claude API. Schlüssel nur als Supabase-Secret `ANTHROPIC_API_KEY`, nie im Code.
+- Die Function ist nur Durchreiche plus Kostenbremse; sie speichert keine Inhalte.
+- Werkzeug-Schleife in der App: Claude fordert Werkzeuge an, die App rechnet lokal und schickt nur das Ergebnis zurück (max. 4 Runden je Frage).
+
+**Werkzeuge (lesen)**
+- `budget_status` (Rest, Tagesbudget, Tempo je Budget), `spend_summary` (Zeitraum, Kategorie, Konto, Händler), `compare_periods`, `upcoming` (Abbuchungen, Fristen, Sparpläne), `wishes`, `contracts`, `depot_summary` (nur wenn Vermögen eingeblendet).
+- `list_bookings` (max. 20, nur Datum/Händler/Betrag/Kategorie) nur bei Datenstufe 2.
+
+**Werkzeuge (vorschlagen, nie selbst ausführen)**
+- `propose_transfer`, `propose_booking`, `propose_wish`, `propose_reminder` → erscheinen als Knopf mit Bestätigung und Rückgängig.
+
+**Datenschutz (Einstellungen › Assistent › KI)**
+- Aus (Standard) · Stufe 1: nur Summen und Budgets · Stufe 2: zusätzlich Händlernamen und Einzelbuchungen.
+- Nie: Notizen, Personen, Journal-Texte, Belegfotos (außer beim ausdrücklichen Beleg-Scan).
+
+**Wann die KI läuft**
+- Erst feste Antworten (gratis, offline). KI nur, wenn askAI() nichts erkennt oder über „KI fragen“.
+- Modelle: Chat `claude-haiku-5-5`, Belege und Monatsrückblick `claude-sonnet-5-5`; in den Einstellungen umstellbar (auch `claude-opus-5-5`).
+
+**Weitere Einsätze**
+- Beleg-Scan: Foto auf 1568 px verkleinern, Ausgabe als festes JSON (Händler, Datum, Artikel mit Menge/Preis, Summe) → Einkaufsverlauf, Preise je Händler, Abgleich mit der Buchung.
+- Händler-Erkennung: unbekannter Apple-Pay-Händler → Name + Kategorie, Ergebnis wird gemerkt (jeder Händler nur einmal).
+- Monatsrückblick: kurzer Text mit 2–3 Hebeln, einmal im Monat.
+
+**Kostenbremse**
+- Monatslimit in der App (Standard 2 $), Zähler aus `usage` der Antworten, Anzeige „KI diesen Monat: 0,31 $“.
+- Die Function lehnt über 100 Aufrufe pro Tag ab. Zusätzlich Ausgabenlimit in der Anthropic Console.
+- Prompt-Caching für Systemtext und Werkzeuge.
+
+**Erwartete Kosten (Preise Stand Okt. 2026, je 1 Mio. Tokens Eingabe/Ausgabe: Haiku 5.5 0,10/0,50 $, Sonnet 5.5 2/10 $, Opus 5.5 4/20 $)**
+
+| Aufgabe | Haiku 5.5 | Sonnet 5.5 | Opus 5.5 |
+|---|---|---|---|
+| Frage mit Werkzeugen (~8k ein, ~1,4k aus) | ~0,1 Cent | ~2 Cent | ~4 Cent |
+| Beleg-Scan | ~0,1 Cent | ~1,6 Cent | ~3 Cent |
+| Händler-Erkennung | ~0,01 Cent | ~0,2 Cent | ~0,4 Cent |
+| Monatsrückblick | ~0,3 Cent | ~4 Cent | ~8 Cent |
+
+| Monat | nur Haiku | Mix (empfohlen) | nur Sonnet |
+|---|---|---|---|
+| Normal: 5 Fragen/Tag, 12 Belege, 40 neue Händler, 1 Rückblick | ~0,20 $ | ~0,40 $ | ~3,80 $ |
+| Viel: 15 Fragen/Tag, 30 Belege | ~0,50 $ | ~1 $ | ~10 $ |
+
+Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgeladen.
+
+**Einrichtung durch den Nutzer**
+1. Konto in der Anthropic Console, Guthaben aufladen, Ausgabenlimit setzen, API-Schlüssel erzeugen.
+2. Supabase › Edge Functions › Secrets: `ANTHROPIC_API_KEY` eintragen.
+3. Function „ai“ einspielen (Code und Anleitung in der App, wie bei „push“).
+4. In CashFlow: Einstellungen › Assistent › KI einschalten, Datenstufe wählen, „Test“.
