@@ -276,3 +276,13 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Karte: „Von Siri übernommen: 3 Buchungen“ mit Liste (Händler, Betrag, Kategorie).
 - Antippen einer Zeile öffnet die Buchung zum Bearbeiten.
 - Knopf „Passt so“ blendet die Karte aus; sie erscheint pro Übernahme nur einmal.
+
+## 14. Einzahlung aufs Vermögen (umgesetzt in v203)
+
+**Ziel:** Mit zwei Tipps Geld in Tresor, Sparziel oder Depot einzahlen, auch Geld von außen.
+
+- Einstiege: Tresor-Karte in der Übersicht antippen (lange drücken zeigt weiter den Stand), Auswertung › Vermögen › „Einzahlen“, Mehr › Tresor › „Einmal einzahlen“, Penny/Siri („Zahl 200 Euro in den Vermögensaufbau ein“).
+- Woher: Eingangskonto (Standard), jedes nicht-tabu Konto oder „Von außen“ (Einnahme mit Herkunft Bonus, Geschenk, Steuererstattung, Verkauf, Sonstiges; Puffer bleibt unverändert).
+- Wohin: Tresor-Konten, Sparziele (Buchung aufs Zielkonto plus Vermerk beim Ziel), Depot-Positionen mit Konto (optional „Gleich als Kauf erfassen“, ohne Doppelbuchung).
+- Über die Fixkosten-Grenze hinaus: keine Sperre, rote Warnung und Knopf „Trotzdem einzahlen“.
+- Zukunftsdatum = geplante Einzahlung, erscheint in der Prognose. Toast mit Rückgängig, Penny reagiert.

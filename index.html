@@ -1767,7 +1767,7 @@ function isBookingText(lq){if(!/\d/.test(lq)||/\?/.test(lq))return false;const w
   return w<=8}
 function asstAsk(q){q=String(q||'').trim();if(!q)return;if(/^(ich habe |hab )?(gerade|jetzt|grad)\b.*\b(lust|drang|impuls|kaufen)|^notbremse|^hilfe,? ich will (was )?kaufen/i.test(q)){const j=jParse(q);j.out='note';j.u=j.u||4;S.journal=S.journal||[];S.journal.push(j);save();AQ.msgs.push({q,h:'<p><b>Okay, kurz innehalten.</b> Ich habe die Impuls-Notbremse geöffnet.</p>'});asstOpen=false;renderAsst();openUrge(j.id);return}
   if(JRX.test(q)){const j=jParse(q);S.journal=S.journal||[];S.journal.push(j);save();AQ.msgs.push({q,h:`<p><b>Im Journal gespeichert</b>${j.out=='resist'?' – stark, dass du widerstanden hast!':''}</p><div class="alist">${jRow(j)}</div><p class="a-s">${[j.g?'Gefühl: '+esc(j.g):'',j.tr?'Auslöser: '+esc(j.tr):'',JOUT[j.out][0]].filter(Boolean).join(' · ')}. Antippen zum Ergänzen.</p>`,a:[['Bearbeiten',()=>openJournal(j.id)],['Journal öffnen',()=>{tab='wish';wishV='Journal';setView=null;curB=null;render();scrollTo(0,0)}]]});asstOpen=true;renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}if(NEWSRX.test(q.toLowerCase())){const m={q,h:'<p class="a-s">Suche im Internet …</p>'};AQ.msgs.push(m);asstOpen=true;renderAsst();aNews(q).then(h=>{m.h=h}).catch(e=>{m.h='<p>Suche ging nicht: '+esc(e.message||e)+'</p>'}).finally(()=>{renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)});setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}
-  {const lq=q.toLowerCase().trim();if(isBookingText(lq)){asstOpen=false;renderAsst();if(voiceCmd(q))return;openSheet();qp(q);drawSheet();toast('Verstanden: „'+q+'“. Kurz prüfen und sichern.');return}}
+  {const lq=q.toLowerCase().trim();if(EINRX.test(lq)&&!/\?$|^(wie|was|wann|zeig|welche)/.test(lq)){asstOpen=false;renderAsst();vDeposit(lq);return}if(isBookingText(lq)){asstOpen=false;renderAsst();if(voiceCmd(q))return;openSheet();qp(q);drawSheet();toast('Verstanden: „'+q+'“. Kurz prüfen und sichern.');return}}
   {const FU=/^(und|nur|aber|was ist mit|wie ist es mit|wie sieht es mit|dasselbe|das gleiche)\b[\s,]*/i;if(FU.test(q.trim())&&AQ.lastQ&&Date.now()-AQ.lastT<15*6e4){if(AQ.lastBy=='ai'&&aiOn()){aiChat(q);return}
     const f=q.trim().replace(FU,'').replace(/[?!.]+$/,'').trim(),TRX=/\b(heute|gestern|(letzte[nr]?|vorige[nr]?|diese[nr]?|dieses|letztes|nächste[nr]?) (woche|monat|jahr)|im (vormonat|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)( \d{4})?|in \d{4}|im jahr \d{4}|vormonat|insgesamt)\b/gi;
     let p0=AQ.lastQ.replace(/[?!.]+$/,'');if(aRange(f.toLowerCase(),null))p0=p0.replace(TRX,' ');else if(/^(bei|für|von|in|über|auf)\b/i.test(f)||accIn(f.toLowerCase())){}const nq=(p0+' '+f).replace(/\s+/g,' ').trim();AQ.fuFrom=q;q=nq}}
@@ -3735,7 +3735,7 @@ function bindVaultSet(){if(setView!='ng')return;
   document.querySelectorAll('[data-vacc]').forEach(c=>c.onchange=()=>{const a=acc(c.dataset.vacc);a.vault=c.checked;if(c.checked){a.tabu=true;delete a.untabu}save();render();toast(c.checked?a.n+' liegt jetzt im Tresor und ist tabu.':a.n+' ist nicht mehr im Tresor. Es bleibt tabu, bis du es unter Regeln freigibst.')});
   document.querySelectorAll('[data-vrec]').forEach(b=>b.onclick=()=>openRec(+b.dataset.vrec));
   if($('vRecNew'))$('vRecNew').onclick=()=>{const pa=pufAcc();openRec(-1,{type:'tr',b:pa?pa.n:ALL[0],to:vaultAccs()[0]||vermAcc(),c:'',n:'Sparrate',every:1})};
-  if($('vOnce'))$('vOnce').onclick=()=>{const pa=pufAcc();openSheet(null,{type:'tr',b:pa?pa.n:ALL[0],to:vaultAccs()[0]||vermAcc(),n:'Einzahlung Tresor'})};
+  if($('vOnce'))$('vOnce').onclick=()=>openEinzahlung();
   if($('vbSet'))$('vbSet').onclick=()=>openVaultBase();
   if($('vGoal'))$('vGoal').onchange=()=>{S.vaultGoal=pNum($('vGoal').value)||null;save();render()}}
 function reviewData(o){const p=period(o),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e)),bs=BUDG.map(b=>({b,c:calc(b,o)})),by={};L.filter(e=>e.type=='out'&&TOT.includes(e.b)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
@@ -5380,7 +5380,7 @@ function openBackfill(i,editId){const D=depot(),h=D[i];if(!h)return;h.tx=h.tx||[
     save();$('sheetRoot').innerHTML='';render();toast((items.length>1?items.length+' Einträge':'Eintrag')+' nachgetragen'+(fix?' · Bestand angepasst':'')+'.',()=>{const o=JSON.parse(sn);h.tx=o.tx;h.qty=o.q;h.inv=o.i;h.bd=o.bd;save();render()})};
   draw();if(!ex||!st.p)fetchSug()}
 const fxOf=h=>(h.cur||'EUR')=='EUR'?1:(fxGet(h.cur)||h.fx||1),avgOf=h=>h.qty?Math.round(h.inv/h.qty/fxOf(h)*10000)/10000:null;
-function openTrade(i,kind){const D=depot(),h=D[i];if(!h)return;const tr={type:kind||'buy',d:today(),q:'',p:'',fee:'',book:!!h.to,acc:pufAcc()?pufAcc().n:ALL.find(a=>!isTabu(a))};let sug=null,busy=false,ptouched=false;
+function openTrade(i,kind,o){o=o||{};const D=depot(),h=D[i];if(!h)return;const tr={type:kind||'buy',d:o.d||today(),q:'',p:'',fee:'',book:o.book===false?false:!!h.to,acc:pufAcc()?pufAcc().n:ALL.find(a=>!isTabu(a))};let sug=null,busy=false,ptouched=false;
   const curQ=+h.qty||0,avgE=curQ?(h.inv||0)/curQ:0;
   const draw=()=>{const q=qNum(tr.q)||0,pp=qNum(tr.p)||0,fee=qNum(tr.fee)||0,amt=q*pp,real=tr.type=='sell'?amt-fee-q*avgE:null;
    $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kauf oder Verkauf"><div class="sheet-h"><button id="tX">Abbrechen</button><b>${esc(h.n||h.sym)}</b><button id="tS" style="font-weight:600">Sichern</button></div>
@@ -5412,7 +5412,7 @@ function openTrade(i,kind){const D=depot(),h=D[i];if(!h)return;const tr={type:ki
      h.tx.push({id:uid(),t,type:tr.type,q,p:pr,fee,real:tr.real||null,bk:!!(tr.book&&tr.acc&&h.to)});
      if(tr.book&&tr.acc&&h.to){S.exp.push({id:uid(),type:'tr',b:tr.type=='buy'?tr.acc:h.to,to:tr.type=='buy'?h.to:tr.acc,c:'',a:tr.type=='buy'?amt+fee:Math.max(0,amt-fee),n:(tr.type=='buy'?'Kauf ':'Verkauf ')+(h.n||h.sym),t:t>Date.now()?Date.now():t,dep:h.id})}
      save();$('sheetRoot').innerHTML='';render();toast((tr.type=='buy'?'Kauf':'Verkauf')+' gespeichert: '+q.toLocaleString('de-DE',{maximumFractionDigits:6})+' × '+eur(pr)+'.',()=>{const o=JSON.parse(snap);S.depot=o.d;S.exp=o.e;save();render()})}};
-  const fetchSug=async()=>{busy=true;sug=null;draw();const r=await priceOn(h,tr.d);busy=false;sug=r;if(r&&(!ptouched||!tr.p))tr.p=String(Math.round(r.p*100)/100).replace('.',',');if(document.querySelector('[aria-label="Kauf oder Verkauf"]'))draw()};
+  const fetchSug=async()=>{busy=true;sug=null;draw();const r=await priceOn(h,tr.d);busy=false;sug=r;if(r&&(!ptouched||!tr.p))tr.p=String(Math.round(r.p*100)/100).replace('.',',');if(o.amt&&!tr.q&&qNum(tr.p))tr.q=String(Math.round(o.amt/qNum(tr.p)*1e6)/1e6).replace('.',',');if(document.querySelector('[aria-label="Kauf oder Verkauf"]'))draw()};
   draw();fetchSug()}
 function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',sym:'',qty:'',inv:'',rate:'',day:1,plan:true,manual:false,price:'',book:true};
   const lr=h.rid&&(S.rec||[]).find(r=>r.id==h.rid);if(h.book==null)h.book=!!lr;h.from=h.from||(lr&&lr.b)||(pufAcc()?pufAcc().n:ALL[0]);h.to=h.to||(lr&&lr.to)||(ALL.find(a=>/etf|depot/i.test(a))||ALL.find(a=>/krypto|crypto/i.test(a)&&h.type=='krypto')||null);
@@ -5471,7 +5471,7 @@ function bindDepot(){if(!(tab=='rep'&&repV=='Vermögen'))return;if($('depFnCopy2
   on2('wtotAll',()=>{posAnim='';posView='__all';render()});
   if(posView){const i=depot().findIndex(h=>h.id==posView);on2('posBack',()=>{posView=null;posAnim='';render()});document.querySelectorAll('[data-txi]').forEach(b=>b.onclick=()=>openDep(+b.dataset.txi));posSwipe();on2('posEdit',()=>openDep(i));on2('posBuy',()=>openTrade(i,'buy'));on2('posSell',()=>openTrade(i,'sell'));document.querySelectorAll('[data-pr]').forEach(b=>b.onclick=()=>{posRange=b.dataset.pr;render()});document.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>{posMode=b.dataset.pm;tcHide();render()});document.querySelectorAll('.txr[data-txo]:not([data-txi])').forEach(b=>{if(i>=0)b.onclick=()=>{const x=(depot()[i].tx||[]).find(q=>q.id==b.dataset.tid);if(x&&x.hist)openBackfill(i,x.id);else openDep(i)}});if(i>=0)on2('posHist',()=>openBackfill(i))}
   document.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>{dRange=b.dataset.rg;histMsg='';render();loadHist(false,RANGES[dRange][1])});
-  if($('vbOpen'))$('vbOpen').onclick=()=>openVaultBase();
+  if($('vbOpen'))$('vbOpen').onclick=()=>openVaultBase();if($('vInOpen'))$('vInOpen').onclick=()=>openEinzahlung();
   document.querySelectorAll('[data-vlg]').forEach(b=>b.onclick=()=>{const k=b.dataset.vlg;vOff[k]=!vOff[k];render()});
   document.querySelectorAll('[data-dlg]').forEach(b=>b.onclick=()=>{const k=b.dataset.dlg;depOff[k]=!depOff[k];render()});
   if($('depRef'))$('depRef').onclick=()=>depRefresh(true).then(()=>loadHist(true,'d')).then(()=>{if(RANGES[dRange][1]!='d')loadHist(true,RANGES[dRange][1])});
@@ -5585,7 +5585,7 @@ function openVaultBase(){const V=vaultCash();if(!V.length){toast('Noch keine Tre
     for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();toast('Tresor gesichert.',()=>{S.accts=JSON.parse(sa);refreshA();save();render()})}};
 function vaultSecHtml(show){const V=vaultCash();if(!V.length)return `<div class="sec" style="grid-column:1/-1"><div class="sh">Tresor</div><div class="mmcard"><div class="srow" style="display:flex;align-items:center;gap:8px"><span class="s" style="color:var(--muted);font-size:13px;flex:1">Noch keine Tresor-Konten. Unter Mehr › Tresor legst du fest, welche Konten dazugehören.</span>${eyeBtn()}</div></div></div>`;
   const S0=vaultSeries(),f=S0[0],l=S0[S0.length-1],sg=v=>v>0?'+':'',Vv=x=>show?x:'•••',dl=l.v-f.v;
-  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Tresor · ${RGL[dRange]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span><button class="link" id="vbOpen">Bestand & Zinsen</button></span></div>
+  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Tresor · ${RGL[dRange]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span><button class="link" id="vInOpen">Einzahlen</button><button class="link" id="vbOpen">Bestand & Zinsen</button></span></div>
    <div class="chartbox">${show?`<div class="vtot"><span>Bestand</span><div class="eyerow"><b>${eur(l.v)}</b>${eyeBtn()}</div></div>`:`<div class="vtot"><span>Bestand verborgen</span><div class="eyerow"><b>•••</b>${eyeBtn()}</div></div>`}
     ${vaultChart(S0,V,show)}
     <div class="dlg">${(V.length==1?[['__tot',V[0],'#1F9D6B',l.v,f.v]]:[['__tot','Tresor gesamt','#1F9D6B',l.v,f.v],...V.map((n,k)=>[n,n,acc(n).col||PCOL[k%PCOL.length],l.per[k],f.per[k]])]).map(([id,n,c,v,v0])=>`<button class="dlg-i ${vOff[id]?'off':''}" data-vlg="${esc(id)}"><i style="background:${c}"></i><span>${esc(n)}</span><b>${Vv(eur0(v))}</b><small class="${v-v0<0?'out':'in'}">${Vv(sg(v-v0)+eur0(v-v0))} im Zeitraum</small></button>`).join('')}</div>
@@ -5621,6 +5621,61 @@ function openPufMove(){const p=pufAcc();if(!p){toast('Kein Eingangskonto festgel
      if(a>free+0.004){$('pmE').textContent=`Mehr als ${eur(free)} geht nicht, sonst fehlt das Geld für deine Fixkosten.`;return}
      if(isLock(to)){$('sheetRoot').innerHTML='';openSheet(null,{type:'tr',b:p.n,to,amt:String(a),n:'Puffer-Überschuss'});return}
      pufMoveDo([[to,a]])}};draw();renderAsst()}
+/* ---------- Einzahlen ins Vermögen: Tresor, Sparziele, Depot ---------- */
+const EINRX=/einzahl|\bzahl\b.*\bein$|\bin den tresor|\bins tresor|in den vermögensaufbau|\bins vermögen/;
+function openEinzahlung(pre){pre=pre||{};const pa=pufAcc(),VT=vaultCash();if(!VT.length)VT.push(vermAcc());
+  const goals=S.goals.filter(g=>!g.done&&!g.dropped),deps=depot().map((h,i)=>[h,i]).filter(([h])=>h.to&&ALL.includes(h.to));
+  const srcs=[...(pa&&!isTabu(pa.n)?[pa.n]:[]),...ALL.filter(a=>!isTabu(a)&&(!pa||a!=pa.n))],HK=['Bonus','Geschenk','Steuererstattung','Verkauf','Sonstiges'];
+  const def='acc:'+(VT.includes('Vermögensaufbau')?'Vermögensaufbau':VT[0]);
+  let amt=pre.amt?String(pre.amt).replace('.',','):'',src=pre.src=='__ext'||srcs.includes(pre.src)?pre.src:(S.lastEinSrc&&srcs.includes(S.lastEinSrc)?S.lastEinSrc:(srcs[0]||'__ext')),to=pre.to||def,d=today(),note='',her=HK.includes(pre.her)?pre.her:'Bonus',buy=false,err='';
+  const tgt=()=>{const p=to.indexOf(':'),k=to.slice(0,p),id=to.slice(p+1);
+    if(k=='goal'){const g=goals.find(x=>String(x.id)==id);return g?{k,g,acc:g.acct&&ALL.includes(g.acct)?g.acct:(ALL.includes('Sinking Funds')?'Sinking Funds':vermAcc()),lbl:g.n}:null}
+    if(k=='dep'){const x=deps.find(([h])=>String(h.id)==id);return x?{k,h:x[0],i:x[1],acc:x[0].to,lbl:x[0].n||x[0].sym}:null}
+    return k=='acc'&&ALL.includes(id)?{k,acc:id,lbl:SHORT[id]||id}:null};
+  if(!tgt())to=def;
+  const freeOf=s=>pa&&s==pa.n?Math.max(pufVal(),0):Math.max(calc(s).rest,0);
+  const draw=()=>{const T=tgt(),v=pNum(amt)||0,ext=src=='__ext',same=!!T&&!ext&&src==T.acc,free=ext?0:freeOf(src),isP=!!pa&&src==pa.n,over=!ext&&!same&&v>free+0.004,fut=d>today(),ex=isP?pufExcess():0;
+   const opt=(k,lbl,sub,ic,col)=>`<button class="pmo ${to==k?'on':''}" data-et="${esc(k)}">${ic?I(ic,14):`<span class="dotc" style="--c:${col||'var(--blue)'}"></span>`}${esc(lbl)}${sub?`<small>${esc(sub)}</small>`:''}</button>`;
+   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Einzahlen"><div class="sheet-h"><button id="eiX">Abbrechen</button><b>Einzahlen</b><span style="min-width:70px"></span></div>
+   <div class="sheet-b es"><div class="mmsum">${ext?`<div>Woher<b style="font-size:13px">Von außen</b></div><div>Betrag<b class="in">${eur0(v)}</b></div><div>Wohin<b style="font-size:13px">${esc(T?T.lbl:'–')}</b></div>`
+     :`<div>${isP?'Puffer jetzt':esc(SHORT[src]||src)+' frei'}<b>${eur0(free)}</b></div><div>Betrag<b class="in">${eur0(v)}</b></div><div>Danach<b class="${!same&&free-v<0?'out':''}">${eur0(same?free:free-v)}</b></div>`}</div>
+    <div class="group"><div class="cell plain"><label for="eiA">Betrag</label><input id="eiA" inputmode="decimal" value="${esc(amt)}" placeholder="0,00"></div></div>
+    <div class="chips wrap" style="justify-content:center">${ex?`<button class="chip" data-eq="${ex}">Überschuss ${eur0(ex)}</button>`:''}${[50,100,250].map(x=>`<button class="chip" data-eq="${x}">${x} €</button>`).join('')}</div>
+    <div class="group"><div class="cell plain"><label for="eiSrc">Woher</label><select id="eiSrc">${srcs.map(a=>`<option value="${esc(a)}" ${src==a?'selected':''}>${esc(a)}</option>`).join('')}<option value="__ext" ${ext?'selected':''}>Von außen</option></select></div>
+     ${ext?`<div class="cell plain" style="flex-direction:column;align-items:stretch;gap:6px"><span class="s" style="font-size:12px;color:var(--muted)">Herkunft</span><div class="chips wrap">${HK.map(h=>`<button class="chip ${her==h?'on':''}" data-eh="${h}">${h}</button>`).join('')}</div></div>`:''}
+     <div class="cell plain"><label for="eiD">Datum</label><input id="eiD" type="date" value="${d}" style="margin-left:auto"></div>
+     <div class="cell plain"><label for="eiN">Notiz</label><input id="eiN" value="${esc(note)}" placeholder="optional"></div></div>
+    <div class="sh" style="padding:0">Tresor</div><div class="pmt">${VT.map(a=>opt('acc:'+a,SHORT[a]||a,'',null,COL[a]||(acc(a)||{}).col)).join('')}</div>
+    ${goals.length?`<div class="sh" style="padding:0">Sparziele</div><div class="pmt">${goals.map(g=>opt('goal:'+g.id,g.n,g.ziel?eur0(g.dep.reduce((s,x)=>s+x.a,0))+' von '+eur0(g.ziel):'Sparziel','target')).join('')}</div>`:''}
+    ${deps.length?`<div class="sh" style="padding:0">Depot</div><div class="pmt">${deps.map(([h])=>opt('dep:'+h.id,h.n||h.sym,h.to,'chart')).join('')}</div>`:''}
+    ${T&&T.k=='dep'?`<div class="group"><div class="cell plain"><div class="t"><div>Gleich als Kauf erfassen</div><div class="s">Öffnet danach die Kauf-Erfassung für ${esc(T.lbl)} mit diesem Betrag</div></div><input type="checkbox" class="switch" id="eiB" ${buy?'checked':''}></div></div>`:''}
+    ${same?`<div class="note" style="padding:0">Das Geld liegt schon in ${esc(T.acc)}. Es wird nur für „${esc(T.lbl)}“ reserviert, ohne Umbuchung.</div>`:''}
+    ${ext&&T?`<div class="note" style="padding:0">Wird als Einnahme direkt auf ${esc(T.acc)} gebucht. ${pa?'Dein Puffer bleibt unverändert.':''}</div>`:''}
+    ${over?`<div class="tip bad">${isP?`Danach fehlen ${eur(v-free)} für deine Fixkosten.`:`${esc(src)} hat nur ${eur(free)} frei. Danach fehlen ${eur(v-free)}.`}</div>`:''}
+    ${fut?`<div class="note" style="padding:0">Liegt in der Zukunft: wird als geplante Einzahlung gespeichert und erscheint in der Prognose.</div>`:''}
+    <div class="note" id="eiE" style="padding:0;color:var(--bad)">${esc(err)}</div>
+    <button class="btn" id="eiS">${over?'Trotzdem einzahlen':v?eur(v)+' einzahlen':'Einzahlen'}</button></div></div>`;
+   $('scrim').onclick=$('eiX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
+   $('eiA').oninput=()=>{amt=$('eiA').value;err='';const pos=$('eiA').selectionStart;draw();$('eiA').focus();$('eiA').setSelectionRange(pos,pos)};
+   document.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{amt=String(b.dataset.eq).replace('.',',');err='';draw()});
+   document.querySelectorAll('[data-eh]').forEach(b=>b.onclick=()=>{her=b.dataset.eh;draw()});
+   document.querySelectorAll('[data-et]').forEach(b=>b.onclick=()=>{to=b.dataset.et;err='';draw()});
+   $('eiSrc').onchange=()=>{src=$('eiSrc').value;draw()};$('eiD').onchange=()=>{d=$('eiD').value||today();draw()};$('eiN').oninput=()=>{note=$('eiN').value};
+   if($('eiB'))$('eiB').onchange=()=>{buy=$('eiB').checked};
+   $('eiS').onclick=()=>{const T=tgt(),a=Math.round((pNum(amt)||0)*100)/100;if(!a){err='Bitte einen Betrag eingeben.';draw();return}if(!T){err='Bitte ein Ziel wählen.';draw();return}
+     const sn=snap(),gs=JSON.stringify(S.goals),sa=JSON.stringify(S.accts),ext=src=='__ext',same=!ext&&src==T.acc,fut=d>today(),t=d==today()?Date.now():new Date(d+'T12:00').getTime();
+     const nm=note.trim()||(ext?her:T.k=='goal'?'Sparziel: '+T.g.n:'Einzahlung '+T.lbl);let eid=null,before=0;
+     if(!same){eid=uid();const e=ext?{id:eid,type:'in',b:T.acc,c:her,a,n:nm,t,tg:['einzahlung']}:{id:eid,type:'tr',b:src,to:T.acc,c:'',a,n:nm,t,tg:['einzahlung']};if(T.k=='goal')e.goal=T.g.id;S.exp.push(e)}
+     if(T.k=='goal'){before=T.g.dep.reduce((s,x)=>s+x.a,0);T.g.dep.push({a,t,src:ext?'Von außen':src,eid})}
+     if(!ext)S.lastEinSrc=src;save();$('sheetRoot').innerHTML='';if(T.k=='goal'&&T.g.ziel)growFrom[T.g.id]=Math.min(before/T.g.ziel,1);render();
+     toast(same?`${eur(a)} für ${T.lbl} reserviert.`:`${eur(a)} ${fut?'geplant':'eingezahlt'}: ${ext?'von außen':SHORT[src]||src} → ${T.lbl}`,()=>{restore(sn);S.goals=JSON.parse(gs);S.accts=JSON.parse(sa);refreshA();save();render()});
+     try{pnReact(T.k=='dep'?'chart':'coins')}catch(e){}
+     if(T.k=='dep'&&buy)setTimeout(()=>openTrade(T.i,'buy',{book:false,amt:a,d:fut?today():d}),350)}};
+  draw();renderAsst()}
+function vDeposit(l){if(!EINRX.test(l))return false;
+  const a=accIn(l),gl=S.goals.filter(g=>!g.done&&!g.dropped).find(g=>l.includes(g.n.toLowerCase())),dh=depot().find(h=>h.to&&((h.n&&l.includes(h.n.toLowerCase()))||(h.sym&&l.includes(h.sym.toLowerCase())))),
+    her=/geschenk/.test(l)?'Geschenk':/bonus/.test(l)?'Bonus':/erstattung/.test(l)?'Steuererstattung':/verkauf/.test(l)?'Verkauf':null;
+  $('sheetRoot').innerHTML='';openEinzahlung({amt:amtIn(l),to:gl?'goal:'+gl.id:dh?'dep:'+dh.id:a&&vaultAccs().includes(a)?'acc:'+a:null,src:her||/von außen/.test(l)?'__ext':a&&!isTabu(a)?a:null,her});return true}
 function maybeAskPuf(force){const p=pufAcc();if(!p||$('sheetRoot').innerHTML||$('lockRoot').innerHTML||!S.onb)return;const k=pkey(period(0));S.pufAsk=S.pufAsk||{};if(S.pufAsk[k]&&!force)return;const ex=pufExcess();if(ex<50){if(force)openPufMove();return}
   const mark=()=>{S.pufAsk[k]=1;save()},v=vermAcc(),sk=ALL.includes('Sinking Funds')?'Sinking Funds':null,h1=Math.round(ex/2*100)/100;
   showAnswer('Monatsabschluss',`<b>${eur(ex)} übrig</b><p>Dein Puffer liegt nach allen Fixkosten über 1.000 €. Wohin soll der Überschuss?</p>`,[
@@ -5633,14 +5688,14 @@ function vaultHtml(){const V=vaultAccs();if(!V.length||S.vaultHide)return '';con
   const mon=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0),yr=S.exp.filter(e=>e.t>=ys&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0);
   const recM=(S.rec||[]).filter(r=>!r.paused&&r.type=='tr'&&V.includes(r.to)).reduce((s,r)=>s+r.a/(r.every||1),0),goal=S.vaultGoal||Math.round((recM||275)*12/100)*100;
   const tot=V.reduce((s,n)=>s+calc(n).rest,0),fix=pufAcc()?(S.rec||[]).filter(r=>!r.paused&&r.b==pufAcc().n&&(r.type=='out'||(r.type=='tr'&&!V.includes(r.to)))).reduce((s,r)=>s+r.a/(r.every||1),0):0,months=fix?tot/fix:0,pc=goal?Math.min(yr/goal,1):0;
-  return `<div class="sec"><div class="sh">Tresor</div><button class="vault" id="vault" aria-label="Tresor. Lange drücken zeigt den Stand.">
-   <div class="vault-h"><span class="vault-ic">${I('lock',20)}</span><div class="t"><b>${mon?'+'+eur0(mon)+' diesen Monat eingezahlt':'Diesen Monat noch nichts eingezahlt'}</b><div class="s">${V.map(n=>esc(n)).join(' · ')} · nur Einzahlungen</div></div></div>
+  return `<div class="sec"><div class="sh">Tresor</div><button class="vault" id="vault" aria-label="Tresor. Tippen zum Einzahlen, lange drücken zeigt den Stand.">
+   <div class="vault-h"><span class="vault-ic">${I('lock',20)}</span><div class="t"><b>${mon?'+'+eur0(mon)+' diesen Monat eingezahlt':'Diesen Monat noch nichts eingezahlt'}</b><div class="s">${V.map(n=>esc(n)).join(' · ')} · tippen zum Einzahlen</div></div></div>
    <div class="bar" style="height:8px"><i style="width:${(pc*100).toFixed(0)}%;background:linear-gradient(90deg,#1F9D6B,#3CCB92)"></i></div>
    <div class="vault-f"><span>${eur0(yr)} von ${eur0(goal)} Jahresziel</span><span>${months?`Polster für ${months.toLocaleString('de-DE',{maximumFractionDigits:1})} Monate Fixkosten`:''}</span></div>
    <div class="vault-x" id="vaultX" hidden>Stand: <b>${eur(tot)}</b><small>verschwindet gleich wieder</small></div></button></div>`}
 function bindVault(){const v=$('vault');if(!v)return;let t=null,shown=false;const show=()=>{shown=true;$('vaultX').hidden=false;if(navigator.vibrate)navigator.vibrate(15);setTimeout(()=>{if($('vaultX'))$('vaultX').hidden=true},10000)};
   v.onpointerdown=()=>{shown=false;t=setTimeout(show,600)};v.onpointerup=v.onpointerleave=v.onpointercancel=()=>clearTimeout(t);v.oncontextmenu=e=>e.preventDefault();
-  v.onclick=()=>{if(!shown)toast('Lange drücken zeigt kurz den Stand. Ausgeben kannst du von hier nichts.')}}
+  v.onclick=()=>{if(!shown)openEinzahlung()}}
 
 /* ---------- Sprachbefehle ---------- */
 function showAnswer(title,html,acts){$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="${esc(title)}"><div class="sheet-h"><span style="min-width:70px"></span><b>${esc(title)}</b><button id="ansX" style="font-weight:600">Fertig</button></div>
@@ -5700,7 +5755,7 @@ function vMulti(v){const parts=spoken(v).split(/,\s+|\s+(?:und|plus|sowie)\s+/).
     const[yy,mm,dd]=E.dt.split('-').map(Number);S.exp.push({id:uid(),type:E.type,b:E.b,c:E.c,a,n:E.n,t:E.dt==today()?Date.now():new Date(yy,mm-1,dd,12).getTime()});made.push(`${E.n||E.c} ${eur(a)} (${SHORT[E.b]})`)});
   E=sv;if(!made.length)return false;save();$('sheetRoot').innerHTML='';render();toast(made.length+' Buchungen: '+made.join(', '),()=>restore(sn));return true}
 
-function voiceHelp(){const ex=[['Buchen','„Kaffee 3,50“ · „gestern Tanken 65 Euro“ · „Friseur 25 Euro aus Gönn dir“'],['Mehrere auf einmal','„Rewe 23 Euro und dm 8 Euro“'],['Umbuchen','„50 Euro von Flow nach Sinking Funds“'],['Einnahme','„Erstattung 30 Euro“ · „Gehalt 3200 Euro“'],['Dauerauftrag','„Netflix 13 Euro monatlich“ · „Versicherung 120 Euro jährlich“'],
+function voiceHelp(){const ex=[['Einzahlen','„Zahl 200 Euro in den Vermögensaufbau ein“ · „500 Euro Bonus einzahlen“'],['Buchen','„Kaffee 3,50“ · „gestern Tanken 65 Euro“ · „Friseur 25 Euro aus Gönn dir“'],['Mehrere auf einmal','„Rewe 23 Euro und dm 8 Euro“'],['Umbuchen','„50 Euro von Flow nach Sinking Funds“'],['Einnahme','„Erstattung 30 Euro“ · „Gehalt 3200 Euro“'],['Dauerauftrag','„Netflix 13 Euro monatlich“ · „Versicherung 120 Euro jährlich“'],
   ['Fragen','„Wie viel hab ich noch in Gönn dir?“ · „Was darf ich heute noch ausgeben?“ · „Wie viel hab ich für Café ausgegeben?“ · „Wie steht mein Puffer?“'],['Wunsch','„Wunsch Kopfhörer 89 Euro, gestresst“'],['Sparziel','„20 Euro für Reisekoffer zurücklegen“'],
   ['Einkaufszettel','„Einkaufsliste Milch, zwei Brot und Eier“ · „Einkauf fertig, 42 Euro“ · „Was kostet mein Einkauf?“'],['Korrigieren','„Letzte Buchung war 15 Euro“ · „Letzte Buchung löschen“'],['Navigieren','„Zeig mir die Prognose“ · „Öffne den Kalender“ · „Zeig Sparziele“']];
   showAnswer('Das kannst du sagen',`<div class="vhelp">${ex.map(([k,v])=>`<b>${k}</b><span>${v}</span>`).join('')}</div>`)}
@@ -5711,7 +5766,7 @@ function voiceCmd(v){const l=v.toLowerCase().trim();if(!l)return true;
   if(isShopVoice(v)){shopVoiceDone(shopVoice(v));return true}
   if(JRX.test(l)){$('sheetRoot').innerHTML='';asstAsk(v);return true}
   if(NEWSRX.test(l)||/^(such|find|zeig mir (alle |meine )?buchung|wie ?viel|was habe ich|was hab ich|kann ich mir|welche abos|was wird|wann habe ich|größte|teuerste)|\?$/.test(l)){$('sheetRoot').innerHTML='';asstAsk(v);return true}
-  return vNav(l)||vFix(l)||vQuestion(l)||vWish(l,v)||vGoal(l)||vRecurring(l,v)||vMulti(v)}
+  return vNav(l)||vDeposit(l)||vFix(l)||vQuestion(l)||vWish(l,v)||vGoal(l)||vRecurring(l,v)||vMulti(v)}
 
 /* ---------- Siri & Kurzbefehle: Ablage abholen, Sätze übernehmen, ?sag= / ?frage= ---------- */
 const SIRIK='cf_siri',siriGet=()=>{try{return JSON.parse(localStorage.getItem(SIRIK)||'null')}catch(e){return null}},siriSet=o=>{try{o?localStorage.setItem(SIRIK,JSON.stringify(o)):localStorage.removeItem(SIRIK)}catch(e){}};
