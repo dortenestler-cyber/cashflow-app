@@ -1841,7 +1841,7 @@ let asstAll=false,asstTips=false,asstPlus=false,asstOpTip=0;function renderAsst(
     r.querySelectorAll('[data-actr]').forEach(b=>b.onclick=()=>{const x=t[b.dataset.actr];asstOpen=false;renderAsst();openContract((S.contracts||[]).findIndex(c=>c.id==x.cid))});
     r.querySelectorAll('[data-actv]').forEach(b=>b.onclick=()=>{asstOpen=false;tab='rep';repV='Verträge';drill=null;curB=null;setView=null;render();scrollTo(0,0)});
     r.querySelectorAll('[data-abak]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='export';render();scrollTo(0,0)});
-    r.querySelectorAll('[data-afn]').forEach(b=>b.onclick=()=>{const[i,j]=b.dataset.afn.split('|').map(Number),bt=t[i]&&t[i].btns&&t[i].btns[j];if(!bt)return;asstOpen=false;renderAsst();TIPFN[bt.fn](bt.arg)});
+    r.querySelectorAll('[data-afn]').forEach(b=>b.onclick=()=>{const[i,j]=b.dataset.afn.split('|').map(Number),bt=t[i]&&t[i].btns&&t[i].btns[j];if(!bt)return;if(!['pwIgn','unIgn','clipNo','pwTake','why','askQ'].includes(bt.fn)){asstOpen=false;renderAsst()}TIPFN[bt.fn](bt.arg);if(asstOpen)renderAsst()});
     r.querySelectorAll('[data-arev]').forEach(b=>b.onclick=()=>{asstOpen=false;prevTab=tab;tab='more';setView='review';S.revOff=-1;render();scrollTo(0,0)});
     r.querySelectorAll('[data-arg]').forEach(b=>b.onclick=()=>{const[i,v]=b.dataset.arg.split('|');const x=t[+i];rgSet(x.eid,v=='1');renderAsst()});
     r.querySelectorAll('[data-aurge]').forEach(b=>b.onclick=()=>{asstOpen=false;renderAsst();openUrge(S.urge&&S.urge.jid)});
