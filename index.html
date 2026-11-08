@@ -129,7 +129,7 @@ textarea.box{background:var(--card);border-radius:12px;padding:10px 12px;font-si
 .pad button{border:0;background:var(--card);color:var(--fg);border-radius:10px;padding:13px 0;font:inherit;font-size:22px;font-weight:500;cursor:pointer}
 .pad button:active{background:var(--fill)}
 .thumb{width:44px;height:44px;border-radius:8px;object-fit:cover}
-.lock{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.lock{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding-inline:max(16px,env(safe-area-inset-left,0px))}
 .dots{display:flex;gap:16px}.dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--fg)}.dots i.f{background:var(--fg)}
 .lock .pad{width:min(300px,100%)}.lock .pad button{border-radius:50%;aspect-ratio:1;max-width:100%}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);padding-inline:4px}
@@ -5276,7 +5276,10 @@ function bindPst(){if($('pstChk'))$('pstChk').onclick=async()=>{$('pstChk').text
 /* ---------- Tipp auf eine Mitteilung ---------- */
 function briefCard(t,b){const L=String(b||'').split('\n').map(x=>x.trim()).filter(Boolean);const ic=l=>/^Depot|Woche:/.test(l)?'chart':/Tresor/.test(l)?'lock':/ausgegeben|Ausgaben/.test(l)?'cart':/^(Heute|Morgen|Mo|Di|Mi|Do|Fr|Sa|So|\d)/.test(l)?'calendar':'wallet';
   return `<div class="brf"><div class="brf-h">${esc(t||'Briefing')}</div>${L.map(l=>`<div class="brf-l"><span class="brf-i">${I(ic(l),14)}</span><span>${esc(l)}</span></div>`).join('')}</div>`}
-function notifOpen(n){if(!n)return;const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
+/* Inhalt aus Benachrichtigungen erst nach dem Entsperren anzeigen */
+let visSince=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')visSince=Date.now()});
+let notifPend=null;function notifFlush(){const n=notifPend;notifPend=null;if(n)setTimeout(()=>notifOpen(n),60)}
+function notifOpen(n){if(!n)return;if(pinActive()&&$('lockRoot').innerHTML){notifPend=n;return}const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
   if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='rep';repV='Vermögen';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();ASH='half';asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
   const id=tag.replace(/^[a-z]+-/,'');
   if(/^due-/.test(tag)){const i=(S.rec||[]).findIndex(r=>r.id==id);tab='more';setView='rec';render();if(i>=0)setTimeout(()=>openRec(i),200);return}
@@ -5286,7 +5289,7 @@ function notifOpen(n){if(!n)return;const tag=String(n.tag||'');$('sheetRoot').in
   if(tag=='chk'){tab='dash';render();setTimeout(()=>openCheckin(),200);return}
   if(tag=='urge'){tab='wish';render();setTimeout(()=>openUrge(),200);return}
   tab='dash';render();asstOpen=true;renderAsst()}
-try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.cfNotif)notifOpen(e.data.cfNotif)})}catch(e){}
+try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.cfNotif){const n=e.data.cfNotif;setTimeout(()=>{if(Date.now()-visSince<3000)lock();notifOpen(n)},450)}})}catch(e){}
 setTimeout(()=>{try{const q=new URLSearchParams(location.search),n=q.get('n');if(!n)return;history.replaceState(history.state,'',location.pathname);notifOpen(JSON.parse(n))}catch(e){}},1000);
 /* ---------- summary for Claude ---------- */
 function share(){const P=period(0);let t=`Hallo Claude, hier mein Budget-Stand (${now.toLocaleDateString('de-DE')}, ${P.label}, noch ${P.left} Tage):\n`;
@@ -5332,12 +5335,12 @@ const pinActive=()=>!!pinGet()||(!!S.pin&&S.pin!=='set');
 const IOSDEV=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
 function lock(){if(!pinActive())return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='';const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential,tapMode=IOSDEV();
   /* iOS erlaubt Face ID in Web-Apps nur direkt nach einem Tipp – sonst schiebt es das Passkey-Fenster davor. Daher dort kein Auto-Start; ein Tipp irgendwo startet Face ID. Nie zwei Aufrufe gleichzeitig. */
-  const tryBio=async(auto)=>{if(window.__bioRun||!hasBio||!$('lockRoot').innerHTML)return;window.__bioRun=true;try{if(await bioCheck()){window.__bioOkAt=Date.now();hidAt=0;$('lockRoot').innerHTML='';return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen. '+(tapMode?'Tippe erneut':'Nochmal tippen')+' oder PIN eingeben.')}finally{window.__bioRun=false}};const t0=Date.now();
+  const tryBio=async(auto)=>{if(window.__bioRun||!hasBio||!$('lockRoot').innerHTML)return;window.__bioRun=true;try{if(await bioCheck()){window.__bioOkAt=Date.now();hidAt=0;$('lockRoot').innerHTML='';notifFlush();return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen. '+(tapMode?'Tippe erneut':'Nochmal tippen')+' oder PIN eingeben.')}finally{window.__bioRun=false}};const t0=Date.now();
   const draw=(msg)=>{$('lockRoot').innerHTML=`<div class="lock">${hasBio?`<button class="biobtn ${tapMode?'tap':''}" id="bioGo" aria-label="Mit ${bioName()} entsperren">${I('face',44)}<span>${tapMode?'Tippen für '+bioName():'Mit '+bioName()+' entsperren'}</span></button>`:''}<div style="font-size:17px;font-weight:600">${hasBio?'oder PIN eingeben':'PIN eingeben'}</div><div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
   <div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div><div class="note" style="min-height:18px;color:var(--bad)">${msg||''}</div>
   <div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>k?`<button data-k="${k}">${k=='⌫'?I('backspace',24):k}</button>`:'<span></span>').join('')}</div></div>`;
   document.querySelectorAll('.lock .pad button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;v=k=='⌫'?v.slice(0,-1):(v+k).slice(0,4);
-    if(v.length==4){const tryV=v;pinOk(tryV).then(ok=>{if(ok){$('lockRoot').innerHTML='';return}v='';draw('Falsche PIN')});return}draw()});if($('bioGo'))$('bioGo').onclick=e=>{e.stopPropagation();tryBio(false)};const lk=document.querySelector('.lock');if(lk&&tapMode&&hasBio)lk.onclick=e=>{if(e.target.closest('.pad,input,textarea'))return;tryBio(false)}};draw();if(hasBio&&!tapMode)setTimeout(()=>tryBio(true),250)}
+    if(v.length==4){const tryV=v;pinOk(tryV).then(ok=>{if(ok){$('lockRoot').innerHTML='';notifFlush();return}v='';draw('Falsche PIN')});return}draw()});if($('bioGo'))$('bioGo').onclick=e=>{e.stopPropagation();tryBio(false)};const lk=document.querySelector('.lock');if(lk&&tapMode&&hasBio)lk.onclick=e=>{if(e.target.closest('.pad,input,textarea'))return;tryBio(false)}};draw();if(hasBio&&!tapMode)setTimeout(()=>tryBio(true),250)}
 if(ALL.includes('Alltag')&&!ALL.includes('Flow'))renameAcct('Alltag','Flow');
 if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(r)S.debts.push({id:'d1',n:'Anyfin Umschuldungskredit',total:1482,interest:228,rate:r.a||60,start:r.start||'2026-12-30',match:'Anyfin',note:'iPhone 16 Pro (PayPal), Garmin Fenix 9 Pro (Advanzia)'});save()}
 if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
