@@ -1562,7 +1562,7 @@ function aiUse(){const c=aiCfg();if(!c.use||c.use.ym!=aiYm())c.use={ym:aiYm(),us
 const usd=v=>(v>0&&v<.005?'< 0,01':(+v||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}))+' $';
 const aiR2=v=>Math.round((+v||0)*100)/100;
 function aiCost(model,u){const p=AIPRICE[model]||AIPRICE['claude-sonnet-5-5'];if(!u)return 0;return((u.input_tokens||0)*p[0]+(u.output_tokens||0)*p[1]+(u.cache_read_input_tokens||0)*p[2]+(u.cache_creation_input_tokens||0)*p[3])/1e6}
-async function aiCall(req){const u=aiUse(),c=aiCfg();if(u.usd>=c.lim)throw new Error('LIMIT');
+async function aiCall(req){req=Object.assign({cache_control:{type:'ephemeral'}},req);const u=aiUse(),c=aiCfg();if(u.usd>=c.lim)throw new Error('LIMIT');
   const r=await syFetch('/functions/v1/ai',{method:'POST',body:JSON.stringify({op:'chat',req})});let j={};try{j=await r.json()}catch(e){}
   if(!r.ok)throw new Error(r.status==404?'NOFN':(j.error||('Fehler '+r.status)));const m=j.msg;u.usd+=aiCost(req.model,m&&m.usage);u.n++;save();return m}
 const aiD=(s,end)=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;const d=new Date(+m[1],m[2]-1,+m[3]);if(end)d.setDate(d.getDate()+1);return d.getTime()};
