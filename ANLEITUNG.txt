@@ -54,3 +54,7 @@ KI-Assistent (ab v167, optional, kostet ca. 0,40 $ im Monat):
 3. In CashFlow: Mehr › Supabase-Einrichtung › „Tabelle für KI“ (SQL ausführen) und „Funktion ai“ (als neue Function „ai“ einspielen, Verify JWT an lassen).
 4. Mehr › KI-Assistent: einschalten, Daten-Stufe und Monatslimit wählen, „Verbindung testen“.
 Danach: Freie Fragen („Wo kann ich sparen?“) beantwortet Claude, Vorschläge kommen als Knopf. Belegfoto bei einer Buchung = Kassenbon wird gelesen. Unbekannte Apple-Pay-Händler werden einmalig zugeordnet. In der Monatsbilanz gibt es „KI-Rückblick“.
+
+Apple Pay ohne Zwischenablage (ab v169, empfohlen):
+Mehr › Siri & Kurzbefehle › Kurzbefehl 4. Die Wallet-Automation schickt jede Zahlung direkt in deine Siri-Ablage (Text › Text URL-codieren › Inhalte von URL abrufen). Nichts geht mehr verloren, wenn du zwischendurch etwas kopierst.
+Mit Mitteilungen bekommst du sofort einen Hinweis, wie viel im Budget noch übrig ist (Mehr › Mitteilungen › „Nach Apple-Pay-Zahlung“). Dafür die Funktion „push“ auf v7 aktualisieren (Mehr › Supabase-Einrichtung).

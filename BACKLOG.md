@@ -146,7 +146,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - A6. Monatsabschluss als Dialog: Rest verteilen und buchen.
 
 *Mitteilungen*
-- B1. Sofort-Mitteilung nach Apple-Pay-Zahlung mit geschätztem Budget-Rest (Server, Händler→Budget-Zuordnung in briefData).
+- B1. (umgesetzt v169) Sofort-Mitteilung nach Apple-Pay-Zahlung mit geschätztem Budget-Rest (Server, Händler→Budget-Zuordnung in briefData).
 - B2. Erinnerung bei veralteten Daten (Ablage voll, Stand > 48 h).
 - B3. Badge am App-Icon (offene Siri-Einträge, fällige Wünsche, Fristen ≤ 3 Tage).
 - B4. Ruhezeit, Briefing-Zeiten und Tageslimit einstellbar, mit Priorität.
@@ -154,7 +154,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - B6. Jede Mitteilung öffnet die passende Aktion im Assistenten.
 
 *Automatisierungen*
-- C1. Apple Pay standardmäßig über Server-Ablage statt Zwischenablage (Anleitung anpassen).
+- C1. (umgesetzt v169) Apple Pay standardmäßig über Server-Ablage statt Zwischenablage (Anleitung anpassen).
 - C2. Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
 - C3. Lernende Kategorie-Regeln je Händler, Liste in den Einstellungen.
 - C4. Abo-Wächter per Mitteilung (Preisänderung ±5 %, neue Abos aus newSubs).
