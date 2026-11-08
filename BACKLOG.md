@@ -133,7 +133,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 14. Impulse-Segmente passend ohne Anschnitt.
 15. Ungenutztes Glas-Design-CSS entfernen.
 
-## 9. Assistent, Mitteilungen, Automatisierungen (Vorschläge 2026-11-08, offen)
+## 9. Assistent, Mitteilungen, Automatisierungen (umgesetzt bis v174)
 
 **Befund:** Assistent nur feste Satzmuster ohne Folgefragen-Kontext und ohne Aktionen. Mitteilungen werden nur beim Schließen der App geplant, spätere Ereignisse (Apple Pay) lösen nichts aus. Apple Pay läuft über die Zwischenablage (verlustanfällig), obwohl die Server-Ablage („inbox“) existiert. Kein Badge. Ruhe- und Briefing-Zeiten fest.
 
@@ -264,7 +264,7 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 
 **Entscheidungen (2026-11-08):** Umschalter bleiben in der schmalen Leiste; Schwelle 56 px (Übersicht weiter 120 px).
 
-## Buchungsseite auf iPad quer und Web (offen, wartet auf Freigabe)
+## Buchungsseite auf iPad quer und Web (umgesetzt in v197)
 - Linke Spalte (Monatssummen + Geplant) bleibt unter dem Kopf stehen, als feste Seitenleiste – keine leere Hälfte mehr beim Scrollen.
 - Spaltenaufteilung ca. 40 : 60 zugunsten der Buchungsliste, damit Kategorien nicht abgeschnitten werden.
 - Auf großen Bildschirmen schrumpft der Kopf erst nach ca. 200 px; die schmale Leiste zeigt zusätzlich den Monatssaldo.

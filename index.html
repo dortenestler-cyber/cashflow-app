@@ -503,6 +503,18 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 .ana-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:80px;padding:0 14px 12px;align-items:end}.ana-wd div{display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}.ana-wd i{width:70%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}.ana-wd span{font-size:11px;color:var(--muted)}
 .sstep{display:flex;gap:12px;align-items:flex-start}.sstep-n{width:30px;height:30px;border-radius:50%;background:var(--accent-fill);color:#fff;display:grid;place-items:center;font-weight:700;flex:none;margin-top:2px}.sstep-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.sstep-b>b{font-size:17px}.sstep-b .s{font-size:14px;color:var(--muted);line-height:1.45}.sstep-b ol{margin:0;padding-left:20px;font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:3px}.sstep-b code{background:var(--fill);border-radius:4px;padding:0 4px;font-size:12px}.sstat{font-size:13px;font-weight:600}.sstat:empty{display:none}
 
+/* ===== Buchungen: Seitenleiste ab Tablet ===== */
+.hc-cx{display:none}
+.lsplit,.lside{display:flex;flex-direction:column;gap:16px}
+@media (min-width:700px){
+ .lsplit{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px 24px;align-items:start}
+ .lside{position:sticky;top:calc(var(--shh,120px) + 12px);max-height:calc(100vh - var(--shh,120px) - 24px);overflow-y:auto;display:flex;flex-direction:column;gap:16px;overscroll-behavior:contain}
+ .lside>*{margin:0!important}
+ body.mm .lside>.mmsum.strip{margin:0!important;width:auto!important;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+ .lsplit .days{columns:auto!important;min-width:0}
+ .lsplit .days>*{margin-bottom:16px}
+}
+@media (min-width:1000px){.stickhead.cmp .hc-cx{display:inline-flex;align-items:center;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;padding:0 6px}.stickhead.cmp .hc-cx{color:inherit}}
 /* ===== Desktop ===== */
 .tb-new{display:none!important}
 @media (min-width:1000px){
@@ -1262,8 +1274,8 @@ function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class
    ${!o.month&&!o.stats&&!o.back&&!o.slim?`<div class="hc-month hc-bigt${o.big?'':' dup'}"><span class="hc-sp"></span><b>${o.big||o.title}</b><span class="hc-sp"></span></div>`:''}
    ${o.stats||''}</header>
    ${o.tabs?`<div class="seg" id="${o.tabs.id}">${items}</div>`:''}</div>`}
-function stickCmp(){const sh=document.querySelector('#app .stickhead,#app .lthead');if(!sh)return;const de=document.scrollingElement||document.documentElement,bd=document.body,y=scrollY||de.scrollTop||bd.scrollTop||0,th=sh.querySelector('.carw')?120:56,on=sh.classList.contains('cmp'),room=Math.max(de.scrollHeight-de.clientHeight,bd.scrollHeight-bd.clientHeight);
-  if(!on&&y>th&&room>th+160)sh.classList.add('cmp');else if(on&&y<16)sh.classList.remove('cmp')}
+function stickCmp(){const sh=document.querySelector('#app .stickhead,#app .lthead');if(!sh)return;const de=document.scrollingElement||document.documentElement,bd=document.body,y=scrollY||de.scrollTop||bd.scrollTop||0,th=innerWidth>=1000?200:sh.querySelector('.carw')?120:56,on=sh.classList.contains('cmp'),room=Math.max(de.scrollHeight-de.clientHeight,bd.scrollHeight-bd.clientHeight);
+  if(!on&&y>th&&room>th+160)sh.classList.add('cmp');else if(on&&y<16)sh.classList.remove('cmp');if(sh.classList.contains('stickhead'))requestAnimationFrame(()=>document.documentElement.style.setProperty('--shh',sh.getBoundingClientRect().bottom+'px'))}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.stickhead.cmp .hc-t,.stickhead.cmp .hc-big,.stickhead.cmp .hc-month b,.lthead.cmp .lt');if(t){scrollTo({top:0,behavior:'smooth'});document.body.scrollTo({top:0,behavior:'smooth'})}});
 addEventListener('scroll',stickCmp,{passive:true,capture:true});
 function stickSeg(){setTimeout(stickCmp,0);document.querySelectorAll('#app .stickhead').forEach(h=>{let n=h.nextElementSibling;while(n&&n.classList.contains('seg')){const m=n.nextElementSibling;h.appendChild(n);n=m}})}
@@ -2015,9 +2027,9 @@ function recVirt(fromT,toT){const out=[],nowT=Date.now();for(let k=-1;k<=13;k++)
    const v=recView(r,p);out.push({id:'v_'+r.id+'_'+pk,type:r.type,b:r.b,to:r.to,c:r.c||'',a:v.a,n:r.n,t,rid:r.id,pk,virt:true,alloc:r.alloc,adj:v.kind?v:null})})}return out}
 const expV=(fromT,toT)=>S.exp.concat(recVirt(fromT,toT));
 function openVirt(id){const v=recVirt(0,9e15).find(x=>x.id==id);if(!v)return;openSheet(null,{type:v.type,b:v.b,to:v.to||ALL.find(a=>a!=v.b),c:v.c,amt:String(v.a),n:v.n,dt:ymd(v.t),rid:v.rid,pk:v.pk,alloc:v.alloc,adj:v.adj})}
-function dayBlocks(L){const fut=L.filter(isPlan);L=L.filter(e=>!isPlan(e));const planH=fut.length?`<div class="mmcard plan"><div class="dayh"><span class="dnum" style="font-size:15px">Geplant</span><span></span><span class="my">${fut.length} zukünftige Buchungen${fut.some(e=>e.virt)?' inkl. wiederkehrender':''} · zählen erst am Tag selbst</span><span class="in">${eur(fut.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0))}</span><span class="out">${eur(fut.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0))}</span></div>${fut.sort((a,b)=>b.t-a.t).map(e=>e.virt?mmRow0(e):mmRow(e)).join('')}</div>`:'';
+function dayBlocks(L,parts){const fut=L.filter(isPlan);L=L.filter(e=>!isPlan(e));const planH=fut.length?`<div class="mmcard plan"><div class="dayh"><span class="dnum" style="font-size:15px">Geplant</span><span></span><span class="my">${fut.length} zukünftige Buchungen${fut.some(e=>e.virt)?' inkl. wiederkehrender':''} · zählen erst am Tag selbst</span><span class="in">${eur(fut.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0))}</span><span class="out">${eur(fut.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0))}</span></div>${fut.sort((a,b)=>b.t-a.t).map(e=>e.virt?mmRow0(e):mmRow(e)).join('')}</div>`:'';
   const td=new Date(),noToday=tab=='list'&&off==0&&!L.some(e=>new Date(e.t).toDateString()==td.toDateString()),todayH=noToday?`<div class="mmcard"><div class="dayh"><span class="dnum">${td.getDate()}</span><span class="wd ${td.getDay()==0?'sun':td.getDay()==6?'sat':''}">${WDS[td.getDay()]}</span><span class="my">${String(td.getMonth()+1).padStart(2,'0')}.${td.getFullYear()} · Heute</span><span></span><span></span></div><div class="empty" style="padding:10px 16px">Heute noch nichts gebucht.</div></div>`:'';
-  return planH+(fut.length?'<div id="listNow"></div><div style="min-height:calc(100vh - 140px)">':'')+todayH+(L.length||!fut.length?dayBlocks0(L):'')+(fut.length?'</div>':'')}
+  const rest=(fut.length?'<div id="listNow"></div><div style="min-height:calc(100vh - 140px)">':'')+todayH+(L.length||!fut.length?dayBlocks0(L):'')+(fut.length?'</div>':'');return parts?[planH,rest]:planH+rest}
 function dayBlocks0(L){if(!L.length)return '<div class="mmcard"><div class="empty">Keine Buchungen.</div></div>';
   const by={};L.slice().sort((a,b)=>b.t-a.t).forEach(e=>{const k=new Date(e.t).toDateString();(by[k]=by[k]||[]).push(e)});
   return Object.entries(by).map(([k,es])=>{const d=new Date(k),inc=es.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),out=es.filter(e=>e.type=='out').reduce((s,e)=>s+e.a+ruA(e),0),we=d.getDay();
@@ -2066,7 +2078,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
   const LW=wk?L.filter(e=>e.t>=wk[0]&&e.t<wk[1]):L;
   const LA=off>0?LW:LW.filter(e=>!isPlan(e)),out=LA.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0),inc=LA.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0);
   const fAct=flt!='Alle'||tflt!='Alle'||!!q||!!wk;
-  const head=appbar({title:'Buchungen',month:true,left:`<button class="ab-ic ${showF||fAct?'act':''}" id="fBtn" aria-label="Suchen und filtern">${I('search',21)}</button>`,tabs:{id:'listV',cur:listV,items:LV.map(x=>[x,x])}});
+  const bal=inc-out;const head=appbar({title:'Buchungen',month:true,right:`<span class="hc-cx ${bal<0?'out':'in'}" title="Einnahmen − Ausgaben">${eur(bal)}</span>`,left:`<button class="ab-ic ${showF||fAct?'act':''}" id="fBtn" aria-label="Suchen und filtern">${I('search',21)}</button>`,tabs:{id:'listV',cur:listV,items:LV.map(x=>[x,x])}});
   const sum=(i,o)=>`<div class="mmsum strip"><div>Einnahmen${off>0?' geplant':''}<b class="in">${eur(i)}</b></div><div>Ausgaben${off>0?' geplant':''}<b class="out">${eur(o)}</b></div><div>Einnahmen − Ausgaben<b class="${i-o<0?'out':''}">${eur(i-o)}</b></div></div>`;
   const filt=!(showF||fAct)?'':`<div class="fpanel"><label class="search" for="q">${I('search',17)}<input id="q" type="search" placeholder="Suchen: Notiz, Kategorie, Person, Betrag" value="${esc(q)}"></label>
   <div class="seg" id="flt">${['Alle',...BN].map(b=>`<button class="${flt==b?'on':''}" data-f="${b}">${b=='Alle'?b:esc(SHORT[b])}</button>`).join('')}</div>
@@ -2088,7 +2100,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
     <div class="mmcard">${rows.map(r=>`<button class="mrow" data-mo="${r.o}"><span class="mlab"><b>${r.pp.s.toLocaleDateString('de-DE',{month:'short'})}</b><small>${r.pp.s.getFullYear()}</small></span>
      <span class="mbars"><i class="in" style="width:${(r.i/mx*100).toFixed(1)}%"></i><i class="out" style="width:${(r.x/mx*100).toFixed(1)}%"></i></span>
      <span class="mval"><span class="in">${eur0(r.i)}</span><span class="out">${eur0(r.x)}</span><span class="${r.i-r.x<0?'out':''}" style="font-weight:600">${eur0(r.i-r.x)}</span></span></button>`).join('')}</div>`}
-  return head+sum(inc,out)+filt+`<div class="days">${dayBlocks(LW)}</div>`}
+  const [ph,rest]=dayBlocks(LW,1);return head+`<div class="lsplit"><aside class="lside">${sum(inc,out)+filt+ph}</aside><div class="days">${rest}</div></div>`}
 function donut(parts){const tot=parts.reduce((s,x)=>s+x.v,0);if(!tot)return '<div class="empty">Keine Ausgaben in diesem Zeitraum.</div>';
   let a=-Math.PI/2,paths='';const R=70,r=44,c=90;
   parts.forEach(x=>{const f=x.v/tot,a2=a+f*Math.PI*2-.0001,lg=f>.5?1:0;
