@@ -5740,8 +5740,8 @@ const SIRI_GUIDE=[
  ['So funktioniert es',[
   'Den Schlüssel tippst du nirgends ein. Er steckt schon in den Adressen unter Siri & Kurzbefehle. Du tippst dort nur auf *Kopieren* und fügst die Adresse im Kurzbefehl ein.',
   'Neue Aktionen fügst du unten über das Suchfeld *Aktion suchen* hinzu.',
-  'In *Inhalte von URL abrufen* aufs URL-Feld tippen, Platzhalter löschen, lange drücken › *Einsetzen*.',
-  'Danach Cursor ans Ende, in der Leiste über der Tastatur *URL-codierter Text* antippen. Die blaue Marke steht dann direkt hinter der Adresse.',
+  'Die Adresse kommt immer in eine eigene Aktion *Text*: ins Feld tippen, lange drücken › *Einsetzen*. Direkt dahinter, ohne Leerzeichen, in der Leiste über der Tastatur *URL-codierter Text* antippen.',
+  'In *Inhalte von URL abrufen* (bzw. *URLs öffnen*) kommt dann nur die Variable *Text* ins URL-Feld. Die Adresse nie direkt dort einfügen, sonst meldet iOS „Keine Konvertierung von Formatierter Text in URL“.',
   'Umbenennen: oben auf den Namen tippen › *Umbenennen*. Der Name ist der Satz für Siri.',
   'Reihenfolge: zuerst 1, 7 und 4, den Rest später.']],
  ['Kurzbefehl 1 · „CashFlow“ – Buchung per Sprache',[
@@ -5749,7 +5749,8 @@ const SIRI_GUIDE=[
   'Kurzbefehle-App › *+* oben rechts.',
   'Aktion *Text diktieren*.',
   'Aktion *URL codieren* – nimmt den diktierten Text automatisch.',
-  'Aktion *Inhalte von URL abrufen* – Adresse einfügen, *URL-codierter Text* dahinter.',
+  'Aktion *Text* – Adresse einsetzen, *URL-codierter Text* direkt dahinter.',
+  'Aktion *Inhalte von URL abrufen* – ins URL-Feld nur die Variable *Text*.',
   'Aktion *Text sprechen*.',
   'Name: *CashFlow*. Test: „Hey Siri, CashFlow“ › „12 Euro Rewe“.']],
  ['Kurzbefehl 7 · „CashFlow Einkauf“',[
@@ -5758,13 +5759,15 @@ const SIRI_GUIDE=[
  ['Kurzbefehl 5 · „CashFlow leisten“',[
   'Genau wie Kurzbefehl 1, mit der Adresse von Kurzbefehl 5.']],
  ['Kurzbefehle 2 und 6 · „CashFlow Stand“ / „CashFlow Woche“',[
-  'Aktion *Inhalte von URL abrufen* mit der Adresse von 2 bzw. 6 (ohne Variable).',
+  'Aktion *Text* mit der Adresse von 2 bzw. 6 (ohne Variable).',
+  'Aktion *Inhalte von URL abrufen* – ins URL-Feld die Variable *Text*.',
   'Aktion *Text sprechen*.',
   'Passend benennen.']],
  ['Kurzbefehl 3 · „CashFlow fragen“',[
   'Aktion *Text diktieren*.',
   'Aktion *URL codieren*.',
-  'Aktion *URLs öffnen* – Adresse von Kurzbefehl 3, *URL-codierter Text* dahinter.']],
+  'Aktion *Text* – Adresse von Kurzbefehl 3, *URL-codierter Text* direkt dahinter.',
+  'Aktion *URLs öffnen* mit der Variable *Text*.']],
  ['Kurzbefehl 4 · Apple Pay (automatisch)',[
   'Kurzbefehle-App › Tab *Automation* › *+* › *Wallet*.',
   'Alle Karten wählen, *Sofort ausführen* an, „Bei Ausführung benachrichtigen“ aus › Weiter › *Neuer leerer Kurzbefehl*.',
@@ -5773,19 +5776,22 @@ const SIRI_GUIDE=[
   '„ · Karte: “ tippen, *Kurzbefehl-Eingabe* › *Karte*.',
   '„ · “ tippen, Variable *Aktuelles Datum*.',
   'Aktion *URL codieren*.',
-  'Aktion *Inhalte von URL abrufen* – Adresse von Kurzbefehl 4, *URL-codierter Text* dahinter.',
+  'Zweite Aktion *Text* – Adresse von Kurzbefehl 4, *URL-codierter Text* direkt dahinter.',
+  'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion (mit der Adresse) antippen.',
   'Alte Apple-Pay-Automation mit „In Zwischenablage kopieren“ löschen.']],
  ['Kurzbefehl 8 · Beleg teilen (optional)',[
   'Neuer Kurzbefehl *An CashFlow* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: Bilder.',
   'Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
   'Aktion *Text*: „Beleg: “ tippen, Variable *Text aus Bild*.',
-  'Aktion *URL codieren*, dann *Inhalte von URL abrufen* – Adresse von Kurzbefehl 8, *URL-codierter Text* dahinter.',
+  'Aktion *URL codieren*, dann zweite Aktion *Text* – Adresse von Kurzbefehl 8, *URL-codierter Text* direkt dahinter.',
+  'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion antippen.',
   'Optional *Mitteilung anzeigen* mit „Inhalte der URL“.',
   'Benutzen: Bon fotografieren › Teilen › *An CashFlow*.']],
  ['Kurzbefehl 9 · Mail (optional)',[
   'Tab *Automation* › *+* › *E-Mail* › Absender wählen (z. B. PayPal) › *Sofort ausführen* › Neuer leerer Kurzbefehl.',
   'Aktion *Text*: „Mitteilung: “, dann *Kurzbefehl-Eingabe › Betreff*, Leerzeichen, *Kurzbefehl-Eingabe › Inhalt*.',
-  'Aktion *URL codieren*, dann *Inhalte von URL abrufen* – Adresse von Kurzbefehl 9, *URL-codierter Text* dahinter.']],
+  'Aktion *URL codieren*, dann zweite Aktion *Text* – Adresse von Kurzbefehl 9, *URL-codierter Text* direkt dahinter.',
+  'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion antippen.']],
  ['Aufräumen',[
   'Alte Kurzbefehle mit der Aktion „In Zwischenablage kopieren“ löschen.',
   'Klappt etwas nicht: unten auf dieser Seite „Stand abrufen“ testen. Kommt ein Text, laufen Schlüssel und Funktion.']]];
@@ -5808,49 +5814,49 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
    ${sk?`<div class="sec"><div class="sh">Kurzbefehl 1 · „CashFlow“ – eintragen</div><div class="group">${cp('siA',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Kurzbefehle-App › + › „Text diktieren“','Sprache: Deutsch.')}
      ${step(2,'„Text URL-codieren“','Nimmt automatisch den diktierten Text.')}
-     ${step(3,'„Inhalte von URL abrufen“','Adresse oben kopieren und einfügen, direkt dahinter die Variable „URL-codierter Text“ setzen. Sonst nichts ändern.')}
+     ${step(3,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}
      ${step(4,'„Text sprechen“','Spricht die Antwort („Notiert: …“). Kurzbefehl „CashFlow“ nennen – fertig.')}</div>
      <div class="note">Beispiele: „Rewe 23,40“ · „Tanken 60 von Flow“ · „Milch und Eier auf die Einkaufsliste“ · „Wunsch Kopfhörer 89 Euro“ · „Journal: wollte Sneaker, gestresst, widerstanden“ · „Notbremse“. Übernommen wird beim nächsten Öffnen der App.</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 2 · „CashFlow Stand“ – vorlesen</div><div class="group">${cp('siB',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=stand')}</div><div class="mmcard">
-     ${step(1,'„Inhalte von URL abrufen“','Adresse oben einfügen, fertig.')}
+     ${step(1,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben. Hier dann nur die Variable „Text“ einsetzen.')}
      ${step(2,'„Text sprechen“','Siri liest Budgets, Tagesbudget, heutige Ausgaben, Tresor, Termine und Depot vor – Stand deiner letzten App-Nutzung.')}</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 3 · „CashFlow fragen“ – Assistent</div><div class="group">${cp('siQ',app+'?frage=')}</div><div class="mmcard">
      ${step(1,'„Text diktieren“','Deine Frage, z. B. „Wie viel habe ich im Oktober bei Rewe ausgegeben?“')}
      ${step(2,'„Text URL-codieren“','')}
-     ${step(3,'„URLs öffnen“','Adresse oben einfügen, dahinter „URL-codierter Text“. CashFlow öffnet sich mit der Frage im Assistenten.')}</div>
+     ${step(3,'„URLs öffnen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}</div>
      <div class="group">${cp('siS',app+'?sag=')}</div><div class="note">Variante ohne Ablage: dieselben drei Schritte mit dieser Adresse – CashFlow öffnet sich kurz und trägt sofort ein.</div>
      <div class="note">Tipp: Wenn alles läuft, teile jeden Kurzbefehl einmal über „iCloud-Link kopieren“ und leg die Links z. B. in Notizen ab. Auf einem neuen iPhone reicht dann ein Tipp.</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 4 · Apple Pay (Automation)</div><div class="group">${cp('siP',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Kurzbefehle › Automation › + › Wallet','Alle Karten, „Sofort ausführen“ an, „Bei Ausführung benachrichtigen“ aus.')}
      ${step(2,'„Text“','Apple Pay [Transaktion › Händler] [Transaktion › Betrag] · Karte: [Transaktion › Karte] · [Aktuelles Datum]')}
      ${step(3,'„Text URL-codieren“','Nimmt automatisch den Text aus Schritt 2.')}
-     ${step(4,'„Inhalte von URL abrufen“','Adresse oben einfügen, direkt dahinter die Variable „URL-codierter Text“.')}</div>
+     ${step(4,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}</div>
      <div class="note">Die Zwischenablage wird beim Öffnen nicht mehr geprüft. Wer noch alte Kurzbefehle nutzt, schaltet das unter Mehr › Funktionen &amp; Ansicht › „Zwischenablage beim Öffnen prüfen“ wieder ein; dann werden nur Texte von Kurzbefehlen übernommen.</div>
      <div class="note">Ersetzt den alten Weg über die Zwischenablage: Jede Zahlung landet sicher in deiner Ablage, auch wenn du zwischendurch etwas kopierst. Mit eingeschalteten Mitteilungen kommt sofort ein Hinweis, wie viel im Budget noch übrig ist. Beim Öffnen der App bestätigst du alle Zahlungen auf einmal.</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 5 · „CashFlow leisten“</div><div class="group">${cp('siL',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=leisten&txt=')}</div><div class="mmcard">
      ${step(1,'„Text diktieren“','Zum Beispiel „80 Euro“ oder „120 aus Flow“.')}
      ${step(2,'„Text URL-codieren“','')}
-     ${step(3,'„Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}
+     ${step(3,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}
      ${step(4,'„Text sprechen“','Siri sagt Ja, Ja aber oder Nein und was danach übrig bleibt.')}</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 6 · „CashFlow Woche“</div><div class="group">${cp('siW',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=woche')}</div><div class="mmcard">
-     ${step(1,'„Inhalte von URL abrufen“','Adresse oben einfügen.')}
+     ${step(1,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben. Hier dann nur die Variable „Text“ einsetzen.')}
      ${step(2,'„Text sprechen“','Abbuchungen, Einnahmen, Fristen und Wünsche der nächsten 7 Tage.')}</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 7 · „CashFlow Einkauf“</div><div class="group">${cp('siE',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=Einkaufsliste%20')}</div><div class="mmcard">
      ${step(1,'„Text diktieren“','Zum Beispiel „Milch, zwei Brot und Eier“.')}
      ${step(2,'„Text URL-codieren“','')}
-     ${step(3,'„Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}
+     ${step(3,'„Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}
      ${step(4,'„Text sprechen“','Kurzbefehl „CashFlow Einkauf“ nennen.')}</div>
      <div class="note">Ersetzt den alten Einkaufs-Kurzbefehl über die Zwischenablage. Was du selbst kopierst, landet so nie mehr auf dem Zettel.</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siS',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: Bilder und Text.')}
      ${step(2,'„Text aus Bild extrahieren“','Aus Kurzbefehl-Eingabe. Liest Bon-Fotos und Screenshots direkt auf dem iPhone.')}
      ${step(3,'„Text“','Beleg: [Text aus Bild]')}
-     ${step(4,'„Text URL-codieren“ › „Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}</div>
+     ${step(4,'„Text URL-codieren“ › „Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}</div>
      <div class="note">Bon fotografieren oder Bestellbestätigung als Screenshot › Teilen › „An CashFlow“. CashFlow sucht Summe, Händler und Datum und legt dir die Buchung beim Öffnen zum Bestätigen vor. Braucht die Funktion „push“ ab v8 (Mehr › Supabase-Einrichtung).</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 9 · Mail & SMS (Automation)</div><div class="group">${cp('siM',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Automation › + › „E-Mail“ oder „Nachricht“','Absender z. B. PayPal, Amazon oder deine Bank; bei SMS „Nachricht enthält €“. „Sofort ausführen“ an.')}
      ${step(2,'„Text“','Mitteilung: [Kurzbefehl-Eingabe › Betreff] [Kurzbefehl-Eingabe › Inhalt]')}
-     ${step(3,'„Text URL-codieren“ › „Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}</div>
+     ${step(3,'„Text URL-codieren“ › „Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}</div>
      <div class="note">Erfasst Online-Käufe, Lastschriften und Gutschriften, die nicht über Apple Pay laufen. Nichts wird ohne deine Bestätigung gebucht. Beim Kontoauszug-Import gleicht CashFlow diese Buchungen ab.</div></div>
    <div class="sec"><div class="sh">Kalender-Abo</div><div class="group">${cp('siC',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=ics')}</div><div class="mmcard">
      ${step(1,'iPhone-Einstellungen › Apps › Kalender › Kalenderaccounts','„Account hinzufügen“ › „Andere“ › „Kalenderabo hinzufügen“.')}
