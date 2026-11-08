@@ -2862,16 +2862,18 @@ function impRows(){const m=IMP.map,g=(r,k)=>m[k]!=null?(r[m[k]]||'').trim():'';c
     let c=g(r,'cat'),sc=g(r,'sub');if(!sc&&/ [›>\/:] /.test(c)){[c,sc]=c.split(/ [›>\/:] /)}
     out.push({t,a:Math.round(a*100)/100,type,acct:g(r,'acct'),to:g(r,'to'),c:c||'Sonstiges',sc,n:g(r,'note'),p:g(r,'person'),tg:g(r,'tags')})});return out}
 function impAccts(list){return [...new Set(list.flatMap(e=>[e.acct,e.type=='tr'?e.to:'']).filter(Boolean))]}
-function impRun(){const list=impRows(),batch=uid(),acs=impAccts(list);let added=0,dup=0;
+function impRun(){const list=impRows(),batch=uid(),acs=impAccts(list);let added=0,dup=0,match=0;const quick=x=>(x.tg||[]).some(g=>g=='siri'||g=='applepay'||g=='einkaufszettel');
   acs.forEach(a=>{const tgt=IMP.acctMap[a]||(ALL.includes(a)?a:'__new');if(tgt=='__new'&&!ALL.includes(a)){const col=ACOL.find(c=>!S.accts.some(x=>x.col==c))||ACOL[7];
       const an=safeAcct(a);S.accts.push({n:an,kind:'konto',col,vis:true,tot:false,start:0});S.cats[an]=[["Sonstiges","dot"]];S.bg[an]={g:7};IMP.acctMap[a]=an}else IMP.acctMap[a]=tgt=='__new'?a:tgt});refreshA();
   list.forEach(e=>{const b=e.acct?IMP.acctMap[e.acct]:IMP.def,to=e.type=='tr'?(e.to?IMP.acctMap[e.to]:null):null;if(e.type=='tr'&&!to)e.type='out';
     if(S.exp.some(x=>x.b==b&&x.a==e.a&&Math.abs(x.t-e.t)<864e5&&(x.n||'')==(e.n||'')&&x.type==e.type)){dup++;return}
+    {const sx=S.exp.find(x=>!x.bank&&quick(x)&&x.type==e.type&&Math.abs(x.a-e.a)<0.005&&Math.abs(x.t-e.t)<3*864e5);if(sx){sx.bank=batch;if(e.type!='tr'&&/sonst/i.test(sx.c||'')&&e.c&&!/sonst/i.test(e.c)&&cats(sx.b).some(c=>c[0]==e.c))sx.c=e.c;match++;return}}
     if(e.type!='tr'&&!cats(b).some(c=>c[0]==e.c))cats(b).splice(Math.max(cats(b).length-1,0),0,[e.c,'dot']);
     const r={id:uid(),type:e.type,b,c:e.type=='tr'?'':e.c,a:e.a,n:e.n,t:e.t,imp:batch};if(to)r.to=to;if(e.sc)r.sc=e.sc;if(e.p)r.p=e.p;
     const tg=e.tg.split(/[\s,]+/).map(x=>x.replace(/^#/,'')).filter(Boolean);if(tg.length)r.tg=tg;S.exp.push(r);added++});
   S.ex=false;S.imports=S.imports||[];S.imports.push({id:batch,t:Date.now(),n:added});
-  IMP={step:'done',added,dup,batch,rec:detectRec(batch)};save()}
+  const ts=list.map(e=>e.t).filter(Boolean),t0=Math.min(...ts),t1=Math.max(...ts),miss=ts.length?S.exp.filter(x=>quick(x)&&!x.bank&&x.t>=t0&&x.t<=t1+864e5).length:0;
+  IMP={step:'done',added,dup,match,miss,batch,rec:detectRec(batch)};save()}
 function detectRec(batch){const L=S.exp.filter(e=>e.imp==batch&&e.type!='tr'),g={};
   L.forEach(e=>{const k=[e.type,e.b,(e.n||e.c).toLowerCase(),Math.round(e.a)].join('|');(g[k]=g[k]||[]).push(e)});
   const last=Math.max(...L.map(e=>e.t),0),cands=[];
@@ -2913,7 +2915,7 @@ function viewImport(){const back=`<div class="lthead"><button class="back" id="s
    <div class="sec"><div class="sh">Vorschau</div><div class="mmcard">${list.slice(0,6).map(e=>`<div class="mmrow" style="cursor:default"><span class="mmcat">${esc(e.c)}${e.sc?'<br><small>'+esc(e.sc)+'</small>':''}</span><span class="mmnote"><span>${esc(e.n||'–')}</span><small>${new Date(e.t).toLocaleDateString('de-DE')} · ${esc(e.acct||IMP.def)}</small></span><span class="amt ${e.type=='in'?'in':e.type=='tr'?'trc':'out'}">${e.type=='out'?'−':''}${eur(e.a)}</span></div>`).join('')||'<div class="empty">Noch nichts erkannt. Prüfe Datum und Betrag oben.</div>'}</div>
     <div class="note">${list.length-ins} Ausgaben/Umbuchungen, ${ins} Einnahmen. Doppelte Buchungen werden übersprungen.</div></div>
    <button class="btn" id="impGo" ${list.length?'':'disabled'}>${list.length} Buchungen importieren</button><button class="btn soft" id="impCancel">Abbrechen</button>`}
-  return back+`<div class="tip" style="border-left-color:var(--ok)"><b>Import fertig.</b> ${IMP.added} Buchungen übernommen${IMP.dup?`, ${IMP.dup} Doppelte übersprungen`:''}.</div>
+  return back+`<div class="tip" style="border-left-color:var(--ok)"><b>Import fertig.</b> ${IMP.added} Buchungen übernommen${IMP.dup?`, ${IMP.dup} Doppelte übersprungen`:''}${IMP.match?`, ${IMP.match} mit Siri/Apple Pay abgeglichen`:''}.${IMP.miss?` ${IMP.miss} Siri/Apple-Pay-Buchung${IMP.miss>1?'en haben':' hat'} im Auszug kein Gegenstück, bitte prüfen (doppelt oder falscher Betrag?).`:''}</div>
    <div class="sec"><div class="sh">Erkannte wiederkehrende Buchungen</div><div class="group">${IMP.rec.map((r,i)=>`<div class="cell"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${icoOf(r.b,r.c)}</div>
     <div class="t"><div>${esc(r.n)}</div><div class="s">Am ${r.day}. · ${esc(r.b)} · ${r.cnt} Monate gefunden</div></div><div class="v ${r.type=='in'?'in':'out'}">${r.type=='in'?'+':'−'}${eur(r.a)}</div><input type="checkbox" class="switch" data-rc="${i}" ${r.on?'checked':''}></div>`).join('')||'<div class="empty">Keine regelmäßigen Buchungen gefunden.</div>'}</div>
     <div class="note">Mindestens drei Monate mit gleichem Betrag, ähnlichem Tag und gleicher Notiz. Prüfe die Auswahl, bevor du sie übernimmst.</div></div>
@@ -3677,7 +3679,7 @@ async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render
   st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
   st.bak=await t(async()=>{const r=await syFetch('/rest/v1/cashflow_backup?select=ym&limit=1');return r.ok});
   st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.kursev=j.v||0;return (j.v||0)>=9?true:'old'});
-  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;pstSave(j);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});st.pushjwt=r2.status==401?'on':r2.ok?'off':'?'}catch(e){st.pushjwt='?'}return (j.v||0)>=7?true:'old'});
+  st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;pstSave(j);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});st.pushjwt=r2.status==401?'on':r2.ok?'off':'?'}catch(e){st.pushjwt='?'}return (j.v||0)>=8?true:'old'});
   st.pushsql=await t(async()=>{const a=await syFetch('/rest/v1/push_brief?select=user_id&limit=1'),b=await syFetch('/rest/v1/push_queue?select=id&limit=1'),c=await syFetch('/rest/v1/inbox?select=id&limit=1');return a.ok&&b.ok&&c.ok?true:b.ok?'old':false});
   st.aisql=await t(async()=>{const r=await syFetch('/rest/v1/ai_usage?select=d&limit=1');return r.ok});
   st.ai=await t(async()=>{const r=await syFetch('/functions/v1/ai',{method:'POST',body:JSON.stringify({op:'status'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.aiv=j.v||0;return j.key?((j.v||0)>=1?true:'old'):'err'});
@@ -3685,7 +3687,7 @@ async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render
 function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','check']:v==='old'?['Veraltet, bitte neu einspielen','warn','up']:v===false?['Fehlt noch','bad','alert']:v==='err'?['Antwortet mit Fehler','bad','alert']:['Noch nicht geprüft','muted','dot'];
   return `<div class="anchor">${I('lock',16)}<span>Hier liegt alles, was du in Supabase einfügen musst. Reihenfolge von oben nach unten. Ein erneutes Einfügen schadet nie: SQL und Code überschreiben nur die alte Version.</span></div>
    ${syOn()?`<button class="btn" id="setupChk">${SETUP.busy?'Prüfe …':'Status prüfen'}</button>${st.at?`<div class="note" style="text-align:center;padding:0">Zuletzt geprüft ${new Date(st.at).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`:'<div class="tip">Zuerst unter Mehr › Online-Sync verbinden. Für Schritt 1 brauchst du nur das SQL unten.</div>'}
-   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,7],ai:[st.aiv,1]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
+   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,8],ai:[st.aiv,1]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
      <div class="setup-b">${x.what}</div>${x.k=='push'&&pushOn()?pstHtml():''}<div class="setup-w">${I('pin',13)} ${x.where}</div>
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
@@ -3818,7 +3820,7 @@ function viewSet(k){const back=`<div class="lthead"><button class="back" id="set
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- Konfiguration: Funktionen ein- und ausblenden ---------- */
-const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,0,0]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['ru','Wechselgeld',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Siri & Apple Pay beim Öffnen anbieten',[1,1,1]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
+const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,0,0]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['ru','Wechselgeld',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Zwischenablage beim Öffnen prüfen (alte Kurzbefehle)',[0,0,0]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
 const FEATP=['Einfach','Standard','Alles'];
 const FEATK=Object.fromEntries(FEATS.flatMap(([,l])=>l.map(([k,n,p])=>[k,{n,p}])));
 function featOn(k){const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?1:S.featP]:true}
@@ -4519,31 +4521,31 @@ Deno.serve(async (req) => {
         const evs = (d.ev || []).filter((e) => e.d >= B.ymd).slice(0, 4).map((e) => (e.d === B.ymd ? "heute " : "") + e.t); if (evs.length) L.push("Demnächst: " + evs.join(", ") + ".");
         if (d.pos && d.pos.length) { let ws = 0, wp = 0; for (const p of d.pos.slice(0, 10)) { const m = await move(p); if (m == null) continue; ws += p.w || 0; wp += (p.w || 0) * m; } if (ws) L.push("Depot heute " + PC(wp / ws) + "."); }
         if (at) L.push("Stand " + new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(at) + " Uhr.");
-        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 7 });
+        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 8 });
       }
-      const txt = String(body.txt || "").trim().slice(0, 300); if (!txt) return SAY("Ich habe nichts verstanden.");
+      const txt0 = String(body.txt || "").trim(), big = /^(beleg|mitteilung|mail|sms)\\s*:/i.test(txt0), txt = txt0.slice(0, big ? 4000 : 300); if (!txt) return SAY("Ich habe nichts verstanden.");
       const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su); if ((count || 0) >= 50) return SAY("Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter.");
       const { error } = await sb.from("inbox").insert({ user_id: su, txt }); if (error) return SAY("Konnte nicht speichern.", 500);
       if (/^apple ?pay/i.test(txt)) { try { await payPush(su, txt); } catch (_) {} }
-      return SAY("Notiert: " + txt, 200, { v: 7 });
+      return SAY(big ? "In CashFlow abgelegt. Beim Öffnen bestätigen." : "Notiert: " + txt, 200, { v: 8 });
     }
-    if (body.op === "ping") return J({ pong: true, v: 7 });
+    if (body.op === "ping") return J({ pong: true, v: 8 });
     const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
     const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
     if (!uid) return J({ error: "not signed in" }, 401);
-    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 7, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
+    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 8, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
     if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
     if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
     if (body.op === "plan") {
       await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
       const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
       if (items.length) await sb.from("push_queue").insert(items);
-      return J({ ok: true, n: items.length, v: 7 });
+      return J({ ok: true, n: items.length, v: 8 });
     }
-    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 7 }); }
+    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 8 }); }
     if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); const n = await sendTo(uid, m); if (body.real && n) await sb.from("push_brief").update(body.kind === "e" ? { sent_e: berlin().ymd } : { sent_m: berlin().ymd }).eq("user_id", uid); return J({ ok: true, sent: n, msg: m }); }
-    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 7 }); }
-    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 7 }); }
+    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 8 }); }
+    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 8 }); }
     if (body.op === "inbox_del") { const ids = (body.ids || []).map(Number).filter(Boolean); if (ids.length) await sb.from("inbox").delete().eq("user_id", uid).in("id", ids); return J({ ok: true }); }
     if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
     return J({ error: "unknown op" }, 400);
@@ -5520,6 +5522,7 @@ function siriApplyOne(txt){const v=String(txt||'').trim(),l=v.toLowerCase();if(!
   if(/monatlich|jährlich|vierteljährlich|wöchentlich|dauerauftrag/.test(l))return{ok:false,why:'Dauerauftrag – bitte prüfen'}
   const parts=spoken(v).split(/,\s+|\s+(?:und|plus|sowie)\s+/).filter(Boolean),sv=E,made=[],bad=[];
   (parts.length>1&&parts.every(p=>/\d/.test(p))?parts:[v]).forEach(p=>{E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};qp(p);const a=Math.round((pNum(E.amt)||0)*100)/100;if(!a){bad.push(p+': kein Betrag');return}
+    if(!E.c&&E.type=='out'){const g=E.n?clipGuess(E.n):null;if(g&&g.c){if(!(cats(E.b)||[]).some(k=>k[0]==g.c)&&g.b)E.b=g.b;E.c=g.c}else{bad.push(p+': Kategorie unklar, bitte zuordnen');return}}
     if(!E.c&&E.type!='tr')E.c=((cats(E.b)||[]).find(k=>/sonst/i.test(k[0]))||(cats(E.b)||[['Sonstiges']])[0])[0];
     if(E.type!='in'&&isTabu(E.b)){bad.push(p+': '+E.b+' ist tabu');return}
     if(E.type=='tr'&&isLock(E.to)){bad.push(p+': Notfallbremse '+E.to);return}
@@ -5532,7 +5535,23 @@ function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[];cons
   if(pend.length)S.siriPend=[...(S.siriPend||[]),...pend];$('sheetRoot').innerHTML='';save();render();
   const n=items.length;toast(`${n} ${n==1?'Eintrag':'Einträge'} aus Siri übernommen${pend.length?' · '+pend.length+' bitte prüfen':''}`,()=>{S=JSON.parse(before);save();render()});
   if(S.urgePend){delete S.urgePend;save();setTimeout(()=>openUrge(),600)}return{done,pend}}
-let siriBusy=false;async function siriPull(force){if(siriBusy||!syOn()||!navigator.onLine)return;if(!force&&!siriGet())return;siriBusy=true;try{const j=await pushCall('inbox');const it=j.items||[];if(it.length){const pay=it.filter(x=>CLIPPFX.test(String(x.txt||'').trim())),rest=it.filter(x=>!pay.includes(x));if(rest.length)siriApplyAll(rest);await pushCall('inbox_del',{ids:it.map(x=>x.id)});if(pay.length)TIPFN.clipRun(pay.map(x=>{const v=String(x.txt).trim();return /\d{1,2}\.\d{1,2}\.\d{2,4}/.test(v)?v:v+' · '+new Date(Date.parse(x.created_at)||Date.now()).toLocaleString('de-DE')}).join('\n'))}else if(force)toast('Keine neuen Einträge von Siri.')}catch(e){if(force)toast('Ablage nicht erreichbar: '+(e.message||e))}finally{siriBusy=false}}
+/* Beleg (Teilen-Menü, Text aus Bild) und Mitteilung (Mail/SMS-Automation) → „Buchung: Händler Betrag“ */
+const SMARTRX=/^\s*(beleg|mitteilung|mail|sms)\s*:\s*/i;
+function smartTxt(v){const raw=String(v||'').replace(SMARTRX,''),beleg=/^\s*beleg/i.test(v),L=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),flat=L.join(' ');
+  const AM=/(?:€|eur)?\s*(-?\d{1,3}(?:\.\d{3})+,\d{2}|-?\d+[.,]\d{2})(?!\d)\s*(?:€|eur\b)?/gi,num=x=>pNum(x.replace(/\.(?=\d{3})/g,'')),all=l=>[...l.matchAll(AM)].map(m=>Math.abs(num(m[1]))).filter(a=>a>0&&a<1e5);
+  let a=0;if(beleg){const tot=L.filter(l=>/summe|gesamt|total|zu zahlen|zahlbetrag|betrag|ec[- ]?karte|kartenzahlung|bar\b/i.test(l)&&!/mwst|ust|netto|steuer|rückgeld|gegeben/i.test(l)).flatMap(all);a=tot.length?Math.max(...tot):0;if(!a){const x=all(flat);a=x.length?Math.max(...x):0}}
+  else{const m=flat.match(/(-?\d{1,3}(?:\.\d{3})+,\d{2}|-?\d+[.,]\d{2})\s*(?:€|eur\b)|(?:€|eur)\s*(-?\d{1,3}(?:\.\d{3})+,\d{2}|-?\d+[.,]\d{2})/i);a=m?Math.abs(num(m[1]||m[2])):0;if(!a){const x=all(flat);a=x.length?x[0]:0}}
+  if(!a)return null;a=Math.round(a*100)/100;
+  const inc=!beleg&&/gutschrift|geld erhalten|zahlung erhalten|hat dir .{0,40}gesendet|eingang|überweisung von|erstattung|rückzahlung/i.test(flat);
+  let m='';const sm=flat.match(SUPRX);if(sm)m=sm[0].charAt(0).toUpperCase()+sm[0].slice(1).toLowerCase();
+  if(!m&&!beleg){const x=flat.match(/([A-ZÄÖÜ][\wÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß\-]+){0,2})\s+hat dir/);if(x)m=x[1]}
+  if(!m&&!beleg){const x=flat.match(/(?:zahlung an|an|bei|von|händler:?|empfänger:?)\s+([A-ZÄÖÜ0-9][\wÄÖÜäöüß&'\-]*(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß&'\-]*){0,2})/);if(x)m=x[1]}
+  if(!m&&beleg){const x=L.find(l=>/[a-zäöü]{3}/i.test(l)&&!/\d{2}/.test(l)&&l.length<=30);if(x)m=x}
+  if(!m&&/paypal/i.test(flat))m='PayPal';if(!m&&/amazon/i.test(flat))m='Amazon';
+  m=m.replace(/[\d,.:;€]+/g,' ').replace(/\b(und|plus|sowie)\b/gi,' ').replace(/\s+/g,' ').trim().slice(0,30);
+  const d=flat.match(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/);
+  return 'Buchung: '+(inc?'Gutschrift ':'')+(m||(beleg?'Beleg':inc?'':'Zahlung'))+' '+a.toFixed(2).replace('.',',')+(d?' · '+d[0]:'')}
+let siriBusy=false;async function siriPull(force){if(siriBusy||!syOn()||!navigator.onLine)return;if(!force&&!siriGet())return;siriBusy=true;try{const j=await pushCall('inbox');const it=j.items||[];if(it.length){const sm=it.filter(x=>SMARTRX.test(String(x.txt||''))),pay=it.filter(x=>!sm.includes(x)&&CLIPPFX.test(String(x.txt||'').trim())),rest=it.filter(x=>!pay.includes(x)&&!sm.includes(x));sm.forEach(x=>{const l=smartTxt(x.txt);if(l)pay.push({txt:l,created_at:x.created_at});else{S.siriPend=[...(S.siriPend||[]),{id:uid(),txt:String(x.txt).replace(SMARTRX,'').replace(/\s+/g,' ').slice(0,200),t:Date.parse(x.created_at)||Date.now(),why:'Kein Betrag im '+(/^\s*beleg/i.test(x.txt)?'Beleg':'Text')+' gefunden'}];save()}});if(rest.length)siriApplyAll(rest);await pushCall('inbox_del',{ids:it.map(x=>x.id)});if(pay.length)TIPFN.clipRun(pay.map(x=>{const v=String(x.txt).trim();return /\d{1,2}\.\d{1,2}\.\d{2,4}/.test(v)?v:v+' · '+new Date(Date.parse(x.created_at)||Date.now()).toLocaleString('de-DE')}).join('\n'))}else if(force)toast('Keine neuen Einträge von Siri.')}catch(e){if(force)toast('Ablage nicht erreichbar: '+(e.message||e))}finally{siriBusy=false}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>siriPull(),1500)});setTimeout(()=>siriPull(),3000);
 /* ---------- Wechselgeld (Aufrunden wie bei Revolut) ---------- */
 function ruS(){const R=S.ru=S.ru||{on:true,mult:1,apple:true,siri:true,manual:false,accs:[]};if(R.dep===undefined){const h=depot().find(x=>/robo/i.test((x.n||'')+' '+(x.sym||'')));R.dep=h?h.id:'';if(h&&!R.to)R.to=posAcc(h)}if(!R.to){const d=depAccs()[0];if(d)R.to=d}if(!R.accsV2&&typeof ALL!='undefined'&&ALL.length){const cash=b=>/^(cash|bargeld)/i.test(b),L=ALL.filter(b=>!isTabu(b));let a=(R.accs||[]).length?L.filter(b=>R.accs.includes(b)||!BUDG.includes(b)):L.slice();a=a.filter(b=>!cash(b));R.accs=a.length==L.length?[]:a;R.accsV2=true;try{save()}catch(e){}}return R}
@@ -5592,7 +5611,10 @@ function clipKind(v){const l=v.toLowerCase().trim();
  if(/\?$|^(wie ?viel|was|wann|welche|kann ich|darf ich|wo)\b/.test(l))return 'ask';
  if(/\d\s*(kg|g|gramm|l|liter|ml|stück|packung|pack|dose|dosen|flasche|flaschen)\b/i.test(l)&&!/€|euro/.test(l))return 'shop';
  if(/\d+[,.]\d{1,2}\b|\d+\s*(€|euro|eur)\b/i.test(l))return 'book';
- return 'shop'}
+ return 'unk'}
+/* Text, der sicher nicht von einem Kurzbefehl stammt: lang, mehrere Sätze, Links, Mailadressen */
+function clipJunk(v){v=String(v||'');return v.length>160||/https?:\/\/|www\.|\S+@\S+\.[a-z]{2,}/i.test(v)||(v.match(/[a-zäöüß]{2,}[.!?](\s|$)/gi)||[]).length>=2||v.split(/\s+/).length>20}
+const CLIPMK=/^(cf|cashflow)\s*[:·]\s*/i;
 function clipGuess(m){{const R=ruleFor(m);if(R&&R.c)return{c:R.c,b:R.b&&ALL.includes(R.b)?R.b:bestAcc(R.c)}}{const am=aiOn()&&(S.aiMer||{})[bKey(m)];if(am&&am.c)return{c:am.c,b:bestAcc(am.c)}}const ml=m.toLowerCase(),sv=E;let r=null;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}if(E.c&&!/sonst/i.test(E.c))r={c:E.c,b:E.b};E=sv;
  const w=ml.split(' ')[0],last=[...S.exp].reverse().find(e=>e.type=='out'&&e.n&&e.c&&!/sonst/i.test(e.c)&&e.n.toLowerCase().split(' ')[0]==w);if(last)return{c:last.c,b:last.b};if(r)return r;
  if(SUPRX.test(ml)){const L=catList().find(x=>/lebensmittel/i.test(x.c));if(L)return{c:L.c,b:bestAcc(L.c)}}aiMerchant(m);return null}
@@ -5640,9 +5662,12 @@ function shopHistHtml(){const H=(shopS().trips||[]).filter(h=>h.est>0);if(!H.len
  return `<div class="sec"><div class="sh"><span>Einkäufe im Vergleich zum Zettel</span><span>Ø ${f(avg)}</span></div><div class="mmcard">${H.slice(0,6).map(h=>{const d=h.act-h.est;return `<div class="cell plain"><div class="t"><div>${esc(h.store)}${h.spont?' · ungeplant':''}</div><div class="s">${new Date(h.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${h.items.length} Artikel · geplant ca. ${eur(h.est)}${h.ru?' · +'+eur(h.ru)+' angelegt':''}</div></div><div class="v ${d>0?'out':'in'}">${eur(h.act)}<div class="s">${d>=0?'+':'−'}${eur(Math.abs(d))}</div></div></div>`}).join('')}</div>
  ${Object.keys(by).length>1?`<div class="note">Ø Abweichung je Händler: ${Object.entries(by).map(([k,v])=>esc(k)+' '+f(v.reduce((a,b)=>a+b,0)/v.length)).join(' · ')}</div>`:''}<div class="note">${avg>=3?`Du kaufst im Schnitt ${Math.round(avg)} % mehr als geplant.`:'Du bleibst im Schnitt im Plan.'}</div></div>`}
 /* Einzelner Text ohne Stichwort (alte Kurzbefehle): wie bisher erkennen */
-function clipOne(t,say){
+function clipOne(t,say,trust){
   if(t===S.clipLast){say('<p>Das habe ich schon übernommen.</p>');return}
-  const k=clipKind(t);S.clipLast=t;save();
+  S.clipLast=t;save();
+  if(!trust&&clipJunk(t)){say('<p>In der Zwischenablage liegt ein Text, der nicht nach CashFlow aussieht. Ich habe nichts übernommen.</p>');return}
+  let k=clipKind(t);if(k=='unk'&&trust)k='shop';
+  if(k=='unk'){say(`<p>Das kann ich nicht sicher zuordnen:</p><p>„${esc(t.slice(0,120))}“</p>`,[['Auf den Einkaufszettel',()=>{const a=shopVoice(t);save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a)}],['Als Buchung',()=>openSheet(null,{type:'out',n:t.slice(0,40),src:'siri'})],['Verwerfen',()=>{}]]);return}
   if(k=='shop'){const a=shopVoice(t);save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a);return}
   if(k=='urge'){openUrge();return}
   if(k=='ask'){asstAsk(t);return}
@@ -5658,12 +5683,16 @@ Object.assign(TIPFN,{
  clipRun:t=>{
   const say=(h,a,q)=>{AQ.msgs.push({q:q!=null?q:(t?'Von Siri: „'+t.slice(0,80)+(t.length>80?'…':'')+'“':''),h,a:a||[]});asstOpen=true;renderAsst()};
   if(!t){say('<p>Die Zwischenablage ist leer oder das Einfügen wurde nicht erlaubt.</p>',[['Einkaufsliste einfügen',()=>{shopS().paste='';prevTab=tab;tab='more';setView='shop';render()}],['Neue Buchung',()=>openSheet()]]);return}
-  const lines=t.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean);
-  if(lines.length==1&&!CLIPPFX.test(lines[0]))return clipOne(t,say);
+  const lines0=t.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean),trust=new Set(),lines=lines0.map(x=>{if(CLIPMK.test(x)){x=x.replace(CLIPMK,'').trim();trust.add(x)}else if(CLIPPFX.test(x))trust.add(x);return x}).filter(Boolean);
+  if(!lines.length){say('<p>Die Zwischenablage ist leer.</p>');return}
+  if(lines.length==1&&!CLIPPFX.test(lines[0]))return clipOne(lines[0],say,trust.has(lines[0]));
+  if(!trust.size){S.clipLast=t;save();say('<p>In der Zwischenablage liegt ein Text, der nicht von einem CashFlow-Kurzbefehl stammt. Ich habe nichts übernommen.</p>');return}
   const seen=new Set([...(S.clipSeen||[]),...(S.paySeen||[])]);
   const items=lines.map(x=>{const W=clipWhen(x.replace(/\s*·\s*/g,' ')),body=W.s.trim(),strip=body.replace(/^(apple ?pay|buchung|einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,'').trim();
-   const kind=/^apple ?pay\b/i.test(body)?'pay':/^buchung\b/i.test(body)?'book':/^einkauf/i.test(body)?'shop':clipKind(body);return{x,key:x.toLowerCase(),body,strip,ts:W.ts,kind:strip?kind:'empty',dd:!!W.ts||kind=='pay'}});
-  const fresh=items.filter(o=>o.dd?!seen.has(o.key):t!==S.clipLast);
+   let kind=/^apple ?pay\b/i.test(body)?'pay':/^buchung\b/i.test(body)?'book':/^einkauf/i.test(body)?'shop':clipKind(body);if(!trust.has(x)&&(clipJunk(body)||kind=='unk'))kind='skip';else if(kind=='unk')kind='shop';return{x,key:x.toLowerCase(),body,strip,ts:W.ts,kind:strip?kind:'empty',dd:!!W.ts||kind=='pay'}});
+  const skipN=items.filter(o=>o.kind=='skip').length,oldN=items.filter(o=>o.kind!='skip'&&o.ts&&Date.now()-o.ts>3*864e5).length;
+  const fresh=items.filter(o=>o.kind!='skip'&&!(o.ts&&Date.now()-o.ts>3*864e5)).filter(o=>o.dd?!seen.has(o.key):t!==S.clipLast);
+  if(!fresh.length&&(skipN||oldN)){S.clipLast=t;save();say('<p>Nichts Neues übernommen'+(oldN?': '+oldN+' Einträge sind älter als 3 Tage':'')+(skipN?(oldN?', ':': ')+skipN+' Zeilen stammen nicht von einem Kurzbefehl':'')+'.</p>');return}
   if(!fresh.length){say('<p>Das habe ich schon alles übernommen.</p>');return}
   const mark=keys=>{S.clipSeen=[...(S.clipSeen||[]),...keys].slice(-400);save()};S.clipLast=t;
   const shopN=[];fresh.filter(o=>o.kind=='shop').forEach(o=>shopN.push(...(shopVoice(o.strip)||[])));
@@ -5677,7 +5706,7 @@ Object.assign(TIPFN,{
   save();render();
   if(!recs.length&&!open.length&&!misc.length&&!empty.length&&!dups.length&&shopN.length){prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(shopN)}
   else{const cnt=[shopN.length&&shopN.length+' Artikel',dups.length&&dups.length+' schon gebucht',recs.filter(r=>r.tag=='applepay').length&&recs.filter(r=>r.tag=='applepay').length+' Apple Pay',recs.filter(r=>r.tag!='applepay').length&&recs.filter(r=>r.tag!='applepay').length+' Buchung'+(recs.filter(r=>r.tag!='applepay').length>1?'en':''),open.length&&open.length+' offen'].filter(Boolean).join(' · ');
-   const h=`${shopN.length?`<p>${I('cart',14)} Auf den Einkaufszettel: ${esc(shopN.join(', '))}</p>`:''}${misc.length?`<p>${misc.map(esc).join('<br>')}</p>`:''}${recs.length?`<p>Bitte bestätigen:</p>${recs.map(clipLine).join('')}`:''}${open.length?`<p>${open.map(o=>o.lab).join('<br>')}</p>`:''}${dups.length?`<p class="s">Schon gebucht, daher übersprungen: ${dups.map(r=>esc((r.n||r.c)+' '+eur(r.a))+' (wie '+esc(r.dupOf)+')').join(', ')}</p>`:''}${empty.length?`<p class="s">Leer übergeben: ${empty.map(o=>'„'+esc(o.body)+'“').join(', ')}. Prüfe im Kurzbefehl, ob die Variable <b>Diktierter Text</b> im Text steht.</p>`:''}`;
+   const h=`${shopN.length?`<p>${I('cart',14)} Auf den Einkaufszettel: ${esc(shopN.join(', '))}</p>`:''}${misc.length?`<p>${misc.map(esc).join('<br>')}</p>`:''}${recs.length?`<p>Bitte bestätigen:</p>${recs.map(clipLine).join('')}`:''}${open.length?`<p>${open.map(o=>o.lab).join('<br>')}</p>`:''}${dups.length?`<p class="s">Schon gebucht, daher übersprungen: ${dups.map(r=>esc((r.n||r.c)+' '+eur(r.a))+' (wie '+esc(r.dupOf)+')').join(', ')}</p>`:''}${skipN||oldN?`<p class="s">Ignoriert: ${[skipN&&skipN+' fremde Zeile'+(skipN>1?'n':''),oldN&&oldN+' älter als 3 Tage'].filter(Boolean).join(', ')}.</p>`:''}${empty.length?`<p class="s">Leer übergeben: ${empty.map(o=>'„'+esc(o.body)+'“').join(', ')}. Prüfe im Kurzbefehl, ob die Variable <b>Diktierter Text</b> im Text steht.</p>`:''}`;
    const acts=[];if(recs.length)acts.push([recs.length==1?'Buchen':'Alle '+recs.length+' buchen',()=>{mark([...recs.map(r=>r.key),...dups.map(r=>r.key)]);clipCommit(recs)}]);
    recs.slice(0,3).forEach(r=>acts.push([recs.length==1?'Bearbeiten':'Bearbeiten: '+esc(r.n||r.c),()=>{mark([r.key]);openSheet(null,clipPre(r))}]));
    open.slice(0,3).forEach(o=>acts.push(['Eingeben: '+esc(o.pre.n).slice(0,24),()=>{mark([o.key]);openSheet(null,o.pre)}]));
@@ -5722,6 +5751,7 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
      ${step(2,'„Text“','Apple Pay [Transaktion › Händler] [Transaktion › Betrag] · Karte: [Transaktion › Karte] · [Aktuelles Datum]')}
      ${step(3,'„Text URL-codieren“','Nimmt automatisch den Text aus Schritt 2.')}
      ${step(4,'„Inhalte von URL abrufen“','Adresse oben einfügen, direkt dahinter die Variable „URL-codierter Text“.')}</div>
+     <div class="note">Die Zwischenablage wird beim Öffnen nicht mehr geprüft. Wer noch alte Kurzbefehle nutzt, schaltet das unter Mehr › Funktionen &amp; Ansicht › „Zwischenablage beim Öffnen prüfen“ wieder ein; dann werden nur Texte von Kurzbefehlen übernommen.</div>
      <div class="note">Ersetzt den alten Weg über die Zwischenablage: Jede Zahlung landet sicher in deiner Ablage, auch wenn du zwischendurch etwas kopierst. Mit eingeschalteten Mitteilungen kommt sofort ein Hinweis, wie viel im Budget noch übrig ist. Beim Öffnen der App bestätigst du alle Zahlungen auf einmal.</div></div>
    <div class="sec"><div class="sh">Kurzbefehl 5 · „CashFlow leisten“</div><div class="group">${cp('siL',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=leisten&txt=')}</div><div class="mmcard">
      ${step(1,'„Text diktieren“','Zum Beispiel „80 Euro“ oder „120 aus Flow“.')}
@@ -5731,6 +5761,23 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
    <div class="sec"><div class="sh">Kurzbefehl 6 · „CashFlow Woche“</div><div class="group">${cp('siW',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=woche')}</div><div class="mmcard">
      ${step(1,'„Inhalte von URL abrufen“','Adresse oben einfügen.')}
      ${step(2,'„Text sprechen“','Abbuchungen, Einnahmen, Fristen und Wünsche der nächsten 7 Tage.')}</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 7 · „CashFlow Einkauf“</div><div class="group">${cp('siE',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=Einkaufsliste%20')}</div><div class="mmcard">
+     ${step(1,'„Text diktieren“','Zum Beispiel „Milch, zwei Brot und Eier“.')}
+     ${step(2,'„Text URL-codieren“','')}
+     ${step(3,'„Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}
+     ${step(4,'„Text sprechen“','Kurzbefehl „CashFlow Einkauf“ nennen.')}</div>
+     <div class="note">Ersetzt den alten Einkaufs-Kurzbefehl über die Zwischenablage. Was du selbst kopierst, landet so nie mehr auf dem Zettel.</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siS',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
+     ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: Bilder und Text.')}
+     ${step(2,'„Text aus Bild extrahieren“','Aus Kurzbefehl-Eingabe. Liest Bon-Fotos und Screenshots direkt auf dem iPhone.')}
+     ${step(3,'„Text“','Beleg: [Text aus Bild]')}
+     ${step(4,'„Text URL-codieren“ › „Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}</div>
+     <div class="note">Bon fotografieren oder Bestellbestätigung als Screenshot › Teilen › „An CashFlow“. CashFlow sucht Summe, Händler und Datum und legt dir die Buchung beim Öffnen zum Bestätigen vor. Braucht die Funktion „push“ ab v8 (Mehr › Supabase-Einrichtung).</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 9 · Mail & SMS (Automation)</div><div class="group">${cp('siM',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
+     ${step(1,'Automation › + › „E-Mail“ oder „Nachricht“','Absender z. B. PayPal, Amazon oder deine Bank; bei SMS „Nachricht enthält €“. „Sofort ausführen“ an.')}
+     ${step(2,'„Text“','Mitteilung: [Kurzbefehl-Eingabe › Betreff] [Kurzbefehl-Eingabe › Inhalt]')}
+     ${step(3,'„Text URL-codieren“ › „Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}</div>
+     <div class="note">Erfasst Online-Käufe, Lastschriften und Gutschriften, die nicht über Apple Pay laufen. Nichts wird ohne deine Bestätigung gebucht. Beim Kontoauszug-Import gleicht CashFlow diese Buchungen ab.</div></div>
    <div class="sec"><div class="sh">Kalender-Abo</div><div class="group">${cp('siC',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=ics')}</div><div class="mmcard">
      ${step(1,'iPhone-Einstellungen › Apps › Kalender › Kalenderaccounts','„Account hinzufügen“ › „Andere“ › „Kalenderabo hinzufügen“.')}
      ${step(2,'Adresse oben einfügen','Abbuchungen ab 20 €, Einnahmen, geplante Buchungen, Kündigungsfristen und Wunsch-Wartezeiten der nächsten 60 Tage erscheinen als ganztägige Termine. Aktualisiert sich alle paar Stunden.')}</div>
