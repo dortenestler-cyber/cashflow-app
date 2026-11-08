@@ -47,3 +47,10 @@ Ab v150:
 - Buchungsliste: Einkauf und Wechselgeld stehen in einer Zeile mit glattem Betrag (z. B. Norma −22,00 €, darunter „21,37 € + 0,63 € Wechselgeld → MSCI World“). Die Umbuchung erscheint nicht mehr als eigene Zeile.
 - Wechselgeld-Ziel: In den Einstellungen, im Einkauf-buchen-Fenster und im Chip der Buchungsmaske lässt sich der konkrete ETF wählen. „Gebucht auf Konto“ legt fest, wohin das Geld in den Budgets fließt.
 - Einzelwert-Karten (Auswertung › Vermögen): Transaktionen zeigen Käufe, Verkäufe, Sparplan-Ausführungen (auch berechnete) und Wechselgeld, auch beim Robo-Depot.
+
+KI-Assistent (ab v167, optional, kostet ca. 0,40 $ im Monat):
+1. console.anthropic.com: Konto anlegen, Guthaben aufladen, unter Limits ein Ausgabenlimit setzen, API-Schlüssel erzeugen.
+2. Supabase › Edge Functions › Secrets: Name ANTHROPIC_API_KEY, Wert = dein Schlüssel.
+3. In CashFlow: Mehr › Supabase-Einrichtung › „Tabelle für KI“ (SQL ausführen) und „Funktion ai“ (als neue Function „ai“ einspielen, Verify JWT an lassen).
+4. Mehr › KI-Assistent: einschalten, Daten-Stufe und Monatslimit wählen, „Verbindung testen“.
+Danach: Freie Fragen („Wo kann ich sparen?“) beantwortet Claude, Vorschläge kommen als Knopf. Belegfoto bei einer Buchung = Kassenbon wird gelesen. Unbekannte Apple-Pay-Händler werden einmalig zugeordnet. In der Monatsbilanz gibt es „KI-Rückblick“.

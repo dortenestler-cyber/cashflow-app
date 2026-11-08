@@ -138,7 +138,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 **Befund:** Assistent nur feste Satzmuster ohne Folgefragen-Kontext und ohne Aktionen. Mitteilungen werden nur beim Schließen der App geplant, spätere Ereignisse (Apple Pay) lösen nichts aus. Apple Pay läuft über die Zwischenablage (verlustanfällig), obwohl die Server-Ablage („inbox“) existiert. Kein Badge. Ruhe- und Briefing-Zeiten fest.
 
 *Assistent*
-- A1. Optionale KI (Claude) über eigene Supabase-Function „ai“, Schlüssel als Supabase-Secret. Nur Aggregate senden (Budgets, Kategorie-Summen, Termine), keine Einzelbuchungen. Antwort als Text + Aktionsvorschläge, nie automatisch ausgeführt. Regex-Antworten bleiben als Offline-Weg. Details: Abschnitt 10.
+- A1. (umgesetzt v167/v168) Optionale KI (Claude) über eigene Supabase-Function „ai“, Schlüssel als Supabase-Secret. Nur Aggregate senden (Budgets, Kategorie-Summen, Termine), keine Einzelbuchungen. Antwort als Text + Aktionsvorschläge, nie automatisch ausgeführt. Regex-Antworten bleiben als Offline-Weg. Details: Abschnitt 10.
 - A2. Antworten mit Aktionsknöpfen (Umbuchung vorausgefüllt, Rest ins Sparziel, Frist vormerken) inkl. Rückgängig.
 - A3. Folgefragen mit Kontext („und im Oktober?“, „nur Rewe“).
 - A4. Beim Öffnen max. 3 Hinweise nach Dringlichkeit („Nächster Schritt“).
@@ -165,7 +165,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 **Vorgeschlagene Reihenfolge:** C1+B1 → B3+B4 → A2–A4 → A1 → Rest.
 Hinweis: Änderungen an der Function „push“ (PUSH_FN) auf v7, abwärtskompatibel; muss danach neu eingespielt werden.
 
-## 10. A1 im Detail: KI-Anbindung über Supabase (entschieden 2026-11-08, Umsetzung offen)
+## 10. A1 im Detail: KI-Anbindung über Supabase (umgesetzt in v167 und v168)
 
 **Aufbau**
 - App → neue Edge Function „ai“ (Login per Supabase-JWT wie bei „push“) → Claude API. Schlüssel nur als Supabase-Secret `ANTHROPIC_API_KEY`, nie im Code.

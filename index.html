@@ -1388,7 +1388,7 @@ function asstExtra(l){const P=period(0),PP=period(-1),D=864e5,td=new Date();td.s
   if(/^wie war (mein|der|dein) tag|tagesbilanz|heute ausgegeben|was habe ich heute/.test(l)){const L=outE(P,e=>e.t>=T).sort((a,b)=>b.t-a.t),s=sum(L),ins=S.exp.filter(e=>e.type=='in'&&!isPlan(e)&&e.t>=T),J=(S.journal||[]).filter(j=>j.t>=T);
     return{h:`<div class="a-big">${eur(s)}</div><p class="a-s">Heute ausgegeben · ${L.length} Buchung${L.length==1?'':'en'}${ins.length?' · '+eur(sum(ins))+' Einnahmen':''}${J.length?' · '+J.length+' Journal-Eintr'+(J.length==1?'ag':'äge'):''}.</p>${L.length?`<div class="alist">${L.slice(0,8).map(aRow).join('')}</div>`:'<p>Heute noch nichts ausgegeben. 👍</p>'}`,a:[['Journal-Eintrag',()=>{asstOpen=true;renderAsst();setTimeout(()=>{const i=$('aqI');if(i){i.value='Journal: ';i.focus()}},50)}]]}}
   if(/monatsbilanz|monatsabschluss|bilanz (für )?(den |diesen )?monat|wie (läuft|lief) (der|mein) monat/.test(l)){const inn=sum(S.exp.filter(e=>e.type=='in'&&!isPlan(e)&&inP(e,P))),B=BUDG.filter(b=>!isK(b)&&!isTabu(b)).map(b=>({b,c:calc(b)})),used=B.reduce((s,x)=>s+x.c.used,0),bud=B.reduce((s,x)=>s+x.c.total,0),V=vaultAccs(),sav=sum(S.exp.filter(e=>!isPlan(e)&&inP(e,P)&&e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))),fix=sum(outE(P,e=>isK(e.b)&&isRecE(e)));
-    return{h:`<div class="a-big">${eur(Math.max(0,bud-used))}</div><p class="a-s">Noch frei in deinen Budgets · ${P.label}, Tag ${P.idx} von ${P.len}.</p><div class="mmcard">${row('Einnahmen',eur(inn))}${row('Fixkosten bezahlt',eur(fix))}${row('Budgets verbraucht',eur(used)+' von '+eur(bud))}${row('In den Tresor',eur(sav))}${B.map(x=>row(esc(SHORT[x.b]||x.b),eur(x.c.rest),'übrig')).join('')}</div>`,a:[['Finanzbericht',()=>{tab='more';setView='report';render()}]]}}
+    return{h:`<div class="a-big">${eur(Math.max(0,bud-used))}</div><p class="a-s">Noch frei in deinen Budgets · ${P.label}, Tag ${P.idx} von ${P.len}.</p><div class="mmcard">${row('Einnahmen',eur(inn))}${row('Fixkosten bezahlt',eur(fix))}${row('Budgets verbraucht',eur(used)+' von '+eur(bud))}${row('In den Tresor',eur(sav))}${B.map(x=>row(esc(SHORT[x.b]||x.b),eur(x.c.rest),'übrig')).join('')}</div>`,a:[['Finanzbericht',()=>{tab='more';setView='report';render()}]].concat(aiOn()?[['KI-Rückblick',()=>aiReview()]]:[])}}
   if(/vergleich.*vormonat|(im )?vergleich zum letzten monat|mehr als (im )?letzte[nm] monat/.test(l)){const n=P.idx,cur=outE(P,e=>BUDG.includes(e.b)),prev=outE(PP,e=>BUDG.includes(e.b)&&e.t<PP.s.getTime()+n*D),a=sum(cur),b=sum(prev),by={};cur.forEach(e=>{by[e.c]=(by[e.c]||0)+e.a});prev.forEach(e=>{by[e.c]=(by[e.c]||0)-e.a});
     const L=Object.entries(by).filter(x=>Math.abs(x[1])>=1).sort((x,y)=>Math.abs(y[1])-Math.abs(x[1])).slice(0,5),d=a-b;
     return{h:`<div class="a-big" style="color:${d>0?'var(--bad)':'var(--ok)'}">${d>0?'+':'−'}${eur(Math.abs(d))}</div><p class="a-s">Erste ${n} Tage: ${eur(a)} jetzt gegenüber ${eur(b)} im ${PP.label} (Budgets, ohne Fixkosten).</p>${L.length?`<div class="mmcard">${L.map(([k,v])=>row(esc(k),(v>0?'+':'−')+eur(Math.abs(v)),v>0?'mehr als im Vormonat':'weniger als im Vormonat')).join('')}</div>`:''}`}}
@@ -1569,6 +1569,36 @@ async function aiChat(q){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s">${I('s
     m.a=acts.slice(0,4)}
   catch(e){m.h=`<p>${esc(aiErr(e))}</p>`;m.a=/LIMIT|NOFN/.test(String(e&&e.message))?[['KI-Einstellungen',setUp]]:null}
   renderAsst();aiScroll()}
+/* ---------- KI: Händler-Erkennung, Beleg-Scan, Monatsrückblick ---------- */
+async function aiOnce(model,content,schema,maxT,effort){const r=await aiCall({model,max_tokens:maxT||2000,messages:[{role:'user',content}],output_config:Object.assign({effort:effort||'low'},schema?{format:{type:'json_schema',schema}}:{})});
+  if(r.stop_reason=='refusal')throw new Error('Die KI hat die Anfrage abgelehnt.');const t=r.content.filter(b=>b.type=='text').map(b=>b.text).join('');return schema?JSON.parse(t):t}
+const AIMER={};
+function aiMerchant(raw){if(!aiOn())return;const k=bKey(raw);if(!k||k.length<2)return;S.aiMer=S.aiMer||{};if(S.aiMer[k]||AIMER[k])return;AIMER[k]=1;
+  const cats=[...new Set(catList().map(x=>x.c))].slice(0,100);
+  aiOnce(aiCfg().chat,[{type:'text',text:'Ordne diese Kartenzahlung aus Deutschland ein. Zahlungstext: "'+String(raw).slice(0,80)+'"\nGib einen kurzen, lesbaren Händlernamen (z. B. "Kiosk am Markt", "Rewe") und die passendste Kategorie aus dieser Liste: '+cats.join(', ')+'. Passt nichts, nimm "Sonstiges".'}],
+    {type:'object',properties:{name:{type:'string'},kategorie:{type:'string'}},required:['name','kategorie'],additionalProperties:false},400)
+  .then(j=>{if(!j)return;const c=cats.find(x=>x.toLowerCase()==String(j.kategorie||'').toLowerCase()&&!/sonst/i.test(x))||null,nm=String(j.name||'').trim().slice(0,40);S.aiMer[k]={n:nm,c};
+    const ugly=/[*#_]|\d{3,}|^[A-ZÄÖÜ0-9 .&-]{4,}$/.test(String(raw));
+    const L=S.exp.filter(e=>e.type=='out'&&e.t>Date.now()-7*864e5&&bKey(e.n)==k&&(!e.c||/sonst/i.test(e.c)||(ugly&&nm)));
+    L.forEach(e=>{if(c&&(!e.c||/sonst/i.test(e.c)))e.c=c;if(ugly&&nm)e.n=nm});save();if(L.length){render();toast('KI: „'+raw+'“ ist '+(nm||raw)+(c?' · '+c:'')+'.')}})
+  .catch(()=>{delete AIMER[k]})}
+function aiReceipt(src){const im=new Image();im.onload=async()=>{const s=Math.min(1,1568/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);const data=cv.toDataURL('image/jpeg',.8).split(',')[1];
+  toast('KI liest den Beleg …');const it={type:'object',properties:{name:{type:'string'},menge:{type:'number'},preis:{type:'number',description:'Einzelpreis in Euro'}},required:['name','menge','preis'],additionalProperties:false};
+  const sch={type:'object',properties:{ist_beleg:{type:'boolean'},haendler:{type:'string'},datum:{type:'string',description:'YYYY-MM-DD oder leer'},summe:{type:'number'},artikel:{type:'array',items:it}},required:['ist_beleg','haendler','datum','summe','artikel'],additionalProperties:false};
+  try{const j=await aiOnce(aiCfg().deep,[{type:'image',source:{type:'base64',media_type:'image/jpeg',data}},{type:'text',text:'Lies diesen Kassenbon. Händlername kurz (z. B. "Rewe"), Datum, Gesamtsumme in Euro und alle Artikel mit Menge und Einzelpreis. Pfand und Rabatte als eigene Artikel, Rabatte mit negativem Preis. Artikelnamen verständlich ausschreiben (z. B. "Haferdrink" statt "HAFERDR.BIO"). Ist es kein Kassenbon, setze ist_beleg auf false und den Rest leer.'}],sch,4000,'medium');
+    if(!j.ist_beleg){toast('Auf dem Foto erkennt die KI keinen Kassenbon.');return}
+    const t=aiD(j.datum);if($('sheetRoot').innerHTML&&E){if(!(pNum(E.amt)>0)&&j.summe>0)E.amt=String(aiR2(j.summe));if(!E.n&&j.haendler)E.n=j.haendler;if(t&&!E.id&&t<=Date.now())E.dt=ymd(t);drawSheet()}
+    aiTrip(j,t);toast('Beleg gelesen: '+(j.haendler||'Einkauf')+' · '+(j.artikel||[]).length+' Artikel · '+eur(j.summe||0)+'. Preise sind im Einkaufsverlauf.')}
+  catch(e){toast(aiErr(e))}};im.src=src}
+function aiTrip(j,t){const sh=shopS(),A=(j.artikel||[]).filter(x=>x&&x.name&&x.preis>0);if(!A.length)return;t=t&&t<=Date.now()?t:Date.now();
+  sh.trips=sh.trips||[];sh.trips.unshift({id:uid(),t,store:j.haendler||'Einkauf',bids:[],items:A.map(x=>({n:x.name,q:x.menge||1,p:aiR2(x.preis)})),est:aiR2(j.summe),act:aiR2(j.summe),spont:0,ru:0,scan:true});sh.trips=sh.trips.slice(0,60);
+  A.forEach(x=>{const k=x.name.toLowerCase().trim();sh.prices[k]=aiR2(x.preis);phAdd(k,x.preis,t)});save()}
+async function aiReview(){const c=aiCfg(),m={q:'KI-Monatsrückblick',h:`<p class="a-s">${I('sparkle',13)} KI schreibt deinen Rückblick …</p>`};AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
+  const P=period(0),PP=period(-1),rg=X=>({von:ymd(X.s.getTime()),bis:ymd(X.e.getTime()-1)});
+  const D={stand:aiTools.budget_status(),dieser_monat:aiTools.spend_summary(Object.assign({gruppe:'kategorie'},rg(P))),vormonat_gleicher_zeitraum:aiTools.spend_summary({gruppe:'kategorie',von:ymd(PP.s.getTime()),bis:ymd(PP.s.getTime()+Math.max(0,P.idx-1)*864e5)}),vormonat_gesamt:aiTools.spend_summary(Object.assign({gruppe:'kategorie'},rg(PP))),einnahmen:aiTools.spend_summary(Object.assign({typ:'einnahmen',gruppe:'keine'},rg(P))),abos:aiTools.subscriptions(),demnaechst:aiTools.upcoming({tage:14}),wuensche:aiTools.wishes()};
+  try{const t=await aiOnce(c.deep,[{type:'text',text:AISYS+'\n\nSchreib einen kurzen Monatsrückblick für den laufenden Finanzmonat (höchstens 8 Sätze plus eine Liste mit 2 bis 3 konkreten Hebeln mit Euro-Betrag). Vergleiche mit dem gleichen Zeitraum im Vormonat. Sei ehrlich, aber ermutigend.\n\nDaten:\n'+JSON.stringify(D)}],null,3000,'medium');
+    m.h=aiMd(t)+`<p class="a-s">${I('sparkle',12)} KI · ${esc(AINAME[c.deep]||c.deep)} · diesen Monat ${usd(aiUse().usd)} von ${usd(c.lim)}</p>`}
+  catch(e){m.h=`<p>${esc(aiErr(e))}</p>`}renderAsst();aiScroll()}
 const AIRX=/^(warum|wieso|weshalb|soll(te)? ich|wie (kann|könnte|sollte) ich|wo kann ich|wie spare|spartipps?|tipps?\b|hilf mir|was (empfiehlst|rätst) du|analysier|erklär|bewerte|wie (sieht|steht) es (insgesamt|allgemein)|plane?\b)/i;
 function aiHtml(){const c=aiCfg(),u=aiUse(),opts=v=>Object.keys(AIPRICE).map(k=>`<option value="${k}" ${v==k?'selected':''}>${AINAME[k]}</option>`).join('');
   return `<div class="sec"><div class="group">
@@ -1577,7 +1607,7 @@ function aiHtml(){const c=aiCfg(),u=aiUse(),opts=v=>Object.keys(AIPRICE).map(k=>
    <div class="cell plain"><label for="aiLim">Monatslimit</label><select id="aiLim">${[0.5,1,2,5,10].map(v=>`<option value="${v}" ${c.lim==v?'selected':''}>${usd(v)}</option>`).join('')}</select></div>
    <div class="cell plain"><label for="aiChatM">Modell für Fragen</label><select id="aiChatM">${opts(c.chat)}</select></div>
    <div class="cell plain"><label for="aiDeepM">Modell für Belege</label><select id="aiDeepM">${opts(c.deep)}</select></div></div>
-   <div class="note">Haiku ist schnell und günstig, Sonnet genauer, Opus am stärksten und teuersten. „Mit Einzelbuchungen“ schickt bei Bedarf Händler, Datum und Betrag. Nie gesendet: Notizen, Personen, Journal-Texte, Fotos. Vorschläge der KI erscheinen als Knopf, du bestätigst jede Buchung selbst.</div></div>
+   <div class="note">Haiku ist schnell und günstig, Sonnet genauer, Opus am stärksten und teuersten. „Mit Einzelbuchungen“ schickt bei Bedarf Händler, Datum und Betrag. Nie gesendet: Notizen, Personen, Journal-Texte, Fotos (außer beim Beleg-Scan: Wählst du bei aktiver KI ein Belegfoto, liest Sonnet den Kassenbon und trägt Betrag, Händler und Artikelpreise ein). Unbekannte Apple-Pay-Händler ordnet die KI einmalig zu. Vorschläge der KI erscheinen als Knopf, du bestätigst jede Buchung selbst.</div></div>
   <div class="sec"><div class="sh">Verbrauch diesen Monat</div><div class="group"><div class="cell plain"><div class="t">Kosten</div><b>${usd(u.usd)} von ${usd(c.lim)}</b></div><div class="cell plain"><div class="t">Anfragen</div><b>${u.n}</b></div></div>
    <div class="note">Geschätzt aus den Angaben von Claude. Ist das Limit erreicht, antwortet der Assistent bis Monatsende nur noch mit festen Auswertungen. Zusätzlich lässt die Funktion höchstens 100 Anfragen pro Tag zu.</div></div>
   <button class="btn" id="aiTest">Verbindung testen</button>
@@ -1599,7 +1629,7 @@ function asstChips(q){q=String(q||'').trim().toLowerCase();const out=[],add=(t,m
   if(tight)add('Was darf ich heute noch ausgeben?','ask',90);
   if(S.urge&&Date.now()-(S.urge.t||0)<3600e3)add('Notbremse','ask',95);
   if(hr>=18)add('Wie war mein Tag?','ask',70),add('Journal: ','fill',65);
-  if(P.left<=3)add('Monatsbilanz','ask',75);
+  if(P.left<=3)add('Monatsbilanz','ask',75);if(aiOn()&&P.left<=5)add('KI-Rückblick','ask',74);
   if((S.wish||[]).some(w=>w.s=='offen'&&w.t+wait(w.p)<Date.now()))add('Wunsch entscheiden','ask',72);
   if(dow==0)add('Wochen-Check-in','ask',68);
   const last=AQ.msgs.length?String(AQ.msgs[AQ.msgs.length-1].q||'').toLowerCase():'';
@@ -1618,7 +1648,7 @@ function bindChips(){const box=$('aChips');if(!box)return;const L=asstChips($('a
     b.addEventListener('touchstart',()=>{long=false;lp=setTimeout(()=>{long=true;S.chipHide=[...new Set([...(S.chipHide||[]),x.t])];save();box.innerHTML=chipsHtml();bindChips();toast('Vorschlag ausgeblendet.',()=>{S.chipHide=(S.chipHide||[]).filter(t=>t!=x.t);save();renderAsst()})},550)},{passive:true});
     b.addEventListener('touchend',()=>clearTimeout(lp));b.addEventListener('touchmove',()=>clearTimeout(lp),{passive:true});
     b.onclick=e=>{e.stopPropagation();if(long)return;chipUse(x.t);const I0=$('aqI');
-      if(x.m=='ask'){const t=x.t=='Wochen-Check-in'?null:x.t;if(!t){asstOpen=false;renderAsst();openCheckin();return}if(t=='Notbremse'){asstOpen=false;renderAsst();openUrge(S.urge&&S.urge.jid);return}if(t=='Wunsch entscheiden'){asstOpen=false;renderAsst();tab='wish';wishV='Wünsche';render();return}I0.value='';asstAsk(t);return}
+      if(x.m=='ask'){const t=x.t=='Wochen-Check-in'?null:x.t;if(!t){asstOpen=false;renderAsst();openCheckin();return}if(t=='KI-Rückblick'){I0.value='';aiReview();return}if(t=='Notbremse'){asstOpen=false;renderAsst();openUrge(S.urge&&S.urge.jid);return}if(t=='Wunsch entscheiden'){asstOpen=false;renderAsst();tab='wish';wishV='Wünsche';render();return}I0.value='';asstAsk(t);return}
       let v=x.t;if(v=='Wunsch  Euro'){I0.value='Wunsch  Euro';I0.focus();I0.setSelectionRange(7,7);return}if(v=='auf die Einkaufsliste'){I0.value=' auf die Einkaufsliste';I0.focus();I0.setSelectionRange(0,0);return}
       I0.value=v;I0.focus();try{I0.setSelectionRange(v.length,v.length)}catch(_){}box.innerHTML=chipsHtml(v);bindChips()}})}
 function asstDrag(){const g=$('aGrab'),p=document.querySelector('#asstRoot .apop');if(!g||!p)return;let y0=null,h0=0;
@@ -4036,7 +4066,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     else if(k==','){if(!seg.includes('.'))E.amt+=(seg?'':'0')+'.'}
     else if(!/\.\d\d$/.test(seg)&&seg.replace('.','').length<7){E.amt=(E.amt=='0'?'':E.amt)+k}
     drawSheet()});
-  if($('eimg'))$('eimg').onchange=ev=>{const f=ev.target.files[0];if(!f)return;keep();const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,500/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);E.img=cv.toDataURL('image/jpeg',.6);drawSheet()};im.src=rd.result};rd.readAsDataURL(f)};
+  if($('eimg'))$('eimg').onchange=ev=>{const f=ev.target.files[0];if(!f)return;keep();const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,500/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);E.img=cv.toDataURL('image/jpeg',.6);drawSheet();if(aiOn())aiReceipt(rd.result)};im.src=rd.result};rd.readAsDataURL(f)};
   if($('imgDel'))$('imgDel').onclick=()=>{keep();E.img='';drawSheet()};
   if($('eLogoS'))$('eLogoS').onclick=()=>{keep();const nm=E.n,d=brandOf({n:nm,type:'out'});openLogoSearch({name:nm,key:d||''})};
   document.querySelectorAll('#eAbo button').forEach(b=>b.onclick=()=>{keep();const v=b.dataset.v,sk=subKey(E.n);S.subNo=(S.subNo||[]).filter(x=>x!=sk);
@@ -5275,9 +5305,9 @@ function clipKind(v){const l=v.toLowerCase().trim();
  if(/\d\s*(kg|g|gramm|l|liter|ml|stück|packung|pack|dose|dosen|flasche|flaschen)\b/i.test(l)&&!/€|euro/.test(l))return 'shop';
  if(/\d+[,.]\d{1,2}\b|\d+\s*(€|euro|eur)\b/i.test(l))return 'book';
  return 'shop'}
-function clipGuess(m){const ml=m.toLowerCase(),sv=E;let r=null;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}if(E.c&&!/sonst/i.test(E.c))r={c:E.c,b:E.b};E=sv;
+function clipGuess(m){{const am=aiOn()&&(S.aiMer||{})[bKey(m)];if(am&&am.c)return{c:am.c,b:bestAcc(am.c)}}const ml=m.toLowerCase(),sv=E;let r=null;E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};try{qp(m)}catch(e){}if(E.c&&!/sonst/i.test(E.c))r={c:E.c,b:E.b};E=sv;
  const w=ml.split(' ')[0],last=[...S.exp].reverse().find(e=>e.type=='out'&&e.n&&e.c&&!/sonst/i.test(e.c)&&e.n.toLowerCase().split(' ')[0]==w);if(last)return{c:last.c,b:last.b};if(r)return r;
- if(SUPRX.test(ml)){const L=catList().find(x=>/lebensmittel/i.test(x.c));if(L)return{c:L.c,b:bestAcc(L.c)}}return null}
+ if(SUPRX.test(ml)){const L=catList().find(x=>/lebensmittel/i.test(x.c));if(L)return{c:L.c,b:bestAcc(L.c)}}aiMerchant(m);return null}
 /* Datum/Uhrzeit aus einer Zeile lösen: 07.11.2026, 11:47 · 7. Nov. 2026 um 11:47 · 11:47 */
 function clipWhen(x){let m,ts=null,s=x;
  if(m=s.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:,?\s*(?:um\s*)?(\d{1,2}):(\d{2})(?::\d{2})?)?/)){const y=+m[3]<100?2000+ +m[3]:+m[3];ts=new Date(y,+m[2]-1,+m[1],m[4]?+m[4]:12,m[5]?+m[5]:0).getTime();s=s.replace(m[0],' ')}
