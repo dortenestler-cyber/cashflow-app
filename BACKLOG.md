@@ -224,10 +224,10 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 3. Function „ai“ einspielen (Code und Anleitung in der App, wie bei „push“).
 4. In CashFlow: Einstellungen › Assistent › KI einschalten, Datenstufe wählen, „Test“.
 
-## 11. Penny: der Assistent bekommt Gesicht und Charakter (umgesetzt in v175)
+## 11. Penny: der Assistent bekommt Gesicht und Charakter (umgesetzt in v175, Avatar C seit v176)
 
-- Name „Penny“, Avatar A (Hornbrille, Euro-Antenne) als Knopf und im Kopf des Assistenten.
+- Name „Penny“, Avatar C (Monokel, Fliege, Börsennadel) als Knopf und im Kopf des Assistenten (v175 kurz mit Avatar A).
 - Stimmungen nach Monatssaldo inkl. geplanter Buchungen: Im Plus (deutlich positiv), Ausgeglichen (knapp um null), Grübelt (während Penny antwortet), Im Minus (Saldo negativ oder ein Budget überschritten). Münzfarbe zeigt die Lage.
 - KI-Systemprompt nach Entwurf: freundlicher Finanz-Nerd, Du-Form, 2–4 Sätze, Zahl zuerst, 1.234,56 € und TT.MM, nichts erfinden, geplant vs. gebucht trennen, höchstens ein Nerd-Fakt, Ton je nach Lage, keine Anlage-/Steuer-/Rechtsberatung, bei Notlage Hinweis auf Schuldnerberatung.
 - Penny liefert am Ende „[mood: …]“; das steuert das Gesicht an der Antwort.
-- Varianten B (Kurs-Visier) und C (Monokel) wären später als Auswahl möglich.
+- Entscheidung Nutzer: Variante C mit Monokel.
