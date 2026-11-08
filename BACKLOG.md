@@ -148,8 +148,8 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 *Mitteilungen*
 - B1. (umgesetzt v169) Sofort-Mitteilung nach Apple-Pay-Zahlung mit geschätztem Budget-Rest (Server, Händler→Budget-Zuordnung in briefData).
 - B2. Erinnerung bei veralteten Daten (Ablage voll, Stand > 48 h).
-- B3. Badge am App-Icon (offene Siri-Einträge, fällige Wünsche, Fristen ≤ 3 Tage).
-- B4. Ruhezeit, Briefing-Zeiten und Tageslimit einstellbar, mit Priorität.
+- B3. (umgesetzt v170) Badge am App-Icon (offene Siri-Einträge, fällige Wünsche, Fristen ≤ 3 Tage).
+- B4. (umgesetzt v170) Ruhezeit, Briefing-Zeiten und Tageslimit einstellbar, mit Priorität.
 - B5. Neue Anlässe: Gehalt da → verteilen, Abo teurer, Budget 80 %, Sparziel erreicht, Monatsletzter.
 - B6. Jede Mitteilung öffnet die passende Aktion im Assistenten.
 
