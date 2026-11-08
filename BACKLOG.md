@@ -231,3 +231,33 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - KI-Systemprompt nach Entwurf: freundlicher Finanz-Nerd, Du-Form, 2–4 Sätze, Zahl zuerst, 1.234,56 € und TT.MM, nichts erfinden, geplant vs. gebucht trennen, höchstens ein Nerd-Fakt, Ton je nach Lage, keine Anlage-/Steuer-/Rechtsberatung, bei Notlage Hinweis auf Schuldnerberatung.
 - Penny liefert am Ende „[mood: …]“; das steuert das Gesicht an der Antwort.
 - Entscheidung Nutzer: Variante C mit Monokel.
+
+## 12. Fester Kopf, der beim Scrollen schrumpft, auf allen Seiten (Konzept 2026-11-08, offen)
+
+**Ausgangslage**
+- Übersicht: Kopf sitzt fest und klappt ab 120 px Scrollen zur schmalen Leiste ein (Titel + Betrag), unter 16 px wieder groß (v179).
+- Buchungen, Kalender, Auswertung, Impulse und alle anderen Seiten mit Kopfkarte: Kopf sitzt fest, bleibt aber voll hoch (Monat groß, Kennzahlen, Leisten) und nimmt viel Platz.
+- Unterseiten unter Mehr (‹ Mehr + große Überschrift, z. B. Penny, Mitteilungen, Siri): Kopf scrollt komplett weg, es gibt keinen Zurück-Knopf mehr im Blick.
+
+**Ziel:** Überall gleich: Kopf sitzt fest, wird beim Scrollen zu einer schmalen Leiste und beim Zurückscrollen wieder groß.
+
+**Schmale Leiste je Seitentyp**
+1. Reiter mit Monat (Buchungen, Kalender, Auswertung): eine Zeile ‹ Monat › (kleiner) und die Knöpfe rechts. Untertitel und Kennzahlen weg. Die Umschalter darunter (z. B. Liste/Kalender, Auswertungs-Ansichten) bleiben als schmale Leiste sichtbar.
+2. Seiten mit großer Zahl (Impulse, Tresor, Abo-Radar, Depot, Monatsabschluss, Wechselgeld …): Titel links, wichtigste Zahl rechts in einer Zeile, wie „Noch verfügbar 542 €“ auf der Übersicht.
+3. Unterseiten mit Zurück-Knopf: Zurück + Titel in einer Zeile.
+4. Mehr-Unterseiten: neue feste Leiste im iPhone-Stil. Die große Überschrift scrollt weg, dann erscheint oben „‹ Mehr“ und der Titel klein in der Mitte.
+
+**Verhalten**
+- Schwelle: Übersicht 120 px (wie heute), alle anderen Seiten 56 px; zurück zu groß erst unter 16 px (kein Flackern).
+- Weicher Übergang 0,2 s; bei „Bewegung reduzieren“ ohne Animation.
+- Tippen auf die schmale Leiste scrollt nach oben.
+- Seitenwechsel startet immer mit großem Kopf.
+
+**Technik**
+- Bestehende Funktion für die Übersicht auf alle festen Köpfe ausweiten, je Seite die passende Schwelle.
+- CSS für den eingeklappten Zustand der Kopfkarte: Untertitel, Kennzahlen, Balken ausblenden, Monat 17 px statt 26 px, Innenabstand kleiner.
+- Mehr-Unterseiten: Überschrift in einen festen Kopf mit Glas-Hintergrund packen.
+
+**Offene Fragen**
+- Umschalter in der schmalen Leiste behalten (Empfehlung: ja)?
+- Schwelle 56 px für alle anderen Seiten passend oder lieber wie Übersicht 120 px?
