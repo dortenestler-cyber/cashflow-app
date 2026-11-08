@@ -143,7 +143,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 - A3. (umgesetzt v171) Folgefragen mit Kontext („und im Oktober?“, „nur Rewe“).
 - A4. (umgesetzt v171) Beim Öffnen max. 3 Hinweise nach Dringlichkeit („Nächster Schritt“).
 - A5. (umgesetzt v171) „Warum?“ zeigt die Rechnung hinter jedem Hinweis.
-- A6. Monatsabschluss als Dialog: Rest verteilen und buchen.
+- A6. (vorhanden: Mehr › Monatsabschluss, dazu KI-Rückblick v168) Monatsabschluss als Dialog: Rest verteilen und buchen.
 
 *Mitteilungen*
 - B1. (umgesetzt v169) Sofort-Mitteilung nach Apple-Pay-Zahlung mit geschätztem Budget-Rest (Server, Händler→Budget-Zuordnung in briefData).
@@ -155,12 +155,12 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 *Automatisierungen*
 - C1. (umgesetzt v169) Apple Pay standardmäßig über Server-Ablage statt Zwischenablage (Anleitung anpassen).
-- C2. Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
+- C2. (offen; heute über wiederkehrende Umbuchungen abgedeckt, Mitteilung „Gehalt da“ seit v172) Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
 - C3. Lernende Kategorie-Regeln je Händler, Liste in den Einstellungen.
 - C4. (umgesetzt v172) Abo-Wächter per Mitteilung (Preisänderung ±5 %, neue Abos aus newSubs).
-- C5. Kalender-Abo (.ics) für Abbuchungen, Fristen, Sparpläne.
-- C6. Mehr Siri-Antworten ohne App-Öffnen („Kann ich mir 80 € leisten?“, „Was kommt diese Woche?“).
-- C7. Monatlicher Kontoabgleich mit Korrekturbuchung.
+- C5. (umgesetzt v173) Kalender-Abo (.ics) für Abbuchungen, Fristen, Sparpläne.
+- C6. (umgesetzt v173) Mehr Siri-Antworten ohne App-Öffnen („Kann ich mir 80 € leisten?“, „Was kommt diese Woche?“).
+- C7. (bereits vorhanden: Tipp „Kontostand abgleichen“ alle 14 Tage) Monatlicher Kontoabgleich mit Korrekturbuchung.
 
 **Vorgeschlagene Reihenfolge:** C1+B1 → B3+B4 → A2–A4 → A1 → Rest.
 Hinweis: Änderungen an der Function „push“ (PUSH_FN) auf v7, abwärtskompatibel; muss danach neu eingespielt werden.

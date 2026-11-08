@@ -58,3 +58,6 @@ Danach: Freie Fragen („Wo kann ich sparen?“) beantwortet Claude, Vorschläge
 Apple Pay ohne Zwischenablage (ab v169, empfohlen):
 Mehr › Siri & Kurzbefehle › Kurzbefehl 4. Die Wallet-Automation schickt jede Zahlung direkt in deine Siri-Ablage (Text › Text URL-codieren › Inhalte von URL abrufen). Nichts geht mehr verloren, wenn du zwischendurch etwas kopierst.
 Mit Mitteilungen bekommst du sofort einen Hinweis, wie viel im Budget noch übrig ist (Mehr › Mitteilungen › „Nach Apple-Pay-Zahlung“). Dafür die Funktion „push“ auf v7 aktualisieren (Mehr › Supabase-Einrichtung).
+
+Mehr Siri und Kalender (ab v173, Funktion „push“ v7):
+Mehr › Siri & Kurzbefehle: Kurzbefehl 5 „CashFlow leisten“ (z. B. „80 Euro“ → Ja/Nein mit Rest), Kurzbefehl 6 „CashFlow Woche“ (was in 7 Tagen ansteht) und ein Kalender-Abo mit Abbuchungen, Fristen und Wartezeiten der nächsten 60 Tage.

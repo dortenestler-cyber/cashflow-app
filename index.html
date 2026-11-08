@@ -4280,6 +4280,33 @@ Deno.serve(async (req) => {
       const { data: kr } = await sb.from("siri_keys").select("user_id").eq("key_hash", kh).maybeSingle();
       if (!kr) return SAY("Dieser Schlüssel ist nicht mehr gültig. Bitte in CashFlow unter Siri und Kurzbefehle neu erzeugen.", 401);
       const su = kr.user_id;
+      if (body.m === "leisten" || body.m === "woche" || body.m === "ics") {
+        const { data: r } = await sb.from("push_brief").select("data").eq("user_id", su).maybeSingle(); const d = (r && r.data) || null;
+        if (!d) return SAY("Noch keine Daten. Öffne CashFlow einmal mit eingeschalteten Mitteilungen.");
+        const B = berlin();
+        if (body.m === "woche") {
+          const lim = new Date(Date.parse(B.ymd + "T12:00:00Z") + 7 * 864e5).toISOString().slice(0, 10);
+          const L = (d.cal || d.ev || []).filter((e) => e.d >= B.ymd && e.d <= lim);
+          return SAY(L.length ? "Diese Woche: " + L.slice(0, 8).map((e) => (e.d === B.ymd ? "heute" : new Date(e.d + "T12:00:00Z").toLocaleDateString("de-DE", { weekday: "long", timeZone: "Europe/Berlin" })) + " " + e.t).join(", ") + "." : "In den nächsten 7 Tagen steht nichts an.");
+        }
+        if (body.m === "leisten") {
+          const t = String(body.txt || ""), mm = t.match(/(\\d+(?:[.,]\\d{1,2})?)/), a = mm ? +mm[1].replace(",", ".") : 0;
+          if (!a) return SAY("Sag einen Betrag, zum Beispiel: 80 Euro.");
+          const low = t.toLowerCase(), accs = (d.acc || []).filter((x) => x.d != null);
+          const acc = accs.find((x) => low.includes(x.n.toLowerCase())) || accs.find((x) => /gönn/i.test(x.n)) || accs[0];
+          if (!acc) return SAY("Ich finde kein Budget.");
+          const after = acc.v - a, pd = Math.max(after, 0) / Math.max(d.left || 1, 1);
+          let s = after < 0 ? "Nein. " + acc.n + " hat nur noch " + E0(acc.v) + ". Es würden " + E0(-after) + " fehlen." : (a >= 50 || pd < 5 ? "Ja, aber. " : "Ja. ") + acc.n + " hat noch " + E0(acc.v) + ". Danach blieben " + E0(after) + ", also " + E0(pd) + " pro Tag.";
+          if (a >= 50) s += " Ab 50 Euro gilt deine Regel: erst auf die Wunschliste.";
+          return SAY(s);
+        }
+        const es = (x) => String(x).replace(/[,;]/g, (c) => "\\\\" + c), stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+        const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CashFlow//DE", "CALSCALE:GREGORIAN", "X-WR-CALNAME:CashFlow", "REFRESH-INTERVAL;VALUE=DURATION:PT6H", "X-PUBLISHED-TTL:PT6H"];
+        (d.cal || []).forEach((e, i) => { const dt = e.d.replace(/-/g, ""), nx = new Date(Date.parse(e.d + "T12:00:00Z") + 864e5).toISOString().slice(0, 10).replace(/-/g, "");
+          L.push("BEGIN:VEVENT", "UID:" + dt + "-" + (e.u || i) + "@cashflow", "DTSTAMP:" + stamp, "DTSTART;VALUE=DATE:" + dt, "DTEND;VALUE=DATE:" + nx, "SUMMARY:" + es(e.t), "TRANSP:TRANSPARENT", "END:VEVENT"); });
+        L.push("END:VCALENDAR");
+        return new Response(L.join("\\r\\n"), { headers: { ...cors, "Content-Type": "text/calendar; charset=utf-8" } });
+      }
       if (body.m === "stand") {
         const { data: r } = await sb.from("push_brief").select("data,updated_at").eq("user_id", su).maybeSingle(); const d = (r && r.data) || null;
         if (!d) return SAY("Noch keine Daten. Öffne CashFlow einmal mit eingeschalteten Mitteilungen.");
@@ -4381,10 +4408,16 @@ function briefData(){const O=S.pushOpt||{},showAmt=!!O.amt,P=period(0),k=pkey(P)
   (S.wish||[]).forEach(w=>{if(w.s=='offen')add(new Date(w.t+wait(w.p)),showAmt?'Wartezeit vorbei: '+w.n:'Wartezeit eines Wunschs vorbei')});
   depot().forEach(h=>{if(h.rate&&!h.paused&&!h.rid){for(let i=0;i<5;i++){const d=new Date(td.getTime()+i*D);if(ymd(d.getTime())==ymd(dueIn(d.getFullYear(),d.getMonth(),h.day).getTime()))add(d,'Sparplan '+String(h.n||h.sym).split(/\s+/).slice(0,2).join(' ')+(showAmt?' '+eur0(h.rate):''))}}});
   const fg=fixGuard();if(fg&&fg.min<0)add(fg.at.d,'⚠️ '+fg.n+' reicht nicht');
+  const cal=[];{const end=td.getTime()+60*D,cad=(d,t,u)=>{const x=d.getTime?d.getTime():d;if(x>=td.getTime()-864e5&&x<end)cal.push({d:ymd(x),t,u})};
+   [0,1,2].forEach(o=>{const Pp=period(o),kk=pkey(Pp);(S.rec||[]).forEach(r=>{if(r.paused||isTabu(r.b))return;const d=recDue(r,Pp);if(!d||S.exp.some(e=>e.rid==r.id&&e.pk==kk))return;const ra=recA(r,Pp);if(r.type=='in')cad(d,'💶 '+(r.n||r.c)+(showAmt?' +'+eur0(ra):''),'r'+r.id);else if(ra>=20&&!isTabu(r.to||''))cad(d,(r.type=='tr'?'↔ ':'💸 ')+(r.n||r.c)+(showAmt?' '+eur0(ra):''),'r'+r.id)})});
+   S.exp.filter(e=>isPlan(e)).forEach(e=>cad(new Date(e.t),'🗓 '+(e.n||e.c)+(showAmt?' '+eur0(e.a):''),'p'+e.id));
+   (S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(x.kd)cad(x.kd,'✂️ Kündigungsfrist '+c.n,'c'+c.id)});
+   (S.wish||[]).forEach(w=>{if(w.s=='offen')cad(new Date(w.t+wait(w.p)),'⏳ Wartezeit vorbei'+(showAmt?': '+w.n:''),'w'+w.id)});
+   cal.sort((a,b)=>a.d<b.d?-1:1)}
   const P0=depot().filter(h=>h.sym&&!h.manual),val=posVal,TV=P0.reduce((s,h)=>s+val(h),0)||1;
   const pos=P0.map(h=>Object.assign({n:String(h.n||h.sym).split(/\s+/).slice(0,2).join(' '),t:h.type=='krypto'?'krypto':'etf',s:h.type=='krypto'?String(h.sym).trim().toUpperCase():(h.ysym||String(h.sym).trim().toUpperCase()),w:Math.round(val(h)/TV*100)/100},showAmt?{v:Math.round(val(h))}:{}));
   const mb={};{const F={},nm=new Set(accL.map(a=>a.n));S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&e.n&&e.t>now0-180*D&&nm.has(SHORT[e.b]||e.b)).forEach(e=>{const k=bKey(e.n);if(!k||k.length<2)return;const f=F[k]=F[k]||{n:0,b:{}};f.n++;const b=SHORT[e.b]||e.b;f.b[b]=(f.b[b]||0)+1});Object.entries(F).sort((x,y)=>y[1].n-x[1].n).slice(0,80).forEach(([k,f])=>{mb[k]=Object.entries(f.b).sort((x,y)=>y[1]-x[1])[0][0]})}
-  return{v:1,at:now0,opt:Object.assign({m:O.bm!==false,e:O.be!==false,p:O.pay!==false,a:!!O.amt},(({mt,mw,et})=>({mt,mw,et}))(pTimes())),left:P.left,mb,acc:accL,vm:Math.round(vm),sp:{d:ymd(now0),v:Math.round(sp)},ev:ev.slice(0,20),pos}}
+  return{v:1,cal:cal.slice(0,120),at:now0,opt:Object.assign({m:O.bm!==false,e:O.be!==false,p:O.pay!==false,a:!!O.amt},(({mt,mw,et})=>({mt,mw,et}))(pTimes())),left:P.left,mb,acc:accL,vm:Math.round(vm),sp:{d:ymd(now0),v:Math.round(sp)},ev:ev.slice(0,20),pos}}
 let briefLast='';async function briefSend(force){const O=S.pushOpt||{};if(O.bm===false&&O.be===false&&!force)return;const d=briefData(),h=JSON.stringify(Object.assign({},d,{at:0}));if(!force&&h==briefLast)return;try{await pushCall('brief',{data:d});briefLast=h;S.briefOld=false}catch(e){if(/unknown op/.test(String(e.message||e)))S.briefOld=true}}
 let pushT=null,pushLast='';async function pushPlan(force){if(!pushOn()||!syOn())return;briefSend(force);try{const items=pushItems(),h=JSON.stringify(items);if(!force&&h==pushLast)return;await pushCall('plan',{items});pushLast=h;S.pushAt=Date.now()}catch(e){}}
 function pushSoon(){clearTimeout(pushT);pushT=setTimeout(()=>pushPlan(false),4000)}
@@ -5466,7 +5499,7 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
    ${P.length?`<div class="sec"><div class="sh">Bitte prüfen · ${P.length}</div><div class="mmcard">${P.map(p=>`<div class="srow"><div class="srow-h"><span><b>„${esc(p.txt)}“</b><br><small style="color:var(--muted)">${esc(p.why)} · ${new Date(p.t).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></span><span></span><span style="display:flex;gap:6px"><button class="btn soft" data-sp="${p.id}" style="padding:6px 10px;min-height:0">Öffnen</button><button class="ed-ic" data-spx="${p.id}" aria-label="Verwerfen">${I('minus',18)}</button></span></div></div>`).join('')}</div></div>`:''}
    <div class="sec"><div class="sh">Dein Siri-Schlüssel</div><div class="group">${sk?cp('siK',sk.k):'<div class="cell plain"><span style="color:var(--muted)">Noch kein Schlüssel erzeugt.</span></div>'}${cp('siU',u)}</div>
     <button class="btn ${sk?'soft':''}" id="siGen">${sk?'Neuen Schlüssel erzeugen (alter wird ungültig)':'Schlüssel erzeugen'}</button>
-    <div class="note">Der Schlüssel steckt schon in den Adressen unten. Er erlaubt nur zwei Dinge: Sätze in deine Siri-Ablage legen und den Briefing-Stand vorlesen. Er liegt nur auf diesem Gerät und in deinen Kurzbefehlen. Bei Verlust einfach neu erzeugen – dann die Adressen in den Kurzbefehlen ersetzen.</div></div>
+    <div class="note">Der Schlüssel steckt schon in den Adressen unten. Er erlaubt nur: Sätze in deine Siri-Ablage legen, den Briefing-Stand vorlesen und den Kalender abrufen. Er liegt nur auf diesem Gerät und in deinen Kurzbefehlen. Bei Verlust einfach neu erzeugen – dann die Adressen in den Kurzbefehlen ersetzen.</div></div>
    ${sk?`<div class="sec"><div class="sh">Kurzbefehl 1 · „CashFlow“ – eintragen</div><div class="group">${cp('siA',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Kurzbefehle-App › + › „Text diktieren“','Sprache: Deutsch.')}
      ${step(2,'„Text URL-codieren“','Nimmt automatisch den diktierten Text.')}
@@ -5488,6 +5521,18 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
      ${step(3,'„Text URL-codieren“','Nimmt automatisch den Text aus Schritt 2.')}
      ${step(4,'„Inhalte von URL abrufen“','Adresse oben einfügen, direkt dahinter die Variable „URL-codierter Text“.')}</div>
      <div class="note">Ersetzt den alten Weg über die Zwischenablage: Jede Zahlung landet sicher in deiner Ablage, auch wenn du zwischendurch etwas kopierst. Mit eingeschalteten Mitteilungen kommt sofort ein Hinweis, wie viel im Budget noch übrig ist. Beim Öffnen der App bestätigst du alle Zahlungen auf einmal.</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 5 · „CashFlow leisten“</div><div class="group">${cp('siL',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=leisten&txt=')}</div><div class="mmcard">
+     ${step(1,'„Text diktieren“','Zum Beispiel „80 Euro“ oder „120 aus Flow“.')}
+     ${step(2,'„Text URL-codieren“','')}
+     ${step(3,'„Inhalte von URL abrufen“','Adresse oben, dahinter „URL-codierter Text“.')}
+     ${step(4,'„Text sprechen“','Siri sagt Ja, Ja aber oder Nein und was danach übrig bleibt.')}</div></div>
+   <div class="sec"><div class="sh">Kurzbefehl 6 · „CashFlow Woche“</div><div class="group">${cp('siW',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=woche')}</div><div class="mmcard">
+     ${step(1,'„Inhalte von URL abrufen“','Adresse oben einfügen.')}
+     ${step(2,'„Text sprechen“','Abbuchungen, Einnahmen, Fristen und Wünsche der nächsten 7 Tage.')}</div></div>
+   <div class="sec"><div class="sh">Kalender-Abo</div><div class="group">${cp('siC',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=ics')}</div><div class="mmcard">
+     ${step(1,'iPhone-Einstellungen › Apps › Kalender › Kalenderaccounts','„Account hinzufügen“ › „Andere“ › „Kalenderabo hinzufügen“.')}
+     ${step(2,'Adresse oben einfügen','Abbuchungen ab 20 €, Einnahmen, geplante Buchungen, Kündigungsfristen und Wunsch-Wartezeiten der nächsten 60 Tage erscheinen als ganztägige Termine. Aktualisiert sich alle paar Stunden.')}</div>
+     <div class="note">Beträge stehen nur drin, wenn unter Mitteilungen „Beträge in Mitteilungen“ an ist.</div></div>
    <div class="sec"><div class="sh">Testen</div><div class="group"><button class="cell plain" id="siTst" style="color:var(--blue)">Stand abrufen, wie Siri ihn vorliest</button><button class="cell plain" id="siPull" style="color:var(--blue)">Siri-Ablage jetzt abholen</button></div><div class="note" id="siOut"></div></div>`:''}
    <div class="note">Datenschutz: Gesprochene Sätze liegen bis zum nächsten Öffnen der App unverschlüsselt in deiner Supabase-Ablage und werden danach gelöscht. Der „Stand“ nutzt nur die Daten, die für dein Daily Briefing ohnehin dort liegen.</div>`}
 function bindSiri(){if(!$('siGen'))return;
