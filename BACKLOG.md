@@ -263,3 +263,8 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Schwelle 56 px für alle anderen Seiten passend oder lieber wie Übersicht 120 px?
 
 **Entscheidungen (2026-11-08):** Umschalter bleiben in der schmalen Leiste; Schwelle 56 px (Übersicht weiter 120 px).
+
+## Buchungsseite auf iPad quer und Web (offen, wartet auf Freigabe)
+- Linke Spalte (Monatssummen + Geplant) bleibt unter dem Kopf stehen, als feste Seitenleiste – keine leere Hälfte mehr beim Scrollen.
+- Spaltenaufteilung ca. 40 : 60 zugunsten der Buchungsliste, damit Kategorien nicht abgeschnitten werden.
+- Auf großen Bildschirmen schrumpft der Kopf erst nach ca. 200 px; die schmale Leiste zeigt zusätzlich den Monatssaldo.
