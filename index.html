@@ -3578,7 +3578,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
     ${pushOn()?`</div><div class="sec"><div class="sh">Zustellung heute</div>${pstHtml()}</div><div class="group"><div class="cell plain" style="gap:8px;padding:8px 0"><button class="btn soft" id="brT1" style="flex:1;margin:0">Morgen-Briefing testen</button><button class="btn soft" id="brT2" style="flex:1;margin:0">Abend testen</button></div>`:''}
     ${S.briefOld?'<div class="note" style="color:var(--bad)">Für das Briefing brauchst du die neue Version der Funktion „push“ und das aktualisierte SQL (siehe Einrichtung unten, Schritt 1 und 2 wiederholen).</div>':''}
     <div class="note">Kurse holt Supabase frisch zum Versand. Kontostände und Termine stammen von deiner letzten App-Nutzung. Bei Supabase liegen dafür nur Kontostände, Termine ohne Beträge und die Kürzel deiner Depotwerte mit ihrem Anteil – keine Stückzahlen oder Depotwerte. Mit „Beträge in Mitteilungen“ kommen Beträge dazu.</div></div>
-   <div class="sec"><div class="sh">Datenschutz</div><div class="group"><div class="cell plain"><div class="t"><div>Zähler am App-Symbol</div><div class="s">Offene Siri-Einträge, Wünsche zur Entscheidung, Fristen in den nächsten 3 Tagen</div></div><input type="checkbox" class="switch" id="badgeSw" ${S.badge!==false?'checked':''}></div>${sw('pay',O.pay,'Nach Apple-Pay-Zahlung','Sofort: welches Budget, wie viel noch übrig ist. Braucht Kurzbefehl 4 unter Siri & Kurzbefehle.')}${sw('amt',O.amt===true,'Beträge in Mitteilungen','Aus: Texte ohne Euro-Beträge. Die Texte liegen bis zum Versand unverschlüsselt bei Supabase.')}</div>
+   <div class="sec"><div class="sh">Datenschutz</div><div class="group"><div class="cell plain"><div class="t"><div>Zähler am App-Symbol</div><div class="s">Offene Siri-Einträge, Wünsche zur Entscheidung, Fristen in den nächsten 3 Tagen</div></div><input type="checkbox" class="switch" id="badgeSw" ${S.badge!==false?'checked':''}></div>${sw('sal',O.sal,'Gehalt eingegangen','Am Zahltag um 10 Uhr: jetzt verteilen')}${sw('b80',O.b80,'Budget zu 80 % verbraucht','Einmal pro Budget und Monat')}${sw('abo',O.abo,'Abo-Wächter','Preis eines Abos geändert oder neues Abo erkannt')}${sw('goal',O.goal,'Sparziel erreicht','')}${sw('close',O.close,'Monatsende','Am Vorabend des neuen Finanzmonats: Monatsabschluss')}${sw('pay',O.pay,'Nach Apple-Pay-Zahlung','Sofort: welches Budget, wie viel noch übrig ist. Braucht Kurzbefehl 4 unter Siri & Kurzbefehle.')}${sw('amt',O.amt===true,'Beträge in Mitteilungen','Aus: Texte ohne Euro-Beträge. Die Texte liegen bis zum Versand unverschlüsselt bei Supabase.')}</div>
    <div class="note">Der Plan wird jedes Mal neu berechnet, wenn du die App benutzt.</div></div>
    <div class="sec"><div class="sh">Zeiten</div><div class="group">${(()=>{const T=pTimes(),sel=(k,v,L)=>`<select data-pn="${k}">${L.map(([x,l])=>`<option value="${x}" ${+v==x?'selected':''}>${l}</option>`).join('')}</select>`,H=(a,b)=>Array.from({length:b-a+1},(_,i)=>[a+i,(a+i)+' Uhr']),M=(a,b)=>{const r=[];for(let m=a;m<=b;m+=30)r.push([m,hhmm(m)]);return r},row=(l,x)=>`<div class="cell plain"><label>${l}</label>${x}</div>`;
      return row('Ruhe ab',sel('qf',T.qf,H(19,23)))+row('Ruhe bis',sel('qt',T.qt,H(5,10)))+row('Morgen-Briefing Mo–Fr',sel('mt',T.mt,M(300,600)))+row('Morgen-Briefing Sa/So',sel('mw',T.mw,M(360,660)))+row('Abend-Zusammenfassung',sel('et',T.et,M(960,1320)))+row('Höchstens pro Tag',sel('max',T.max,[[3,'3'],[5,'5'],[8,'8'],[0,'unbegrenzt']]))})()}</div>
@@ -4239,6 +4239,16 @@ async function payPush(uid, txt) {
   }
   await sendTo(uid, { title: d.opt.a && amt ? shop + " " + EC(amt) : "Apple Pay: " + shop, body, tag: "pay" });
 }
+async function stale() {
+  const B = berlin(); if (B.min < 600 || B.min > 1260) return;
+  const { data: rows } = await sb.from("push_brief").select("user_id,data,updated_at");
+  for (const r of rows || []) {
+    const d = r.data || {}; if (d.st === B.ymd || Date.now() - Date.parse(r.updated_at || 0) < 48 * 3600e3) continue;
+    const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", r.user_id); if (!count) continue;
+    await sendTo(r.user_id, { title: "CashFlow wartet auf dich", body: count + (count === 1 ? " Eintrag" : " Einträge") + " aus Siri oder Apple Pay " + (count === 1 ? "wartet" : "warten") + " auf Bestätigung.", tag: "stale" });
+    d.st = B.ymd; await sb.from("push_brief").update({ data: d }).eq("user_id", r.user_id);
+  }
+}
 async function briefs() {
   const B = berlin(), we = B.wd === "Sat" || B.wd === "Sun"; let n = 0;
   const { data: rows } = await sb.from("push_brief").select("*");
@@ -4261,7 +4271,7 @@ Deno.serve(async (req) => {
         await sb.from("push_queue").update({ sent: true }).eq("id", m.id);
       }
       await sb.from("push_queue").delete().eq("sent", true).lt("at", new Date(Date.now() - 7 * 864e5).toISOString());
-      let b = 0; try { b = await briefs(); } catch (_) {} try { await sb.from("push_cfg").update({ last_cron: new Date().toISOString() }).eq("id", 1); } catch (_) {}
+      let b = 0; try { b = await briefs(); } catch (_) {} try { await stale(); } catch (_) {} try { await sb.from("push_cfg").update({ last_cron: new Date().toISOString() }).eq("id", 1); } catch (_) {}
       return J({ ok: true, n: (q || []).length, briefs: b });
     }
     if (body.op === "siri") {
@@ -4349,8 +4359,16 @@ function pushItems(){const O=S.pushOpt||{},A=!!O.amt,E=v=>A?' ('+eur(v)+')':'',n
   if(O.wish!==false)(S.wish||[]).forEach(w=>{if(w.s!='offen')return;add(new Date(w.t+wait(w.p)),'Wartezeit vorbei: '+(w.n||'Wunsch'),'Jetzt entscheiden: kaufen, sparen oder loslassen?','wish-'+w.id)});
   if(O.chk!==false){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7||7));d.setHours(18,0,0,0);add(d,'Wochen-Check-in','Fünf Minuten: Wie lief die Woche, was nimmst du dir vor?','chk')}
   if(O.rg!==false){if(!S.rgSince)S.rgSince=Date.now();S.exp.filter(e=>isKonsum(e)&&e.rg==null&&!isPlan(e)&&e.t>=S.rgSince-864e5&&e.t>now0-864e5).slice(-3).forEach(e=>add(new Date(e.t+24*36e5),'Reue-Check: '+(e.n||e.c),'Hat sich der Kauf'+(A?' für '+eur(e.a):'')+' gelohnt? Kurz in der App antworten.','rg-'+e.id))}
+  {let PO;try{PO=JSON.parse(localStorage.getItem('cf_po')||'{}')}catch(e){PO={}}const once=(tag,at,title,body)=>{if(PO[tag]&&PO[tag]<now0)return;if(!PO[tag])PO[tag]=pushQuiet(at).getTime();add(new Date(Math.max(PO[tag],now0+90e3)),title,body,tag)},soon=now0+5*6e4,P=period(0),k=pkey(P);
+   Object.keys(PO).forEach(t=>{if(PO[t]<now0-60*864e5)delete PO[t]});
+   if(O.sal!==false)[0,1].forEach(o=>{const Pp=period(o),kk=pkey(Pp);(S.rec||[]).forEach(r=>{if(r.paused||r.type!='in'||r.a<300)return;const d=recDue(r,Pp);if(!d)return;const x=new Date(d);x.setHours(10,0,0,0);once('sal-'+r.id+'-'+kk,x,(r.n||r.c||'Gehalt')+' sollte heute da sein','Jetzt verteilen: Budgets füllen, Tresor zuerst. Tippe für den Monatsabschluss.')})});
+   if(O.b80!==false)BUDG.filter(b=>!isK(b)&&!isTabu(b)).forEach(b=>{const c=calc(b);if(c.total>0&&c.pct>=.8&&c.rest>0&&P.left>3)once('b80-'+b+'-'+k,soon,b+': 80 % verbraucht','Noch '+P.left+' Tage im Monat'+(A?', '+eur(c.rest)+' übrig, also '+eur(c.rest/Math.max(P.left,1))+' pro Tag':'')+'.')});
+   if(O.abo!==false){(S.rec||[]).forEach(r=>{if(r.paused||r.type!='out')return;const E2=S.exp.filter(e=>e.rid==r.id&&!isPlan(e)).sort((a,b)=>b.t-a.t);if(E2.length<2)return;const a1=E2[0].a,a0=E2[1].a;if(a0>0&&Math.abs(a1-a0)/a0>=.05&&Math.abs(a1-a0)>=1&&now0-E2[0].t<20*864e5)once('abo-'+r.id+'-'+Math.round(a1*100),soon,(r.n||r.c)+(a1>a0?' ist teurer geworden':' ist günstiger geworden'),A?eur(a0)+' → '+eur(a1)+' ('+(a1>a0?'+':'−')+eur(Math.abs(a1-a0)*12)+' im Jahr). Prüfen oder kündigen?':'Der Betrag hat sich geändert. Prüfen oder kündigen?')});
+     try{newSubs().forEach(x=>once('sub-'+x.k,soon,'Sieht nach Abo aus: '+x.e.n,x.n+'× im Monatsabstand, aber nicht im Abo-Radar. Aufnehmen?'))}catch(e){}}
+   if(O.goal!==false)(S.goals||[]).forEach(g=>{if(g.done||g.dropped||!(g.ziel>0))return;const ist=(g.dep||[]).reduce((s,d)=>s+d.a,0);if(ist>=g.ziel)once('goal-'+g.id,soon,'Sparziel erreicht: '+g.n+' 🎉',A?eur(ist)+' zusammen. Jetzt bewusst entscheiden.':'Jetzt bewusst entscheiden: kaufen oder weitersparen?')});
+   if(O.close!==false){const x=new Date(P.e.getTime()-864e5);x.setHours(18,30,0,0);once('close-'+k,x,'Morgen startet der neue Finanzmonat','3 Minuten Monatsabschluss: abgleichen, Rest verteilen, Vorsatz setzen.')}try{localStorage.setItem('cf_po',JSON.stringify(PO))}catch(e){}}
   if(S.urge&&S.urge.until>now0)L.push({at:S.urge.until,title:'10 Minuten sind um',body:'Wie geht es dir mit dem Kaufimpuls? Widerstanden?',tag:'urge'});
-  const T=pTimes(),PR=t=>/^(fix|urge)/.test(t)?0:/^fc/.test(t)?1:/^due/.test(t)?2:/^ctr/.test(t)?3:/^wish/.test(t)?4:/^rg/.test(t)?5:6;let K=L;if(T.max>0){const by={};L.forEach(x=>{const k=ymd(x.at);(by[k]=by[k]||[]).push(x)});K=[].concat(...Object.values(by).map(D=>D.sort((a,b)=>PR(a.tag)-PR(b.tag)||a.at-b.at).slice(0,T.max)))}
+  const T=pTimes(),PR=t=>/^(fix|urge|sal)/.test(t)?0:/^(fc|b80)/.test(t)?1:/^due/.test(t)?2:/^ctr/.test(t)?3:/^wish/.test(t)?4:/^rg/.test(t)?5:6;let K=L;if(T.max>0){const by={};L.forEach(x=>{const k=ymd(x.at);(by[k]=by[k]||[]).push(x)});K=[].concat(...Object.values(by).map(D=>D.sort((a,b)=>PR(a.tag)-PR(b.tag)||a.at-b.at).slice(0,T.max)))}
   return K.sort((a,b)=>a.at-b.at).slice(0,30)}
 function briefData(){const O=S.pushOpt||{},showAmt=!!O.amt,P=period(0),k=pkey(P),now0=Date.now(),D=864e5;
   const accL=S.accts.filter(a=>a.vis!==false&&!isTabu(a.n)&&!(pufAcc()&&a.n==pufAcc().n)&&!/comdirect/i.test(a.n)&&!vaultAccs().includes(a.n)&&!depot().some(h=>h.to==a.n)).map(a=>{const c=calc(a.n);return{n:SHORT[a.n]||a.n,v:Math.round(c.rest),d:a.kind=='budget'&&!isK(a.n)?Math.max(0,Math.round(c.rest/Math.max(P.left||1,1))):null}});
@@ -5515,7 +5533,12 @@ function notifOpen(n){if(!n)return;if(pinActive()&&$('lockRoot').innerHTML){noti
   if(/^wish-/.test(tag)){tab='wish';wishV='Wünsche';render();const i=(S.wish||[]).findIndex(w=>w.id==id);if(i>=0)setTimeout(()=>openKaufCheck(i),200);return}
   if(/^rg-/.test(tag)){const e=S.exp.find(x=>x.id==id);tab='list';render();if(e)setTimeout(()=>openSheet(e),200);return}
   if(tag=='chk'){tab='dash';render();setTimeout(()=>openCheckin(),200);return}
-  if(tag=='pay'){tab='dash';render();setTimeout(()=>siriPull(true),200);return}
+  if(tag=='pay'||tag=='stale'){tab='dash';render();setTimeout(()=>siriPull(true),200);return}
+  if(/^(sal|close)-/.test(tag)){tab='more';setView='close';render();return}
+  if(/^b80-/.test(tag)){const b=tag.split('-')[1];tab='dash';setView=null;curB=BUDG.includes(b)?b:null;render();setTimeout(()=>asstAsk('Was darf ich heute noch ausgeben?'),250);return}
+  if(/^abo-/.test(tag)){tab='more';setView='abos';render();return}
+  if(/^sub-/.test(tag)){tab='dash';render();setTimeout(()=>{asstOpen=true;renderAsst()},200);return}
+  if(/^goal-/.test(tag)){tab='wish';render();return}
   if(tag=='urge'){tab='wish';render();setTimeout(()=>openUrge(),200);return}
   tab='dash';render();asstOpen=true;renderAsst()}
 try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.cfNotif){const n=e.data.cfNotif;setTimeout(()=>{if(Date.now()-visSince<3000)lock();notifOpen(n)},450)}})}catch(e){}

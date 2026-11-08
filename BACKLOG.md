@@ -147,17 +147,17 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 *Mitteilungen*
 - B1. (umgesetzt v169) Sofort-Mitteilung nach Apple-Pay-Zahlung mit geschätztem Budget-Rest (Server, Händler→Budget-Zuordnung in briefData).
-- B2. Erinnerung bei veralteten Daten (Ablage voll, Stand > 48 h).
+- B2. (umgesetzt v172) Erinnerung bei veralteten Daten (Ablage voll, Stand > 48 h).
 - B3. (umgesetzt v170) Badge am App-Icon (offene Siri-Einträge, fällige Wünsche, Fristen ≤ 3 Tage).
 - B4. (umgesetzt v170) Ruhezeit, Briefing-Zeiten und Tageslimit einstellbar, mit Priorität.
-- B5. Neue Anlässe: Gehalt da → verteilen, Abo teurer, Budget 80 %, Sparziel erreicht, Monatsletzter.
-- B6. Jede Mitteilung öffnet die passende Aktion im Assistenten.
+- B5. (umgesetzt v172) Neue Anlässe: Gehalt da → verteilen, Abo teurer, Budget 80 %, Sparziel erreicht, Monatsletzter.
+- B6. (umgesetzt v172) Jede Mitteilung öffnet die passende Aktion im Assistenten.
 
 *Automatisierungen*
 - C1. (umgesetzt v169) Apple Pay standardmäßig über Server-Ablage statt Zwischenablage (Anleitung anpassen).
 - C2. Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
 - C3. Lernende Kategorie-Regeln je Händler, Liste in den Einstellungen.
-- C4. Abo-Wächter per Mitteilung (Preisänderung ±5 %, neue Abos aus newSubs).
+- C4. (umgesetzt v172) Abo-Wächter per Mitteilung (Preisänderung ±5 %, neue Abos aus newSubs).
 - C5. Kalender-Abo (.ics) für Abbuchungen, Fristen, Sparpläne.
 - C6. Mehr Siri-Antworten ohne App-Öffnen („Kann ich mir 80 € leisten?“, „Was kommt diese Woche?“).
 - C7. Monatlicher Kontoabgleich mit Korrekturbuchung.
