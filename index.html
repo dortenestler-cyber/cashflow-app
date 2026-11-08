@@ -546,7 +546,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;font:600 12px ui-monos
 .atip{touch-action:pan-y;will-change:transform}
 .aq-q{align-self:flex-end;max-width:85%;background:var(--accent-fill);color:#fff;padding:8px 12px;border-radius:16px 16px 4px 16px;font-size:14px;margin-top:4px}
 .aq-a{align-self:stretch;background:var(--fill);padding:10px 12px;border-radius:16px 16px 16px 4px;font-size:14px;line-height:1.4;display:flex;flex-direction:column;gap:6px}.aq-a p{margin:0}.aq-a .chip{align-self:flex-start}
-.a-big{font-size:22px;font-weight:800}.a-s{font-size:12px;color:var(--muted)}
+.a-big{font-size:22px;font-weight:800}.a-s{font-size:12px;color:var(--muted)}.ai-ul{margin:4px 0 6px;padding-left:18px}.ai-ul li{margin:2px 0}
 .alist{display:flex;flex-direction:column;background:var(--card);border-radius:12px;overflow:hidden}
 .arow{display:flex;align-items:center;gap:8px;padding:8px 10px;border:0;background:none;color:inherit;font:inherit;text-align:left;width:100%;cursor:pointer}.arow+.arow{border-top:.5px solid var(--sep)}
 .arow-t{flex:1;min-width:0;display:flex;flex-direction:column}.arow-t b{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.arow-t small{font-size:11.5px;color:var(--muted)}.arow-v{font-weight:600;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1418,8 +1418,8 @@ function askAI(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'').trim();i
   const L=aFind({r,acc,cat,amt,type:typ,terms});const tot=L.reduce((s,e)=>s+e.a,0);
   if(sumQ){let cmp='';if(r&&!/\b(heute|gestern)\b/.test(l)){const len=r.e-r.s,prev=aFind({r:{s:r.s-len,e:r.s},acc,cat,amt,type:typ,terms}).reduce((s,e)=>s+e.a,0);if(prev)cmp=`<p class="a-s">Im Zeitraum davor: ${eur(prev)} (${tot>=prev?'+':'−'}${eur(Math.abs(tot-prev))}).</p>`}
     return{h:`<p class="a-big">${eur(tot)}</p><p>${typ=='in'?'Eingenommen':'Ausgegeben'}${cat?' für '+esc(cat):''}${terms.length?' bei „'+esc(terms.join(' '))+'“':''}${acc?' über '+esc(acc):''} ${r?esc(r.lab):'insgesamt'}, ${L.length} Buchung${L.length==1?'':'en'}.</p>${cmp}${L.length?aList(L,8):''}`}}
-  if(!L.length)return{h:`<p>Dazu habe ich nichts gefunden${terms.length?' für „'+esc(terms.join(' '))+'“':''}.</p><p class="a-s">Tipp: „Suche Rewe“, „Buchungen über 50 € im Oktober“ oder „Hilfe“.</p>`};
-  return{h:`<p><b>${L.length} Buchung${L.length==1?'':'en'}</b>${r?' · '+esc(r.lab):''} · zusammen ${eur(tot)}</p>${aList(L)}`}}
+  if(!L.length)return{miss:true,h:`<p>Dazu habe ich nichts gefunden${terms.length?' für „'+esc(terms.join(' '))+'“':''}.</p><p class="a-s">Tipp: „Suche Rewe“, „Buchungen über 50 € im Oktober“ oder „Hilfe“.</p>`};
+  return{miss:terms.length>=3,h:`<p><b>${L.length} Buchung${L.length==1?'':'en'}</b>${r?' · '+esc(r.lab):''} · zusammen ${eur(tot)}</p>${aList(L)}`}}
 const NEWSRX=/\b(news|nachrichten|neuigkeiten|schlagzeilen|was gibt'?s neues|was gibt es neues|was ist los)\b/;
 async function aNews(q){const l=spoken(q).toLowerCase().replace(/[?!.]+$/,'');if(!syOn())return '<p>Für Internet-Suchen brauche ich die Online-Synchronisierung mit deiner Supabase-Funktion „kurse“.</p>';
   let t=l.replace(NEWSRX,' ').replace(/\b(zu|über|aus|der|die|das|dem|den|welt|gibt|es|aktuelle[n]?|neueste[n]?|mir|zeig|such|suche|bitte|mal|heute|von|bei|im|in|meine[n]?|meinen werten|markt|zum|zur|thema)\b/g,' ').replace(/\s+/g,' ').trim();
@@ -1434,8 +1434,158 @@ const JRX=/^\s*(journal|tagebuch|konsum-?journal)\b|^ich hatte (lust|den drang|e
 function asstAsk(q){q=String(q||'').trim();if(!q)return;if(/^(ich habe |hab )?(gerade|jetzt|grad)\b.*\b(lust|drang|impuls|kaufen)|^notbremse|^hilfe,? ich will (was )?kaufen/i.test(q)){const j=jParse(q);j.out='note';j.u=j.u||4;S.journal=S.journal||[];S.journal.push(j);save();AQ.msgs.push({q,h:'<p><b>Okay, kurz innehalten.</b> Ich habe die Impuls-Notbremse geöffnet.</p>'});asstOpen=false;renderAsst();openUrge(j.id);return}
   if(JRX.test(q)){const j=jParse(q);S.journal=S.journal||[];S.journal.push(j);save();AQ.msgs.push({q,h:`<p><b>Im Journal gespeichert</b>${j.out=='resist'?' – stark, dass du widerstanden hast!':''}</p><div class="alist">${jRow(j)}</div><p class="a-s">${[j.g?'Gefühl: '+esc(j.g):'',j.tr?'Auslöser: '+esc(j.tr):'',JOUT[j.out][0]].filter(Boolean).join(' · ')}. Antippen zum Ergänzen.</p>`,a:[['Bearbeiten',()=>openJournal(j.id)],['Journal öffnen',()=>{tab='wish';wishV='Journal';setView=null;curB=null;render();scrollTo(0,0)}]]});asstOpen=true;renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}if(NEWSRX.test(q.toLowerCase())){const m={q,h:'<p class="a-s">Suche im Internet …</p>'};AQ.msgs.push(m);asstOpen=true;renderAsst();aNews(q).then(h=>{m.h=h}).catch(e=>{m.h='<p>Suche ging nicht: '+esc(e.message||e)+'</p>'}).finally(()=>{renderAsst();setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)});setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30);return}
   {const lq=q.toLowerCase().trim();if(/\d/.test(lq)&&!/\?$/.test(lq)&&!/^(such|find|zeig|wie|was|wann|welche|wo|buchungen|alle|liste|ausgaben|vergleich|kurs|news)/.test(lq)&&!/\b(über|unter|mehr als|weniger als|im (januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember))\b/.test(lq)){asstOpen=false;renderAsst();if(voiceCmd(q))return;openSheet();qp(q);drawSheet();toast('Verstanden: „'+q+'“. Kurz prüfen und sichern.');return}}
-  let a;try{a=askAI(q)}catch(e){a={h:'<p>Da ist etwas schiefgelaufen: '+esc(e.message||e)+'</p>'}}AQ.msgs.push({q,h:a?a.h:'<p>Das habe ich nicht verstanden.</p>',a:a&&a.a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();
+  if(aiOn()&&AIRX.test(q.trim())){aiChat(q);return}
+  let a;try{a=askAI(q)}catch(e){a={h:'<p>Da ist etwas schiefgelaufen: '+esc(e.message||e)+'</p>'}}if(aiOn()&&(!a||a.miss)){aiChat(q);return}if(a&&aiOn())a.a=(a.a||[]).concat([['Genauer mit KI',()=>aiChat(q)]]);AQ.msgs.push({q,h:a?a.h:'<p>Das habe ich nicht verstanden.</p>',a:a&&a.a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();
   setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
+/* ---------- KI-Assistent: Claude über die Supabase-Function „ai“ ---------- */
+const AI_FN=`// Supabase Edge Function "ai" v1: KI-Assistent für CashFlow (Claude API)
+// Secret nötig: ANTHROPIC_API_KEY (Edge Functions › Secrets). "Verify JWT" eingeschaltet lassen.
+import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
+const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+const KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
+const ai = new Anthropic({ apiKey: KEY || "fehlt" });
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+const J = (o, st = 200) => new Response(JSON.stringify(o), { status: st, headers: { ...cors, "Content-Type": "application/json" } });
+const MODELS = ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"];
+const DAY_MAX = 100;
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  if (body.op === "ping") return J({ pong: true, v: 1, key: !!KEY });
+  const jwt = (req.headers.get("authorization") || "").replace("Bearer ", "");
+  const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
+  if (!uid) return J({ error: "not signed in" }, 401);
+  const day = new Date().toISOString().slice(0, 10);
+  const { data: row, error: ue } = await sb.from("ai_usage").select("n").eq("user_id", uid).eq("d", day).maybeSingle();
+  if (ue) return J({ error: "Tabelle ai_usage fehlt: SQL aus der Einrichtung ausführen." }, 500);
+  const n = (row && row.n) || 0;
+  if (body.op === "status") return J({ v: 1, key: !!KEY, today: n, max: DAY_MAX });
+  if (body.op !== "chat") return J({ error: "unknown op" }, 400);
+  if (!KEY) return J({ error: "ANTHROPIC_API_KEY fehlt in den Secrets." }, 500);
+  if (n >= DAY_MAX) return J({ error: "Tageslimit von " + DAY_MAX + " Anfragen erreicht." }, 429);
+  const p = body.req || {};
+  if (!MODELS.includes(p.model)) return J({ error: "Modell nicht erlaubt" }, 400);
+  if (JSON.stringify(p).length > 6000000) return J({ error: "Anfrage zu groß" }, 413);
+  await sb.from("ai_usage").upsert({ user_id: uid, d: day, n: n + 1 });
+  const params = { model: p.model, max_tokens: Math.min(+p.max_tokens || 4000, 16000), messages: p.messages };
+  for (const k of ["system", "tools", "output_config", "cache_control"]) if (p[k] != null) params[k] = p[k];
+  try { const msg = await ai.messages.create(params); return J({ msg, v: 1 }); }
+  catch (e) {
+    if (e instanceof Anthropic.APIError) return J({ error: "Claude " + (e.status || "") + ": " + e.message }, 502);
+    return J({ error: String((e && e.message) || e) }, 500);
+  }
+});`;
+const AI_SQL=`create table if not exists public.ai_usage (user_id uuid not null references auth.users on delete cascade, d date not null, n int not null default 0, primary key (user_id, d));
+alter table public.ai_usage enable row level security;`;
+const AIPRICE={'claude-haiku-5-5':[.10,.50,.01,.125],'claude-sonnet-5-5':[2,10,.20,2.5],'claude-opus-5-5':[4,20,.20,5]};
+const AINAME={'claude-haiku-5-5':'Haiku 5.5','claude-sonnet-5-5':'Sonnet 5.5','claude-opus-5-5':'Opus 5.5'};
+const AI={conv:[],t:0,lvl:1};
+function aiCfg(){S.ai=Object.assign({on:false,lvl:1,lim:2,chat:'claude-haiku-5-5',deep:'claude-sonnet-5-5'},S.ai||{});return S.ai}
+const aiOn=()=>!!(S.ai&&S.ai.on)&&syOn();
+const aiYm=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+function aiUse(){const c=aiCfg();if(!c.use||c.use.ym!=aiYm())c.use={ym:aiYm(),usd:0,n:0};return c.use}
+const usd=v=>(v>0&&v<.005?'< 0,01':(+v||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}))+' $';
+const aiR2=v=>Math.round((+v||0)*100)/100;
+function aiCost(model,u){const p=AIPRICE[model]||AIPRICE['claude-sonnet-5-5'];if(!u)return 0;return((u.input_tokens||0)*p[0]+(u.output_tokens||0)*p[1]+(u.cache_read_input_tokens||0)*p[2]+(u.cache_creation_input_tokens||0)*p[3])/1e6}
+async function aiCall(req){const u=aiUse(),c=aiCfg();if(u.usd>=c.lim)throw new Error('LIMIT');
+  const r=await syFetch('/functions/v1/ai',{method:'POST',body:JSON.stringify({op:'chat',req})});let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error(r.status==404?'NOFN':(j.error||('Fehler '+r.status)));const m=j.msg;u.usd+=aiCost(req.model,m&&m.usage);u.n++;save();return m}
+const aiD=(s,end)=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;const d=new Date(+m[1],m[2]-1,+m[3]);if(end)d.setDate(d.getDate()+1);return d.getTime()};
+function aiRange(a){const P=period(0);let s=aiD(a.von),e=aiD(a.bis,1);if(s==null)s=P.s.getTime();if(e==null)e=a.von?Date.now()+864e5:P.e.getTime();
+  const f=t=>new Date(t).toLocaleDateString('de-DE');return{s,e,lab:f(s)+' bis '+f(e-1)}}
+const aiAcc=n=>{if(!n)return null;const l=String(n).toLowerCase().trim();return ALL.find(a=>a.toLowerCase()==l||(SHORT[a]||'').toLowerCase()==l)||accIn(l)};
+function aiFilter(a,r){const lvl=aiCfg().lvl,ty=a.typ=='einnahmen'?'in':a.typ=='umbuchungen'?'tr':'out',acc=aiAcc(a.konto);
+  const terms=lvl>=2&&a.haendler?String(a.haendler).toLowerCase().split(/\s+/).filter(w=>w.length>1):[];
+  let L=aFind({r,acc,cat:null,amt:{mn:a.min!=null?+a.min:null,mx:a.max!=null?+a.max:null},type:ty,terms});
+  if(a.kategorie){const k=String(a.kategorie).toLowerCase().trim(),eq=L.filter(e=>String(e.c||'').toLowerCase()==k||String(e.sc||'').toLowerCase()==k);L=eq.length?eq:L.filter(e=>String(e.c||'').toLowerCase().includes(k))}
+  return L}
+const aiTools={
+  budget_status(){const P=period(0),fg=fixGuard();return{finanzmonat:P.label,tag:P.idx,tage_gesamt:P.len,tage_uebrig:P.left,
+    budgets:BUDG.filter(b=>!isK(b)&&!isTabu(b)).map(b=>{const c=calc(b),f=budForecast(b);return{name:SHORT[b]||b,budget:aiR2(c.total),verbraucht:aiR2(c.used),rest:aiR2(c.rest),pro_tag_frei:aiR2(Math.max(0,c.rest)/Math.max(P.left,1)),reicht_bis:f?ymd(f.when.getTime()):'Monatsende',notfallbremse:isLock(b)||undefined}}),
+    konten:TOT.filter(n=>isK(n)&&!WH(n)).map(n=>({name:SHORT[n]||n,stand:aiR2(calc(n).rest)})),
+    puffer:pufAcc()?aiR2(pufVal()):undefined,warnung:fg?fg.n+' wird am '+ymd(fg.at.d.getTime())+' auf '+aiR2(fg.min)+' € fallen ('+fg.big.map(x=>x.n).join(', ')+')':undefined}},
+  spend_summary(a){const r=aiRange(a),L=aiFilter(a,r),g=a.gruppe||'kategorie',by={};
+    if(g=='haendler'&&aiCfg().lvl<2)return{fehler:'Händler-Auswertung ist in den Datenschutz-Einstellungen aus.'};
+    L.forEach(e=>{const k=g=='kategorie'?(e.c||'Sonstiges'):g=='konto'?(SHORT[e.b]||e.b):g=='haendler'?(e.n||e.c||'?'):g=='monat'?new Date(e.t).toLocaleDateString('de-DE',{month:'short',year:'numeric'}):'gesamt';(by[k]=by[k]||{summe:0,anzahl:0});by[k].summe+=e.a;by[k].anzahl++});
+    return{zeitraum:r.lab,summe:aiR2(L.reduce((s,e)=>s+e.a,0)),anzahl:L.length,gruppen:Object.entries(by).sort((x,y)=>y[1].summe-x[1].summe).slice(0,25).map(([k,v])=>({name:k,summe:aiR2(v.summe),anzahl:v.anzahl}))}},
+  list_bookings(a){if(aiCfg().lvl<2)return{fehler:'Einzelbuchungen sind in den Datenschutz-Einstellungen aus.'};const r=aiRange(a),L=aiFilter(a,r);
+    return{zeitraum:r.lab,anzahl:L.length,buchungen:L.slice(0,20).map(e=>({datum:ymd(e.t),name:e.n||e.c||'Buchung',betrag:aiR2(e.a),kategorie:e.c||undefined,konto:SHORT[e.b]||e.b}))}},
+  upcoming(a){const now0=Date.now(),end=now0+Math.min(90,Math.max(1,+a.tage||14))*864e5,L=[];
+    [0,1,2].forEach(o=>{const P=period(o),k=pkey(P);(S.rec||[]).forEach(x=>{if(x.paused)return;const d=recDue(x,P);if(!d||d.getTime()<now0-864e5||d.getTime()>end||S.exp.some(e=>e.rid==x.id&&e.pk==k)||WH(x.b))return;L.push({datum:ymd(d.getTime()),was:x.n||x.c,betrag:aiR2(x.type=='in'?x.a:-x.a),konto:SHORT[x.b]||x.b,art:x.type=='in'?'Einnahme':x.type=='tr'?'Umbuchung':'Abbuchung'})})});
+    S.exp.filter(e=>isPlan(e)&&e.t<=end&&e.t>=now0-864e5&&!WH(e.b)).forEach(e=>L.push({datum:ymd(e.t),was:e.n||e.c||'geplant',betrag:aiR2(e.type=='in'?e.a:-e.a),konto:SHORT[e.b]||e.b,art:'geplant'}));
+    (S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(x.kd&&x.kd.getTime()<=end&&x.kd.getTime()>=now0-864e5)L.push({datum:ymd(x.kd.getTime()),was:'Kündigungsfrist '+c.n,art:'Frist'})});
+    (S.wish||[]).filter(w=>w.s=='offen').forEach(w=>{const t=w.t+wait(w.p);if(t<=end)L.push({datum:ymd(Math.max(t,now0)),was:'Wartezeit vorbei: '+w.n,betrag:aiR2(-w.p),art:'Wunsch'})});
+    return{bis:ymd(end),eintraege:L.sort((x,y)=>x.datum<y.datum?-1:1).slice(0,40)}},
+  subscriptions(){const L=aboList();return{jahr:aiR2(L.reduce((s,x)=>s+x.year,0)),abos:L.slice(0,40).map(x=>({name:x.r.n||x.r.c,monatlich:aiR2(x.mon),jaehrlich:aiR2(x.year),art:aboKind(x.r)=='vertrag'?'Vertrag':'Abo',konto:SHORT[x.r.b]||x.r.b}))}},
+  wishes(){return{wuensche:(S.wish||[]).filter(w=>w.s=='offen').map(w=>({name:w.n,preis:aiR2(w.p),frei_ab:ymd(w.t+wait(w.p))}))}}};
+function aiRun(name,a,acts){
+  if(name=='propose_transfer'){const v=aiAcc(a.von),n=aiAcc(a.nach),b=+a.betrag;if(!v||!n||!(b>0))return{fehler:'Konto oder Betrag unbekannt. Gültige Konten: '+ALL.filter(x=>!WH(x)).join(', ')};
+    const t='Umbuchen '+String(aiR2(b)).replace('.',',')+' Euro von '+v+' nach '+n;acts.push(['Umbuchen: '+eur(b)+' '+(SHORT[v]||v)+' → '+(SHORT[n]||n),()=>aiFill(t)]);return{ok:true,hinweis:'Als Knopf angezeigt. Der Nutzer prüft und bestätigt selbst.'}}
+  if(name=='propose_booking'){const t=String(a.text||'').trim().slice(0,120);if(!t)return{fehler:'text fehlt'};acts.push(['Buchen: '+t,()=>aiFill(t)]);return{ok:true,hinweis:'Als Knopf angezeigt. Der Nutzer prüft und sichert selbst.'}}
+  if(name=='propose_wish'){const n=String(a.name||'').trim().slice(0,60),p=+a.preis;if(!n)return{fehler:'name fehlt'};acts.push(['Auf die Wunschliste: '+n+(p>0?' ('+eur(p)+')':''),()=>{asstOpen=false;renderAsst();if(!voiceCmd('Wunsch '+n+(p>0?' '+String(aiR2(p)).replace('.',',')+' Euro':'')))openWish()}]);return{ok:true,hinweis:'Als Knopf angezeigt.'}}
+  const f=aiTools[name];if(!f)return{fehler:'Unbekanntes Werkzeug'};return f(a||{})}
+function aiFill(t){asstOpen=false;renderAsst();openSheet();qp(t);drawSheet();toast('Vorschlag der KI: kurz prüfen und sichern.')}
+const AISYS=`Du bist der Finanz-Assistent in der iPhone-App CashFlow einer Privatperson in Deutschland.
+Antworte auf Deutsch, kurz und konkret: meist 2 bis 5 Sätze oder eine kurze Liste. Beträge im deutschen Format, z. B. 1.234,56 €.
+Schlage Zahlen mit den Werkzeugen nach und erfinde keine. Fehlen Daten, sag das offen.
+Budgets gelten für den Finanzmonat der App; "rest" ist, was im Budget noch frei ist, "pro_tag_frei" das Tagesbudget bis Monatsende.
+Wenn eine Handlung sinnvoll ist, schlage sie mit propose_transfer, propose_booking oder propose_wish vor. Vorschläge erscheinen als Knopf, der Nutzer entscheidet selbst. Behaupte nie, du hättest etwas gebucht oder geändert.
+Die App schützt vor Impulskäufen: größere Wünsche erst auf die Wunschliste mit Wartezeit. Konten mit Notfallbremse nicht als Quelle für Umbuchungen vorschlagen.
+Formatierung: einfacher Text, **fett** nur für die wichtigste Zahl, Listen mit "- ". Keine Tabellen, keine Überschriften.`;
+function aiToolDefs(lvl){const per={von:{type:'string',description:'Startdatum YYYY-MM-DD'},bis:{type:'string',description:'Enddatum YYYY-MM-DD, einschließlich'}};
+  const flt=Object.assign({kategorie:{type:'string',description:'Kategoriename, z. B. Lebensmittel'},konto:{type:'string',description:'Konto- oder Budgetname'},typ:{type:'string',enum:['ausgaben','einnahmen','umbuchungen'],description:'Standard: ausgaben'},min:{type:'number',description:'Mindestbetrag in Euro'},max:{type:'number',description:'Höchstbetrag in Euro'}},per,lvl>=2?{haendler:{type:'string',description:'Händler oder Stichwort im Buchungsnamen'}}:{});
+  const o=(p,req)=>Object.assign({type:'object',properties:p},req?{required:req}:{});
+  const T=[
+    {name:'budget_status',description:'Aktueller Stand aller Monatsbudgets und Konten: Rest, Tagesbudget, Prognose, Puffer, Warnungen.',input_schema:o({})},
+    {name:'spend_summary',description:'Summen von Ausgaben, Einnahmen oder Umbuchungen in einem Zeitraum, optional gefiltert und gruppiert. Ohne Zeitraum: laufender Finanzmonat. Für Vergleiche zweimal mit verschiedenen Zeiträumen aufrufen.',input_schema:o(Object.assign({gruppe:{type:'string',enum:lvl>=2?['kategorie','konto','haendler','monat','keine']:['kategorie','konto','monat','keine'],description:'Standard: kategorie'}},flt))},
+    {name:'upcoming',description:'Anstehende Abbuchungen, Einnahmen, geplante Buchungen, Kündigungsfristen und Wünsche, deren Wartezeit endet.',input_schema:o({tage:{type:'integer',description:'Zeitraum in Tagen, Standard 14, höchstens 90'}})},
+    {name:'subscriptions',description:'Alle Abos und Verträge mit Monats- und Jahreskosten.',input_schema:o({})},
+    {name:'wishes',description:'Offene Wünsche auf der Wunschliste mit Preis und Ende der Wartezeit.',input_schema:o({})},
+    {name:'propose_transfer',description:'Schlägt eine Umbuchung zwischen zwei Konten oder Budgets vor. Erscheint als Knopf, der Nutzer bestätigt.',input_schema:o({betrag:{type:'number'},von:{type:'string'},nach:{type:'string'},grund:{type:'string'}},['betrag','von','nach','grund'])},
+    {name:'propose_booking',description:'Schlägt eine neue Buchung vor, die der Nutzer prüft und sichert. text wie gesprochen, z. B. "Rewe 25 Euro Lebensmittel von Flow".',input_schema:o({text:{type:'string'},grund:{type:'string'}},['text','grund'])},
+    {name:'propose_wish',description:'Schlägt vor, etwas auf die Wunschliste zu setzen statt es sofort zu kaufen.',input_schema:o({name:{type:'string'},preis:{type:'number'},grund:{type:'string'}},['name','grund'])}];
+  if(lvl>=2)T.splice(2,0,{name:'list_bookings',description:'Einzelne Buchungen nach Filter, höchstens 20, neueste zuerst. Ohne Zeitraum: laufender Finanzmonat.',input_schema:o(flt)});
+  return T}
+function aiMd(t){const L=esc(String(t||'')).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split('\n');let h='',ul=false;
+  L.forEach(l=>{const m=l.match(/^\s*[-•*]\s+(.*)/);if(m){if(!ul){h+='<ul class="ai-ul">';ul=true}h+='<li>'+m[1]+'</li>';return}if(ul){h+='</ul>';ul=false}if(l.trim())h+='<p>'+l+'</p>'});
+  return h+(ul?'</ul>':'')}
+function aiScroll(){setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
+function aiErr(e){const m=String(e&&e.message||e);if(m=='LIMIT')return'Dein KI-Monatslimit ist erreicht. Bis Monatsende antworte ich nur mit den festen Auswertungen.';if(m=='NOFN')return'Die Funktion „ai“ fehlt noch in Supabase. Mehr › KI-Assistent › Einrichtung.';
+  if(/not signed|401/.test(m))return'Bitte in der Online-Synchronisierung neu anmelden.';if(/Failed to fetch|NetworkError|Load failed/i.test(m))return'Keine Verbindung. Die KI braucht Internet.';return'Die KI hat nicht geantwortet: '+m}
+async function aiChat(q){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s">${I('sparkle',13)} KI denkt nach …</p>`};AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
+  const setUp=()=>{asstOpen=false;renderAsst();tab='more';setView='ai';render()};
+  if(u.usd>=c.lim){m.h=`<p>${esc(aiErr('LIMIT'))}</p>`;m.a=[['Limit ändern',setUp]];renderAsst();return}
+  if(!AI.conv.length||Date.now()-AI.t>18e5||AI.conv.length>24||AI.lvl!=c.lvl){AI.conv=[];AI.lvl=c.lvl}AI.t=Date.now();
+  const txt=(AI.conv.length?'':'Stand der App (automatisch mitgeschickt):\n'+JSON.stringify(aiTools.budget_status())+'\nHeute: '+new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\n\nFrage: ')+q;
+  const conv=AI.conv.slice(),acts=[];conv.push({role:'user',content:[{type:'text',text:txt}]});let text='',stop='';
+  try{for(let i=0;i<5;i++){const r=await aiCall({model:c.chat,max_tokens:4000,system:AISYS,tools:aiToolDefs(c.lvl),messages:conv,output_config:{effort:'low'},cache_control:{type:'ephemeral'}});
+      conv.push({role:'assistant',content:r.content});stop=r.stop_reason;const tx=r.content.filter(b=>b.type=='text').map(b=>b.text).join('\n').trim();if(tx)text=tx;
+      if(stop!='tool_use')break;
+      conv.push({role:'user',content:r.content.filter(b=>b.type=='tool_use').map(b=>{let out;try{out=aiRun(b.name,b.input||{},acts)}catch(e){return{type:'tool_result',tool_use_id:b.id,content:'Fehler: '+(e.message||e),is_error:true}}return{type:'tool_result',tool_use_id:b.id,content:JSON.stringify(out)}})})}
+    AI.conv=stop=='tool_use'||stop=='refusal'?[]:conv;
+    if(stop=='refusal')text='Dazu kann ich leider nichts sagen.';else if(!text)text=stop=='tool_use'?'Das war zu aufwendig. Frag bitte etwas genauer.':'Ich habe keine Antwort bekommen.';
+    m.h=aiMd(text)+(stop=='max_tokens'?'<p class="a-s">… gekürzt.</p>':'')+`<p class="a-s">${I('sparkle',12)} KI · ${esc(AINAME[c.chat]||c.chat)} · diesen Monat ${usd(aiUse().usd)} von ${usd(c.lim)}</p>`;
+    m.a=acts.slice(0,4)}
+  catch(e){m.h=`<p>${esc(aiErr(e))}</p>`;m.a=/LIMIT|NOFN/.test(String(e&&e.message))?[['KI-Einstellungen',setUp]]:null}
+  renderAsst();aiScroll()}
+const AIRX=/^(warum|wieso|weshalb|soll(te)? ich|wie (kann|könnte|sollte) ich|wo kann ich|wie spare|spartipps?|tipps?\b|hilf mir|was (empfiehlst|rätst) du|analysier|erklär|bewerte|wie (sieht|steht) es (insgesamt|allgemein)|plane?\b)/i;
+function aiHtml(){const c=aiCfg(),u=aiUse(),opts=v=>Object.keys(AIPRICE).map(k=>`<option value="${k}" ${v==k?'selected':''}>${AINAME[k]}</option>`).join('');
+  return `<div class="sec"><div class="group">
+   <div class="cell plain"><div class="t"><div>KI einschalten</div><div class="s">${syOn()?'Freie Fragen beantwortet Claude, feste Auswertungen bleiben gratis':'Braucht die Online-Synchronisierung'}</div></div><input type="checkbox" class="switch" id="aiSw" ${c.on?'checked':''} ${syOn()?'':'disabled'}></div>
+   <div class="cell plain"><label for="aiLvl">Daten für die KI</label><select id="aiLvl"><option value="1" ${c.lvl==1?'selected':''}>Nur Summen</option><option value="2" ${c.lvl==2?'selected':''}>Mit Einzelbuchungen</option></select></div>
+   <div class="cell plain"><label for="aiLim">Monatslimit</label><select id="aiLim">${[0.5,1,2,5,10].map(v=>`<option value="${v}" ${c.lim==v?'selected':''}>${usd(v)}</option>`).join('')}</select></div>
+   <div class="cell plain"><label for="aiChatM">Modell für Fragen</label><select id="aiChatM">${opts(c.chat)}</select></div>
+   <div class="cell plain"><label for="aiDeepM">Modell für Belege</label><select id="aiDeepM">${opts(c.deep)}</select></div></div>
+   <div class="note">Haiku ist schnell und günstig, Sonnet genauer, Opus am stärksten und teuersten. „Mit Einzelbuchungen“ schickt bei Bedarf Händler, Datum und Betrag. Nie gesendet: Notizen, Personen, Journal-Texte, Fotos. Vorschläge der KI erscheinen als Knopf, du bestätigst jede Buchung selbst.</div></div>
+  <div class="sec"><div class="sh">Verbrauch diesen Monat</div><div class="group"><div class="cell plain"><div class="t">Kosten</div><b>${usd(u.usd)} von ${usd(c.lim)}</b></div><div class="cell plain"><div class="t">Anfragen</div><b>${u.n}</b></div></div>
+   <div class="note">Geschätzt aus den Angaben von Claude. Ist das Limit erreicht, antwortet der Assistent bis Monatsende nur noch mit festen Auswertungen. Zusätzlich lässt die Funktion höchstens 100 Anfragen pro Tag zu.</div></div>
+  <button class="btn" id="aiTest">Verbindung testen</button>
+  <div class="sec"><div class="sh">Einrichtung (einmalig)</div><div class="note">1. console.anthropic.com: Konto anlegen, Guthaben aufladen, unter Limits ein Ausgabenlimit setzen, API-Schlüssel erzeugen.<br>2. Supabase › Edge Functions › Secrets: Name ANTHROPIC_API_KEY, Wert dein Schlüssel.<br>3. Mehr › Supabase-Einrichtung: „Tabelle für KI“ (SQL) ausführen und „Funktion ai“ einspielen.<br>4. Hier einschalten und „Verbindung testen“.</div><button class="btn soft" id="aiSetup">Zur Supabase-Einrichtung</button></div>`}
+function bindAi(){if(!$('aiSw'))return;const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};$('aiSw').onchange=()=>{aiCfg().on=$('aiSw').checked;save();render();if(S.ai.on)toast('KI ist an. Frag den Assistenten etwas Freies, z. B. „Wo kann ich sparen?“')};
+  [['aiLvl','lvl',Number],['aiLim','lim',parseFloat],['aiChatM','chat',String],['aiDeepM','deep',String]].forEach(([id,k,f])=>{if($(id))$(id).onchange=()=>{aiCfg()[k]=f($(id).value);save();render()}});
+  on('aiTest',async()=>{toast('Teste …');try{const r=await syFetch('/functions/v1/ai',{method:'POST',body:JSON.stringify({op:'status'})});let j={};try{j=await r.json()}catch(e){}if(r.status==404)throw new Error('Die Funktion „ai“ fehlt noch.');if(!r.ok)throw new Error(j.error||'Fehler '+r.status);toast(j.key?'Verbunden. Heute '+j.today+' von '+j.max+' Anfragen.':'Funktion läuft, aber ANTHROPIC_API_KEY fehlt in den Secrets.')}catch(e){toast(aiErr(e))}});
+  on('aiSetup',()=>{setView='setup';render()})}
 /* ---------- Assistent: Höhe (⅓ · ½ · fast voll) und Eingabevorschläge ---------- */
 let ASH='third';const ASHV={third:'36vh',half:'54vh',full:'88vh'};
 function chipUse(t){S.chipUse=S.chipUse||{};S.chipUse[t]=(S.chipUse[t]||0)+1;save()}
@@ -3264,6 +3414,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>!featOn(k)?'':`<button class="cell"
    nav('pin','lock','PIN & '+bioName(),pinActive()?(bioGet()?bioName()+' aktiv':'PIN aktiv'):'Aus',c3)+nav('push','bell','Mitteilungen',pushOn()?'Aktiv auf diesem Gerät':'Aus',c3)+nav('siri','mic','Siri & Kurzbefehle',siriGet()?'Eingerichtet'+((S.siriPend||[]).length?' · '+S.siriPend.length+' prüfen':''):'Ohne App öffnen eintragen und fragen',c3))}
   ${sec('Rückblick & Hilfe','',
    nav('report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen',c4)+
+   nav('ai','sparkle','KI-Assistent',aiOn()?'An · '+usd(aiUse().usd)+' diesen Monat':'Aus · Claude für freie Fragen',c4)+
    btn('asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen',c4)+
    btn('vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst',c4)+
    `<button class="cell kbhint" id="kbHelpBtn"><div class="ico" style="background:color-mix(in srgb,${c4} 14%,transparent);color:${c4}">${I('grid')}</div><div class="t"><div>Tastaturkürzel</div><div class="s">N für neue Buchung, 1–6 für Bereiche, ? für alle</div></div><span class="chev">›</span></button>`)}
@@ -3274,7 +3425,7 @@ function viewMore(){const nav=(k,ico,l,s,c)=>!featOn(k)?'':`<button class="cell"
   ${sec('Daten','',
    nav('sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten',c6)+
    nav('export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel',c6)+
-   nav('setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql'].filter(k=>st[k]===true).length;return st.at?n+' von 5 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})(),c6)+
+   nav('setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})(),c6)+
    nav('import','export','Import aus MoneyControl','Backup oder CSV übernehmen',c6))}
   </div><div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
 /* ---------- Supabase-Einrichtung: alle Codes an einem Ort ---------- */
@@ -3284,7 +3435,9 @@ const SETUP_ITEMS=()=>[
   {k:'bak',t:'Tabelle für Monats-Sicherung',w:'SQL',what:'Verschlüsselte Monats-Sicherungen für den Notfall-Schlüssel.',where:'SQL Editor › New query › einfügen › Run',code:()=>BAKSQL,need:'Notfall-Schlüssel'},
   {k:'kurse',t:'Funktion „kurse“',w:'Edge Function',what:'Kurse, Kursverläufe bis 5 Jahre, Basisdaten, Analysten, News und Webseiten-Icons für die Logo-Suche.',where:'Edge Functions › kurse › Code ersetzen › Deploy (neu: Deploy a new function › Via Editor, Name „kurse“)',code:()=>KURS_FN,need:'Depot & News'},
   {k:'pushsql',t:'Tabellen & Zeitplan für Mitteilungen',w:'SQL',what:'Speicher für Mitteilungen, Briefing, Siri-Ablage und den 10-Minuten-Takt.',where:'SQL Editor › New query › einfügen › Run',code:()=>PUSH_SQL(),need:'Mitteilungen & Briefing'},
-  {k:'push',t:'Funktion „push“',w:'Edge Function',what:'Verschickt Mitteilungen und das Daily Briefing und nimmt Siri-Kurzbefehle an.',where:'Edge Functions › push › Code ersetzen › Deploy. Danach unter Details „Verify JWT“ ausschalten.',code:()=>PUSH_FN,need:'Mitteilungen & Briefing'}];
+  {k:'push',t:'Funktion „push“',w:'Edge Function',what:'Verschickt Mitteilungen und das Daily Briefing und nimmt Siri-Kurzbefehle an.',where:'Edge Functions › push › Code ersetzen › Deploy. Danach unter Details „Verify JWT“ ausschalten.',code:()=>PUSH_FN,need:'Mitteilungen & Briefing'},
+  {k:'aisql',t:'Tabelle für KI',w:'SQL',what:'Zählt die KI-Anfragen pro Tag (Kostenbremse).',where:'SQL Editor › New query › einfügen › Run',code:()=>AI_SQL,need:'KI-Assistent'},
+  {k:'ai',t:'Funktion „ai“',w:'Edge Function',what:'Leitet Fragen an Claude weiter, höchstens 100 pro Tag. Braucht das Secret ANTHROPIC_API_KEY.',where:'Edge Functions › Deploy a new function › Via Editor, Name „ai“ › Code einfügen › Deploy. Secrets › ANTHROPIC_API_KEY eintragen. „Verify JWT“ eingeschaltet lassen.',code:()=>AI_FN,need:'KI-Assistent'}];
 async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render();const st={at:Date.now()};
   const t=async(f)=>{try{return await f()}catch(e){return false}};
   st.db=await t(async()=>{const r=await syFetch('/rest/v1/cashflow?select=user_id&limit=1');return r.ok});
@@ -3292,11 +3445,13 @@ async function setupCheck(){if(!syOn()||SETUP.busy)return;SETUP.busy=true;render
   st.kurse=await t(async()=>{const r=await syFetch('/functions/v1/kurse',{method:'POST',body:JSON.stringify({news:[]})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.kursev=j.v||0;return (j.v||0)>=9?true:'old'});
   st.push=await t(async()=>{const r=await syFetch('/functions/v1/push',{method:'POST',body:JSON.stringify({op:'key'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.pushv=j.v||0;pstSave(j);try{const r2=await fetch(SY.url.replace(/\/$/,'')+'/functions/v1/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'ping'})});st.pushjwt=r2.status==401?'on':r2.ok?'off':'?'}catch(e){st.pushjwt='?'}return (j.v||0)>=6?true:'old'});
   st.pushsql=await t(async()=>{const a=await syFetch('/rest/v1/push_brief?select=user_id&limit=1'),b=await syFetch('/rest/v1/push_queue?select=id&limit=1'),c=await syFetch('/rest/v1/inbox?select=id&limit=1');return a.ok&&b.ok&&c.ok?true:b.ok?'old':false});
+  st.aisql=await t(async()=>{const r=await syFetch('/rest/v1/ai_usage?select=d&limit=1');return r.ok});
+  st.ai=await t(async()=>{const r=await syFetch('/functions/v1/ai',{method:'POST',body:JSON.stringify({op:'status'})});if(!r.ok)return r.status==404?false:'err';const j=await r.json();st.aiv=j.v||0;return j.key?((j.v||0)>=1?true:'old'):'err'});
   SETUP.st=st;try{localStorage.setItem('cf_setup',JSON.stringify(st))}catch(e){}SETUP.busy=false;if(st.kurse===true)S.kursFnOld=false;if(st.push===true&&st.pushsql===true)S.briefOld=false;render()}
 function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','check']:v==='old'?['Veraltet, bitte neu einspielen','warn','up']:v===false?['Fehlt noch','bad','alert']:v==='err'?['Antwortet mit Fehler','bad','alert']:['Noch nicht geprüft','muted','dot'];
   return `<div class="anchor">${I('lock',16)}<span>Hier liegt alles, was du in Supabase einfügen musst. Reihenfolge von oben nach unten. Ein erneutes Einfügen schadet nie: SQL und Code überschreiben nur die alte Version.</span></div>
    ${syOn()?`<button class="btn" id="setupChk">${SETUP.busy?'Prüfe …':'Status prüfen'}</button>${st.at?`<div class="note" style="text-align:center;padding:0">Zuletzt geprüft ${new Date(st.at).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`:'<div class="tip">Zuerst unter Mehr › Online-Sync verbinden. Für Schritt 1 brauchst du nur das SQL unten.</div>'}
-   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,6]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
+   ${SETUP_ITEMS().map((x,i)=>{const L=lab(st[x.k]).slice(),VX={kurse:[st.kursev,9],push:[st.pushv,6],ai:[st.aiv,1]}[x.k];if(VX&&VX[0]){if(st[x.k]===true)L[0]='Aktuell · v'+VX[0];else if(st[x.k]==='old')L[0]='v'+VX[0]+' – erwartet v'+VX[1]+', bitte neu einspielen'}else if(x.w=='SQL'&&st[x.k]===true)L[0]='Tabellen vorhanden';return `<div class="sec"><div class="setup-c"><div class="setup-h"><span class="setup-n">${i+1}</span><div class="t"><b>${x.t}</b><div class="s">${x.w} · für ${x.need}</div></div><span class="setup-st ${L[1]}">${I(L[2],13)}${L[0]}</span></div>
      <div class="setup-b">${x.what}</div>${x.k=='push'&&pushOn()?pstHtml():''}<div class="setup-w">${I('pin',13)} ${x.where}</div>
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
@@ -3378,6 +3533,7 @@ function viewSet(k){const back=`<div><button class="back" id="setBack">‹ Mehr<
   if(k=='brands')return back+`<h1 class="lt">Marken-Logos</h1></div>`+brandsHtml();
   if(k=='siri')return back+`<h1 class="lt">Siri & Kurzbefehle</h1></div>`+siriHtml();
   if(k=='setup')return back+`<h1 class="lt">Supabase-Einrichtung</h1></div>`+setupHtml();
+  if(k=='ai')return back+`<h1 class="lt">KI-Assistent</h1></div>`+aiHtml();
   if(k=='push'){const O=S.pushOpt||{fix:true,fc:true,due:true,ctr:true,wish:true,chk:true,amt:false},sw=(id,on,l,s)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" data-po="${id}" ${on!==false?'checked':''}></div>`;
    return back+`<h1 class="lt">Mitteilungen</h1></div>
    <div class="group"><div class="cell plain"><div class="t"><div>Mitteilungen auf diesem Gerät</div><div class="s" id="pushSt">${pushOn()?'Aktiv'+(S.pushAt?' · Plan aktualisiert '+new Date(S.pushAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):''):!syOn()?'Braucht die Online-Synchronisierung':'Aus'}</div></div><input type="checkbox" class="switch" id="pushSw" ${pushOn()?'checked':''} ${syOn()?'':'disabled'}></div></div>
@@ -3644,7 +3800,7 @@ function bind(){{const main=!setView&&!curB;if(main){if(tab=='list'&&bind.lastMa
   if($('pushSqlCopy'))$('pushSqlCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_SQL()).then(()=>toast('SQL kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   if($('pushFnCopy'))$('pushFnCopy').onclick=()=>{try{navigator.clipboard.writeText(PUSH_FN).then(()=>toast('Code kopiert.'))}catch(e){toast('Kopieren ging nicht.')}};
   if($('lsOpen'))$('lsOpen').onclick=()=>openLogoSearch();document.querySelectorAll('[data-lsk]').forEach(b=>b.onclick=()=>{const d=b.dataset.lsk;openLogoSearch({key:d,name:'',dom:d})});document.querySelectorAll('[data-lsn]').forEach(b=>b.onclick=()=>openLogoSearch({name:b.dataset.lsn}));
-  bindSiri();bindPst();bindSim();if($('toSim'))$('toSim').onclick=()=>{SIM=null;setView=null;tab='rep';repV='Simulator';render()};
+  bindSiri();bindAi();bindPst();bindSim();if($('toSim'))$('toSim').onclick=()=>{SIM=null;setView=null;tab='rep';repV='Simulator';render()};
   if($('blOn'))$('blOn').onchange=()=>{S.brandLogos=$('blOn').checked;save();render()};if($('blList'))$('blList').onchange=()=>{S.brandList=$('blList').checked;save();render()};document.querySelectorAll('#blSt button').forEach(b=>b.onclick=()=>{S.brandStyle=b.dataset.v;save();render()});document.querySelectorAll('[data-bmk]').forEach(i=>i.onchange=()=>{const d=i.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');if(!d)return;if(!/\./.test(d)){toast('Bitte eine Webseite wie marke.de eintragen.');return}S.brandMap=S.brandMap||{};S.brandMap[i.dataset.bmk]=d;save();render();toast('Logo zugeordnet.')});document.querySelectorAll('[data-bmx]').forEach(b=>b.onclick=()=>{delete S.brandMap[b.dataset.bmx];save();render()});
   on('setupChk',setupCheck);document.querySelectorAll('[data-setcp]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setcp);try{navigator.clipboard.writeText(x.code()).then(()=>toast((x.w=='SQL'?'SQL':'Code')+' kopiert. Jetzt in Supabase einfügen.'))}catch(e){const pr=$('setpre-'+x.k);pr.hidden=false;pr.textContent=x.code();toast('Kopieren ging nicht. Text unten markieren.')}});
   document.querySelectorAll('[data-setsh]').forEach(b=>b.onclick=()=>{const x=SETUP_ITEMS().find(y=>y.k==b.dataset.setsh),pr=$('setpre-'+x.k);pr.hidden=!pr.hidden;if(!pr.hidden)pr.textContent=x.code()});
