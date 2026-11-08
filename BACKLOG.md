@@ -139,10 +139,10 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 
 *Assistent*
 - A1. (umgesetzt v167/v168) Optionale KI (Claude) über eigene Supabase-Function „ai“, Schlüssel als Supabase-Secret. Nur Aggregate senden (Budgets, Kategorie-Summen, Termine), keine Einzelbuchungen. Antwort als Text + Aktionsvorschläge, nie automatisch ausgeführt. Regex-Antworten bleiben als Offline-Weg. Details: Abschnitt 10.
-- A2. Antworten mit Aktionsknöpfen (Umbuchung vorausgefüllt, Rest ins Sparziel, Frist vormerken) inkl. Rückgängig.
-- A3. Folgefragen mit Kontext („und im Oktober?“, „nur Rewe“).
-- A4. Beim Öffnen max. 3 Hinweise nach Dringlichkeit („Nächster Schritt“).
-- A5. „Warum?“ zeigt die Rechnung hinter jedem Hinweis.
+- A2. (umgesetzt v171) Antworten mit Aktionsknöpfen (Umbuchung vorausgefüllt, Rest ins Sparziel, Frist vormerken) inkl. Rückgängig.
+- A3. (umgesetzt v171) Folgefragen mit Kontext („und im Oktober?“, „nur Rewe“).
+- A4. (umgesetzt v171) Beim Öffnen max. 3 Hinweise nach Dringlichkeit („Nächster Schritt“).
+- A5. (umgesetzt v171) „Warum?“ zeigt die Rechnung hinter jedem Hinweis.
 - A6. Monatsabschluss als Dialog: Rest verteilen und buchen.
 
 *Mitteilungen*
