@@ -132,3 +132,35 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 13. Einstellungsliste: Suche.
 14. Impulse-Segmente passend ohne Anschnitt.
 15. Ungenutztes Glas-Design-CSS entfernen.
+
+## 9. Assistent, Mitteilungen, Automatisierungen (Vorschläge 2026-11-08, offen)
+
+**Befund:** Assistent nur feste Satzmuster ohne Folgefragen-Kontext und ohne Aktionen. Mitteilungen werden nur beim Schließen der App geplant, spätere Ereignisse (Apple Pay) lösen nichts aus. Apple Pay läuft über die Zwischenablage (verlustanfällig), obwohl die Server-Ablage („inbox“) existiert. Kein Badge. Ruhe- und Briefing-Zeiten fest.
+
+*Assistent*
+- A1. Optionale KI (Claude) über eigene Supabase-Function „ai“, Schlüssel als Supabase-Secret. Nur Aggregate senden (Budgets, Kategorie-Summen, Termine), keine Einzelbuchungen. Antwort als Text + Aktionsvorschläge, nie automatisch ausgeführt. Regex-Antworten bleiben als Offline-Weg.
+- A2. Antworten mit Aktionsknöpfen (Umbuchung vorausgefüllt, Rest ins Sparziel, Frist vormerken) inkl. Rückgängig.
+- A3. Folgefragen mit Kontext („und im Oktober?“, „nur Rewe“).
+- A4. Beim Öffnen max. 3 Hinweise nach Dringlichkeit („Nächster Schritt“).
+- A5. „Warum?“ zeigt die Rechnung hinter jedem Hinweis.
+- A6. Monatsabschluss als Dialog: Rest verteilen und buchen.
+
+*Mitteilungen*
+- B1. Sofort-Mitteilung nach Apple-Pay-Zahlung mit geschätztem Budget-Rest (Server, Händler→Budget-Zuordnung in briefData).
+- B2. Erinnerung bei veralteten Daten (Ablage voll, Stand > 48 h).
+- B3. Badge am App-Icon (offene Siri-Einträge, fällige Wünsche, Fristen ≤ 3 Tage).
+- B4. Ruhezeit, Briefing-Zeiten und Tageslimit einstellbar, mit Priorität.
+- B5. Neue Anlässe: Gehalt da → verteilen, Abo teurer, Budget 80 %, Sparziel erreicht, Monatsletzter.
+- B6. Jede Mitteilung öffnet die passende Aktion im Assistenten.
+
+*Automatisierungen*
+- C1. Apple Pay standardmäßig über Server-Ablage statt Zwischenablage (Anleitung anpassen).
+- C2. Gehalt automatisch verteilen (Vorlage „zuerst sparen“, Vorschau der Umbuchungen).
+- C3. Lernende Kategorie-Regeln je Händler, Liste in den Einstellungen.
+- C4. Abo-Wächter per Mitteilung (Preisänderung ±5 %, neue Abos aus newSubs).
+- C5. Kalender-Abo (.ics) für Abbuchungen, Fristen, Sparpläne.
+- C6. Mehr Siri-Antworten ohne App-Öffnen („Kann ich mir 80 € leisten?“, „Was kommt diese Woche?“).
+- C7. Monatlicher Kontoabgleich mit Korrekturbuchung.
+
+**Vorgeschlagene Reihenfolge:** C1+B1 → B3+B4 → A2–A4 → A1 → Rest.
+Hinweis: Änderungen an der Function „push“ (PUSH_FN) auf v7, abwärtskompatibel; muss danach neu eingespielt werden.
