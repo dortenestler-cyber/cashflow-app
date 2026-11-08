@@ -5735,12 +5735,73 @@ setTimeout(clipPrompt,1500);
 /* Kurzbefehl öffnet die App mit ?sag=… oder ?frage=… */
 setTimeout(()=>{try{const q=new URLSearchParams(location.search),sag=q.get('sag'),fr=q.get('frage');if(!sag&&!fr)return;history.replaceState(history.state,'',location.pathname);
   if(sag)siriApplyAll([{txt:sag,created_at:new Date().toISOString()}]);else if(fr){asstOpen=true;asstAsk(fr);renderAsst()}}catch(e){}},900);
+/* Ausführliche Anleitung zum Einrichten der Kurzbefehle (ohne Schlüssel, der steckt in den Adressen) */
+const SIRI_GUIDE=[
+ ['So funktioniert es',[
+  'Den Schlüssel tippst du nirgends ein. Er steckt schon in den Adressen unter Siri & Kurzbefehle. Du tippst dort nur auf *Kopieren* und fügst die Adresse im Kurzbefehl ein.',
+  'Neue Aktionen fügst du unten über das Suchfeld *Aktion suchen* hinzu.',
+  'In *Inhalte von URL abrufen* aufs URL-Feld tippen, Platzhalter löschen, lange drücken › *Einsetzen*.',
+  'Danach Cursor ans Ende, in der Leiste über der Tastatur *URL-codierter Text* antippen. Die blaue Marke steht dann direkt hinter der Adresse.',
+  'Umbenennen: oben auf den Namen tippen › *Umbenennen*. Der Name ist der Satz für Siri.',
+  'Reihenfolge: zuerst 1, 7 und 4, den Rest später.']],
+ ['Kurzbefehl 1 · „CashFlow“ – Buchung per Sprache',[
+  'In CashFlow bei Kurzbefehl 1 auf *Kopieren* tippen.',
+  'Kurzbefehle-App › *+* oben rechts.',
+  'Aktion *Text diktieren*.',
+  'Aktion *URL codieren* – nimmt den diktierten Text automatisch.',
+  'Aktion *Inhalte von URL abrufen* – Adresse einfügen, *URL-codierter Text* dahinter.',
+  'Aktion *Text sprechen*.',
+  'Name: *CashFlow*. Test: „Hey Siri, CashFlow“ › „12 Euro Rewe“.']],
+ ['Kurzbefehl 7 · „CashFlow Einkauf“',[
+  'Genau wie Kurzbefehl 1, aber mit der Adresse von Kurzbefehl 7.',
+  'Name: *CashFlow Einkauf*. Test: „Hey Siri, CashFlow Einkauf“ › „Milch und Brot“.']],
+ ['Kurzbefehl 5 · „CashFlow leisten“',[
+  'Genau wie Kurzbefehl 1, mit der Adresse von Kurzbefehl 5.']],
+ ['Kurzbefehle 2 und 6 · „CashFlow Stand“ / „CashFlow Woche“',[
+  'Aktion *Inhalte von URL abrufen* mit der Adresse von 2 bzw. 6 (ohne Variable).',
+  'Aktion *Text sprechen*.',
+  'Passend benennen.']],
+ ['Kurzbefehl 3 · „CashFlow fragen“',[
+  'Aktion *Text diktieren*.',
+  'Aktion *URL codieren*.',
+  'Aktion *URLs öffnen* – Adresse von Kurzbefehl 3, *URL-codierter Text* dahinter.']],
+ ['Kurzbefehl 4 · Apple Pay (automatisch)',[
+  'Kurzbefehle-App › Tab *Automation* › *+* › *Wallet*.',
+  'Alle Karten wählen, *Sofort ausführen* an, „Bei Ausführung benachrichtigen“ aus › Weiter › *Neuer leerer Kurzbefehl*.',
+  'Aktion *Text*: „Apple Pay “ tippen, dann über der Tastatur *Kurzbefehl-Eingabe* antippen, die blaue Marke antippen › *Händler*.',
+  'Leerzeichen, wieder *Kurzbefehl-Eingabe* › *Betrag*.',
+  '„ · Karte: “ tippen, *Kurzbefehl-Eingabe* › *Karte*.',
+  '„ · “ tippen, Variable *Aktuelles Datum*.',
+  'Aktion *URL codieren*.',
+  'Aktion *Inhalte von URL abrufen* – Adresse von Kurzbefehl 4, *URL-codierter Text* dahinter.',
+  'Alte Apple-Pay-Automation mit „In Zwischenablage kopieren“ löschen.']],
+ ['Kurzbefehl 8 · Beleg teilen (optional)',[
+  'Neuer Kurzbefehl *An CashFlow* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: Bilder.',
+  'Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
+  'Aktion *Text*: „Beleg: “ tippen, Variable *Text aus Bild*.',
+  'Aktion *URL codieren*, dann *Inhalte von URL abrufen* – Adresse von Kurzbefehl 8, *URL-codierter Text* dahinter.',
+  'Optional *Mitteilung anzeigen* mit „Inhalte der URL“.',
+  'Benutzen: Bon fotografieren › Teilen › *An CashFlow*.']],
+ ['Kurzbefehl 9 · Mail (optional)',[
+  'Tab *Automation* › *+* › *E-Mail* › Absender wählen (z. B. PayPal) › *Sofort ausführen* › Neuer leerer Kurzbefehl.',
+  'Aktion *Text*: „Mitteilung: “, dann *Kurzbefehl-Eingabe › Betreff*, Leerzeichen, *Kurzbefehl-Eingabe › Inhalt*.',
+  'Aktion *URL codieren*, dann *Inhalte von URL abrufen* – Adresse von Kurzbefehl 9, *URL-codierter Text* dahinter.']],
+ ['Aufräumen',[
+  'Alte Kurzbefehle mit der Aktion „In Zwischenablage kopieren“ löschen.',
+  'Klappt etwas nicht: unten auf dieser Seite „Stand abrufen“ testen. Kommt ein Text, laufen Schlüssel und Funktion.']]];
+function siriGuideTxt(){return 'CashFlow · Siri & Kurzbefehle einrichten\n\n'+SIRI_GUIDE.map(([h,L],i)=>h+'\n'+L.map((x,j)=>(i&&L.length>1?(j+1)+'. ':'• ')+x.replace(/\*/g,'')).join('\n')).join('\n\n')}
+function openSiriGuide(){const b=x=>esc(x).replace(/\*([^*]+)\*/g,'<b>$1</b>');
+  $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Anleitung Kurzbefehle"><div class="sheet-h"><button id="sgX">Schließen</button><b>Anleitung</b><button id="sgSh" style="font-weight:600">Teilen</button></div>
+   <div class="sheet-b">${SIRI_GUIDE.map(([h,L],i)=>`<div class="sec" style="margin:0"><div class="sh">${esc(h)}</div><div class="mmcard" style="padding:10px 14px">${i&&L.length>1?`<ol style="margin:0;padding-left:20px;line-height:1.5">${L.map(x=>`<li style="margin:4px 0">${b(x)}</li>`).join('')}</ol>`:L.map(x=>`<p style="margin:4px 0;line-height:1.5">${b(x)}</p>`).join('')}</div></div>`).join('')}</div></div>`;
+  $('scrim').onclick=$('sgX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst&&renderAsst()};
+  $('sgSh').onclick=async()=>{const t=siriGuideTxt();try{if(navigator.share){await navigator.share({title:'CashFlow · Kurzbefehle einrichten',text:t});return}}catch(e){if(e&&e.name=='AbortError')return}try{await navigator.clipboard.writeText(t);toast('Anleitung kopiert. Z. B. in Notizen einfügen.')}catch(e){toast('Teilen ging nicht.')}}}
 function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+location.pathname,P=S.siriPend||[];
   const cp=(id,val)=>`<div class="cell plain" style="gap:8px"><code id="${id}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px">${esc(val)}</code><button class="ed-link" data-cp="${id}" style="color:var(--blue)">Kopieren</button></div>`;
   const step=(n,t,b)=>`<div class="srow"><div style="display:flex;align-items:flex-start;gap:12px"><span class="setup-n" style="position:static;flex:none;margin:0">${n}</span><span style="flex:1;min-width:0"><b>${t}</b><br><small style="color:var(--muted);line-height:1.45">${b}</small></span></div></div>`;
   if(!syOn())return `<div class="tip">Siri braucht den Online-Sync. Bitte zuerst unter Mehr › Online-Sync verbinden.</div>`;
   return `<div class="anchor">${I('mic',16)}<span>Mit Apple-Kurzbefehlen sprichst du mit CashFlow, ohne die App zu öffnen: „Hey Siri, CashFlow“ trägt ein, „Hey Siri, CashFlow Stand“ liest deine Budgets vor, „Hey Siri, CashFlow fragen“ öffnet den Assistenten mit deiner Frage.</span></div>
    ${P.length?`<div class="sec"><div class="sh">Bitte prüfen · ${P.length}</div><div class="mmcard">${P.map(p=>`<div class="srow"><div class="srow-h"><span><b>„${esc(p.txt)}“</b><br><small style="color:var(--muted)">${esc(p.why)} · ${new Date(p.t).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></span><span></span><span style="display:flex;gap:6px"><button class="btn soft" data-sp="${p.id}" style="padding:6px 10px;min-height:0">Öffnen</button><button class="ed-ic" data-spx="${p.id}" aria-label="Verwerfen">${I('minus',18)}</button></span></div></div>`).join('')}</div></div>`:''}
+   <div class="group" style="margin:0 0 4px"><button class="cell plain" id="siGuide" style="color:var(--blue);gap:10px">${I('book',18)}<span style="flex:1;text-align:left">Schritt-für-Schritt-Anleitung</span>›</button></div>
    <div class="sec"><div class="sh">Dein Siri-Schlüssel</div><div class="group">${sk?cp('siK',sk.k):'<div class="cell plain"><span style="color:var(--muted)">Noch kein Schlüssel erzeugt.</span></div>'}${cp('siU',u)}</div>
     <button class="btn ${sk?'soft':''}" id="siGen">${sk?'Neuen Schlüssel erzeugen (alter wird ungültig)':'Schlüssel erzeugen'}</button>
     <div class="note">Der Schlüssel steckt schon in den Adressen unten. Er erlaubt nur: Sätze in deine Siri-Ablage legen, den Briefing-Stand vorlesen und den Kalender abrufen. Er liegt nur auf diesem Gerät und in deinen Kurzbefehlen. Bei Verlust einfach neu erzeugen – dann die Adressen in den Kurzbefehlen ersetzen.</div></div>
@@ -5797,7 +5858,7 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
      <div class="note">Beträge stehen nur drin, wenn unter Mitteilungen „Beträge in Mitteilungen“ an ist.</div></div>
    <div class="sec"><div class="sh">Testen</div><div class="group"><button class="cell plain" id="siTst" style="color:var(--blue)">Stand abrufen, wie Siri ihn vorliest</button><button class="cell plain" id="siPull" style="color:var(--blue)">Siri-Ablage jetzt abholen</button></div><div class="note" id="siOut"></div></div>`:''}
    <div class="note">Datenschutz: Gesprochene Sätze liegen bis zum nächsten Öffnen der App unverschlüsselt in deiner Supabase-Ablage und werden danach gelöscht. Der „Stand“ nutzt nur die Daten, die für dein Daily Briefing ohnehin dort liegen.</div>`}
-function bindSiri(){if(!$('siGen'))return;
+function bindSiri(){if($('siGuide'))$('siGuide').onclick=openSiriGuide;if(!$('siGen'))return;
   $('siGen').onclick=async()=>{const b=$('siGen');b.disabled=true;b.textContent='Erzeuge …';try{await siriNewKey();render();toast('Neuer Siri-Schlüssel erzeugt. Im Kurzbefehl eintragen.')}catch(e){b.disabled=false;b.textContent='Schlüssel erzeugen';toast('Fehler: '+(e.message||e)+'. Ist die Funktion „push“ v4 eingespielt und das SQL für Mitteilungen ausgeführt?')}};
   document.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>{const t=$(b.dataset.cp).textContent;try{navigator.clipboard.writeText(t).then(()=>toast('Kopiert.'))}catch(e){toast(t)}});
   if($('siTst'))$('siTst').onclick=async()=>{const o=$('siOut');o.textContent='Frage an …';try{const r=await fetch(siriFnUrl()+'?op=siri&k='+encodeURIComponent(siriGet().k)+'&m=stand');const tx=await r.text();o.textContent=r.ok&&!/^\s*\{/.test(tx)?tx:(r.status==401?'Schlüssel ungültig oder „Verify JWT“ ist an.':/^\s*\{/.test(tx)?'Funktion „push“ ist älter als v6 – bitte neu einspielen.':'Fehler '+r.status+': '+tx.slice(0,120))}catch(e){o.textContent='Nicht erreichbar: '+(e.message||e)}};
