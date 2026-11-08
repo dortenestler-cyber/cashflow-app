@@ -1107,7 +1107,7 @@ function streak(){const bs=TOT;if(!bs.length)return 0;let n=0;
   for(let i=1;i<=90;i++){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),t=d.getTime();if(t<S.since&&!S.ex)break;
     let o=0;while(!inP({t},period(o))&&o>-30)o--;const p=period(o),lim=budOf(bs)/p.len,ds=d.toDateString();
     const sp=S.exp.filter(e=>new Date(e.t).toDateString()==ds&&e.type=='out'&&bs.includes(e.b)).reduce((s,e)=>s+e.a,0);if(sp<=lim)n++;else break}return n}
-const cats=b=>S.cats[b];
+const cats=b=>S.cats[b]||[];
 const icoOf=(b,c)=>I((cats(b).find(x=>x[0]==c)||['','dot'])[1]);
 const std=p=>{const x=p/S.lohn;return x<1?Math.round(x*60)+' Min. Arbeit':x.toLocaleString('de-DE',{maximumFractionDigits:1})+' Std. Arbeit'};
 const WAITD=14,wait=p=>WAITD*864e5;
