@@ -787,6 +787,21 @@ body.fabaway #fab,body.fabaway #vfab,body.fabaway #asstRoot .abub{transform:tran
 .slide .lbl .lbl-m{margin-left:auto;font-size:13px;font-weight:500;opacity:.8;white-space:nowrap}
 /* 13: Suche in Mehr */
 .view>label.search{margin-top:-8px}.view>label.search input{font-size:16px;padding:2px 0}
+/* ===== iPad / Tablet (700–999px) ===== */
+@media (min-width:700px) and (max-width:999.98px){
+ .view{max-width:920px}
+ body[data-tab="dash"] .view,body[data-tab="rep"] .view,body[data-tab="more"] .view{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start;grid-auto-flow:row dense}
+ body[data-tab] .view>.hcard,body[data-tab] .view>header,body[data-tab] .view>.car,body[data-tab] .view>.carw,body[data-tab] .view>.cdots,body[data-tab] .view>.seg,body[data-tab] .view>.quick,body[data-tab] .view>.minis,body[data-tab] .view>.kpis,body[data-tab] .view>.appbar,body[data-tab] .view>.stickhead,
+ body[data-tab="rep"] .view>.sec:has(.mmcard>.srow .ana-acc),body[data-tab="rep"] .view>.sec:has(.cats){grid-column:1/-1}
+ .minis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important}
+ .days{columns:2 340px;column-gap:20px}.days>*{break-inside:avoid;margin-bottom:16px;display:block}
+ body[data-tab="list"] .fpanel{grid-column:1/-1}
+ .chartbox svg{max-height:320px}
+ .tabbar,body.mm .tabbar{left:calc(50% - 290px);right:calc(50% - 290px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);border-radius:30px;padding:4px 8px;border:.5px solid var(--sep);box-shadow:0 10px 30px rgba(30,20,60,.14)}
+ .sheet{top:50%;bottom:auto;left:50%;right:auto;transform:translate(-50%,-50%);width:min(580px,90vw);max-height:86vh;border-radius:22px!important;animation:fade .2s ease!important;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+ .sheet.bk{height:min(820px,86vh)!important;max-height:86vh!important}
+ #asstRoot{left:24px!important}#asstRoot .apop{left:24px!important}
+}
 </style>
 
 <div class="bgfx" aria-hidden="true"></div>
