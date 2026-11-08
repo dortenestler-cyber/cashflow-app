@@ -165,7 +165,7 @@ Umsetzung erst nach Freigabe (siehe CLAUDE.md).
 **Vorgeschlagene Reihenfolge:** C1+B1 → B3+B4 → A2–A4 → A1 → Rest.
 Hinweis: Änderungen an der Function „push“ (PUSH_FN) auf v7, abwärtskompatibel; muss danach neu eingespielt werden.
 
-## 10. A1 im Detail: KI-Anbindung über Supabase (Konzept 2026-11-08, offen)
+## 10. A1 im Detail: KI-Anbindung über Supabase (entschieden 2026-11-08, Umsetzung offen)
 
 **Aufbau**
 - App → neue Edge Function „ai“ (Login per Supabase-JWT wie bei „push“) → Claude API. Schlüssel nur als Supabase-Secret `ANTHROPIC_API_KEY`, nie im Code.
@@ -212,6 +212,11 @@ Hinweis: Änderungen an der Function „push“ (PUSH_FN) auf v7, abwärtskompat
 | Viel: 15 Fragen/Tag, 30 Belege | ~0,50 $ | ~1 $ | ~10 $ |
 
 Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgeladen.
+
+**Entscheidungen (2026-11-08)**
+- Modell-Mix: Chat, Händler-Erkennung und Briefing-Texte mit `claude-haiku-5-5`; Beleg-Scan und Monatsrückblick mit `claude-sonnet-5-5`. Umstellen in den Einstellungen möglich.
+- Kostenbremse: Monatslimit 2 $ in der App (danach nur noch feste Antworten, Hinweis im Assistenten), max. 100 Aufrufe pro Tag in der Function, Zähler „KI diesen Monat“, zusätzlich Ausgabenlimit in der Anthropic Console.
+- Erwartet: ca. 0,40 $ im Monat bei normaler, ca. 1 $ bei viel Nutzung.
 
 **Einrichtung durch den Nutzer**
 1. Konto in der Anthropic Console, Guthaben aufladen, Ausgabenlimit setzen, API-Schlüssel erzeugen.
