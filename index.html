@@ -387,7 +387,7 @@ body.mm .chartbox,body.mm .group,body.mm .mmcard,body.mm .kpis,body.mm .report,b
 body.mm .sh{padding-inline:4px}
 
 /* ===== header card (master: Übersicht) ===== */
-.stickhead{position:sticky;top:env(safe-area-inset-top,0px);z-index:7;display:flex;flex-direction:column;gap:12px;background:var(--bg);margin:-10px calc(-1*max(16px,env(safe-area-inset-right,0px))) 0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.stickhead .cdots{margin:-4px 0 -2px}.stickhead{position:sticky;top:env(safe-area-inset-top,0px);z-index:7;display:flex;flex-direction:column;gap:12px;background:var(--bg);margin:-10px calc(-1*max(16px,env(safe-area-inset-right,0px))) 0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
 .hcard{border-radius:24px;color:#fff;padding:14px 14px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 14px 34px rgba(0,0,0,.16);text-shadow:0 1px 8px rgba(0,0,0,.18)}
 .hc-row{display:flex;align-items:center;gap:8px;min-height:34px}
 .hc-t{margin:0;flex:1;font-size:15px;font-weight:600;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1126,7 +1126,7 @@ function carousel(tot,P){const sl=[`<div class="slide" data-k="Gesamt" style="${
    <div class="lbl">${b} <span style="opacity:.7">›</span></div>${badge(stat(c),1)}<div class="bal">${eur(c.rest)}</div><div style="font-size:13px;opacity:.9">übrig von ${eur0(c.total)}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.tag)} / Tag</span><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.woche)} / Woche</span></div>
    <div class="sbar"><i style="width:${Math.min(c.pct*100,100).toFixed(0)}%;background:${stat(c).k=='bad'?'#ff6b61':stat(c).k=='warn'?'#ffd36a':'#fff'}"></i></div><div style="font-size:12px;opacity:.85;margin-top:4px">${Math.round(c.pct*100)} % verbraucht · ${eur(c.used)}</div></div>`})];
-  return `<div class="carw"><div class="car" id="car">${sl.join('')}</div><button class="carbtn prev" id="carP" aria-label="Vorherige Karte">${I('back',20)}</button><button class="carbtn next" id="carN" aria-label="Nächste Karte">${I('fwd',20)}</button></div><div class="cdots" id="cdots">${sl.map((_,i)=>`<i class="${i==carIdx?'on':''}" data-ci="${i}" title="Karte ${i+1}"></i>`).join('')}</div>`}
+  return `<div class="stickhead"><div class="carw"><div class="car" id="car">${sl.join('')}</div><button class="carbtn prev" id="carP" aria-label="Vorherige Karte">${I('back',20)}</button><button class="carbtn next" id="carN" aria-label="Nächste Karte">${I('fwd',20)}</button></div><div class="cdots" id="cdots">${sl.map((_,i)=>`<i class="${i==carIdx?'on':''}" data-ci="${i}" title="Karte ${i+1}"></i>`).join('')}</div></div>`}
 function openBg(k){const draw=()=>{const x=S.bg[k]||{g:0};$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Hintergrund">
   <div class="sheet-h"><span style="width:70px"></span><b>Hintergrund</b><button id="bgDone" style="font-weight:600">Fertig</button></div>
   <div class="sheet-b"><div class="bgprev" style="${bgStyle(k)}">${k=='Gesamt'?'Alle Budgets':k}</div>
