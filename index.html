@@ -4973,6 +4973,7 @@ function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.s
   try{syAccBase(out,loc,rem)}catch(e){}
   return out}
 /* Bestand & Zinsen je Konto: neuester Stand (baseAt) gewinnt, auch wenn das andere Gerät die Kontenliste zuletzt geändert hat */
+function syBaseNewer(loc,rem){const rm=new Map((rem.accts||[]).filter(Boolean).map(a=>[a.n,a]));return (loc.accts||[]).some(a=>a&&(a.baseAt||0)>((rm.get(a.n)||{}).baseAt||0)&&rm.has(a.n))}
 function syAccBase(out,loc,rem){const F=['start','baseD','baseVal','baseAt','rates'],all=[...(loc.accts||[]),...(rem.accts||[])];
   (out.accts||[]).forEach(a=>{if(!a)return;let b=a;all.forEach(x=>{if(x&&x.n==a.n&&(x.baseAt||0)>(b.baseAt||0))b=x});if(b!==a)F.forEach(f=>{if(b[f]===undefined)delete a[f];else a[f]=JSON.parse(JSON.stringify(b[f]))})})}
 /* Wechselgeld-Anteile im Depot gehen beim Zusammenführen nicht verloren: Position gewinnt als Ganzes, fehlende Wechselgeld-Einträge der anderen Seite werden nachgetragen, solange die Umbuchung noch existiert */
@@ -4983,7 +4984,7 @@ const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0,_km:0}));let h
 function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;syMarkKeys();S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
 async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(!await syLoadKey()){syMsg='Sync-Passwort fehlt auf diesem Gerät.';return}
   syBusy=true;try{for(let tries=0;tries<3;tries++){const row=await syGet();
-      if(row&&row.rev!==SY.rev){const rem=await syDec(row);const dirty=(S._m||0)>(SY.at||0);
+      if(row&&row.rev!==SY.rev){const rem=await syDec(row);const dirty=(S._m||0)>(SY.at||0)||syBaseNewer(S,rem);
         if(!dirty){S=rem}else{S=syMerge(S,rem,SY.base);S._m=Date.now()}syKH={};syMarkKeys();DV++;
         try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);if(!dirty){SY.at=Date.now();SY.h=syHash()}sySave();if(!dirty){refreshA&&refreshA();render();syMsg='Aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
         render()}
@@ -5615,7 +5616,7 @@ function zinsAt(n,t){const a=acc(n),R=(a.rates||[]).filter(r=>r.p>0).sort((x,y)=
   const r0=new Date(R[0].from+'T00:00').getTime(),from=Math.max(r0,a.baseD||0),end=dayStart(t);if(from>=end)return ZM[k]=0;
   const ev=S.exp.filter(e=>!isPlan(e)&&e.t<end&&(e.b==n||e.to==n)).map(e=>[e.t,((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))?e.a:-e.a]).sort((x,y)=>x[0]-y[0]);
   const an=ancD(a)&&from>=a.baseD;let p=an?+a.baseVal:(a.start||0),i=0,z=0;for(;i<ev.length&&ev[i][0]<from;i++)if(!an||ev[i][0]>=a.baseD)p+=ev[i][1];
-  for(let d=from;d<end;d+=864e5){const de=d+864e5;while(i<ev.length&&ev[i][0]<de){p+=ev[i][1];i++}const ds=ymd(d+12*36e5);let rate=0;for(const r of R)if(r.from<=ds)rate=r.p;z+=(p+z)*rate/36500}
+  for(let d=from;d<end;d+=864e5){const de=d+864e5;while(i<ev.length&&ev[i][0]<de){p+=ev[i][1];i++}const ds=ymd(d+12*36e5);let rate=0;for(const r of R)if(r.from<=ds)rate=r.p;if(p+z>0)z+=(p+z)*rate/36500}
   return ZM[k]=Math.round(z*100)/100}
 const rateNow=n=>{const R=(acc(n).rates||[]).filter(r=>r.from<=today()).sort((x,y)=>x.from<y.from?-1:1);return R.length?R[R.length-1].p:0};
 
@@ -5634,7 +5635,7 @@ function vaultChart(S0,V,show){if(S0.length<2)return '';const W=340,H=180,top=12
   return tcWrap(`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:400px" role="img" aria-label="Tresor-Verlauf">${grid}${per}${vOff.__tot?'':`<polyline points="${line(x=>x.v)}" fill="none" stroke="#1F9D6B" stroke-width="2.6" stroke-linejoin="round"/><circle cx="${X(S0.length-1)}" cy="${Y(S0[S0.length-1].v)}" r="3.5" fill="#1F9D6B"/>`}${ticks}</svg>`,{W,H,xs:S0.map((_,i)=>X(i)),tips,y0:H-bot,y1:top})}
 function openVaultBase(){const V=vaultCash();if(!V.length){toast('Noch keine Tresor-Konten. Unter Mehr › Tresor festlegen.');return}
   const st=V.map(n=>{const a=acc(n);return{n,d:a.baseD?ymd(a.baseD+12*36e5):'2026-11-01',v:'',z:rateNow(n)?String(rateNow(n)).replace('.',','):'',zf:today()}});
-  st.forEach(x=>{const t=new Date(x.d+'T00:00').getTime();x.v=String(Math.round((acc(x.n).baseVal!=null&&acc(x.n).baseD==t?acc(x.n).baseVal:rawBal(x.n,t-1))*100)/100).replace('.',',')});
+  st.forEach(x=>{const t=new Date(x.d+'T00:00').getTime();x.v=String(Math.round((acc(x.n).baseVal!=null&&acc(x.n).baseD&&ymd(acc(x.n).baseD+12*36e5)==x.d?acc(x.n).baseVal:rawBal(x.n,t-1))*100)/100).replace('.',',')});
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Tresor"><div class="sheet-h"><button id="vbX">Abbrechen</button><b>Bestand & Zinsen</b><button id="vbS" style="font-weight:600">Sichern</button></div>
    <div class="sheet-b"><div class="note" style="padding:0">Lege fest, ab welchem Tag und mit welchem Stand der Tresor startet. Alles davor zählt mit 0. Ab dem Stichtag rechnet die App mit deinen Buchungen und den Zinsen weiter.</div>
    ${st.map((x,i)=>{const a=acc(x.n),R=(a.rates||[]).slice().sort((p,q)=>p.from<q.from?1:-1);return `<div class="sh" style="padding:0">${esc(x.n)}</div><div class="group">
