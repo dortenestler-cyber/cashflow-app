@@ -1229,7 +1229,13 @@ const DEF=()=>({ex:true,v5:true,start:1,budgets:{"Flow":400,"Gönn dir":300,"Sin
   fav:[{b:"Flow",c:"Lebensmittel",n:"Rewe"},{b:"Flow",c:"Drogerie",n:"DM"},{b:"Gönn dir",c:"Café",n:"Kaffee",a:4.2}],
   wish:[{n:"Kopfhörer",p:249,l:"",w:"Alte sind kaputt",g:"gestresst",t:Date.now()-3*864e5,s:"offen"},{n:"Sneaker",p:89,l:"",w:"Sale",g:"gelangweilt",t:Date.now()-3*864e5,s:"offen"}],
   puffer:650,gespart:0,lohn:19.4,pin:"",exp:[],goals:null});
-let S;try{S=JSON.parse(localStorage.getItem('dodo4'))}catch(e){}
+let S,RAW0=null;try{RAW0=localStorage.getItem('dodo4');S=JSON.parse(RAW0)}catch(e){}
+/* v233: Sicherung vor jeder Datenmigration. Der Rohstand wird vor allen Umbauten gelesen und in IndexedDB abgelegt (mehr Platz als localStorage). */
+const SCHEMA=233;
+function bakDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open('cf-bak',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+function preBakPut(raw,from){return bakDB().then(db=>new Promise(res=>{const tx=db.transaction('s','readwrite');tx.objectStore('s').put({t:Date.now(),from:from||0,to:SCHEMA,data:raw},'pre');tx.oncomplete=()=>res(true);tx.onerror=()=>res(false)})).catch(()=>false)}
+function preBakGet(){return bakDB().then(db=>new Promise(res=>{const q=db.transaction('s').objectStore('s').get('pre');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})).catch(()=>null)}
+if(S&&RAW0&&(S.schema||0)<SCHEMA){preBakPut(RAW0,S.schema||0);S.schema=SCHEMA;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}
 if(S&&(S.fut||S.futPlan||S.futOff1||(S.featO&&'fut' in S.featO))){delete S.fut;delete S.futPlan;delete S.futOff1;if(S.featO)delete S.featO.fut;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v231: Future-Reiter entfernt, Altdaten aufgeräumt */
 if(S&&S.exp&&S.exp.some(e=>e.sh&&e.sh.by!='me'&&e.a)){S.exp.forEach(e=>{if(e.sh&&e.sh.by!='me')e.a=0});try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v229: Zahlungen anderer belasten kein eigenes Konto */
 function period(off,start){const P=start||S.start;let s=new Date(now.getFullYear(),now.getMonth(),P);if(now.getDate()<P)s=new Date(now.getFullYear(),now.getMonth()-1,P);
@@ -1610,7 +1616,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='232 (09.11.)';
+const APP_VER='233 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -4164,6 +4170,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
    <div class="note">Money Manager: flach und klar, Einnahmen blau, Ausgaben rot. Glas: durchscheinende Flächen auf farbigem Hintergrund.</div>`;
   if(k=='export')return back+`<h1 class="lt">Export & Backup</h1></div>
    <div class="sec"><div class="sh">CSV für Excel</div><button class="btn soft" id="csvBtn">CSV kopieren</button><div class="note">Kopiert alle Buchungen. In Numbers oder Excel einfügen.</div></div>
+   <div class="sec"><div class="sh">Stand vor dem letzten Update</div><div id="preBak"><div class="note">Wird geladen …</div></div></div>
    <div class="sec"><div class="sh">Sicherung</div>${CANFILE?`<button class="btn" id="bakFileBtn">Sicherung als Datei speichern</button><div class="note">Am besten in „Dateien“ › iCloud Drive sichern.${S.lastBak?' Letzte Sicherung: '+new Date(S.lastBak).toLocaleDateString('de-DE'):''}</div>
     <label class="btn soft" for="bakIn" style="text-align:center;box-sizing:border-box">Sicherung aus Datei wiederherstellen</label><input id="bakIn" type="file" accept=".json,application/json" hidden>`:''}
    <button class="btn soft" id="bakBtn">Sicherung als Text kopieren</button><div class="note">Den Text z. B. in einer Notiz aufheben.</div>
@@ -4246,7 +4253,9 @@ function bind(){{const main=!setView&&!curB;if(main){if(tab=='list'&&bind.lastMa
   if(curB){const v=document.querySelector('.view');let x0=null,y0=null;v.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
     v.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
       if(Math.abs(dx)>60&&Math.abs(dx)>2*Math.abs(dy)){const SL=swL(),i=SL.indexOf(curB),ni=(i+(dx<0?1:-1)+SL.length)%SL.length;swipeDir=dx<0?'swl':'swr';curB=SL[ni];render()}},{passive:true})}on('setBack',()=>{const par=setParent&&setParent!==setView?setParent:null;setView=par;setParent=null;if(!par&&setFrom&&setFrom!='more')tab=setFrom;setFrom=null;render()});
-  on('allTx',()=>{tab='list';off=0;render()});on('ptsBtn',()=>{ptsOpen=!ptsOpen;render()});on('fcWarnBtn',()=>{tab='rep';repV='Prognose';drill=null;curB=null;setView=null;render();scrollTo(0,0)});on('shareBtn',e=>{e.stopPropagation();pennyTalk('mon')});
+  on('allTx',()=>{tab='list';off=0;render()});if($('preBak'))preBakGet().then(b=>{const el=$('preBak');if(!el)return;if(!b){el.innerHTML='<div class="note">Noch keine automatische Sicherung vorhanden. Sie entsteht beim nächsten Update, das Daten umbaut.</div>';return}
+    el.innerHTML=`<button class="btn soft" id="preBakBtn">Stand vom ${new Date(b.t).toLocaleDateString('de-DE')} wiederherstellen</button><div class="note">Automatisch gesichert, bevor Version ${b.to} deine Daten umgebaut hat. Wiederherstellen ersetzt den aktuellen Stand.</div>`;
+    $('preBakBtn').onclick=()=>{if(!confirm('Aktuellen Stand durch die Sicherung vom '+new Date(b.t).toLocaleDateString('de-DE')+' ersetzen?'))return;try{const o=JSON.parse(b.data);o.schema=SCHEMA;localStorage.setItem('dodo4',JSON.stringify(o));location.reload()}catch(e){toast('Wiederherstellen hat nicht geklappt.')}}});on('ptsBtn',()=>{ptsOpen=!ptsOpen;render()});on('fcWarnBtn',()=>{tab='rep';repV='Prognose';drill=null;curB=null;setView=null;render();scrollTo(0,0)});on('shareBtn',e=>{e.stopPropagation();pennyTalk('mon')});
   on('todayM',()=>{off=0;calDay=null;wk=null;render()});on('prevM',()=>{off--;calDay=null;wk=null;render()});on('nextM',()=>{if(off<((tab=='list'||tab=='cal')?12:0)){off++;calDay=null;wk=null;render()}});
   if($('q'))$('q').oninput=()=>{q=$('q').value;const pos=$('q').selectionStart;render();$('q').focus();$('q').setSelectionRange(pos,pos)};
   document.querySelectorAll('#flt button').forEach(b=>b.onclick=()=>{flt=b.dataset.f;render()});
