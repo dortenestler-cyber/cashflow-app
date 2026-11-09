@@ -4930,7 +4930,12 @@ function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.s
     const ids=[...new Set([...L.map(x=>x&&x.id),...Rm.map(x=>x&&x.id)])].filter(Boolean);
     ids.forEach(id=>{const a=lm.get(id),r=rm.get(id);if(a&&r)res.push(locNew?a:r);else if(a){if(!B.has(id))res.push(a)}else if(r){if(!B.has(id))res.push(r)}});
     [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));cSet(out,c,res)});
+  try{syDepRu(out,locNew?rem:loc)}catch(e){}
   return out}
+/* Wechselgeld-Anteile im Depot gehen beim Zusammenführen nicht verloren: Position gewinnt als Ganzes, fehlende Wechselgeld-Einträge der anderen Seite werden nachgetragen, solange die Umbuchung noch existiert */
+function syDepRu(out,oth){const trs=new Set((out.exp||[]).filter(e=>e&&e.type=='tr').map(e=>e.id)),om=new Map((oth.depot||[]).filter(h=>h&&h.id).map(h=>[h.id,h]));
+  (out.depot||[]).forEach(h=>{const o=om.get(h&&h.id);if(!o||!o.tx)return;h.tx=h.tx||[];const have=new Set(h.tx.filter(x=>x.ru).map(x=>x.ru));
+    o.tx.filter(x=>x&&x.ru&&!have.has(x.ru)&&trs.has(x.ru)).forEach(x=>{h.tx.push(JSON.parse(JSON.stringify(x)));have.add(x.ru);if(x.q)h.qty=Math.round(((h.qty||0)+x.q)*1e8)/1e8;else if(x.pv)h.pendVal=Math.round(((h.pendVal||0)+x.pv)*100)/100;h.inv=Math.round(((h.inv||0)+(x.a||0))*100)/100})})}
 const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0,_km:0}));let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}return (h2>>>0).toString(36)+(h1>>>0).toString(36)};
 function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;syMarkKeys();S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
 async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(!await syLoadKey()){syMsg='Sync-Passwort fehlt auf diesem Gerät.';return}
@@ -5192,7 +5197,7 @@ let posMode='kurs';const txAmt=x=>x.a!=null?x.a:x.q*x.p;
 /* Eine Quelle für den Bestandsverlauf einer Position: echte/nachgetragene Transaktionen (h.tx) + für Monate ohne erfassten Sparplan-Eintrag die rechnerische Sparplan-Ausführung. Genutzt von Positionskarte UND Depot-Chart. */
 let PEV={};
 function posEvents(h){const hc=HC[hk2(h,'d')],ck=h.id+'|'+DV+'|'+(h.tx||[]).length+'|'+(h.rate||0)+'|'+(h.day||0)+'|'+(h.bd||'')+'|'+(h.plan?1:0)+'|'+(hc?hc.t:0);if(PEV[ck])return PEV[ck];if(Object.keys(PEV).length>200)PEV={};const T=(h.tx||[]).slice();
-  if(h.rate&&h.plan){const has=new Set(T.filter(x=>x.type=='plan').map(x=>ymd(x.t).slice(0,7))),rr=h.rid&&(S.rec||[]).find(x=>x.id==h.rid),from=h.bd&&h.bd!='pre'?new Date(h.bd+'T12:00').getTime():yStart();
+  if(h.rate&&h.plan){const has=new Set(T.filter(x=>x.type=='plan'&&!x.ru).map(x=>ymd(x.t).slice(0,7))),rr=h.rid&&(S.rec||[]).find(x=>x.id==h.rid),from=h.bd&&h.bd!='pre'?new Date(h.bd+'T12:00').getTime():yStart();
     const f0=new Date(from);let y=f0.getFullYear(),m=f0.getMonth(),d=dueIn(y,m,h.day);if(d.getTime()<from){m++;d=dueIn(y,m,h.day)}
     while(d.getTime()<=Date.now()){const t=d.getTime();if(!has.has(ymd(t).slice(0,7))){const a=rr?recA(rr,periodAt(t)):h.rate,pr=priceAt(h,t);if(pr&&a)T.push({t,type:'plan',q:a/pr,p:pr,a,syn:true})}m++;d=dueIn(y,m,h.day)}}
   T.sort((a,b)=>a.t-b.t);return PEV[ck]=T}
@@ -5375,7 +5380,7 @@ function openBackfill(i,editId){const D=depot(),h=D[i];if(!h)return;h.tx=h.tx||[
   const fetchSug=async()=>{busy=true;sug=null;draw();let r=null;try{r=await priceOn(h,st.d)}catch(e){}busy=false;sug=r;if(r&&!st.p)st.p=String(Math.round(r.p*100)/100).replace('.',',');if(document.querySelector('[aria-label="Nachtragen"]'))draw()};
   const build=async()=>{const err=m=>{$('bfE').textContent=m};const items=[];
     if(st.type=='plan'&&st.ser&&!ex){const ra=qNum(st.ra),dy=Math.min(31,Math.max(1,parseInt(st.day)||1));if(!(ra>0))return err('Bitte die Rate pro Monat eintragen.');if(!st.from||!st.to||st.from>st.to)return err('Bitte einen gültigen Zeitraum wählen.');
-      const has=new Set(h.tx.filter(x=>x.type=='plan').map(x=>ymd(x.t).slice(0,7)));const ms=[];let [y,m]=st.from.split('-').map(Number);for(;;){const k=y+'-'+String(m).padStart(2,'0');if(k>st.to)break;ms.push([y,m]);m++;if(m>12){m=1;y++}if(ms.length>240)break}
+      const has=new Set(h.tx.filter(x=>x.type=='plan'&&!x.ru).map(x=>ymd(x.t).slice(0,7)));const ms=[];let [y,m]=st.from.split('-').map(Number);for(;;){const k=y+'-'+String(m).padStart(2,'0');if(k>st.to)break;ms.push([y,m]);m++;if(m>12){m=1;y++}if(ms.length>240)break}
       busy=true;const miss=[];for(let j=0;j<ms.length;j++){const [yy,mm]=ms[j],ds=ymd(dueIn(yy,mm-1,dy).getTime());if(has.has(ds.slice(0,7))||ds>=today())continue;prog='Kurse laden … '+(j+1)+' / '+ms.length;draw();let r=null;try{r=await priceOn(h,ds)}catch(e){}if(!r){miss.push(ds.slice(0,7));continue}
         items.push({id:uid(),t:new Date(ds+'T12:00').getTime(),type:'plan',q:Math.round(ra/r.p*1e8)/1e8,p:Math.round(r.p*1e4)/1e4,fee:0,a:ra,hist:true})}busy=false;prog=miss.length?'Ohne Kurs übersprungen: '+miss.join(', '):'';
       if(!items.length){draw();return err('Keine neuen Monate zum Nachtragen gefunden.')}}
