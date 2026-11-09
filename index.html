@@ -1542,7 +1542,7 @@ function debtInfo(d){d=Object.assign({},d,{rate:debtRate(d)});const st=new Date(
   const rest=Math.max((d.total||0)-paid,0),n=d.rate?Math.ceil(rest/d.rate):0,sd=new Date(d.start+'T12:00'),first=Math.max(0,(now.getFullYear()-sd.getFullYear())*12+now.getMonth()-sd.getMonth()+(now.getDate()>sd.getDate()?1:0));
   const off0=paid>0?first:0,last=new Date(sd.getFullYear(),sd.getMonth()+off0+Math.max(n-1,0),Math.min(sd.getDate(),28));
   return{paid,rest,n,last,pct:d.total?paid/d.total:0,started:Date.now()>=st,days:Math.max(0,Math.ceil((last-now)/864e5)),pays}}
-function debtCard(d){const x=debtInfo(d);return `<button class="debt" data-set="debts"><div class="debt-h"><span class="dico">${I('target',18)}</span><div class="t"><b>Schuldenfrei</b><div class="s">${esc(d.n)}</div></div><span class="chev">›</span></div>
+function debtCard(d){const x=debtInfo(d);return `<button class="debt" data-set="debts"><div class="debt-h"><span class="dico">${I('target',18)}</span><div class="t"><b>${esc(d.n)}</b><div class="s">Kredit · ${d.rate?eur0(d.rate)+' pro Monat':'Rate offen'}</div></div><span class="chev">›</span></div>
   <div class="debt-big">${x.rest?`noch <b>${eur0(x.rest)}</b>`:'<b>Geschafft!</b>'}</div><div class="bar" style="height:10px"><i style="width:${(x.pct*100).toFixed(0)}%;background:var(--ok)"></i></div>
   <div class="debt-f"><span>${eur0(x.paid)} von ${eur0(d.total||0)} getilgt</span><span>${x.rest?`${x.n} Raten · frei im ${x.last.toLocaleDateString('de-DE',{month:'long',year:'numeric'})}`:''}</span></div>
   ${x.rest&&!x.started?`<div class="s" style="margin-top:4px">Erste Rate am ${new Date(d.start+'T12:00').toLocaleDateString('de-DE',{day:'numeric',month:'long'})}</div>`:''}</button>`}
@@ -1616,7 +1616,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='233 (09.11.)';
+const APP_VER='234 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -2944,7 +2944,8 @@ function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offe
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */
   const big=wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Fixkosten':'Nächste 6 Monate';
   const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Ziele','Ziele',act],['Wünsche','Wünsche',open.length],['Fixkosten','Fixkosten'],['Zukunft','Zukunft']]}});
-  if(wishV=='Ziele')return head+goalsHtml()+toolBar(['yplan','proj','debts']);
+  if(wishV=='Ziele'){/* v234: Schuldenfrei als eigener Abschnitt in Ziele – Tilgen ist ein Ziel mit Enddatum */const D=(S.debts||[]).filter(d=>!d.done);
+   return head+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['yplan','proj']:['yplan','proj','debts'])}
   if(wishV=='Fixkosten')return head+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
   if(wishV=='Zukunft')return head+`<div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
     ${toolBar(['salplan','pension'])}`;
@@ -3986,7 +3987,7 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
   ['@vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst'],
   ['@kbHelpBtn','grid','Tastaturkürzel','N für neue Buchung, 1–6 für Bereiche, ? für alle']]]}}
 function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(closeTarget()))];return [
- ['yplan','calendar','Jahresplaner',c2],['ng','lock','Tresor',c2],['ru','coins','Wechselgeld',c2],['debts','target','Schuldenfrei',c2],
+ ['yplan','calendar','Jahresplaner',c2],['ng','lock','Tresor',c2],['ru','coins','Wechselgeld',c2],['debts','target',(S.debts||[]).some(d=>!d.done)?'Schuldenfrei':'Kredit eintragen',c2],
  ['proj','people','Projekte',c2,projActive().length||''],['refund','swap','Rück­zahlungen',c2,refunds().length||''],
  ['salplan','coins','Gehalt verteilen',c2],['close','check','Monats­abschluss',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
  ['docs','shield','Belege & Garantien',c2],['tax','receipt','Steuer',c2],['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||''],
@@ -4301,7 +4302,7 @@ function bind(){{const main=!setView&&!curB;if(main){if(tab=='list'&&bind.lastMa
     S.exp.push({id:uid(),type:'out',b:sinkAcc()||'Sinking Funds',c:'Sparziel',a:sv,n:g.n,t:Date.now(),proj:g.proj||undefined});if(g.yearly)goalNew({n:g.n,ziel:g.ziel,m:g.m,yearly:true,from:g.from,proj:g.proj,skip:[]});save();render();if(g.yearly)toast(g.n+' gekauft – fürs nächste Jahr ist das Ziel schon wieder angelegt.')});
   document.querySelectorAll('[data-gdrop]').forEach(b=>b.onclick=()=>{const g=S.goals.find(x=>x.id==b.dataset.gdrop);if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich aufgeben?';return}
     g.dropped=Date.now();save();render()});
-  document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{if(b.dataset.set=='abos'){tab='rep';repV='Verträge';setView=null;drill=null}else{setParent=setView&&String(setView).startsWith('g:')?setView:null;setView=b.dataset.set}render();scrollTo(0,0)});
+  document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{if(b.dataset.set=='abos'){tab='wish';wishV='Fixkosten';recF='Abos';setView=null;drill=null}else{setParent=setView&&String(setView).startsWith('g:')?setView:null;if(!setView&&tab!='more')setFrom=tab;setView=b.dataset.set}render();scrollTo(0,0)});
   bindMore();
   document.querySelectorAll('#lookSeg button').forEach(b=>b.onclick=()=>{S.look=b.dataset.f;save();render()});
   on('debtAdd',()=>openDebt(-1));document.querySelectorAll('[data-dedit]').forEach(b=>b.onclick=()=>openDebt(+b.dataset.dedit));
