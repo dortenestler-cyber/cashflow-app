@@ -1632,7 +1632,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='247 (09.11.)';
+const APP_VER='248 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -1950,12 +1950,17 @@ const aiTools={
     (S.wish||[]).filter(w=>w.s=='offen').forEach(w=>{const t=w.t+wait(w.p);if(t<=end)L.push({datum:ymd(Math.max(t,now0)),was:'Wartezeit vorbei: '+w.n,betrag:aiR2(-w.p),art:'Wunsch'})});
     return{bis:ymd(end),eintraege:L.sort((x,y)=>x.datum<y.datum?-1:1).slice(0,40)}},
   subscriptions(){const L=aboList();return{jahr:aiR2(L.reduce((s,x)=>s+x.year,0)),abos:L.slice(0,40).map(x=>({name:x.r.n||x.r.c,monatlich:aiR2(x.mon),jaehrlich:aiR2(x.year),art:aboKind(x.r)=='vertrag'?'Vertrag':'Abo',konto:SHORT[x.r.b]||x.r.b}))}},
+  /* v248: Penny kennt den Einkaufszettel */
+  shopping_list(){const sh=shopS(),ck=shopCheck(),it=x=>({name:x.n,menge:x.q||1,preis_je:x.p?aiR2(x.p):undefined,geschaetzt:x.est||undefined,pflicht:x.opt?'kann':'muss',bereich:(()=>{try{return shopGrp(x)}catch(e){return undefined}})()});
+    return{topf:SHORT[sh.acct]||sh.acct,noch_zu_kaufen:sh.items.filter(x=>!x.done).map(it),im_wagen:sh.items.filter(x=>x.done).map(it),summe_geschaetzt:aiR2(ck.est),topf_frei:aiR2(ck.rest),haeufig_gekauft:Object.entries(sh.hist||{}).sort((a,b)=>b[1]-a[1]).slice(0,15).map(([n])=>n)}},
   wishes(){return{wuensche:(S.wish||[]).filter(w=>w.s=='offen').map(w=>({name:w.n,preis:aiR2(w.p),frei_ab:ymd(w.t+wait(w.p))}))}},
   journal(){const J=(S.journal||[]).filter(j=>j.t>=Date.now()-90*864e5);return{eintraege_90_tage:J.length,widerstanden:J.filter(j=>j.out=='resist').length,gekauft:J.filter(j=>j.out=='bought').length,eintraege:J.slice(-40).map(j=>({datum:ymd(j.t),text:j.txt,ausgang:(JOUT[j.out]||JOUT.note)[0],gefuehl:j.g||null,ausloeser:j.tr||null,betrag:j.a?aiR2(j.a):null,drang:j.u}))}}};
 function aiRun(name,a,acts){
   if(name=='propose_transfer'){const v=aiAcc(a.von),n=aiAcc(a.nach),b=+a.betrag;if(!v||!n||!(b>0))return{fehler:'Konto oder Betrag unbekannt. Gültige Konten: '+ALL.filter(x=>!WH(x)).join(', ')};
     const t='Umbuchen '+String(aiR2(b)).replace('.',',')+' Euro von '+v+' nach '+n;acts.push(['Umbuchen: '+eur(b)+' '+(SHORT[v]||v)+' → '+(SHORT[n]||n),()=>aiFill(t)]);return{ok:true,hinweis:'Als Knopf angezeigt. Der Nutzer prüft und bestätigt selbst.'}}
   if(name=='propose_booking'){const t=String(a.text||'').trim().slice(0,120);if(!t)return{fehler:'text fehlt'};acts.push(['Buchen: '+t,()=>aiFill(t)]);return{ok:true,hinweis:'Als Knopf angezeigt. Der Nutzer prüft und sichert selbst.'}}
+  if(name=='propose_shopping'){const L=(Array.isArray(a.artikel)?a.artikel:String(a.artikel||'').split(/,|\n/)).map(x=>String(x).trim()).filter(Boolean).slice(0,20);if(!L.length)return{fehler:'artikel fehlt'};
+    acts.push(['Auf den Einkaufszettel: '+L.join(', '),()=>{asstOpen=false;renderAsst();shopVoiceDone(shopVoice(L.join(', ')));render()}]);return{ok:true,hinweis:'Als Knopf angezeigt. Die Nutzerin bestätigt selbst.'}}
   if(name=='propose_wish'){const n=String(a.name||'').trim().slice(0,60),p=+a.preis;if(!n)return{fehler:'name fehlt'};acts.push(['Auf die Wunschliste: '+n+(p>0?' ('+eur(p)+')':''),()=>{asstOpen=false;renderAsst();if(!voiceCmd('Wunsch '+n+(p>0?' '+String(aiR2(p)).replace('.',',')+' Euro':'')))openWish()}]);return{ok:true,hinweis:'Als Knopf angezeigt.'}}
   const f=aiTools[name];if(!f)return{fehler:'Unbekanntes Werkzeug'};return f(a||{})}
 function aiFill(t){asstOpen=false;renderAsst();openSheet();qp(t);drawSheet();toast('Vorschlag der KI: kurz prüfen und sichern.')}
@@ -1977,7 +1982,7 @@ Ton je nach Lage:
 - Ausgeglichen: sachlich, auf kommende Buchungen hinweisen.
 - Im Minus: ruhig und lösungsorientiert, keine Vorwürfe; nenne die 2 bis 3 größten Treiber und einen konkreten nächsten Schritt.
 
-Handeln: Ist eine Umbuchung, Buchung oder ein Wunsch auf der Wunschliste sinnvoll, schlage es mit propose_transfer, propose_booking oder propose_wish vor. Das erscheint als Knopf, die Nutzerin entscheidet selbst. Behaupte nie, du hättest etwas gebucht. Größere Wünsche erst auf die Wunschliste mit Wartezeit; Konten mit Notfallbremse nicht als Quelle vorschlagen.
+Handeln: Ist eine Umbuchung, Buchung, ein Wunsch auf der Wunschliste oder ein Artikel für den Einkaufszettel sinnvoll, schlage es mit propose_transfer, propose_booking, propose_wish oder propose_shopping vor. Den Einkaufszettel liest du mit shopping_list. Das erscheint als Knopf, die Nutzerin entscheidet selbst. Behaupte nie, du hättest etwas gebucht. Größere Wünsche erst auf die Wunschliste mit Wartezeit; Konten mit Notfallbremse nicht als Quelle vorschlagen.
 
 Grenzen:
 - Keine Anlage-, Steuer- oder Rechtsberatung; bei solchen Fragen allgemeine Infos geben und auf Fachleute verweisen.
@@ -1995,6 +2000,8 @@ function aiToolDefs(lvl){const per={von:{type:'string',description:'Startdatum Y
     {name:'upcoming',description:'Anstehende Abbuchungen, Einnahmen, geplante Buchungen, Kündigungsfristen und Wünsche, deren Wartezeit endet.',input_schema:o({tage:{type:'integer',description:'Zeitraum in Tagen, Standard 14, höchstens 90'}})},
     {name:'subscriptions',description:'Alle Abos und Verträge mit Monats- und Jahreskosten.',input_schema:o({})},
     {name:'journal',description:'Konsum-Journal der letzten 90 Tage: Kaufimpulse, Gefühl, Auslöser, ob widerstanden oder gekauft. Für Fragen zu Impulsen und Impulskontrolle.',input_schema:o({})},
+    {name:'shopping_list',description:'Einkaufszettel: Artikel mit Menge, Preis und Muss/Kann, was schon im Wagen ist, geschätzte Summe, freies Budget des gewählten Topfs und häufig gekaufte Artikel. Für Fragen zum Einkauf, Rezepten, Budget beim Einkaufen.',input_schema:o({})},
+    {name:'propose_shopping',description:'Schlägt Artikel für den Einkaufszettel vor (z. B. Zutaten für ein Rezept). Erscheint als Knopf, die Nutzerin bestätigt. Mengen als "2 Brot".',input_schema:o({artikel:{type:'array',items:{type:'string'}},grund:{type:'string'}},['artikel','grund'])},
     {name:'wishes',description:'Offene Wünsche auf der Wunschliste mit Preis und Ende der Wartezeit.',input_schema:o({})},
     {name:'propose_transfer',description:'Schlägt eine Umbuchung zwischen zwei Konten oder Budgets vor. Erscheint als Knopf, der Nutzer bestätigt.',input_schema:o({betrag:{type:'number'},von:{type:'string'},nach:{type:'string'},grund:{type:'string'}},['betrag','von','nach','grund'])},
     {name:'propose_booking',description:'Schlägt eine neue Buchung vor, die der Nutzer prüft und sichert. text wie gesprochen, z. B. "Rewe 25 Euro Lebensmittel von Flow".',input_schema:o({text:{type:'string'},grund:{type:'string'}},['text','grund'])},
