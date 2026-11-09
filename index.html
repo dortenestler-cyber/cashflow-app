@@ -3815,7 +3815,7 @@ function bindPlan(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   ['ngT','ngV','ngR'].forEach(id=>{const el=$(id);if(el)el.onchange=()=>{S.ng=S.ng||{};const v=el.value.trim();if(id=='ngT')S.ng.target=pNum(v)||null;if(id=='ngV')S.ng.manual=v===''?null:pNum(v);if(id=='ngR')S.ng.rate=pNum(v)||150;save();render()}});
   on('rvP',()=>{S.revOff=(S.revOff??-1)-1;render()});on('rvN',()=>{if((S.revOff??-1)<0){S.revOff=(S.revOff??-1)+1;render()}});
   if($('rvG'))$('rvG').onchange=()=>{S.reviews=S.reviews||{};S.reviews[pkey(period(S.revOff??-1))]={t:$('rvG').value};save()};
-  on('rvCopy',()=>pennyTalk('rev'))}
+  on('rvCopy',e=>{e.stopPropagation();pennyTalk('rev')})}
 /* small celebration */
 const growFrom={};
 function celebrate(msg,big){const r=$('modalRoot'),C=['#6E4BD8','#D946EF','#F0657A','#22A699','#F2A23A','#4F6BED','#1F9D6B'];
@@ -4159,7 +4159,7 @@ function bind(){{const main=!setView&&!curB;if(main){if(tab=='list'&&bind.lastMa
   if(curB){const v=document.querySelector('.view');let x0=null,y0=null;v.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
     v.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
       if(Math.abs(dx)>60&&Math.abs(dx)>2*Math.abs(dy)){const SL=swL(),i=SL.indexOf(curB),ni=(i+(dx<0?1:-1)+SL.length)%SL.length;swipeDir=dx<0?'swl':'swr';curB=SL[ni];render()}},{passive:true})}on('setBack',()=>{setView=null;render()});
-  on('allTx',()=>{tab='list';off=0;render()});on('shareBtn',()=>pennyTalk('mon'));
+  on('allTx',()=>{tab='list';off=0;render()});on('shareBtn',e=>{e.stopPropagation();pennyTalk('mon')});
   on('todayM',()=>{off=0;calDay=null;wk=null;render()});on('prevM',()=>{off--;calDay=null;wk=null;render()});on('nextM',()=>{if(off<((tab=='list'||tab=='cal')?12:0)){off++;calDay=null;wk=null;render()}});
   if($('q'))$('q').oninput=()=>{q=$('q').value;const pos=$('q').selectionStart;render();$('q').focus();$('q').setSelectionRange(pos,pos)};
   document.querySelectorAll('#flt button').forEach(b=>b.onclick=()=>{flt=b.dataset.f;render()});
@@ -6208,7 +6208,7 @@ function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><d
     h=`<p><b>${esc(P.label)} · noch ${P.left} Tage</b></p>`+BUDG.map(b=>{const c=calc(b);return sr(b,eur(c.rest)+' übrig',`von ${eur(c.total)} · ${eur(c.tag)} pro Tag`)}).join('')
      +(top.length?`<p class="a-s" style="margin-top:6px">Größte Ausgaben</p><div class="alist">${top.map(aRow).join('')}</div>`:'');
     f=ai?['Reicht es bis Monatsende?','Wo kann ich sparen?','Was ist auffällig?']:['Reicht es bis Monatsende?','Was kommt demnächst?','Vergleich zum Vormonat']}
-  AQ.msgs=[{q,h,f}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;renderAsst();aiScroll()}
+  AQ.msgs=[{q,h,f}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;ASH='full';renderAsst();aiScroll()}
 
 /* ---------- PIN lock ---------- */
 function openOnb(){let st=0;const draw=()=>{const steps=[
