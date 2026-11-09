@@ -1598,7 +1598,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='227 (09.11.)';
+const APP_VER='228 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -4154,7 +4154,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
 /* ---------- Konfiguration: Funktionen ein- und ausblenden ---------- */
-const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,0,0]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['ru','Wechselgeld',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Zwischenablage beim Öffnen prüfen (alte Kurzbefehle)',[0,0,0]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,0,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
+const FEATS=[['Tabs',[['cal','Kalender',[0,1,1]],['rep','Auswertung',[0,1,1]],['wish','Impulse',[0,1,1]],['fut','Future',[0,0,0]]]],['Geld & Konten',[['accts','Konten',[1,1,1]],['budgets','Monatsbudgets',[1,1,1]],['rec','Wiederkehrende Buchungen',[0,1,1]],['cats','Kategorien',[0,1,1]],['icons','Symbol-Bibliothek',[0,0,1]],['fav','Favoriten',[1,1,1]],['month','Finanzmonat',[0,0,1]]]],['Planen & Sparen',[['pension','Altersvorsorge',[0,1,1]],['abos','Abo-Radar',[0,1,1]],['ng','Tresor',[0,1,1]],['ru','Wechselgeld',[0,1,1]],['shop','Einkaufszettel',[1,1,1]],['shopclip','Zwischenablage beim Öffnen prüfen (alte Kurzbefehle)',[0,0,0]],['yplan','Jahresplaner',[0,0,1]],['debts','Schuldenfrei',[0,0,1]],['proj','Projekte',[0,1,1]]]],['Buchungsfelder',[['rf','Rückzahlungen',[0,1,1]],['warr','Garantie',[0,0,1]],['tax','Steuer',[0,0,1]],['img','Beleg-Foto',[1,1,1]]]]];
 const FEATP=['Einfach','Standard','Alles'];
 const FEATK=Object.fromEntries(FEATS.flatMap(([,l])=>l.map(([k,n,p])=>[k,{n,p}])));
 function featOn(k){const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?1:S.featP]:true}
