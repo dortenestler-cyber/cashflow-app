@@ -1585,7 +1585,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='219 (09.11.)';
+const APP_VER='220 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -3281,7 +3281,6 @@ function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),o
   ${shopHistHtml()}
   ${!sh.items.length?'<div class="mmcard"><div class="empty">Dein Zettel ist leer. Tipp oben einen Artikel ein, die App merkt sich Preise für das nächste Mal.</div></div>':''}
   ${sh.items.length?`<button class="btn" id="shBook">${I('cart',18)} Einkauf buchen</button><button class="btn soft" id="shClear">Zettel leeren</button>`:''}
-  <button class="btn soft" id="pdbOpen">${I('receipt',18)} Preisliste mit ${Object.keys(PDB).length} Artikeln</button>
   <div class="note">„Muss“ ist nötig, „Kann“ darf weg, wenn es eng wird. Preise ohne eigene Angabe sind Richtwerte (ca.) für Deutschland, deine eigenen Preise haben Vorrang.</div>`}
 const NUMW={ein:1,eine:1,einen:1,zwei:2,drei:3,vier:4,'fünf':5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,zwölf:12};
 const isShopVoice=v=>/einkaufs(liste|zettel)|auf die liste|^\s*(liste|einkauf)\b/i.test(v);
