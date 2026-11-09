@@ -1585,7 +1585,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='218 (09.11.)';
+const APP_VER='219 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -1990,6 +1990,17 @@ function aiMerchant(raw){if(!aiOn())return;const k=bKey(raw);if(!k||k.length<2)r
     const L=S.exp.filter(e=>e.type=='out'&&e.t>Date.now()-7*864e5&&bKey(e.n)==k&&(!e.c||/sonst/i.test(e.c)||(ugly&&nm)));
     L.forEach(e=>{if(c&&(!e.c||/sonst/i.test(e.c)))e.c=c;if(ugly&&nm)e.n=nm});save();if(L.length){render();toast('KI: „'+raw+'“ ist '+(nm||raw)+(c?' · '+c:'')+'.')}})
   .catch(()=>{delete AIMER[k]})}
+/* KI: Preis + Kategorie für unbekannte Einkaufsartikel (gebündelt) */
+const AISH={};let AISHT=0;
+function aiShopQueue(k){k=String(k||'').toLowerCase().trim();if(!aiOn()||!k||AISH[k])return;const sh=shopS();if(sh.aiP&&sh.aiP[k])return;AISH[k]=1;clearTimeout(AISHT);AISHT=setTimeout(aiShopRun,1500)}
+function aiShopRun(){const sh=shopS(),K=Object.keys(AISH).filter(k=>AISH[k]===1).slice(0,25);if(!K.length)return;K.forEach(k=>AISH[k]=2);
+  const it={type:'object',properties:{name:{type:'string'},gruppe:{type:'string',enum:SHOPG},preis:{type:'number',description:'Discounter-Preis in Euro'},einheit:{type:'string',description:'übliche Packungsgröße, z. B. 1 l, 500 g'},sicherheit:{type:'string',enum:['hoch','mittel','niedrig']}},required:['name','gruppe','preis','einheit','sicherheit'],additionalProperties:false};
+  aiOnce(aiCfg().chat,[{type:'text',text:'Schätze für diese Einkaufsartikel in Deutschland den typischen Discounter-Preis (Aldi/Lidl, '+new Date().getFullYear()+') für die übliche Packungsgröße und ordne jeden der passendsten Gruppe zu. Gib name genau so zurück, wie er übergeben wurde.\nArtikel: '+K.map(k=>'"'+((sh.unk&&sh.unk[k]&&sh.unk[k].n)||k)+'"').join(', ')}],
+    {type:'object',properties:{artikel:{type:'array',items:it}},required:['artikel'],additionalProperties:false},1500)
+  .then(j=>{let n=0;sh.aiP=sh.aiP||{};sh.aiG=sh.aiG||{};((j&&j.artikel)||[]).forEach(a=>{const k=String(a.name||'').toLowerCase().trim();if(!K.includes(k))return;
+      if(a.preis>0&&a.preis<500){sh.aiP[k]={p:aiR2(a.preis),u:String(a.einheit||'').slice(0,20),t:Date.now()};n++}if(SHOPG.includes(a.gruppe)&&a.gruppe!='Sonstiges')sh.aiG[k]=a.gruppe});
+    shopMatch();save();render();if(n)toast('Penny hat '+n+' Preis'+(n>1?'e':'')+' geschätzt.')})
+  .catch(()=>{K.forEach(k=>delete AISH[k])})}
 function aiReceipt(src){const im=new Image();im.onload=async()=>{const s=Math.min(1,1568/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);const data=cv.toDataURL('image/jpeg',.8).split(',')[1];
   toast('KI liest den Beleg …');const it={type:'object',properties:{name:{type:'string'},menge:{type:'number'},preis:{type:'number',description:'Einzelpreis in Euro'}},required:['name','menge','preis'],additionalProperties:false};
   const sch={type:'object',properties:{ist_beleg:{type:'boolean'},haendler:{type:'string'},datum:{type:'string',description:'YYYY-MM-DD oder leer'},summe:{type:'number'},artikel:{type:'array',items:it}},required:['ist_beleg','haendler','datum','summe','artikel'],additionalProperties:false};
@@ -3203,7 +3214,7 @@ function dbFind(t){const k=t.toLowerCase().trim();if(PDB[k])return PDB[k];const 
   const w=Object.values(PDB).find(x=>x.n.toLowerCase().split(/[\s-]/).some(p=>p.length>3&&k.includes(p)));return w||null}
 function dbExact(t){const k=String(t||'').toLowerCase().trim();if(!k)return null;if(PDB[k])return PDB[k];const st=w=>w.replace(/(en|n|e|s)$/,'');const ks=st(k);return Object.values(PDB).find(x=>{const n=x.n.toLowerCase();return st(n)==ks&&ks.length>=3})||null}
 function phAdd(n,p,t){if(!(p>0))return;const sh=shopS();sh.ph=sh.ph||{};const k=String(n).toLowerCase().trim();const L=sh.ph[k]=sh.ph[k]||[];const d=ymd(t||Date.now());const ex=L.find(x=>x[0]==d);if(ex)ex[1]=p;else L.push([d,Math.round(p*100)/100]);L.sort((a,b)=>a[0]<b[0]?-1:1);if(L.length>60)L.shift()}
-function shopKnown(k){const sh=shopS();k=k.toLowerCase().trim();if(sh.prices[k])return{p:sh.prices[k],est:false};const d=dbExact(k);return d?{p:dbPrice(d),est:!d.s||(sh.level&&sh.level!='disc'),unit:d.u+(d.s&&!(sh.level&&sh.level!='disc')?' · Bon '+d.s:'')}:null}
+function shopKnown(k){const sh=shopS();k=k.toLowerCase().trim();if(sh.prices[k])return{p:sh.prices[k],est:false};const d=dbExact(k);if(d)return{p:dbPrice(d),est:!d.s||(sh.level&&sh.level!='disc'),unit:d.u+(d.s&&!(sh.level&&sh.level!='disc')?' · Bon '+d.s:'')};const a=sh.aiP&&sh.aiP[k];return a?{p:dbPrice(a),est:true,unit:(a.u?a.u+' · ':'')+'KI-Schätzung'}:null}
 function shopMatch(){const sh=shopS();sh.unk=sh.unk||{};let n=0;sh.items.forEach(x=>{if(x.p)return;const k=x.n.toLowerCase(),f=shopKnown(k);if(f){x.p=f.p;x.est=f.est;if(f.unit&&!x.unit)x.unit=f.unit;x.unk=false;n++}});
   Object.keys(sh.unk).forEach(k=>{if(shopKnown(k))delete sh.unk[k]});return n}
 function shopWeekly(){const sh=shopS();sh.unk=sh.unk||{};if(Date.now()-(sh.lastSync||0)<7*864e5)return;sh.lastSync=Date.now();const n=shopMatch();if(n){save();toast(n+' Preis'+(n>1?'e':'')+' auf dem Einkaufszettel ergänzt.')}else save()}
@@ -3225,7 +3236,7 @@ const SHOPKW=[[/säure|entkalk|essigessenz|spülmaschin|klarspüler|weichspüler
  [/öl\b|olivenöl|essig|salz|pfeffer|gewürz|senf|ketchup|mayo|soße|sauce|oregano|curry/,6],[/schoko|chips|keks|gummi|bonbon|süß|snack|nüsse|riegel|^eis$/,7],
  [/wasser|saft|cola|limo|bier|wein|sekt|sprudel|getränk|schorle|mate|energy/,8],
  [/klopapier|toilettenpapier|küchenrolle|spül|waschmittel|shampoo|duschgel|zahnpasta|zahnbürste|seife|deo|creme|tampon|binde|windel|müllbeutel|reiniger|schwamm|taschentuch|rasier|watte/,10],[/katze|hund|tierfutter|streu|leckerli/,11]];
-function shopGrp(x){const sh=shopS(),k=String(x.n||'').toLowerCase().trim();if(sh.grp&&sh.grp[k])return sh.grp[k];const d=dbExact(x.n);if(d&&d.g&&SHOPG.includes(d.g))return d.g;for(const[re,i]of SHOPKW)if(re.test(k))return SHOPG[i];return 'Sonstiges'}
+function shopGrp(x){const sh=shopS(),k=String(x.n||'').toLowerCase().trim();if(sh.grp&&sh.grp[k])return sh.grp[k];const d=dbExact(x.n);if(d&&d.g&&SHOPG.includes(d.g))return d.g;if(sh.aiG&&SHOPG.includes(sh.aiG[k]))return sh.aiG[k];for(const[re,i]of SHOPKW)if(re.test(k))return SHOPG[i];return 'Sonstiges'}
 function shopMovePop(el,id){const sh=shopS(),x=sh.items.find(i=>i.id==id);if(!x)return;document.querySelectorAll('.catpop').forEach(p=>p.remove());const p=document.createElement('div'),cur=shopGrp(x);p.className='catpop shpop';
  p.innerHTML=`<div class="shpop-h">„${esc(x.n)}“ verschieben nach</div>`+SHOPG.map(g=>`<button data-g="${esc(g)}" class="${g==cur?'on':''}">${esc(g)}${g==cur?' ✓':''}</button>`).join('');document.body.appendChild(p);
  const r=el.getBoundingClientRect();p.style.left=Math.max(8,Math.min(innerWidth-p.offsetWidth-8,r.left))+'px';p.style.top=Math.max(8,Math.min(innerHeight-p.offsetHeight-8,r.bottom+4))+'px';
@@ -3304,7 +3315,7 @@ function shopVoiceDone(added){if(!added.length){toast('Nichts erkannt. Sag z. B.
 function shopAdd(txt,price){const sh=shopS();let t=txt.trim();if(!t)return;let q=1,p=pNum(price);const mq=t.match(/^(\d+)\s*[x×]\s*/i);if(mq){q=+mq[1];t=t.slice(mq[0].length)}
   const mp=t.match(/\s(\d+(?:[.,]\d{1,2})?)\s*€?$/);if(mp&&isNaN(p)){p=pNum(mp[1]);t=t.slice(0,mp.index)}t=t.trim();const k=t.toLowerCase();
   let est=false,unit='',unk=false;sh.unk=sh.unk||{};if(isNaN(p)){const f=shopKnown(k);if(f){p=f.p;est=f.est;unit=f.unit||''}else{p=0;unk=true;if(k)sh.unk[k]=sh.unk[k]||{n:t.charAt(0).toUpperCase()+t.slice(1),t:Date.now()}}}else{sh.prices[k]=p;delete sh.unk[k];phAdd(k,p)}
-  sh.items.push({id:uid(),n:t.charAt(0).toUpperCase()+t.slice(1),p,q,opt:false,done:false,est,unit,unk});save()}
+  sh.items.push({id:uid(),n:t.charAt(0).toUpperCase()+t.slice(1),p,q,opt:false,done:false,est,unit,unk});save();if(unk)aiShopQueue(k)}
 function openShopBook(){const sh=shopS(),items=sh.items.filter(x=>x.done).length?sh.items.filter(x=>x.done):sh.items,est=items.reduce((s,x)=>s+(x.p||0)*(x.q||1),0),cs=cats(sh.acct)||[['Sonstiges','dot']];
   const defc=(cs.find(c=>/lebensmittel/i.test(c[0]))||cs[0])[0];
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Einkauf buchen"><div class="sheet-h"><button id="sbX">Abbrechen</button><b>Einkauf buchen</b><button id="sbS" style="font-weight:600">Buchen</button></div>
@@ -3352,14 +3363,14 @@ function openShopEdit(id){const sh=shopS(),x=sh.items.find(i=>i.id==id);if(!x)re
     if(!isNaN(pv)&&pv>0){if(pv!==x.p||renamed){x.p=pv;x.est=false;sh.prices[k]=pv;phAdd(k,pv);if(sh.unk)delete sh.unk[k];shopMatch()}}else if(renamed){const f=shopKnown(k);x.p=f?f.p:0;x.est=f?f.est:false;sh.unk=sh.unk||{};if(!f)sh.unk[k]={n:x.n,t:Date.now()}}else if($('seP').value.trim()===''){x.p=0;x.est=false}
     save();close();toast('Gespeichert.')};
   setTimeout(()=>{const i=$('seN');if(i&&!matchMedia('(pointer:coarse)').matches){i.focus();i.select()}},50)}
-function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const sh=shopS();
+function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const sh=shopS();Object.keys(sh.unk||{}).forEach(aiShopQueue);
   const shImp=v=>{const L=String(v).split(/\r?\n+/).map(x=>x.trim()).filter(x=>x&&!/^(apple ?pay|buchung)\b/i.test(x)).map(x=>clipWhen(x.replace(/\s*·\s*/g,' ')).s.replace(/^(einkaufsliste|einkaufszettel|einkauf)\s*:?\s*/i,'')).filter(Boolean);const a=shopVoice(L.join(', '));save();render();shopVoiceDone(a)};
   on('shClip',()=>{TIPFN.clipGo()});
   if($('shPT'))$('shPT').oninput=e=>{sh.paste=e.target.value};
   document.querySelectorAll('.shedit').forEach(b=>{let lp;const id=b.dataset.she,st=()=>{b.__lng=false;clearTimeout(lp);lp=setTimeout(()=>{b.__lng=true;try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}shopMovePop(b,id)},450)},cl=()=>clearTimeout(lp);b.addEventListener('touchstart',st,{passive:true});b.addEventListener('touchend',cl);b.addEventListener('touchmove',cl,{passive:true});b.addEventListener('mousedown',st);b.addEventListener('mouseup',cl);b.oncontextmenu=e=>e.preventDefault();b.addEventListener('click',e=>{if(b.__lng){b.__lng=false;e.stopImmediatePropagation();e.preventDefault()}},true)});
   on('shPOk',()=>{const t=(sh.paste||'').trim();if(!t){toast('Bitte erst eine Liste einfügen.');return}sh.paste=null;shImp(t)});
   on('pdbOpen',()=>{setView='pdb';pdbQ='';render();scrollTo(0,0)});
-  document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbExact(x.n);if(d)x.p=dbPrice(d)}});save();render()});
+  document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbExact(x.n),a=sh.aiP&&sh.aiP[x.n.toLowerCase().trim()];if(d)x.p=dbPrice(d);else if(a)x.p=dbPrice(a)}});save();render()});
   on('shopBack',()=>{setView=null;tab=prevTab&&prevTab!='more'?prevTab:'dash';render();scrollTo(0,0)});
   const add=()=>{shopAdd($('shN').value,$('shP').value);render();setTimeout(()=>$('shN')&&$('shN').focus(),0)};on('shAdd',add);on('shMic',()=>listen(v=>{const a=shopVoice(v);render();shopVoiceDone(a)},$('shN'),'Sag z. B. „Milch, 2 Brot und Eier“'));
   if($('shN'))$('shN').onkeydown=e=>{if(e.key=='Enter')add()};if($('shP'))$('shP').onkeydown=e=>{if(e.key=='Enter')add()};
