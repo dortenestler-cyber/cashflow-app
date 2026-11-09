@@ -1299,8 +1299,8 @@ const isTabu=n=>{const a=acc(n);if(a.tabu&&a.untabu&&Date.now()>=a.untabu){a.tab
 const inP=(e,p)=>e.t>=p.s.getTime()&&e.t<p.e.getTime();
 let NOWT=Date.now();const isPlan=e=>e.t>Date.now();
 function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e));
-  if(isK(b)){const A=S.exp.filter(e=>e.t<p.e.getTime()&&!isPlan(e)),sm=(f)=>A.filter(f).reduce((s,e)=>s+e.a,0);
-    const bal=(typeof zinsAt=='function'?zinsAt(b,Math.min(p.e.getTime(),Date.now())):0)+(acc(b).start||0)+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);
+  if(isK(b)){const _a=acc(b),_an=ancD(_a)&&p.e.getTime()>_a.baseD,A=S.exp.filter(e=>e.t<p.e.getTime()&&!isPlan(e)&&(!_an||e.t>=_a.baseD)),sm=(f)=>A.filter(f).reduce((s,e)=>s+e.a,0);
+    const bal=(typeof zinsAt=='function'?zinsAt(b,Math.min(p.e.getTime(),Date.now())):0)+(_an?+_a.baseVal:(_a.start||0))+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);
     const ps=(f)=>L.filter(f).reduce((s,e)=>s+e.a,0);
     return{p,konto:true,list:L.filter(e=>e.b==b||e.to==b),out:ps(e=>e.type=='out'&&e.b==b),inc:ps(e=>e.type=='in'&&e.b==b),trO:ps(e=>e.type=='tr'&&e.b==b),trI:ps(e=>e.type=='tr'&&e.to==b),total:bal,used:0,rest:bal,tag:0,woche:0,pct:0}}
   const out=L.filter(e=>e.type=='out'&&e.b==b).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&e.b==b).reduce((s,e)=>s+e.a,0);
@@ -4269,7 +4269,7 @@ function bind(){{const main=!setView&&!curB;if(main){if(tab=='list'&&bind.lastMa
     if($('aname'))$('aname').onchange=()=>{const nw=safeAcct($('aname').value);if(!nw||nw==a.n||ALL.includes(nw)){$('aname').value=a.n;return}renameAcct(a.n,nw);render()};
     document.querySelectorAll('#akind button').forEach(b=>b.onclick=()=>{a.kind=b.dataset.f;if(a.kind=='konto'){a.tot=false;a.start=a.start||0}else{S.budgets[a.n]=S.budgets[a.n]||0}refreshA();save();render()});
     if($('abud'))$('abud').onchange=()=>{S.budgets[a.n]=parseFloat($('abud').value)||0;save();render()};
-    if($('astart'))$('astart').onchange=()=>{a.start=pNum($('astart').value)||0;if(a.kind=='budget')a.startT=period(0).s.getTime();save();render()};
+    if($('astart'))$('astart').onchange=()=>{const _o=a.start||0;a.start=pNum($('astart').value)||0;if(ancD(a))a.baseVal=Math.round((+a.baseVal+a.start-_o)*100)/100;a.baseAt=Date.now();if(a.kind=='budget')a.startT=period(0).s.getTime();save();render()};
     document.querySelectorAll('#acarry button').forEach(b=>b.onclick=()=>{const f=b.dataset.f;a.carry=f=='carry';a.roll=f=='roll';save();render()});
     if($('avis'))$('avis').onchange=()=>{a.vis=$('avis').checked;refreshA();save();render()};
     if($('atot'))$('atot').onchange=()=>{a.tot=$('atot').checked;refreshA();save();render()};
@@ -4970,7 +4970,11 @@ function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.s
     ids.forEach(id=>{const a=lm.get(id),r=rm.get(id);if(a&&r)res.push(locNew?a:r);else if(a){if(!B.has(id))res.push(a)}else if(r){if(!B.has(id))res.push(r)}});
     [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));cSet(out,c,res)});
   try{syDepRu(out,locNew?rem:loc)}catch(e){}
+  try{syAccBase(out,loc,rem)}catch(e){}
   return out}
+/* Bestand & Zinsen je Konto: neuester Stand (baseAt) gewinnt, auch wenn das andere Gerät die Kontenliste zuletzt geändert hat */
+function syAccBase(out,loc,rem){const F=['start','baseD','baseVal','baseAt','rates'],all=[...(loc.accts||[]),...(rem.accts||[])];
+  (out.accts||[]).forEach(a=>{if(!a)return;let b=a;all.forEach(x=>{if(x&&x.n==a.n&&(x.baseAt||0)>(b.baseAt||0))b=x});if(b!==a)F.forEach(f=>{if(b[f]===undefined)delete a[f];else a[f]=JSON.parse(JSON.stringify(b[f]))})})}
 /* Wechselgeld-Anteile im Depot gehen beim Zusammenführen nicht verloren: Position gewinnt als Ganzes, fehlende Wechselgeld-Einträge der anderen Seite werden nachgetragen, solange die Umbuchung noch existiert */
 function syDepRu(out,oth){const trs=new Set((out.exp||[]).filter(e=>e&&e.type=='tr').map(e=>e.id)),om=new Map((oth.depot||[]).filter(h=>h&&h.id).map(h=>[h.id,h]));
   (out.depot||[]).forEach(h=>{const o=om.get(h&&h.id);if(!o||!o.tx)return;h.tx=h.tx||[];const have=new Set(h.tx.filter(x=>x.ru).map(x=>x.ru));
@@ -5603,13 +5607,14 @@ async function estimateBuy(h){const k=hk2(h,'d');if(!HC[k]){if(h.type=='krypto')
 
 /* ---------- Tresor: Stichtag & Zinsen ---------- */
 const dayStart=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
-function rawBal(n,t){const a=acc(n);let b=a.start||0;S.exp.forEach(e=>{if(e.t>t||isPlan(e))return;if((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))b+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==n)b-=e.a});return b}
+function ancD(a){return !!a&&a.baseD!=null&&a.baseVal!=null&&!isNaN(+a.baseVal)}
+function rawBal(n,t){const a=acc(n),an=ancD(a)&&t>=a.baseD;let b=an?+a.baseVal:(a.start||0);S.exp.forEach(e=>{if(e.t>t||isPlan(e)||(an&&e.t<a.baseD))return;if((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))b+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==n)b-=e.a});return b}
 const ZM={};
 function zinsAt(n,t){const a=acc(n),R=(a.rates||[]).filter(r=>r.p>0).sort((x,y)=>x.from<y.from?-1:1);if(!R.length)return 0;
-  const k=n+'|'+dayStart(t)+'|'+S.exp.length+'|'+JSON.stringify(R)+'|'+(a.start||0)+'|'+(a.baseD||0);if(ZM[k]!=null)return ZM[k];
+  const k=n+'|'+dayStart(t)+'|'+S.exp.length+'|'+JSON.stringify(R)+'|'+(a.start||0)+'|'+(a.baseD||0)+'|'+(a.baseVal==null?'':a.baseVal);if(ZM[k]!=null)return ZM[k];
   const r0=new Date(R[0].from+'T00:00').getTime(),from=Math.max(r0,a.baseD||0),end=dayStart(t);if(from>=end)return ZM[k]=0;
   const ev=S.exp.filter(e=>!isPlan(e)&&e.t<end&&(e.b==n||e.to==n)).map(e=>[e.t,((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))?e.a:-e.a]).sort((x,y)=>x[0]-y[0]);
-  let p=a.start||0,i=0,z=0;for(;i<ev.length&&ev[i][0]<from;i++)p+=ev[i][1];
+  const an=ancD(a)&&from>=a.baseD;let p=an?+a.baseVal:(a.start||0),i=0,z=0;for(;i<ev.length&&ev[i][0]<from;i++)if(!an||ev[i][0]>=a.baseD)p+=ev[i][1];
   for(let d=from;d<end;d+=864e5){const de=d+864e5;while(i<ev.length&&ev[i][0]<de){p+=ev[i][1];i++}const ds=ymd(d+12*36e5);let rate=0;for(const r of R)if(r.from<=ds)rate=r.p;z+=(p+z)*rate/36500}
   return ZM[k]=Math.round(z*100)/100}
 const rateNow=n=>{const R=(acc(n).rates||[]).filter(r=>r.from<=today()).sort((x,y)=>x.from<y.from?-1:1);return R.length?R[R.length-1].p:0};
@@ -5641,10 +5646,10 @@ function openVaultBase(){const V=vaultCash();if(!V.length){toast('Noch keine Tre
     <div class="cell plain"><span class="s" style="font-size:12px;color:var(--muted)">Zinsen bisher: <b>${eur(zinsAt(x.n,Date.now()))}</b> · aktuell ca. ${eur(rawBal(x.n,Date.now())*rateNow(x.n)/36500)} pro Tag</span></div></div>`}).join('')}
    <div class="note" style="padding:0">Zinsen werden täglich auf den Kontostand gerechnet und gutgeschrieben (Zinseszins). Ändert die Bank den Zins, trag den neuen Satz mit dem Datum ein, ab dem er gilt. Der alte bleibt für die Zeit davor erhalten.</div></div></div>`;
   $('scrim').onclick=$('vbX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
-  document.querySelectorAll('[data-zdel]').forEach(b=>b.onclick=()=>{const[i,f]=b.dataset.zdel.split('|'),a=acc(V[+i]);a.rates=(a.rates||[]).filter(r=>r.from!=f);save();openVaultBase()});
+  document.querySelectorAll('[data-zdel]').forEach(b=>b.onclick=()=>{const[i,f]=b.dataset.zdel.split('|'),a=acc(V[+i]);a.rates=(a.rates||[]).filter(r=>r.from!=f);a.baseAt=Date.now();save();openVaultBase()});
   $('vbS').onclick=()=>{const sa=JSON.stringify(S.accts);
     st.forEach((x,i)=>{const a=acc(x.n),d=$('vbD'+i).value,v=qNum($('vbV'+i).value),z=qNum($('vbZ'+i).value),zf=$('vbF'+i).value||d;
-      if(d&&!isNaN(v)){const t=new Date(d+'T00:00').getTime(),net=rawBal(x.n,t-1)-(a.start||0);a.baseD=t;a.baseVal=v;a.start=Math.round((v-net)*100)/100;a.baseAt=Date.now()}
+      if(d&&!isNaN(v)){const t=new Date(d+'T00:00').getTime(),net=S.exp.reduce((s,e)=>e.t>t-1||isPlan(e)?s:((e.type=='in'&&e.b==x.n)||(e.type=='tr'&&e.to==x.n))?s+e.a:((e.type=='out'||e.type=='tr')&&e.b==x.n)?s-e.a:s,0);a.baseD=t;a.baseVal=v;a.start=Math.round((v-net)*100)/100;a.baseAt=Date.now()}
       if(!isNaN(z)&&z!==rateNow(x.n)){a.rates=(a.rates||[]).filter(r=>r.from!=zf);a.rates.push({from:zf,p:z})}else if(isNaN(z)&&$('vbZ'+i).value.trim()===''&&rateNow(x.n)){a.rates=(a.rates||[]).filter(r=>r.from!=zf);a.rates.push({from:zf,p:0})}});
     for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();toast('Tresor gesichert.',()=>{S.accts=JSON.parse(sa);refreshA();save();render()})}};
 function vaultSecHtml(show){const V=vaultCash();if(!V.length)return `<div class="sec" style="grid-column:1/-1"><div class="sh">Tresor</div><div class="mmcard"><div class="srow" style="display:flex;align-items:center;gap:8px"><span class="s" style="color:var(--muted);font-size:13px;flex:1">Noch keine Tresor-Konten. Unter Mehr › Tresor legst du fest, welche Konten dazugehören.</span>${eyeBtn()}</div></div></div>`;
