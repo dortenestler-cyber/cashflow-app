@@ -1585,7 +1585,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht im Abo-Radar. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='220 (09.11.)';
+const APP_VER='221 (09.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -5643,6 +5643,8 @@ function zinsAt(n,t){const a=acc(n),R=(a.rates||[]).filter(r=>r.p>0).sort((x,y)=
 const rateNow=n=>{const R=(acc(n).rates||[]).filter(r=>r.from<=today()).sort((x,y)=>x.from<y.from?-1:1);return R.length?R[R.length-1].p:0};
 
 /* ---------- Vermögen: Tresor ---------- */
+function vaultBreak(V,Vv){return V.map(n=>{const a=acc(n),an=ancD(a),t0=an?a.baseD:0,E=S.exp.filter(e=>!isPlan(e)&&e.t>=t0&&(e.b==n||e.to==n)),inS=E.filter(e=>(e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n)).reduce((x,e)=>x+e.a,0),O=E.filter(e=>(e.type=='out'||e.type=='tr')&&e.b==n&&e.to!=n).sort((x,y)=>y.t-x.t),outS=O.reduce((x,e)=>x+e.a,0),z=zinsAt(n,Date.now()),b0=an?+a.baseVal:(a.start||0);
+  return `<div class="note" style="padding:6px 4px 0"><b>${esc(n)}:</b> ${an?'Stand am '+new Date(a.baseD).toLocaleDateString('de-DE'):'Anfangsbestand'} ${Vv(eur(b0))} · Einzahlungen +${Vv(eur(inS))} · Abgänge −${Vv(eur(outS))}${z?' · Zinsen +'+Vv(eur(z)):''} = ${Vv(eur(b0+inS-outS+z))}${O.length?'<br>Abgänge: '+O.slice(0,8).map(e=>`${new Date(e.t).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})} ${esc(e.n||e.c||'')} ${Vv(eur(e.a))}${e.to?' → '+esc(SHORT[e.to]||e.to):''}`).join(' · ')+(O.length>8?' …':''):''}</div>`}).join('')}
 const vaultCash=()=>vaultAccs().filter(n=>!depot().some(h=>h.to==n));
 function balAt(n,t){const a=acc(n);if(a.baseD&&t<a.baseD)return 0;return rawBal(n,t)+zinsAt(n,t)}
 function vaultSeries(){const V=vaultCash(),y0=rStart(dRange),days=Math.max(1,Math.ceil((Date.now()-y0)/864e5)),out=[];
@@ -5681,7 +5683,8 @@ function vaultSecHtml(show){const V=vaultCash();if(!V.length)return `<div class=
    <div class="chartbox">${show?`<div class="vtot"><span>Bestand</span><div class="eyerow"><b>${eur(l.v)}</b>${eyeBtn()}</div></div>`:`<div class="vtot"><span>Bestand verborgen</span><div class="eyerow"><b>•••</b>${eyeBtn()}</div></div>`}
     ${vaultChart(S0,V,show)}
     <div class="dlg">${(V.length==1?[['__tot',V[0],'#1F9D6B',l.v,f.v]]:[['__tot','Tresor gesamt','#1F9D6B',l.v,f.v],...V.map((n,k)=>[n,n,acc(n).col||PCOL[k%PCOL.length],l.per[k],f.per[k]])]).map(([id,n,c,v,v0])=>`<button class="dlg-i ${vOff[id]?'off':''}" data-vlg="${esc(id)}"><i style="background:${c}"></i><span>${esc(n)}</span><b>${Vv(eur0(v))}</b><small class="${v-v0<0?'out':'in'}">${Vv(sg(v-v0)+eur0(v-v0))} im Zeitraum</small></button>`).join('')}</div>
-    ${V.some(n=>rateNow(n))?`<div class="ztag">${V.filter(n=>rateNow(n)).map(n=>`${I('up',13)} ${esc(n)}: ${String(rateNow(n)).replace('.',',')} % Zinsen · bisher ${Vv(eur(zinsAt(n,Date.now())))} · heute +${Vv(eur(rawBal(n,Date.now())*rateNow(n)/36500))}`).join('<br>')}</div>`:''}
+    ${V.some(n=>rateNow(n))?`<div class="ztag">${V.filter(n=>rateNow(n)).map(n=>`${I('up',13)} ${esc(n)}: ${String(rateNow(n)).replace('.',',')} % Zinsen · bisher ${Vv(eur(zinsAt(n,Date.now())))} ${rawBal(n,Date.now())>0?` · heute +${Vv(eur(rawBal(n,Date.now())*rateNow(n)/36500))}`:''}`).join('<br>')}</div>`:''}
+    ${vaultBreak(V,Vv)}
     <div class="note" style="padding:6px 4px 0">Kontostand aus deinen Buchungen und Zinsen${V.some(n=>acc(n).baseD)?', ab Stichtag '+V.filter(n=>acc(n).baseD).map(n=>new Date(acc(n).baseD).toLocaleDateString('de-DE')).join(', '):''}. Depot-Konten deiner Sparpläne zählen oben beim Depot, damit nichts doppelt gerechnet wird.</div></div></div>`}
 
 /* ---------- Puffer verschieben & Tresor ---------- */
