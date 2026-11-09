@@ -18,6 +18,7 @@
 
 ## Nach jeder Änderung
 1. Version in `sw.js` erhöhen (`cashflow-vNNN`).
+   Gleiche Nummer und Datum auch in `APP_VER` in index.html eintragen (`'NNN (TT.MM.)'`).
 2. JS-Syntax prüfen (`node --check` auf das extrahierte Script).
 3. Commit direkt auf `main`, Nachricht: `vNNN: <kurz, deutsch>`.
 4. Push.
