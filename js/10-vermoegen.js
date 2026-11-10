@@ -612,7 +612,7 @@ function vaultSecHtml(show){const V=vaultCash();if(!V.length)return `<div class=
 
 /* ---------- Puffer verschieben & Vermögen ---------- */
 const vaultAccs=()=>S.accts.filter(isVerm).map(a=>a.n);
-function pufExcess(){return Math.max(Math.round((pufVal()-1000)*100)/100,0)}
+function pufExcess(){return Math.max(Math.round((pufVal()-pufZiel())*100)/100,0)}
 function pufMoveDo(parts,label){const p=pufAcc();if(!p)return;const sn=snap(),gs=JSON.stringify(S.goals),done=[];
   parts.forEach(([t,a])=>{a=Math.round(a*100)/100;if(!a)return;const g=t.startsWith('goal:')?S.goals.find(x=>x.id==t.slice(5)):null;
     if(g){const tgt=g.acct&&ALL.includes(g.acct)?g.acct:(ALL.includes('Sinking Funds')?'Sinking Funds':vermAcc());const eid=uid();S.exp.push({id:eid,type:'tr',b:p.n,to:tgt,c:'',a,n:'Sparziel: '+g.n,t:Date.now(),tg:['puffer'],goal:g.id});g.dep.push({a,t:Date.now(),src:p.n,eid});done.push(eur(a)+' → '+g.n)}

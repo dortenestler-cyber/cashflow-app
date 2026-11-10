@@ -115,6 +115,8 @@ function pufOpen(){const a=pufAcc();if(!a)return{list:[],sum:0};const P=period(0
   S.exp.forEach(e=>{if(e.b==a.n&&isPlan(e)&&inP(e,P)&&(e.type=='out'||e.type=='tr')&&!L.some(x=>x.n==e.n&&Math.abs(x.a-e.a)<.01))L.push({n:e.n||e.c,a:e.a,d:new Date(e.t)})});
   L.sort((x,y)=>x.d-y.d);return{list:L,sum:L.reduce((s,x)=>s+x.a,0)}}
 const pufBal=()=>{const a=pufAcc();return a?calc(a.n).rest:(S.puffer||0)};
+/* v258: Puffer-Ziel einstellbar, Standard 1.000 € */
+const pufZiel=()=>(+S.pufZiel>0?+S.pufZiel:1000);
 const pufVal=()=>pufAcc()?pufBal()-pufOpen().sum:(S.puffer||0);
 function vermAcc(){let a=S.vermZiel&&S.accts.find(x=>x.n==S.vermZiel);if(!a){a=S.accts.find(x=>x.n=='Vermögensaufbau');if(!a){a={n:'Vermögensaufbau',kind:'konto',col:'#2fb36b',vis:false,tot:false,start:0};S.accts.push(a);S.cats[a.n]=[["Sparen","target"],["Sonstiges","dot"]];S.bg=S.bg||{};S.bg[a.n]={g:5}}S.vermZiel=a.n;a.rolle='vermoegen';a.sperre={art:'tabu'};refreshA();save()}return a.n}
 function streak(){const bs=TOTM;if(!bs.length)return 0;let n=0;
@@ -134,7 +136,10 @@ function migAcct(a,S0){const OLDF=['tabu','untabu','lock','vault','verm','puffer
   if(a.puffer)a.rolle='eingang';else if(vh)a.rolle='vermoegen';else if('puffer' in a||'vault' in a||'verm' in a||'tabu' in a)delete a.rolle;
   if(a.verm)S0.vermZiel=a.n;if(a.roll)a.rest='umbuchen';else if(a.carry)a.rest='bleibt';else if('roll' in a||'carry' in a)delete a.rest;
   OLDF.forEach(k=>delete a[k]);return true}
-function migFlags(S0){if(!S0||!S0.accts)return;let ch=false;S0.accts.forEach(a=>{if(migAcct(a,S0))ch=true});if(!S0.vermZiel){const v=S0.accts.find(x=>x.n=='Vermögensaufbau');if(v)S0.vermZiel=v.n}if(!S0.flags3){S0.flags3=true;ch=true}if(ch&&S0===S)setTimeout(()=>{try{save()}catch(e){}},0)}
+/* v258: Kontostufe (eingang | ausgeben | sparen | vermoegen) und Konsum-Topf als eigene Felder – Funktionen hängen nicht mehr am Namen. Ergänzend, alte Felder bleiben. */
+function stufeOf(a){if(!a)return '';if(a.stufe)return a.stufe;if(a.rolle=='eingang')return 'eingang';if(a.rolle=='vermoegen')return 'vermoegen';return a.kind=='budget'?(/sinking/i.test(a.n||'')?'sparen':'ausgeben'):''}
+function migStufe(S0){if(!S0||!S0.accts||S0.stufen1)return false;S0.accts.forEach(a=>{if(!a.stufe){const s=stufeOf(a);if(s)a.stufe=s}if(a.kind=='budget'&&/g[öo]nn/i.test(a.n||'')&&!S0.accts.some(x=>x.konsum))a.konsum=true});S0.stufen1=true;return true}
+function migFlags(S0){if(!S0||!S0.accts)return;let ch=false;S0.accts.forEach(a=>{if(migAcct(a,S0))ch=true});if(migStufe(S0))ch=true;if(!S0.vermZiel){const v=S0.accts.find(x=>x.n=='Vermögensaufbau');if(v)S0.vermZiel=v.n}if(!S0.flags3){S0.flags3=true;ch=true}if(ch&&S0===S)setTimeout(()=>{try{save()}catch(e){}},0)}
 const sperOf=a=>{const s=a&&a.sperre;if(!s)return null;const t=Date.now();if((s.frei&&t>=s.frei)||(s.bis&&t>=s.bis)){delete a.sperre;setTimeout(save,0);return null}return s};
 const isTabu=n=>{const s=sperOf(acc(n));return !!(s&&s.art=='tabu')};const isLock=n=>{const s=sperOf(acc(n));return !!(s&&s.art=='bremse')};
 const tabuFrei=a=>{const s=sperOf(a);return s&&s.art=='tabu'&&s.frei?s.frei:null};
@@ -152,7 +157,7 @@ function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e
   const stk=isStock(b);let carry=0;if(stk){if(p.s.getTime()>S.since)carry=calc(b,off-1).rest}else if(isCarry(acc(b))&&p.s.getTime()>S.since)carry=Math.max(calc(b,off-1).rest,0);const sa=acc(b),st=(sa.start&&sa.startT===p.s.getTime())?sa.start:0;
   const total=budFor(b,p)+inc+trI+carry+st,used=out+trO,rest=total-used,tag=stk?0:p.left?Math.max(rest,0)/p.left:0;
   return{p,stock:stk,list:L.filter(e=>e.b==b||e.to==b),out,inc,trO,trI,carry,st,total,used,rest,tag,woche:stk?0:Math.min(tag*7,Math.max(rest,0)),pct:stk?0:total?used/total:0}}
-function isStock(b){return !!b&&/sinking/i.test(b)&&!isK(b)}
+function isStock(b){if(!b||isK(b))return false;const a=S.accts.find(x=>x.n==b);return a&&a.stufe?a.stufe=='sparen':/sinking/i.test(b)}
 const zone=p=>p<.6?'var(--ok)':p<.85?'var(--warn)':'var(--bad)';
 /* budget state: ok, über Plan (more used than the plan allows by today), aufgebraucht (nothing left) */
 function stat(c){const P=c.p,soll=c.total*Math.min((P.idx||P.len)/P.len,1),over=c.used-soll;
