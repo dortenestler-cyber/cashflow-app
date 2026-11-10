@@ -83,7 +83,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='262 (10.11.)';
+const APP_VER='263 (10.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -137,7 +137,7 @@ function pnReact(k){if(PNRM.matches||document.hidden){pnSayA=null;pnSayX=null;re
 function pnHat(){const d=new Date(),mi=d.getHours()*60+d.getMinutes(),md=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),cap=(c,b)=>`<g class="pn-hat"><path d="M10 16Q28 -10 55 2Q49 7 53 14z" fill="${c}"/><rect x="8" y="11" width="46" height="6" rx="3" fill="${b}"/><circle cx="55" cy="3" r="3.4" fill="${b}"/></g>`;
   if(S.pnBday&&S.pnBday.slice(5)==md)return`<g class="pn-hat"><path d="M23 15L33 -12L43 15z" fill="#EC4899"/><path d="M26.5 6l11-2M24.6 11l16-2.5M29 -1l7-1.4" stroke="#FDE047" stroke-width="1.6"/><circle cx="33" cy="-12" r="3" fill="#FDE047"/></g>`;
   if(d.getMonth()==11&&d.getDate()<=26)return cap('#DC2626','#fff');
-  if(mi>=20*60+30||mi<6*60)return cap('#3B5BDB','#E0E7FF');
+  /* v263: abends Mondsichel mit zwei Sternen statt Schlafmütze */if(mi>=20*60+30||mi<6*60)return`<g class="pn-hat pn-moon"><path d="M53.88 1.83A5.5 5.5 0 1 0 56.21 10.54A4.6 4.6 0 0 1 53.88 1.83z" fill="#FDE68A"/><path class="pn-twk" d="M44 1.6l0.72 1.68 1.68 0.72-1.68 0.72-0.72 1.68-0.72-1.68-1.68-0.72 1.68-0.72z" fill="#E0E7FF"/><path class="pn-twk t2" d="M61 13.2l0.54 1.26 1.26 0.54-1.26 0.54-0.54 1.26-0.54-1.26-1.26-0.54 1.26-0.54z" fill="#E0E7FF"/></g>`;
   try{if(period(0).idx<=3)return`<g class="pn-hat"><rect x="14" y="25" width="15" height="10" rx="4" fill="#111" stroke="#F5B92E" stroke-width="1.2"/><rect x="33" y="25" width="15" height="10" rx="4" fill="#111" stroke="#F5B92E" stroke-width="1.2"/><path d="M29 28.5h4" stroke="#F5B92E" stroke-width="1.4"/><path d="M17 27.5l4 0" stroke="#fff" stroke-width="1" opacity=".6"/></g>`}catch(e){}return''}
 function pnLS(k,v){try{if(v===undefined)return JSON.parse(localStorage[k]||'null');localStorage[k]=JSON.stringify(v)}catch(e){return null}}
 function pnNoSpend(){const d=new Date().toDateString();return!(S.exp||[]).some(e=>e.type=='out'&&!e.corr&&new Date(e.t).toDateString()==d)}
