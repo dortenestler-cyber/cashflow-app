@@ -973,3 +973,5 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  body[data-tab="geld"] .view>*,body[data-tab="wish"][data-wv="Zukunft"] .view>*{min-width:0;margin-top:0!important;margin-bottom:0!important}
  body[data-tab="geld"] .view>.stickhead,body[data-tab="wish"] .view>.stickhead,body[data-tab="geld"] .view>.seg,body[data-tab="wish"] .view>.seg,body[data-tab="geld"] .view>.note,body[data-tab="wish"] .view>.note,body[data-tab="geld"] .view>.wtot,body[data-tab="geld"] .view>.btn,body[data-tab="geld"] .view>.toolbar,body[data-tab="wish"] .view>.toolbar,body[data-tab="wish"] .view>.anchor,body[data-tab="wish"] .view>.btn{grid-column:1/-1}
 }
+
+@media (prefers-reduced-motion:no-preference){.pn-twk{animation:pnTwk 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.pn-twk.t2{animation-delay:1.3s}}@keyframes pnTwk{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
