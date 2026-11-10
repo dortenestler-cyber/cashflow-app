@@ -966,3 +966,9 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
 .bk-pn{position:absolute;right:20px;top:118px;line-height:0;z-index:2;pointer-events:none}.bk-pn svg.penny{width:36px;height:36px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
 #asstRoot .abub{transition:transform .25s,opacity .25s;transform-origin:0 100%}body[data-tab=list].fabaway #asstRoot .abub{transform:none!important;opacity:1!important;pointer-events:auto}body[data-tab=list].pn-down #asstRoot .abub{transform:scale(.7)!important;opacity:.5!important}
 @media (prefers-reduced-motion:reduce){.penny *{animation:none!important}body[data-pi=blink] .penny .pn-eyes{animation:pnBlink .3s!important}}
+/* v260: iPad/PC – Geld und Planen zweispaltig */
+@media (min-width:700px){
+ body[data-tab="geld"] .view,body[data-tab="wish"][data-wv="Zukunft"] .view{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;align-items:start}
+ body[data-tab="geld"] .view>*,body[data-tab="wish"][data-wv="Zukunft"] .view>*{min-width:0;margin-top:0!important;margin-bottom:0!important}
+ body[data-tab="geld"] .view>.stickhead,body[data-tab="wish"] .view>.stickhead,body[data-tab="geld"] .view>.seg,body[data-tab="wish"] .view>.seg,body[data-tab="geld"] .view>.note,body[data-tab="wish"] .view>.note,body[data-tab="geld"] .view>.wtot,body[data-tab="geld"] .view>.btn,body[data-tab="geld"] .view>.toolbar,body[data-tab="wish"] .view>.toolbar,body[data-tab="wish"] .view>.anchor,body[data-tab="wish"] .view>.btn{grid-column:1/-1}
+}
