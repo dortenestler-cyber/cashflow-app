@@ -1632,7 +1632,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='251 (10.11.)';
+const APP_VER='252 (10.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -2231,7 +2231,7 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   const fw=fcWarn();
   const pt=fw?null:(()=>{try{const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');const t=tipsList().filter(x=>!(S.dismTips||[]).includes(tkey(x)));const r=t.find(x=>x.sev=='bad')||t.find(x=>x.sev=='warn'&&!(S.seenTips||[]).includes(tkey(x)));return r?Object.assign({},r,{_k:tkey(r)}):null}catch(e){return null}})();
   return `<h1 class="sr">Budget ${P.label}</h1>${pt?`<button class="fcwarn ${pt.sev=='bad'?'':'warn'}" id="pnCard" data-act="${pt.act||''}" data-tk="${esc(pt._k)}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(pt.ttl)}</b><div class="s">${String(pt.txt||'').replace(/<[^>]*>/g,'').replace(/^„[^“]*“\s*/,'').slice(0,140)}</div></div><span class="chev">›</span></button>`:''}${fw?`<div class="fcwarn" id="fcWarnBtn" role="button" tabindex="0" data-fwk="${esc(fcWarnKey(fw))}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(SHORT[fw.n]||fw.n)} reicht im ${period(fw.o).s.toLocaleDateString('de-DE',{month:'long'})} nicht</b><div class="s">Laut Prognose ${eur0(fw.v)}${fw.puf?' nach allen geplanten Abgängen':''}. Tippen für Details.</div></div><button class="fcx" id="fcWarnX" aria-label="Hinweis ausblenden">×</button></div>`:''}
-  <div class="minis mtop">${BUDG.map(b=>{const c=calc(b),s=stat(c);return `<button class="mini st-${s.k}" data-b="${b}" style="--c:${COL[b]}">
+  <div class="minis mtop" style="grid-template-columns:repeat(${BUDG.filter(b=>b!=sinkAcc()).length||1},minmax(0,1fr))">${BUDG.filter(b=>b!=sinkAcc()).map(b=>{const c=calc(b),s=stat(c);return `<button class="mini st-${s.k}" data-b="${b}" style="--c:${COL[b]}">
     <div class="mini-n"><span class="dotc"></span>${esc(SHORT[b])}</div>${gauge(c.pct,COL[b],0,0,s.col,gData(b,c))}<div class="mini-r ${s.k=='bad'?'out':''}">${s.k=='bad'?eur0(c.rest):eur(c.tag)}</div>
     <div class="mini-s">${s.k=='bad'?'aufgebraucht':'pro Tag · '+(s.k=='warn'?eur0(s.over)+' über Plan':eur0(c.rest)+' übrig')}</div></button>`}).join('')}</div>
   ${carousel(tot,P)}
