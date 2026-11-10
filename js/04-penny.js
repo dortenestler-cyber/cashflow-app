@@ -45,7 +45,7 @@ function newSubs(){const D=864e5,since=Date.now()-110*D,G={},norm=subKey;
     const gaps=M.slice(1).map((e,i)=>(e.t-M[i].t)/D);if(!gaps.every(g=>g>=25&&g<=36))return null;if(Date.now()-last.t>40*D)return null;return{k,e:last,n:M.length}}).filter(Boolean).slice(0,2)}
 function subAdopt(k){const x=newSubs().find(y=>y.k==k);if(!x)return;const e=x.e,nd=new Date(e.t);const nx=new Date(nd.getFullYear(),nd.getMonth()+1,1);
   const r={id:uid(),type:'out',b:e.b,c:e.c||'Abos',a:e.a,n:e.n,day:nd.getDate(),every:1,start:ymd(nx.getTime()),abo:true};S.rec.push(r);save();render();toast(e.n+' ist jetzt in den Fixkosten, ab nächstem Monat automatisch gebucht.');setTimeout(()=>openAbo(r.id),200)}
-let TIPC={k:'',v:null};function tipsList(){const k=DV+'|'+Math.floor(Date.now()/3e5)+'|'+((S.dismTips||[]).length)+'|'+(S.exp||[]).length+'|'+(S.qk?S.qk.ids.length+'.'+(S.qk.ed||[]).length+'.'+S.qk.t:'');if(TIPC.k===k&&TIPC.v)return TIPC.v.slice();const v=tipsList0();TIPC={k,v};return v.slice()}
+let TIPC={k:'',v:null};function tipsList(){const k=DV+'|'+Math.floor(Date.now()/3e5)+'|'+((S.dismTips||[]).length)+'|'+(S.exp||[]).length+'|'+(S.qk?S.qk.ids.length+'.'+(S.qk.ed||[]).length+'.'+S.qk.t:'');if(TIPC.k===k&&TIPC.v)return TIPC.v.slice();const SR={bad:0,warn:1,info:2},v=tipsList0().map((x,i)=>[x,i]).sort((a,b)=>((SR[a[0].sev]??3)-(SR[b[0].sev]??3))||a[1]-b[1]).map(a=>a[0]);TIPC={k,v};return v.slice()}
 function goPst(){asstOpen=false;prevTab=tab;tab='more';setView='push';render();setTimeout(()=>{const h=[...document.querySelectorAll('.sh')].find(x=>x.textContent=='Zustellung heute');h?h.scrollIntoView({block:'start',behavior:'smooth'}):scrollTo(0,0)},60)}
 function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   {const ps=pstState();if(ps&&ps.fresh){const miss=[ps.m.k=='miss'||ps.m.k=='late'?'Morgen':'',ps.e.k=='miss'||ps.e.k=='late'?'Abend':''].filter(Boolean);if(miss.length||(!ps.cronOk&&ps.o.v>=5))t.push({sev:'warn',ttl:miss.length?miss.join(' und ')+'-Briefing ist ausgefallen':'Zeitplan für Mitteilungen läuft nicht',act:'pst',txt:'Einstellungen › Mitteilungen › Zustellung heute: dort steht der Grund und du kannst das Briefing nachholen.'})}}
@@ -83,7 +83,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='261 (10.11.)';
+const APP_VER='262 (10.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');

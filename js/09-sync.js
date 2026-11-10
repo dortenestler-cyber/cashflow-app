@@ -258,6 +258,7 @@ function pushItems(){const O=S.pushOpt||{},A=!!O.amt,E=v=>A?' ('+eur(v)+')':'',n
    if(O.goal!==false)(S.goals||[]).forEach(g=>{if(g.done||g.dropped||!(g.ziel>0))return;const ist=(g.dep||[]).reduce((s,d)=>s+d.a,0);if(ist>=g.ziel)once('goal-'+g.id,soon,'Sparziel erreicht: '+g.n+' 🎉',A?eur(ist)+' zusammen. Jetzt bewusst entscheiden.':'Jetzt bewusst entscheiden: kaufen oder weitersparen?')});
    if(O.close!==false){const x=new Date(P.e.getTime()-864e5);x.setHours(18,30,0,0);once('close-'+k,x,'Morgen startet der neue Finanzmonat','3 Minuten Monatsabschluss: abgleichen, Rest verteilen, Vorsatz setzen.')}try{localStorage.setItem('cf_po',JSON.stringify(PO))}catch(e){}}
   if(S.urge&&S.urge.until>now0)L.push({at:S.urge.until,title:'10 Minuten sind um',body:'Wie geht es dir mit dem Kaufimpuls? Widerstanden?',tag:'urge'});
+  if(O.urgent!==false){const U=L.filter(x=>/^(fix|urge|sal|fc|b80|due|ctr|close)/.test(x.tag));L.length=0;L.push(...U)}
   const T=pTimes(),PR=t=>/^(fix|urge|sal)/.test(t)?0:/^(fc|b80)/.test(t)?1:/^(due|run)/.test(t)?2:/^ctr/.test(t)?3:/^wish/.test(t)?4:/^rg/.test(t)?5:6;let K=L;if(T.max>0){const by={};L.forEach(x=>{const k=ymd(x.at);(by[k]=by[k]||[]).push(x)});K=[].concat(...Object.values(by).map(D=>D.sort((a,b)=>PR(a.tag)-PR(b.tag)||a.at-b.at).slice(0,T.max)))}
   return K.sort((a,b)=>a.at-b.at).slice(0,30)}
 function briefData(){const O=S.pushOpt||{},showAmt=!!O.amt,P=period(0),k=pkey(P),now0=Date.now(),D=864e5;
