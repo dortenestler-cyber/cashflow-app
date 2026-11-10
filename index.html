@@ -1364,12 +1364,11 @@ function gTip(g,d){const today=g.idx>0&&g.idx<=g.len?g.idx:0,dt=new Date(g.s+(d-
 function gauge(pct,col,big,max,sc,gd){const P=gd?{idx:gd.idx,len:gd.len}:period(0),soll=(P.idx-.5)/P.len,r=78,cx=100,cy=92,a=p=>Math.PI*(1-Math.max(0,Math.min(p,1)));
   const pt=(p,rr)=>[cx+rr*Math.cos(a(p)),cy-rr*Math.sin(a(p))];
   const arc=(p0,p1,c)=>{const[x1,y1]=pt(p0,r),[x2,y2]=pt(p1,r);return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${c}" stroke-width="14" fill="none" stroke-linecap="round"/>`};
-  const[s1x,s1y]=pt(soll,r-12),[s2x,s2y]=pt(soll,r+12),[nx,ny]=pt(pct,r-24);
-  return `<svg viewBox="0 0 200 ${big?120:104}" width="100%" role="img" aria-label="${Math.round(pct*100)} Prozent verbraucht"${gd?` class="gg" data-g="${esc(JSON.stringify(gd))}" style="cursor:pointer"`:''}>
-   ${arc(0,1,'var(--fill)')}${pct>0.005?arc(0,Math.min(pct,1),sc||zone(pct)):''}
+  const rest=Math.max(0,Math.min(1,1-pct)),sr=1-soll,[s1x,s1y]=pt(sr,r-12),[s2x,s2y]=pt(sr,r+12);
+  return `<svg viewBox="0 0 200 ${big?120:104}" width="100%" role="img" aria-label="${Math.round(rest*100)} Prozent übrig"${gd?` class="gg" data-g="${esc(JSON.stringify(gd))}" style="cursor:pointer"`:''}>
+   ${arc(0,1,'var(--fill)')}${rest>0.005?arc(0,rest,sc||zone(pct)):''}
    <line x1="${s1x.toFixed(1)}" y1="${s1y.toFixed(1)}" x2="${s2x.toFixed(1)}" y2="${s2y.toFixed(1)}" stroke="var(--fg)" stroke-width="2.5" stroke-linecap="round"/>
-   <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="var(--fg)" stroke-width="3.5" stroke-linecap="round"/>
-   <circle cx="${cx}" cy="${cy}" r="6" fill="${col}"/>${gd?`<line class="gmk" x1="0" y1="0" x2="0" y2="0" stroke="${col=='#fff'?'#fff':'var(--accent)'}" stroke-width="4" stroke-linecap="round" style="display:none"/>`:''}
+   ${gd?`<line class="gmk" x1="0" y1="0" x2="0" y2="0" stroke="${col=='#fff'?'#fff':'var(--accent)'}" stroke-width="4" stroke-linecap="round" style="display:none"/>`:''}
    ${big?`<text x="22" y="114" text-anchor="middle" font-size="10" style="fill:var(--muted)">0 €</text><text x="178" y="114" text-anchor="middle" font-size="10" style="fill:var(--muted)">${eur0(max)}</text>`:''}</svg>`}
 
 /* ---------- navigation ---------- */
@@ -1633,7 +1632,7 @@ function tipsList0(){const P=period(0),soll=(P.idx-.5)/P.len,t=[];ideaTips(t);
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='249 (10.11.)';
+const APP_VER='251 (10.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -2415,9 +2414,9 @@ function tcInit(){if(window.__tc)return;window.__tc=1;
   document.addEventListener('pointerdown',e=>{const t=e.target.closest&&e.target.closest('.tc');if(t){tcDrag=true;tcShow(t,e.clientX,e.clientY);return}
     const gg=e.target.closest&&e.target.closest('svg.gg');if(gg){const g=JSON.parse(gg.dataset.g),m=gg.getScreenCTM().inverse(),pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m),dx=pt.x-100,dy=92-pt.y,rr=Math.hypot(dx,dy);
       const again=window.__gOpen===gg&&document.getElementById('tcPill')&&document.getElementById('tcPill').style.display!='none';
-      let f=rr<38?null:Math.max(0,Math.min(1,1-Math.atan2(Math.max(dy,0),dx)/Math.PI));const today=g.idx>0&&g.idx<=g.len?g.idx:g.len,d=f==null?today:Math.max(1,Math.min(g.len,Math.ceil(f*g.len)));
+      let f=rr<38?null:Math.max(0,Math.min(1,1-Math.atan2(Math.max(dy,0),dx)/Math.PI));const today=g.idx>0&&g.idx<=g.len?g.idx:g.len,d=f==null?today:Math.max(1,Math.min(g.len,Math.ceil((1-f)*g.len)));
       if(again&&f==null){window.__gOpen=null;window.__tcBar=null;tcHide();return}
-      tcHide();const k=gg.querySelector('.gmk');if(k){const a=Math.PI*(1-(d-.5)/g.len),r1=60,r2=96;k.setAttribute('x1',(100+r1*Math.cos(a)).toFixed(1));k.setAttribute('y1',(92-r1*Math.sin(a)).toFixed(1));k.setAttribute('x2',(100+r2*Math.cos(a)).toFixed(1));k.setAttribute('y2',(92-r2*Math.sin(a)).toFixed(1));k.style.display=''}
+      tcHide();const k=gg.querySelector('.gmk');if(k){const a=Math.PI*(d-.5)/g.len,r1=60,r2=96;k.setAttribute('x1',(100+r1*Math.cos(a)).toFixed(1));k.setAttribute('y1',(92-r1*Math.sin(a)).toFixed(1));k.setAttribute('x2',(100+r2*Math.cos(a)).toFixed(1));k.setAttribute('y2',(92-r2*Math.sin(a)).toFixed(1));k.style.display=''}
       const br=gg.getBoundingClientRect();tcPlace(gTip(g,d),br.left+br.width/2,br.top+4,br.bottom);tcCur=gg;window.__gOpen=gg;window.__tcBar=gg;return}
     const d=e.target.closest&&e.target.closest('[data-tip]:not(.bar)');if(d&&d.closest('svg')){tcHide();tcPlace(d.dataset.tip,e.clientX,e.clientY);tcCur=d;return}
     const b=hit(e.clientX,e.clientY);if(b){const r=b.getBoundingClientRect();tcHide();tcPlace(barTip(b),Math.max(r.left,Math.min(r.right,e.clientX)),r.top);tcCur=b;window.__tcBar=b;return}tcHide()},true);
