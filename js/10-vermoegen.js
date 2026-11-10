@@ -701,16 +701,16 @@ function maybeAskPuf(force){const p=pufAcc();if(!p||$('sheetRoot').innerHTML||$(
     ...(sk?[['Halb Vermögensaufbau, halb Sinking Funds',()=>{mark();pufMoveDo([[v,h1],[sk,ex-h1]])}]]:[]),
     ['Selbst aufteilen',()=>{mark();openPufMove()}],['Bleibt im Puffer',()=>{mark();toast('Alles klar, der Überschuss bleibt im Puffer.')}]]);
   $('ansX').onclick=$('scrim').onclick=()=>{mark();$('sheetRoot').innerHTML='';renderAsst()}}
-function vaultHtml(){const V=vaultAccs();if(!V.length||S.vaultHide)return '';const P=period(0),ys=new Date(new Date().getFullYear(),0,1).getTime();
+function vaultHtml(inner){const V=vaultAccs();if(!V.length||S.vaultHide)return '';const P=period(0),ys=new Date(new Date().getFullYear(),0,1).getTime();
   const cut=n=>acc(n).baseD||histT(),into=(e)=>e.t<=Date.now()&&((e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b)&&e.t>=cut(e.to))||(e.type=='in'&&V.includes(e.b)&&e.t>=cut(e.b)));
   const mon=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0),yr=S.exp.filter(e=>e.t>=ys&&!isPlan(e)&&into(e)).reduce((s,e)=>s+e.a,0);
   const recM=(S.rec||[]).filter(r=>!r.paused&&r.type=='tr'&&V.includes(r.to)).reduce((s,r)=>s+r.a/(r.every||1),0),goal=S.vaultGoal||Math.round((recM||275)*12/100)*100;
   const tot=V.reduce((s,n)=>s+calc(n).rest,0),fix=pufAcc()?(S.rec||[]).filter(r=>!r.paused&&r.b==pufAcc().n&&(r.type=='out'||(r.type=='tr'&&!V.includes(r.to)))).reduce((s,r)=>s+r.a/(r.every||1),0):0,months=fix?tot/fix:0,pc=goal?Math.min(yr/goal,1):0;
-  return `<div class="sec"><div class="sh">Vermögen</div><button class="vault" id="vault" aria-label="Vermögen. Tippen zum Einzahlen, lange drücken zeigt den Stand.">
+  const card=`<button class="vault" id="vault" aria-label="Vermögen. Tippen zum Einzahlen, lange drücken zeigt den Stand.">
    <div class="vault-h"><span class="vault-ic">${I('lock',20)}</span><div class="t"><b>${mon?'+'+eur0(mon)+' diesen Monat eingezahlt':'Diesen Monat noch nichts eingezahlt'}</b><div class="s">${V.map(n=>esc(n)).join(' · ')} · tippen zum Einzahlen</div></div></div>
    <div class="bar" style="height:8px"><i style="width:${(pc*100).toFixed(0)}%;background:var(--ok)"></i></div>
    <div class="vault-f"><span>${eur0(yr)} von ${eur0(goal)} Jahresziel</span><span>${months?`Polster für ${months.toLocaleString('de-DE',{maximumFractionDigits:1})} Monate Fixkosten`:''}</span></div>
-   <div class="vault-x" id="vaultX" hidden>Stand: <b>${eur(tot)}</b><small>verschwindet gleich wieder</small></div></button></div>`}
+   <div class="vault-x" id="vaultX" hidden>Stand: <b>${eur(tot)}</b><small>verschwindet gleich wieder</small></div></button>`;return inner?card:`<div class="sec"><div class="sh">Vermögen</div>${card}</div>`}
 function bindVault(){const v=$('vault');if(!v)return;let t=null,shown=false;const show=()=>{shown=true;$('vaultX').hidden=false;if(navigator.vibrate)navigator.vibrate(15);setTimeout(()=>{if($('vaultX'))$('vaultX').hidden=true},10000)};
   v.onpointerdown=()=>{shown=false;t=setTimeout(show,600)};v.onpointerup=v.onpointerleave=v.onpointercancel=()=>clearTimeout(t);v.oncontextmenu=e=>e.preventDefault();
   v.onclick=()=>{if(!shown)openEinzahlung()}}

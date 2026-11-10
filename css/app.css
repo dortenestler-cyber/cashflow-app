@@ -473,6 +473,7 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 .bgl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.bgcard{border:0;border-radius:18px;min-height:96px;color:#fff;font:inherit;text-align:left;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;text-shadow:0 1px 6px rgba(0,0,0,.2);box-shadow:0 6px 16px rgba(0,0,0,.12)}.bgcard span{font-weight:700;font-size:16px}.bgcard small{opacity:.85;font-size:12px}
 .swatches{grid-template-columns:repeat(6,1fr)!important}
 .vault{display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--card);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);border-left:4px solid #1F9D6B;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.vault.puf+.vault{margin-top:10px}
 .minis.mtop{margin-bottom:12px}.mini-r small{font-size:11px;font-weight:600;opacity:.7}.cell.optl{background:var(--card);border-radius:14px;margin:12px 0}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}.toolbar .chip{display:inline-flex;align-items:center;gap:5px}
 .fltw .seg+.seg{margin-top:6px}.seg-l{align-self:center;font-size:12px;color:var(--muted);padding:0 6px 0 4px;white-space:nowrap}

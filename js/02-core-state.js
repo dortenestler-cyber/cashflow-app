@@ -33,8 +33,11 @@ let S,RAW0=null;try{RAW0=localStorage.getItem('dodo4');S=JSON.parse(RAW0)}catch(
 const SCHEMA=233;
 function bakDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open('cf-bak',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
 function preBakPut(raw,from){return bakDB().then(db=>new Promise(res=>{const tx=db.transaction('s','readwrite');tx.objectStore('s').put({t:Date.now(),from:from||0,to:SCHEMA,data:raw},'pre');tx.oncomplete=()=>res(true);tx.onerror=()=>res(false)})).catch(()=>false)}
+/* v256: Ursprung vor dem Umbau – einmalig gesichert, wird nie automatisch überschrieben */
+function baseBakGet(){return bakDB().then(db=>new Promise(res=>{const q=db.transaction('s').objectStore('s').get('base');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})).catch(()=>null)}
+function baseBakEnsure(raw){if(!raw)return;baseBakGet().then(b=>{if(b)return;bakDB().then(db=>{db.transaction('s','readwrite').objectStore('s').put({t:Date.now(),ver:'255',data:raw},'base')}).catch(()=>{})})}
 function preBakGet(){return bakDB().then(db=>new Promise(res=>{const q=db.transaction('s').objectStore('s').get('pre');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})).catch(()=>null)}
-if(S&&RAW0&&(S.schema||0)<SCHEMA){preBakPut(RAW0,S.schema||0);S.schema=SCHEMA;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}
+if(S&&RAW0)baseBakEnsure(RAW0);if(S&&RAW0&&(S.schema||0)<SCHEMA){preBakPut(RAW0,S.schema||0);S.schema=SCHEMA;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}
 if(S&&(S.fut||S.futPlan||S.futOff1||(S.featO&&'fut' in S.featO))){delete S.fut;delete S.futPlan;delete S.futOff1;if(S.featO)delete S.featO.fut;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v231: Future-Reiter entfernt, Altdaten aufgeräumt */
 if(S&&S.exp&&S.exp.some(e=>e.sh&&e.sh.by!='me'&&e.a)){S.exp.forEach(e=>{if(e.sh&&e.sh.by!='me')e.a=0});try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v229: Zahlungen anderer belasten kein eigenes Konto */
 function period(off,start){const P=start||S.start;let s=new Date(now.getFullYear(),now.getMonth(),P);if(now.getDate()<P)s=new Date(now.getFullYear(),now.getMonth()-1,P);
