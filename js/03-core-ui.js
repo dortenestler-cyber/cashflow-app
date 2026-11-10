@@ -61,7 +61,7 @@ function swWrap(id,inner){return `<div class="swr" data-sw="${id}"><div class="s
 /* v230: Kontoabgleich-Paare (+x und −x am selben Konto) heben sich auf und werden nicht gelistet */
 function corrPair(e){if(!e.corr)return false;return S.exp.some(o=>o!==e&&o.corr&&o.b==e.b&&o.type!=e.type&&Math.abs(o.a-e.a)<.01&&Math.abs(o.t-e.t)<3*864e5)}
 /* v231: echte Topfnamen (Topf kann umbenannt sein, z. B. Gönnjamin) */
-function GN(){const a=S.accts.find(a=>a.konsum)||S.accts.find(a=>a.n=='Gönn dir')||S.accts.find(a=>/g[öo]nn/i.test(a.n));return a?a.n:'Gönn dir'}function SN(){const a=S.accts.find(a=>a.stufe=='sparen')||S.accts.find(a=>a.n=='Sinking Funds')||S.accts.find(a=>/sinking/i.test(a.n));return a?a.n:'Sinking Funds'}
+function uName(){return String(S.uname||"").trim()}function GN(){const a=S.accts.find(a=>a.konsum)||S.accts.find(a=>a.n=='Gönn dir')||S.accts.find(a=>/g[öo]nn/i.test(a.n));return a?a.n:'Gönn dir'}function SN(){const a=S.accts.find(a=>a.stufe=='sparen')||S.accts.find(a=>a.n=='Sinking Funds')||S.accts.find(a=>/sinking/i.test(a.n));return a?a.n:'Sinking Funds'}
 /* v231: Filter trennt Töpfe und Bankkonten */
 function fltSeg(){const P=BN.filter(b=>BUDG.includes(b)),K=BN.filter(b=>!BUDG.includes(b)),bt=b=>`<button class="${flt==b?'on':''}" data-f="${esc(b)}">${b=='Alle'?b:esc(SHORT[b]||b)}</button>`;
   return `<div id="flt" class="fltw"><div class="seg">${['Alle',...P].map(bt).join('')}</div>${K.length?`<div class="seg"><span class="seg-l">Konten</span>${K.map(bt).join('')}</div>`:''}</div>`}
