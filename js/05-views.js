@@ -614,7 +614,7 @@ function devHtml(){const D=S.devSel=S.devSel||{r:'1y',c:'',q:''},R=devRange(D.r)
    <div class="sec"><div class="sh">${esc(D.c||(q?'„'+D.q+'“':'Alle Ausgaben'))} pro Monat</div><div class="chartbox">${barChart({vals,col:'var(--accent)',labels:lab,ref:avg?{v:avg,label:'Ø '+eur0(avg)}:null,flat:true,h:170,tipLab:i=>ms[i].ll,tipName:''})}</div></div>
    ${top.length?`<div class="sec"><div class="sh">Wofür genau</div><div class="mmcard">${top.map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)} <small style="color:var(--muted)">${v.n}×</small></span><span></span><b>${eur(v.v)}</b></div><div class="bar" style="height:5px"><i style="width:${(v.v/top[0][1].v*100).toFixed(0)}%;background:var(--accent)"></i></div></div>`).join('')}</div></div>`:''}
    ${chHtml}${shHtml}`}
-const REPG=[['Monat','Monat',[['Analyse','Analyse'],['Monat','Ausgaben']]],['Trends','Verlauf',[['Verlauf','Verlauf']]],['Verzicht','Verzicht',[['Verzicht','Verzicht'],['Journal','Journal']]]];
+const REPG=[['Monat','Monat',[['Analyse','Analyse'],['Monat','Ausgaben']]],['Trends','Verlauf',[['Verlauf','Verlauf']]]];
 const repGrp=v=>(REPG.find(g=>g[2].some(x=>x[0]==v))||REPG[0])[0];
 function repSub(){const g=REPG.find(x=>x[0]==repGrp(repV));return g&&g[2].length>1?`<div class="seg subseg" id="repV">${g[2].map(([v,l])=>`<button class="${repV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`:''}
 /* ---------- Wiederkehrende Ausgaben aller Konten: bereinigter 12-Monats-Richtwert ---------- */
@@ -668,7 +668,7 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
     ${topN.length?`<div class="sec"><div class="sh">Größte Ausgaben</div><div class="mmcard">${topN.map(([k,x],i)=>`<div class="srow"><div class="srow-h"><span>${i+1}. ${esc(k)}</span><span class="s" style="color:var(--muted);font-size:12px">${x.n}×</span><span class="out">${eur(x.v)}</span></div></div>`).join('')}</div></div>`:''}
     ${Object.keys(pBy).length?`<div class="sec"><div class="sh">Mit Personen</div><div class="group">${Object.entries(pBy).map(([k,val])=>`<div class="cell plain"><div class="t">${esc(k)}</div><div class="v">${eur(val)}</div></div>`).join('')}</div></div>`:''}`}
   if(repV=='Analyse'){S.revOff=off;let bud='';{const sv=repV;repV='Budget';const s=viewRep();repV=sv;const i=s.indexOf('<div class="sec"><div class="sh">Budget gegen Ist');if(i>=0)bud=s.slice(i)}
-    /* v253: Werkzeuge stehen unter den Zahlen, nicht davor */return head+reviewBody(off).replace('<div class="sec"><div class="sh">Was gut lief</div>',bud+'<div class="sec"><div class="sh">Was gut lief</div>')+toolBar(['close','report','yearrev'])}
+    /* v253: Werkzeuge stehen unter den Zahlen, nicht davor */return head+reviewBody(off).replace('<div class="sec"><div class="sh">Was gut lief</div>',bud+'<div class="sec"><div class="sh">Was gut lief</div>')+toolBar(['report','yearrev'])}
   if(repV=='Bericht'||repV=='Jahr0')repV='Analyse';
   if(repV=='Verzicht')return head+notBoughtHtml()+musterHtml();
   if(repV=='Journal')return head+journalHtml();
@@ -824,7 +824,7 @@ function notBoughtHtml(){const nb=[...S.wish.filter(w=>w.s=='verworfen').map(w=>
    <div class="gsub" style="color:inherit;opacity:.85">Das sind ${std(gespartV())}${bought.length?` · ${bought.length} bewusst gekauft`:''}</div></div>
   <div class="group">${nb.map(x=>`<div class="cell plain"><div class="t"><div>${esc(x.n)}</div><div class="s">${fd(x.t)} · ${x.k}${x.g?' · '+esc(x.g):''}</div>${x.w?`<div class="s">„${esc(x.w)}“</div>`:''}</div><div class="v" style="color:var(--ok)">${eur(x.p)}</div></div>`).join('')||'<div class="empty">Noch nichts verworfen.</div>'}</div>
   ${Object.keys(bySt).length?`<div class="note">Verzichtet nach Gefühl: ${Object.entries(bySt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>esc(k)+' '+eur0(v)).join(' · ')}</div>`:''}</div>`}
-let wishV='Ziele',zukV='Prog',zielV='Liste';
+let wishV='Ziele',zukV='Prog',zielV='Liste',wishS='Offen';
 const GEF=['neutral','gestresst','gelangweilt','Belohnung','traurig','euphorisch'],TRIG=['Instagram','TikTok','Newsletter','Werbung','Freunde','Im Laden','Scrollen','Bedarf','Sonstiges'];
 const tod=t=>{const h=new Date(t).getHours();return h<11?'Morgens':h<15?'Mittags':h<19?'Nachmittags':h<23?'Abends':'Nachts'};
 function wishRow(w,i){const left=w.t+wait(w.p)-Date.now(),d=Math.ceil(left/864e5),pc=Math.min(1,1-left/wait(w.p));
@@ -852,15 +852,19 @@ function viewGeld(){if(posView)return posHtml();
    +depotHtml()+toolBar(['ng','ru','pension'])}
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */
-  const big=wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Fixkosten':'Nächste 6 Monate';
-  const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Ziele','Ziele',act],['Wünsche','Wünsche',open.length],['Fixkosten','Fixkosten'],['Zukunft','Zukunft']]}});
+  const big=wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Fixkosten':wishV=='Monat'?'Monatswechsel':'Nächste 6 Monate';
+  const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Ziele','Ziele',act],['Wünsche','Wünsche',open.length],['Fixkosten','Fixkosten'],['Zukunft','Zukunft'],['Monat','Monat',(S.closeDone||{})[pkey(period(closeTarget()))]?'':'!']]}});
   if(wishV=='Ziele'){/* v234: Schuldenfrei als eigener Abschnitt in Ziele – Tilgen ist ein Ziel mit Enddatum */const D=(S.debts||[]).filter(d=>!d.done);
    const zseg=`<div class="seg" id="zielV">${[['Liste','Liste'],['Zeit','Zeitachse']].map(([v,l])=>`<button class="${zielV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;if(zielV=='Zeit')return head+zseg+viewYplan(true)+toolBar(['proj']);
    return head+zseg+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
+  if(wishV=='Monat')return head+viewClose(true);
   if(wishV=='Fixkosten')return head+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
   if(wishV=='Zukunft')return head+`<div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
-    ${toolBar(['salplan'])}`;
-  return head+`<div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div>${wirkungHtml()}<div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine offenen Wünsche. Neue Wünsche kommen zuerst für 14 Tage hierher.</div>'}</div>
+`;
+  const wseg=`<div class="seg" id="wishS">${[['Offen','Offen'],['Verzicht','Verzicht'],['Journal','Journal']].map(([v,l])=>`<button class="${wishS==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;
+  if(wishS=='Verzicht')return head+wseg+wirkungHtml()+notBoughtHtml()+musterHtml();
+  if(wishS=='Journal')return head+wseg+journalHtml();
+  return head+wseg+`<div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div><div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine offenen Wünsche. Neue Wünsche kommen zuerst für 14 Tage hierher.</div>'}</div>
     <div class="note">Regel: Jeder Wunsch wartet mindestens 14 Tage. Danach entscheidest du: aus ${esc(GN())} kaufen, als Ziel ansparen oder verwerfen.</div>`}
 function openDebt(i){const d=i>=0?Object.assign({},S.debts[i]):{n:'',total:'',interest:'',rate:'',start:ymd(Date.now()),match:'',note:''};
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kredit"><div class="sheet-h"><button id="dX">Abbrechen</button><b>${i>=0?'Kredit bearbeiten':'Neuer Kredit'}</b><button id="dS" style="font-weight:600">Sichern</button></div>

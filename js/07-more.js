@@ -34,7 +34,7 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
 function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(closeTarget()))];return [
  ['yplan','calendar','Jahresplaner',c2],['ng','lock','Sparkonten',c2],['ru','coins','Wechselgeld',c2],['debts','target',(S.debts||[]).some(d=>!d.done)?'Schuldenfrei':'Kredit eintragen',c2],
  ['proj','people','Projekte',c2,projActive().length||''],['refund','swap','Rück­zahlungen',c2,refunds().length||''],
- ['salplan','coins','Gehalt verteilen',c2],['close','check','Monats­abschluss',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
+ ['salplan','coins','Gehalt verteilen',c2],['close','check','Monats­wechsel',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
  ['docs','shield','Belege & Garantien',c2],['tax','receipt','Steuer',c2],['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||''],
  ['g:rep','book','Berichte',c4]].filter(t=>featOn(t[0].replace(/^[~]/,'')))}
 /* v232: Werkzeuge stehen in ihrem Reiter statt in Mehr */
