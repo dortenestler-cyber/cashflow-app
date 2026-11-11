@@ -204,7 +204,7 @@ function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),o
   ${shopHistHtml()}
   ${!sh.items.length?'<div class="mmcard"><div class="empty">Dein Zettel ist leer. Tipp oben einen Artikel ein, die App merkt sich Preise für das nächste Mal.</div></div>':''}
   ${sh.items.length?`<button class="btn" id="shBook">${I('cart',18)} Einkauf buchen</button><button class="btn soft" id="shClear">Zettel leeren</button>`:''}
-  <div class="note">„Muss“ ist nötig, „Kann“ darf weg, wenn es eng wird. Preise ohne eigene Angabe sind Richtwerte (ca.) für Deutschland, deine eigenen Preise haben Vorrang.</div>`}
+`}
 const NUMW={ein:1,eine:1,einen:1,zwei:2,drei:3,vier:4,'fünf':5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,zwölf:12};
 const isShopVoice=v=>/einkaufs(liste|zettel)|auf die liste|^\s*(liste|einkauf)\b/i.test(v);
 function shopVoice(v){let t=' '+v+' ';t=t.replace(/\b(setze?|schreibe?|packe?|füge?|tue?|nimm|kauf(e|en)?)\s+/gi,' ').replace(/\b(bitte|noch|hinzu|drauf|mal|auch)\b/gi,' ')
