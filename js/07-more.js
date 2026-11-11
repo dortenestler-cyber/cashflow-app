@@ -35,7 +35,7 @@ function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(closeTarge
  ['yplan','calendar','Jahresplaner',c2],['ng','lock','Sparkonten',c2],['ru','coins','Wechselgeld',c2],['debts','target',(S.debts||[]).some(d=>!d.done)?'Schuldenfrei':'Kredit eintragen',c2],
  ['proj','people','Projekte',c2,projActive().length||''],['refund','swap','Rück­zahlungen',c2,refunds().length||''],
  ['salplan','coins','Gehalt verteilen',c2],['close','check','Monats­wechsel',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
- ['docs','shield','Belege & Garantien',c2],['tax','receipt','Steuer',c2],['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||''],
+ ['docs','shield','Belege & Gewährleistung',c2],['tax','receipt','Steuer',c2],['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||''],
  ['g:rep','book','Berichte',c4]].filter(t=>featOn(t[0].replace(/^[~]/,'')))}
 /* v232: Werkzeuge stehen in ihrem Reiter statt in Mehr */
 function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.yearrev=['yearrev','sparkle','Dein Jahr'];

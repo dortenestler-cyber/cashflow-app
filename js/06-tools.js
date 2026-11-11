@@ -465,16 +465,16 @@ function viewRefund(){const L=refunds().sort((a,b)=>(a.rf.due||'9')<(b.rf.due||'
   <div class="group">${L.map(row).join('')||'<div class="empty">Nichts offen. Markiere im Buchungsfenster unter „Mehr“: „Geld kommt zurück“.</div>'}</div>
   
   ${G.length?`<div class="sec"><div class="sh">Erhalten</div><div class="group">${G.map(row).join('')}</div></div>`:''}`}
-/* 6 Belege & Garantien */
+/* 6 Belege & Gewährleistung */
 let docQ='',docF='';
 const DOCART=[['kauf','Kaufbeleg'],['rech','Rechnung'],['vert','Vertrag'],['schr','Schreiben']],artOf=e=>e.art||(e.ctr?'vert':'kauf'),artLab=k=>(DOCART.find(x=>x[0]==k)||DOCART[0])[1],
- DOCF=[['','Alle'],...DOCART,['warr','Garantie'],['tax','Steuer']],hasDoc=e=>!!(e.img||e.doc);let docFor='';
-function viewDocs(){const q=docQ.toLowerCase().trim(),fit=DOCART.some(x=>x[0]==docF)?e=>hasDoc(e)&&artOf(e)==docF:{warr:e=>e.warr,tax:e=>e.tax&&hasDoc(e)}[docF]||(()=>true),
-  L=S.exp.filter(e=>(hasDoc(e)||e.warr)&&!isPlan(e)&&fit(e)&&(!q||[e.n,e.c,e.sc,e.p,(e.doc||{}).name,(e.tg||[]).join(' ')].join(' ').toLowerCase().includes(q))).concat(looseL().filter(x=>fit(x)&&looseQ(x,q))).sort((a,b)=>b.t-a.t),soon=[...S.exp,...(S.loose||[])].filter(e=>e.warr&&e.warr>=today()&&e.warr<=ymd(Date.now()+60*864e5)),M=[];
+ DOCF=[['','Alle'],...DOCART,['warr','Gewährleistung'],['tax','Steuer']],hasDoc=e=>!!(e.img||e.doc);let docFor='';
+function viewDocs(){const q=docQ.toLowerCase().trim(),fit=DOCART.some(x=>x[0]==docF)?e=>hasDoc(e)&&artOf(e)==docF:{warr:e=>wEnd(e)>Date.now(),tax:e=>e.tax&&hasDoc(e)}[docF]||(()=>true),
+  L=S.exp.filter(e=>(hasDoc(e)||e.warr)&&!isPlan(e)&&fit(e)&&(!q||[e.n,e.c,e.sc,e.p,(e.doc||{}).name,(e.tg||[]).join(' ')].join(' ').toLowerCase().includes(q))).concat(looseL().filter(x=>fit(x)&&looseQ(x,q))).sort((a,b)=>b.t-a.t),WA=[...S.exp.filter(e=>!isPlan(e)),...(S.loose||[])].filter(e=>wEnd(e)>Date.now()),soon=WA.filter(e=>wEnd(e)<=Date.now()+60*864e5),M=[];
   L.forEach(e=>{const k=new Date(e.t).toLocaleDateString('de-DE',{month:'long',year:'numeric'});if(!M.length||M[M.length-1][0]!=k)M.push([k,[]]);M[M.length-1][1].push(e)});
   const row=e=>{const wl=e.warr?Math.ceil((new Date(e.warr+'T12:00')-Date.now())/864e5):null;return `<button class="cell" data-doc="${esc(e.id)}">${docThumb(e)||`<div class="ico" style="background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)">${I('shield',16)}</div>`}<div class="t"><div>${esc(e.n||e.c||'Beleg')}</div><div class="s">${hasDoc(e)?artLab(artOf(e))+' · ':''}${dLong(e.t)} · ${esc(SHORT[e.b]||e.b)}${docExtra(e)}${e.warr?` · <span class="${wl<0?'':wl<=60?'out':'in'}">${wl<0?'Garantie abgelaufen':'Garantie bis '+dLong(e.warr)}</span>`:''}</div></div><div class="v">${eur(e.a)}</div></button>`},
    srow=e=>isLoose(e)?looseRow(e):hasDoc(e)?`<div class="swr sw3" data-sw="${esc(e.id)}"><div class="swa"><button class="sw-edit" data-dved="${esc(e.id)}">${I('pen',18)}<span>Bearbeiten</span></button><button class="sw-dup" data-dvmv="${esc(e.id)}">${I('repeat',18)}<span>Zuordnen</span></button><button class="sw-del" data-dvrm="${esc(e.id)}">${I('close',18)}<span>Entfernen</span></button></div>${row(e)}</div>`:row(e);
-  return `${appbar({title:'Belege & Garantien',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${(n=>n+(n==1?' Beleg':' Belege'))(S.exp.filter(hasDoc).length+(S.loose||[]).length)}</span><b>${[...S.exp,...(S.loose||[])].filter(e=>e.warr&&e.warr>=today()).length} Garantien aktiv</b></div><div class="hc-line">${soon.length?soon.length+' laufen in den nächsten 60 Tagen ab':'keine Garantie läuft bald ab'}</div>`})}
+  return `${appbar({title:'Belege & Gewährleistung',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${(n=>n+(n==1?' Beleg':' Belege'))(S.exp.filter(hasDoc).length+(S.loose||[]).length)}</span><b>${WA.length} ${WA.length==1?'Gewährleistung':'Gewährleistungen'} aktiv</b></div><div class="hc-line">${soon.length?soon.length+' laufen in den nächsten 60 Tagen ab':'keine Gewährleistung läuft bald ab'}</div>`})}
   <div class="search" style="margin-bottom:10px"><span style="color:var(--muted)">${I('search',16)}</span><input id="docQ" placeholder="z. B. Staubsauger, MediaMarkt" value="${esc(docQ)}" autocomplete="off"></div>
   <div class="chips" style="margin-bottom:10px">${DOCF.map(([k,l])=>`<button class="chip ${docF==k?'on':''}" data-docf="${k}">${l}</button>`).join('')}</div>
   ${docErr?`<div class="tip">${esc(docErr)}</div>`:''}
@@ -484,7 +484,7 @@ function viewDocs(){const q=docQ.toLowerCase().trim(),fit=DOCART.some(x=>x[0]==d
   `}
 /* Belege: Art, Fälligkeit, Vertrag, Hinzufügen, fehlende Belege */
 const ymdD=v=>{const[y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d,12)},dTT=v=>{const d=ymdD(v);return d.getDate()+'.'+(d.getMonth()+1)+'.'};
-const gwEnd=e=>{if(!hasDoc(e)||artOf(e)!='kauf')return 0;const d=new Date(e.t);d.setFullYear(d.getFullYear()+(e.used?1:2));return d.getTime()};
+const wEnd=e=>Math.max(gwEnd(e),e.warr?ymdD(e.warr).getTime():0),gwEnd=e=>{if(!hasDoc(e)||artOf(e)!='kauf')return 0;const d=new Date(e.t);d.setFullYear(d.getFullYear()+(e.used?1:2));return d.getTime()};
 function docExtra(e){const k=hasDoc(e)?artOf(e):'';if(k=='kauf'&&!e.warr){const g=gwEnd(e);return g>Date.now()&&e.t<=Date.now()?' · Gewährleistung bis '+dLong(g):''}if(k=='rech'&&e.due){const dl=Math.ceil((ymdD(e.due)-Date.now())/864e5);const op=isPlan(e)||isLoose(e);return ` · <span class="${op&&dl<=3?'out':''}">${op?'fällig '+dTT(e.due):'bezahlt'}</span>`}
   if(k=='vert'&&e.ctr){const c=(S.contracts||[]).find(c=>c.id==e.ctr);return c?' · '+esc(c.n):''}return ''}
 const docMissRx=/spar|etf|depot|invest|ausgleich|abgleich|umbuch|tilgung|\brate\b/i;
@@ -498,7 +498,7 @@ async function docAdd(f){let r;try{r=await docPick(f)}catch(err){if(err.quiet){d
   AQ.msgs.push({q:'Beleg zuordnen',h:`<p>${C.length?'Zu welcher Buchung gehört der Beleg?':'Keine passende Buchung aus den letzten 14 Tagen.'}</p>`,a});asstOpen=true;renderAsst()}
 /* Belege ohne Buchung (S.loose): ablegen, auslesen, später zuordnen */
 function looseAdd(r,f){S.loose=S.loose||[];const ki=aiOn()&&(r.doc.typ!='pdf'||f.size<=5*1048576),x={id:uid(),t:Date.now(),at:Date.now(),n:'',a:0,doc:r.doc,img:r.img,ai:ki?0:1};S.loose.unshift(x);save();render();
-  tell('Beleg ohne Buchung abgelegt.'+(ki?'':' Zuordnen kannst du ihn in Belege & Garantien.'),()=>{S.loose=S.loose.filter(z=>z.id!=x.id);save();render()});if(ki)aiReceipt(r.src,x)}
+  tell('Beleg ohne Buchung abgelegt.'+(ki?'':' Zuordnen kannst du ihn in Belege & Gewährleistung.'),()=>{S.loose=S.loose.filter(z=>z.id!=x.id);save();render()});if(ki)aiReceipt(r.src,x)}
 function looseL(){const L=S.loose||[];if(!L.length)return L;const u=new Set(S.exp.filter(e=>e.doc).map(e=>e.doc.id)),K=L.filter(x=>!(x.doc&&u.has(x.doc.id)));if(K.length!=L.length){S.loose=K;save()}return K}
 function looseTo(x,e){const i=S.loose.indexOf(x);S.loose=S.loose.filter(z=>z!==x);const sn={img:e.img,doc:e.doc,art:e.art,due:e.due,ctr:e.ctr,warr:e.warr,used:e.used};e.doc=x.doc;e.img=x.img;['art','due','ctr','warr','used'].forEach(k=>{if(x[k])e[k]=x[k]});save();render();
   tell(`Beleg an „${esc(e.n||e.c||'Buchung')}“ (<b>${eur(e.a)}</b>) angehängt.`,()=>{Object.entries(sn).forEach(([k,v])=>{if(v===undefined)delete e[k];else e[k]=v});S.loose.splice(Math.max(0,i),0,x);save();render()})}
@@ -598,7 +598,7 @@ function ideaTips(t){/* v262: Projekte und Rückzahlungen als Penny-Hinweise sta
   S.exp.filter(e=>realOut(e)&&e.t>Date.now()-3*864e5&&!(S.unIgn||[]).includes(e.id)).forEach(e=>{const u=unusualOf(e);if(u)t.push({sev:'info',ttl:`Ungewöhnlich hoch: ${e.n} ${eur0(e.a)}`,txt:`Sonst gibst du dort meist um ${eur0(u.med)} aus (${u.n} Käufe). Alles in Ordnung?`,btns:[{l:'Passt so',fn:'unIgn',arg:e.id},{l:'Buchung ansehen',fn:'openE',arg:e.id}]})});
   catPace().forEach(c=>t.push({sev:'info',ttl:`${c.c} läuft schneller als sonst`,txt:`Bisher ${eur0(c.now)} in diesem Monat – üblich wären bis heute etwa ${eur0(c.exp)} (Ø ${eur0(c.avg)} pro Monat seit dem neuen Finanzsystem).`}));
   const od=refunds().filter(e=>e.rf.due&&e.rf.due<today());if(od.length)t.push({sev:'warn',ttl:`${od.length} Rückzahlung${od.length>1?'en':''} überfällig`,txt:od.slice(0,3).map(e=>`${esc(e.rf.who||e.n||'')}: ${eur(e.rf.a||e.a)}`).join(' · '),btns:[{l:'Rückzahlungen',fn:'go',arg:'refund'}]});
-  S.exp.filter(e=>e.warr&&e.warr>=today()&&e.warr<=ymd(Date.now()+30*864e5)).forEach(e=>t.push({sev:'info',ttl:`Garantie endet bald: ${e.n||e.c}`,txt:`Garantie bis ${dLong(e.warr)}. Funktioniert alles? Mängel jetzt noch melden.`,btns:[{l:'Belege',fn:'go',arg:'docs'}]}));
+  [...S.exp.filter(e=>!isPlan(e)),...(S.loose||[])].filter(e=>{const w=wEnd(e);return w>Date.now()&&w<=Date.now()+30*864e5}).forEach(e=>t.push({sev:'info',ttl:`Gewährleistung endet bald: ${e.n||e.c||'Beleg'}`,txt:`${e.warr&&ymdD(e.warr).getTime()>=gwEnd(e)?'Herstellergarantie':'Gewährleistung'} bis ${dLong(wEnd(e))}. Funktioniert alles? Mängel jetzt noch melden.`,btns:[{l:'Belege',fn:'go',arg:'docs'}]}));
   {const P=period(0),o=closeTarget(),pk=pkey(period(o));if((P.idx>=P.len-2||P.idx<=4)&&!(S.closeDone||{})[pk]&&dataStart()<period(o).s.getTime()+20*864e5)t.push({sev:'info',ttl:'Monatsabschluss für '+period(o).label,txt:'3 Minuten: Kontostände abgleichen, Reste verteilen, Ziele prüfen.',btns:[{l:'Jetzt starten',fn:'go',arg:'close'}]})}
   {const d=new Date();if((d.getMonth()==11&&d.getDate()>=15)||d.getMonth()==0)t.push({sev:'ok',ttl:'Dein Jahr '+(d.getMonth()==0?d.getFullYear()-1:d.getFullYear()),txt:'Dein Rückblick ist fertig: gespart, Impulsen widerstanden, bester Monat.',btns:[{l:'Ansehen',fn:'year',arg:d.getMonth()==0?d.getFullYear()-1:d.getFullYear()}]})}
   
