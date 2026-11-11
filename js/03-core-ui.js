@@ -72,7 +72,7 @@ function rowOf0(e,showB){const ic=e.type=='tr'?I('swap'):icoOf(e.b,e.c),col=COL[
   const pjx=e.proj&&(S.projects||[]).find(x=>x.id==e.proj);
   return `<button class="cell" data-id="${e.id}" ${pjx?`style="box-shadow:inset 3px 0 0 ${pjCol(pjx)}"`:''}>${bTile(e,'div',col,ic)||`<div class="ico" style="background:color-mix(in srgb,${col} 16%,transparent);color:${col}">${ic}</div>`}
    <div class="t"><div>${esc(e.n||e.c||'Umbuchung')}</div><div class="s">${esc(sub)}</div>${adjTag(e)}</div>
-   ${e.img?`<img class="thumb" src="${e.img}" alt="Beleg">`:''}<div class="v ${e.type=='in'?'in':''}">${sign}${eur(e.a+ruA(e))}</div></button>`}
+   ${docThumb(e)}<div class="v ${e.type=='in'?'in':''}">${sign}${eur(e.a+ruA(e))}</div></button>`}
 const CATPAL=['#3b8fd9','#e5484d','#8B5CF6','#13a8a8','#f0a12d','#d946ef','#2fb36b','#e2725b','#4F6BED','#c99a2e'];const catCol=c=>{let x=0;for(const ch of String(c||''))x=(x*31+ch.charCodeAt(0))>>>0;return CATPAL[x%CATPAL.length]};
 /* ---------- Marken-Logos ---------- */
 const BRANDS=[[/\brewe\b/,'rewe.de'],[/\bedeka\b/,'edeka.de'],[/\baldi\b/,'aldi-sued.de'],[/\blidl\b/,'lidl.de'],[/\bpenny\b/,'penny.de'],[/\bnetto\b/,'netto-online.de'],[/\bkaufland\b/,'kaufland.de'],[/\bnorma\b/,'norma-online.de'],[/\b(dm|dm-drogerie)\b/,'dm.de'],[/\brossmann\b/,'rossmann.de'],[/\bmüller\b/,'mueller.de'],[/\bdouglas\b/,'douglas.de'],

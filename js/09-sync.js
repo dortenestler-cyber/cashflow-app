@@ -395,7 +395,7 @@ async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(
       else r=await syFetch('/rest/v1/cashflow?user_id=eq.'+SY.uid+'&rev=eq.'+row.rev,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
       const j=await r.json().catch(()=>[]);if(r.ok&&Array.isArray(j)&&j.length){SY.rev=nr;SY.base=syBase(S);SY.at=Date.now();SY.h=syHash();sySave();syMsg='Gespeichert · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
       if(!r.ok&&r.status!=409)throw new Error('Speichern fehlgeschlagen ('+r.status+')')}
-  }catch(e){syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(setView=='sync')render();setTimeout(()=>bakNow(false).catch(()=>{}),1500)}}
+  }catch(e){syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(setView=='sync')render();setTimeout(()=>bakNow(false).catch(()=>{}),1500);setTimeout(()=>docFlush().then(docGC).catch(()=>{}),2500)}}
 async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim(),email=$('syE').value.trim(),pw=$('syP').value,pass=$('syX').value,keep=$('syR').checked;
   if(!url||!key||!email||!pw||!pass){$('syErr').textContent='Bitte alle Felder ausfüllen.';return}if(pass.length<8){$('syErr').textContent='Das Sync-Passwort braucht mindestens 8 Zeichen.';return}
   $('syErr').textContent='Verbinde …';SY.url=url;SY.key=key;
@@ -460,9 +460,59 @@ const SYSQL=`create table if not exists public.cashflow (
 alter table public.cashflow enable row level security;
 drop policy if exists "nur eigene Daten" on public.cashflow;
 create policy "nur eigene Daten" on public.cashflow
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+insert into storage.buckets (id, name, public) values ('belege', 'belege', false)
+  on conflict (id) do nothing;
+drop policy if exists "belege_own" on storage.objects;
+create policy "belege_own" on storage.objects for all to authenticated
+  using (bucket_id = 'belege' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'belege' and (storage.foldername(name))[1] = auth.uid()::text);`;
 function bindSync(){if(setView!='sync')return;const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   on('syIn',()=>syLogin(false));on('syRec',openRecover);on('syChk',()=>syCheck());on('syUp',()=>syLogin(true));on('syNow',()=>{syMsg='Synchronisiere …';render();S._m=Math.max(S._m||0,(SY.at||0)+1);sync(false)});
   on('syOut',()=>syLogout(false));on('syWipe',()=>{const b=$('syWipe');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich? Nochmal tippen';return}syLogout(true)});
   on('syCopy',()=>{const t=$('sySql');t.select();try{navigator.clipboard.writeText(SYSQL).then(()=>toast('SQL kopiert.'))}catch(e){document.execCommand('copy');toast('SQL kopiert.')}})}
 
+/* Belege: Datei (Foto/PDF) liegt in IndexedDB und verschlüsselt im Supabase-Bucket „belege“ (Pfad uid/docId). In der Buchung stehen nur e.doc={id,typ,name,kb} und ein kleines Vorschaubild e.img. */
+function docDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open('cf-docs',1);r.onupgradeneeded=()=>{r.result.createObjectStore('f');r.result.createObjectStore('q')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function docTx(st,mode,fn){const db=await docDB();return new Promise((res,rej)=>{const t=db.transaction(st,mode),r=fn(t.objectStore(st));let out;if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
+const docGetL=id=>docTx('f','readonly',s=>s.get(id)),docPutL=(id,b)=>docTx('f','readwrite',s=>s.put(b,id)),docDelL=id=>docTx('f','readwrite',s=>s.delete(id)),docPath=id=>SY.uid+'/'+id;
+const docQAdd=id=>docTx('q','readwrite',s=>s.put('up',id)).then(()=>docFlush()).catch(()=>{});
+function docImg(src,max){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv)};im.onerror=()=>rej(new Error('Das Bild lässt sich nicht lesen.'));im.src=src})}
+const docCvBlob=(cv,q)=>new Promise(r=>cv.toBlob(r,'image/jpeg',q)),docRead=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(b)});
+async function docPick(f){const id=uid(),src=await docRead(f);
+  if(f.type=='application/pdf'||/\.pdf$/i.test(f.name||'')){if(f.size>10*1048576)throw new Error('Das PDF ist größer als 10 MB.');await docPutL(id,new Blob([f],{type:'application/pdf'}));docQAdd(id);return{doc:{id,typ:'pdf',name:String(f.name||'Beleg.pdf').slice(0,80),kb:Math.round(f.size/1024)},img:'',src}}
+  const b=await docCvBlob(await docImg(src,1600),.8);if(!b)throw new Error('Das Bild lässt sich nicht speichern.');await docPutL(id,b);docQAdd(id);return{doc:{id,typ:'jpg',name:'Foto',kb:Math.round(b.size/1024)},img:(await docImg(src,200)).toDataURL('image/jpeg',.6),src}}
+async function docEnc(blob){const iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},syKey,await blob.arrayBuffer()),o=new Uint8Array(12+ct.byteLength);o.set(iv);o.set(new Uint8Array(ct),12);return o}
+async function docDec(buf,typ){const u=new Uint8Array(buf),pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},syKey,u.slice(12));return new Blob([pt],{type:typ=='pdf'?'application/pdf':'image/jpeg'})}
+let docBusy=false,docErr='';
+async function docFlush(){if(docBusy||!syOn()||!navigator.onLine||!SY.uid)return;if(!await syLoadKey())return;docBusy=true;
+  try{const ks=await docTx('q','readonly',s=>s.getAllKeys());for(const id of ks){const b=await docGetL(id);
+      if(b){const r=await syFetch('/storage/v1/object/belege/'+docPath(id),{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:await docEnc(b)});
+        if(!r.ok){const t=await r.text().catch(()=>'');docErr=/bucket not found/i.test(t)?'Belege werden nicht hochgeladen: In Supabase fehlt der Speicher „belege“. Unter Online-Sync › SQL kopieren und in Supabase ausführen.':'Beleg-Upload fehlgeschlagen ('+r.status+').';break}}
+      docErr='';await docTx('q','readwrite',s=>s.delete(id))}}catch(e){}finally{docBusy=false}}
+async function docBlob(e){const d=e&&e.doc;if(!d)return null;let b=await docGetL(d.id).catch(()=>null);if(b)return b;if(!syOn()||!navigator.onLine||!SY.uid||!await syLoadKey())return null;
+  const r=await syFetch('/storage/v1/object/authenticated/belege/'+docPath(d.id),{headers:{'Content-Type':'application/octet-stream'}});if(!r.ok)return null;b=await docDec(await r.arrayBuffer(),d.typ);docPutL(d.id,b).catch(()=>{});return b}
+const docThumb=e=>e.img?`<img class="thumb" src="${e.img}" alt="Beleg">`:e.doc&&e.doc.typ=='pdf'?'<span class="thumb pdfth" role="img" aria-label="PDF-Beleg">PDF</span>':'';
+let docURL=null;
+async function docView(e,edit){const d=e.doc;let r=$('docvRoot');if(!r){r=document.createElement('div');r.id='docvRoot';document.body.appendChild(r)}
+  const close=()=>{r.innerHTML='';if(docURL){URL.revokeObjectURL(docURL);docURL=null}};
+  const fname=()=>d&&d.typ=='pdf'?(/\.pdf$/i.test(d.name)?d.name:d.name+'.pdf'):String(e.n||'Beleg').replace(/[\\/:*?"<>|]/g,'')+'.jpg';
+  const draw=(body,blob)=>{const f=blob&&typeof File=='function'?new File([blob],fname(),{type:blob.type}):null,sh=f&&navigator.canShare&&navigator.canShare({files:[f]});
+    r.innerHTML=`<div class="docv" role="dialog" aria-modal="true" aria-label="Beleg"><div class="docv-bar"><button id="dvX">Fertig</button><span>${esc(d&&d.typ=='pdf'?d.name:e.n||'Beleg')}</span>${sh?`<button id="dvS" aria-label="Teilen oder in Dateien sichern">${I('export',20)}</button>`:'<span></span>'}</div><div class="docv-b">${body}</div>${edit?'<button class="btn soft docv-ed" id="dvE">Buchung öffnen</button>':''}</div>`;
+    $('dvX').onclick=close;if($('dvE'))$('dvE').onclick=()=>{close();openSheet(e)};if($('dvS'))$('dvS').onclick=()=>navigator.share({files:[f]}).catch(()=>{})};
+  draw('<div class="empty">Lade Beleg …</div>');const b=d?await docBlob(e).catch(()=>null):null;
+  if(!b){draw(e.img?`<img src="${e.img}" alt="Beleg">`:`<div class="empty">${navigator.onLine?'Die Datei konnte nicht geladen werden. Vielleicht ist sie auf dem anderen Gerät noch nicht hochgeladen.':'Offline: Die Datei liegt noch nicht auf diesem Gerät.'}</div>`);return}
+  docURL=URL.createObjectURL(b);draw(d.typ=='pdf'?`<iframe src="${docURL}" title="PDF-Beleg"></iframe>`:`<img src="${docURL}" alt="Beleg">`,b)}
+/* Alte Belegfotos (500 px direkt in der Buchung) einmalig nach IndexedDB umziehen; feste ID je Buchung, damit mehrere Geräte dieselbe Datei erzeugen */
+async function docMigrate(){const L=S.exp.filter(e=>e.img&&!e.doc&&/^data:image/.test(e.img));if(!L.length)return;let n=0;
+  for(const e of L){try{const id='m'+String(e.id).replace(/[^\w-]/g,''),b=await docCvBlob(await docImg(e.img,1600),.85);if(!b)continue;await docPutL(id,b);await docTx('q','readwrite',s=>s.put('up',id));
+      const th=(await docImg(e.img,200)).toDataURL('image/jpeg',.6),x=S.exp.find(z=>z.id==e.id);if(x&&!x.doc){x.doc={id,typ:'jpg',name:'Foto',kb:Math.round(b.size/1024)};x.img=th;n++}}catch(_){}}
+  if(n){save();docFlush()}}
+/* Aufräumen höchstens einmal am Tag und nur direkt nach erfolgreichem Sync: lokal alles ohne Buchung, online nur Unbenutztes älter als 30 Tage */
+async function docGC(){if(!syOn()||!SY.uid||Date.now()-(SY.at||0)>120000)return;let last=0;try{last=+localStorage.getItem('cf-docgc')||0}catch(e){}if(Date.now()-last<864e5)return;try{localStorage.setItem('cf-docgc',String(Date.now()))}catch(e){}
+  const used=new Set(S.exp.filter(e=>e.doc).map(e=>e.doc.id));if(typeof E!='undefined'&&E&&E.doc)used.add(E.doc.id);
+  try{const q=new Set(await docTx('q','readonly',s=>s.getAllKeys()));for(const k of await docTx('f','readonly',s=>s.getAllKeys()))if(!used.has(k)&&!q.has(k))await docDelL(k)}catch(e){}
+  try{const r=await syFetch('/storage/v1/object/list/belege',{method:'POST',body:JSON.stringify({prefix:SY.uid,limit:1000,offset:0})});if(!r.ok)return;
+    const old=(await r.json()).filter(o=>o&&o.id&&o.name&&!used.has(o.name)&&Date.now()-new Date(o.created_at||Date.now()).getTime()>30*864e5).map(o=>docPath(o.name));
+    if(old.length)await syFetch('/storage/v1/object/belege',{method:'DELETE',body:JSON.stringify({prefixes:old})})}catch(e){}}
+window.addEventListener('online',()=>docFlush());
