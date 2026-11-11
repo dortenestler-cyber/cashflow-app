@@ -484,7 +484,8 @@ function viewDocs(){const q=docQ.toLowerCase().trim(),fit=DOCART.some(x=>x[0]==d
   `}
 /* Belege: Art, Fälligkeit, Vertrag, Hinzufügen, fehlende Belege */
 const ymdD=v=>{const[y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d,12)},dTT=v=>{const d=ymdD(v);return d.getDate()+'.'+(d.getMonth()+1)+'.'};
-function docExtra(e){const k=hasDoc(e)?artOf(e):'';if(k=='rech'&&e.due){const dl=Math.ceil((ymdD(e.due)-Date.now())/864e5);const op=isPlan(e)||isLoose(e);return ` · <span class="${op&&dl<=3?'out':''}">${op?'fällig '+dTT(e.due):'bezahlt'}</span>`}
+const gwEnd=e=>{if(!hasDoc(e)||artOf(e)!='kauf')return 0;const d=new Date(e.t);d.setFullYear(d.getFullYear()+(e.used?1:2));return d.getTime()};
+function docExtra(e){const k=hasDoc(e)?artOf(e):'';if(k=='kauf'&&!e.warr){const g=gwEnd(e);return g>Date.now()&&e.t<=Date.now()?' · Gewährleistung bis '+dLong(g):''}if(k=='rech'&&e.due){const dl=Math.ceil((ymdD(e.due)-Date.now())/864e5);const op=isPlan(e)||isLoose(e);return ` · <span class="${op&&dl<=3?'out':''}">${op?'fällig '+dTT(e.due):'bezahlt'}</span>`}
   if(k=='vert'&&e.ctr){const c=(S.contracts||[]).find(c=>c.id==e.ctr);return c?' · '+esc(c.n):''}return ''}
 const docMissRx=/spar|etf|depot|invest|ausgleich|abgleich|umbuch|tilgung|\brate\b/i;
 function docMissHtml(){const L=S.exp.filter(e=>e.type=='out'&&!e.nodoc&&!hasDoc(e)&&!isPlan(e)&&e.a>=50&&e.t>Date.now()-30*864e5&&!(typeof isRecE=='function'&&isRecE(e))&&!e.corr&&!e.adj&&!(typeof isGro=='function'&&isGro(e))&&!docMissRx.test((e.n||'')+' '+(e.c||'')+' '+(e.sc||''))).sort((a,b)=>b.a-a.a).slice(0,5);if(!L.length)return '';
@@ -499,17 +500,17 @@ async function docAdd(f){let r;try{r=await docPick(f)}catch(err){if(err.quiet){d
 function looseAdd(r,f){S.loose=S.loose||[];const ki=aiOn()&&(r.doc.typ!='pdf'||f.size<=5*1048576),x={id:uid(),t:Date.now(),at:Date.now(),n:'',a:0,doc:r.doc,img:r.img,ai:ki?0:1};S.loose.unshift(x);save();render();
   tell('Beleg ohne Buchung abgelegt.'+(ki?'':' Zuordnen kannst du ihn in Belege & Garantien.'),()=>{S.loose=S.loose.filter(z=>z.id!=x.id);save();render()});if(ki)aiReceipt(r.src,x)}
 function looseL(){const L=S.loose||[];if(!L.length)return L;const u=new Set(S.exp.filter(e=>e.doc).map(e=>e.doc.id)),K=L.filter(x=>!(x.doc&&u.has(x.doc.id)));if(K.length!=L.length){S.loose=K;save()}return K}
-function looseTo(x,e){const i=S.loose.indexOf(x);S.loose=S.loose.filter(z=>z!==x);const sn={img:e.img,doc:e.doc,art:e.art,due:e.due,ctr:e.ctr,warr:e.warr};e.doc=x.doc;e.img=x.img;['art','due','ctr','warr'].forEach(k=>{if(x[k])e[k]=x[k]});save();render();
+function looseTo(x,e){const i=S.loose.indexOf(x);S.loose=S.loose.filter(z=>z!==x);const sn={img:e.img,doc:e.doc,art:e.art,due:e.due,ctr:e.ctr,warr:e.warr,used:e.used};e.doc=x.doc;e.img=x.img;['art','due','ctr','warr','used'].forEach(k=>{if(x[k])e[k]=x[k]});save();render();
   tell(`Beleg an „${esc(e.n||e.c||'Buchung')}“ (<b>${eur(e.a)}</b>) angehängt.`,()=>{Object.entries(sn).forEach(([k,v])=>{if(v===undefined)delete e[k];else e[k]=v});S.loose.splice(Math.max(0,i),0,x);save();render()})}
 function looseAsk(x){const d=x.t,C=S.exp.filter(e=>e.type=='out'&&!hasDoc(e)&&!isPlan(e)&&Math.abs(e.t-d)<14*864e5).map(e=>[e,(x.a>0&&Math.abs(e.a-x.a)<.01?0:1)*1e10+Math.abs(e.t-d)]).sort((a,b)=>a[1]-b[1]).slice(0,5).map(z=>z[0]),
     a=[['Ansehen',()=>docView(x,false)],...C.map(e=>[`${e.n||e.c||'Ausgabe'} · ${eur(e.a)} · ${dTT(ymd(e.t))}`,()=>looseTo(x,e)]),
-    ['Neue Buchung damit',()=>{openSheet();E.doc=x.doc;E.img=x.img;['art','due','ctr','warr'].forEach(k=>{if(x[k])E[k]=x[k]});if(x.a>0)E.amt=String(x.a);if(x.n)E.n=x.n;if(x.t<=Date.now())E.dt=ymd(x.t);drawSheet()}],
+    ['Neue Buchung damit',()=>{openSheet();E.doc=x.doc;E.img=x.img;['art','due','ctr','warr','used'].forEach(k=>{if(x[k])E[k]=x[k]});if(x.a>0)E.amt=String(x.a);if(x.n)E.n=x.n;if(x.t<=Date.now())E.dt=ymd(x.t);drawSheet()}],
     ['Löschen',()=>looseDel(x)],['Abbrechen',()=>{}]];
   AQ.msgs.push({q:'Beleg ohne Buchung',h:`<p>${esc(x.n||'Beleg')}${x.a>0?' · <b>'+eur(x.a)+'</b>':''} · ${dTT(ymd(x.t))}. ${C.length?'Zu welcher Buchung gehört er?':'Keine passende Buchung aus ±14 Tagen.'}</p>`,a});asstOpen=true;renderAsst()}
 function looseDel(x){const i=S.loose.indexOf(x);S.loose=S.loose.filter(z=>z!==x);save();render();tell('Beleg gelöscht.',()=>{S.loose.splice(Math.max(0,i),0,x);save();render()})}
 const isLoose=e=>(S.loose||[]).includes(e);
-function docUnlink(e){if(!hasDoc(e))return;S.loose=S.loose||[];const x={id:uid(),t:e.t,at:Date.now(),n:e.n||e.c||'',a:e.a||0,doc:e.doc,img:e.img,ai:1},sn={doc:e.doc,img:e.img,art:e.art,due:e.due,ctr:e.ctr,warr:e.warr};
-  ['art','due','ctr','warr'].forEach(k=>{if(e[k])x[k]=e[k]});['doc','img','art','due','ctr','warr'].forEach(k=>delete e[k]);if(x.doc||x.img)S.loose.unshift(x);save();render();
+function docUnlink(e){if(!hasDoc(e))return;S.loose=S.loose||[];const x={id:uid(),t:e.t,at:Date.now(),n:e.n||e.c||'',a:e.a||0,doc:e.doc,img:e.img,ai:1},sn={doc:e.doc,img:e.img,art:e.art,due:e.due,ctr:e.ctr,warr:e.warr,used:e.used};
+  ['art','due','ctr','warr','used'].forEach(k=>{if(e[k])x[k]=e[k]});['doc','img','art','due','ctr','warr','used'].forEach(k=>delete e[k]);if(x.doc||x.img)S.loose.unshift(x);save();render();
   tell(`Beleg von „${esc(e.n||e.c||'Buchung')}“ gelöst, er liegt jetzt unter „Ohne Buchung“.`,()=>{S.loose=S.loose.filter(z=>z!==x);Object.entries(sn).forEach(([k,v])=>{if(v!==undefined)e[k]=v});save();render()})}
 function docMove(e){if(!hasDoc(e))return;const C=S.exp.filter(z=>z!==e&&z.type=='out'&&!hasDoc(z)&&!isPlan(z)&&Math.abs(z.t-e.t)<30*864e5).map(z=>[z,(Math.abs(z.a-e.a)<.01?0:1)*1e10+Math.abs(z.t-e.t)]).sort((a,b)=>a[1]-b[1]).slice(0,5).map(z=>z[0]),
     mv=z=>{const sn={doc:e.doc,img:e.img};z.doc=e.doc;z.img=e.img;delete e.doc;delete e.img;save();render();tell(`Beleg zu „${esc(z.n||z.c||'Buchung')}“ (<b>${eur(z.a)}</b>) verschoben.`,()=>{e.doc=sn.doc;e.img=sn.img;delete z.doc;delete z.img;if(!e.img)delete e.img;save();render()})};
@@ -520,7 +521,8 @@ function docArtHtml(e){if(!hasDoc(e))return '';const k=artOf(e),C=S.contracts||[
   return `<div class="docv-art">${lo?docArtHtml.lf(e):''}<div class="chips"${lo?' style="margin-top:12px"':''}>${DOCART.map(([x,l])=>`<button class="chip ${k==x?'on':''}" data-dart="${x}">${l}</button>`).join('')}</div>
   ${k=='rech'?`<div class="docv-f"><label for="dvDue">Fällig am <small>optional</small></label><input type="date" id="dvDue" value="${esc(e.due||'')}"></div>`:''}
   ${k=='vert'&&C.length?`<div class="docv-f"><label for="dvCtr">Vertrag</label><select id="dvCtr"><option value="">–</option>${C.map(c=>`<option value="${esc(c.id)}" ${e.ctr==c.id?'selected':''}>${esc(c.n)}</option>`).join('')}</select></div>`:''}
-  <div class="docv-f"><label for="dvW">Garantie</label><input type="checkbox" class="switch" id="dvW" ${e.warr?'checked':''}></div>
+  ${k=='kauf'?`<div class="docv-f"><label for="dvU">Gebraucht gekauft</label><input type="checkbox" class="switch" id="dvU" ${e.used?'checked':''}></div><div class="docv-f"><span>Gewährleistung</span><small>${gwEnd(e)>Date.now()?'bis ':'abgelaufen am '}${dLong(gwEnd(e))}</small></div>`:''}
+  <div class="docv-f"><label for="dvW">Garantie <small>vom Hersteller</small></label><input type="checkbox" class="switch" id="dvW" ${e.warr?'checked':''}></div>
   ${e.warr?`<div class="docv-f"><label for="dvWd">Garantie bis</label><input type="date" id="dvWd" value="${esc(e.warr)}"></div>`:''}</div>`}
 docArtHtml.lf=e=>`<div class="docv-f" style="margin-top:0"><label for="dvN">Bezeichnung</label><input id="dvN" value="${esc(e.n||'')}" placeholder="z. B. Staubsauger" maxlength="40"></div><div class="docv-f"><label for="dvD">Datum</label><input type="date" id="dvD" value="${ymd(e.t)}"></div><div class="docv-f"><label for="dvA">Summe</label><input id="dvA" inputmode="decimal" value="${e.a>0?String(e.a).replace('.',','):''}" placeholder="0,00"></div>`;;
 function docArtBind(e,redraw){if(isLoose(e)){const n=$('dvN'),d=$('dvD'),a=$('dvA');if(n)n.onchange=()=>{e.n=n.value.trim().slice(0,40);save();render()};if(d)d.onchange=()=>{if(d.value){e.t=ymdD(d.value).getTime();save();render()}};if(a)a.onchange=()=>{const v=pNum(a.value);e.a=v>0?Math.round(v*100)/100:0;save();render()}}
@@ -528,7 +530,8 @@ function docArtBind(e,redraw){if(isLoose(e)){const n=$('dvN'),d=$('dvD'),a=$('dv
   const du=$('dvDue');if(du)du.onchange=isLoose(e)?()=>{if(du.value)e.due=du.value;else delete e.due;save();render()}:()=>{const v=du.value,sn=e.t;if(v){e.due=v;if(v>today())e.t=ymdD(v).getTime()}else delete e.due;save();render();redraw();
     tell(v&&v>today()?`Als geplante Zahlung am ${dTT(v)} eingetragen.`:v?'Fälligkeit gespeichert.':'Fälligkeit entfernt.',v&&v>today()?()=>{e.t=sn;save();render()}:undefined)};
   const ct=$('dvCtr');if(ct)ct.onchange=()=>{if(ct.value)e.ctr=ct.value;else delete e.ctr;save();render()};
-  const w=$('dvW');if(w)w.onchange=()=>{if(w.checked){const d=new Date(e.t||Date.now());d.setFullYear(d.getFullYear()+2);e.warr=ymd(d.getTime())}else delete e.warr;save();render();redraw()};
+  const u=$('dvU');if(u)u.onchange=()=>{if(u.checked)e.used=1;else delete e.used;save();render();redraw()};
+  const w=$('dvW');if(w)w.onchange=()=>{if(w.checked){const d=new Date(e.t||Date.now());d.setFullYear(d.getFullYear()+3);e.warr=ymd(d.getTime())}else delete e.warr;save();render();redraw()};
   const wd=$('dvWd');if(wd)wd.onchange=()=>{if(wd.value)e.warr=wd.value;else delete e.warr;save();render();redraw()}}
 /* 10 Steuer */
 let taxY=new Date().getFullYear();
