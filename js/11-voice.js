@@ -26,35 +26,35 @@ function vWish(l,v){if(!/^(wunsch|ich wünsche mir|wunschliste|auf die wunschlis
   const p=amtIn(l);let g=GEF.find(x=>l.includes(x.toLowerCase()))||(/stress/.test(l)?'gestresst':/langweil/.test(l)?'gelangweilt':/belohn/.test(l)?'Belohnung':/traurig/.test(l)?'traurig':'neutral');
   const tr=TRIG.find(x=>l.includes(x.toLowerCase()))||'';
   let n=spoken(v).replace(/^(auf die )?wunschliste|^wunsch|^ich wünsche mir|^ich (will|möchte|hätte gern)/i,'').replace(/(\d+(?:[.,]\d{1,2})?)\s*(euro|€)?/i,'').replace(new RegExp('\\b('+GEF.join('|')+'|gestresst|stress|gelangweilt|belohnung|haben|kaufen|für|eine?n?|neue?[nrs]?|weil ich|bin|ich)\\b','gi'),' ').replace(new RegExp(tr,'i'),'').replace(/[,.]/g,' ').replace(/\s+/g,' ').trim();
-  if(!n){toast('Was wünschst du dir? Sag z. B. „Wunsch Kopfhörer 89 Euro“.');return true}n=n.charAt(0).toUpperCase()+n.slice(1);
-  if(!p){$('sheetRoot').innerHTML='';openWish();setTimeout(()=>{$('wname').value=n;$('wpreis').focus()},50);toast('Noch den Preis eintragen.');return true}
+  if(!n){tell('Was wünschst du dir? Sag z. B. „Wunsch Kopfhörer 89 Euro“.');return true}n=n.charAt(0).toUpperCase()+n.slice(1);
+  if(!p){$('sheetRoot').innerHTML='';openWish();setTimeout(()=>{$('wname').value=n;$('wpreis').focus()},50);tell('Noch den Preis eintragen.');return true}
   const s=JSON.stringify(S.wish);S.wish.unshift({id:uid(),n,p,l:'',w:'',g,tr,t:Date.now(),s:'offen'});save();$('sheetRoot').innerHTML='';render();
-  toast(`Wunsch „${n}“ (${eur(p)}) gemerkt. Frei ab ${new Date(Date.now()+wait(p)).toLocaleDateString('de-DE',{day:'numeric',month:'long'})}.`,()=>{S.wish=JSON.parse(s);save();render()});return true}
+  tell(`Wunsch „${n}“ (${eur(p)}) gemerkt. Frei ab ${new Date(Date.now()+wait(p)).toLocaleDateString('de-DE',{day:'numeric',month:'long'})}.`,()=>{S.wish=JSON.parse(s);save();render()});return true}
 function vGoal(l){if(!/zurücklegen|zurück legen|sparziel|weglegen|beiseite/.test(l)&&!/\bfür (den |die |das |meinen |meine )?.+ sparen\b/.test(l))return false;
-  const act=S.goals.filter(g=>!g.done&&!g.dropped);if(!act.length){toast('Du hast noch kein Sparziel.');return true}
+  const act=S.goals.filter(g=>!g.done&&!g.dropped);if(!act.length){tell('Du hast noch kein Sparziel.');return true}
   const g=act.find(g=>l.includes(g.n.toLowerCase()))||act.find(g=>g.n.toLowerCase().split(/\s+/).some(w=>w.length>3&&l.includes(w)))||(act.length==1?act[0]:null);
   if(!g){showAnswer('Welches Sparziel?',`<p>Ich habe „${esc(l)}“ keinem Sparziel zuordnen können.</p>`,act.map(x=>[esc(x.n),()=>openDeposit(x.id,amtIn(l))]));return true}
   $('sheetRoot').innerHTML='';openDeposit(g.id,amtIn(l));const sa=accIn(l);if(sa&&$('dpSrc')){$('dpSrc').value=sa;$('dpSrc').onchange()}return true}
 function vShopDone(l){if(!/einkauf\w* (ist )?(fertig|erledigt|bezahlt|gemacht|vorbei|buchen)|einkaufszettel buchen/.test(l))return false;
-  const sh=shopS();if(!sh.items.length){toast('Der Einkaufszettel ist leer.');return true}const a=amtIn(l);$('sheetRoot').innerHTML='';openShopBook();if(a&&$('sbA'))$('sbA').value=String(a).replace('.',',');return true}
+  const sh=shopS();if(!sh.items.length){tell('Der Einkaufszettel ist leer.');return true}const a=amtIn(l);$('sheetRoot').innerHTML='';openShopBook();if(a&&$('sbA'))$('sbA').value=String(a).replace('.',',');return true}
 function vFix(l){if(!/(letzte|vorige|eben|gerade)\w* buchung|buchung (eben|gerade)/.test(l))return false;
-  const e=[...S.exp].filter(x=>!isRecE(x)&&!isPlan(x)).sort((a,b)=>(b.t||0)-(a.t||0))[0];if(!e){toast('Keine Buchung gefunden.');return true}
+  const e=[...S.exp].filter(x=>!isRecE(x)&&!isPlan(x)).sort((a,b)=>(b.t||0)-(a.t||0))[0];if(!e){tell('Keine Buchung gefunden.');return true}
   const lbl=`${e.n||e.c||'Buchung'} (${eur(e.a)})`;
-  if(/lösch|weg|entfern|storn/.test(l)){const s=snap();S.exp=S.exp.filter(x=>x.id!=e.id);save();$('sheetRoot').innerHTML='';render();toast('Gelöscht: '+lbl,()=>restore(s));return true}
-  const a=amtIn(l),acc=accIn(l);if(a||acc){const s=snap();if(a)e.a=Math.round(a*100)/100;if(acc&&acc!=e.b)e.b=acc;save();$('sheetRoot').innerHTML='';render();toast(`Geändert: ${e.n||e.c} jetzt ${eur(e.a)}${acc?' aus '+acc:''}.`,()=>restore(s));return true}
+  if(/lösch|weg|entfern|storn/.test(l)){const s=snap();S.exp=S.exp.filter(x=>x.id!=e.id);save();$('sheetRoot').innerHTML='';render();tell('Gelöscht: '+lbl,()=>restore(s));return true}
+  const a=amtIn(l),acc=accIn(l);if(a||acc){const s=snap();if(a)e.a=Math.round(a*100)/100;if(acc&&acc!=e.b)e.b=acc;save();$('sheetRoot').innerHTML='';render();tell(`Geändert: ${e.n||e.c} jetzt ${eur(e.a)}${acc?' aus '+acc:''}.`,()=>restore(s));return true}
   $('sheetRoot').innerHTML='';openSheet(e);return true}
 const RHY=[[/jährlich|jedes jahr|pro jahr/,12],[/halbjährlich|alle sechs monate|alle 6 monate/,6],[/vierteljährlich|quartal/,3],[/alle (zwei|2) monate/,2],[/monatlich|jeden monat|pro monat|im monat|abo/,1]];
 function vRecurring(l,v){const r=RHY.find(([re])=>re.test(l));if(!r)return false;
   const sv=E;E={type:'out',b:pufAcc()?pufAcc().n:ALL[0],c:null,amt:'',n:'',dt:today()};quickParse(v.replace(new RegExp(r[0].source,'i'),' '));const x=E;E=sv;
   const acc=accIn(l)||(x.type=='in'?(pufAcc()?pufAcc().n:x.b):(pufAcc()?pufAcc().n:x.b)),cs=cats(acc)||[];let c=x.c&&cs.some(k=>k[0]==x.c)?x.c:(cs.find(k=>/abo|vertr|fix|sonst/i.test(k[0]))||cs[0]||[''])[0];
   const d=new Date(x.dt+'T12:00');$('sheetRoot').innerHTML='';
-  openRec(-1,{type:x.type=='in'?'in':'out',b:acc,c,a:pNum(x.amt)||0,n:x.n||x.c||(v.replace(/[\d.,]+|euro|€/gi,'').split(/\s+/).find(w=>w.length>2)||''),day:d.getDate(),every:r[1],start:x.dt});toast('Dauerauftrag vorbereitet. Kurz prüfen und sichern.');return true}
+  openRec(-1,{type:x.type=='in'?'in':'out',b:acc,c,a:pNum(x.amt)||0,n:x.n||x.c||(v.replace(/[\d.,]+|euro|€/gi,'').split(/\s+/).find(w=>w.length>2)||''),day:d.getDate(),every:r[1],start:x.dt});tell('Dauerauftrag vorbereitet. Kurz prüfen und sichern.');return true}
 function vMulti(v){const parts=spoken(v).split(/,\s+|\s+(?:und|plus|sowie)\s+/).filter(Boolean);if(parts.length<2)return false;const withAmt=parts.filter(p=>/\d/.test(p));if(withAmt.length<2||withAmt.length!=parts.length)return false;
   const sv=E,sn=snap(),made=[];
   parts.forEach(p=>{E={type:'out',b:S.lastAcc&&ALL.includes(S.lastAcc)?S.lastAcc:BN[0],c:null,amt:'',n:'',dt:today(),accManual:false};qp(p);const a=Math.round((pNum(E.amt)||0)*100)/100;if(!a)return;
     if(!E.c)E.c=((cats(E.b)||[]).find(k=>/sonst/i.test(k[0]))||(cats(E.b)||[['Sonstiges']])[0])[0];if(isTabu(E.b))return;
     const[yy,mm,dd]=E.dt.split('-').map(Number);S.exp.push({id:uid(),type:E.type,b:E.b,c:E.c,a,n:E.n,t:E.dt==today()?Date.now():new Date(yy,mm-1,dd,12).getTime()});made.push(`${E.n||E.c} ${eur(a)} (${SHORT[E.b]})`)});
-  E=sv;if(!made.length)return false;save();$('sheetRoot').innerHTML='';render();toast(made.length+' Buchungen: '+made.join(', '),()=>restore(sn));return true}
+  E=sv;if(!made.length)return false;save();$('sheetRoot').innerHTML='';render();tell(made.length+' Buchungen: '+made.join(', '),()=>restore(sn));return true}
 
 function voiceHelp(){const ex=[['Einzahlen','„Zahl 200 Euro in den Vermögensaufbau ein“ · „500 Euro Bonus einzahlen“'],['Buchen','„Kaffee 3,50“ · „gestern Tanken 65 Euro“ · „Friseur 25 Euro aus Gönn dir“'],['Mehrere auf einmal','„Rewe 23 Euro und dm 8 Euro“'],['Umbuchen','„50 Euro von Flow nach Sinking Funds“'],['Einnahme','„Erstattung 30 Euro“ · „Gehalt 3200 Euro“'],['Dauerauftrag','„Netflix 13 Euro monatlich“ · „Versicherung 120 Euro jährlich“'],
   ['Fragen','„Wie viel hab ich noch in Gönn dir?“ · „Was darf ich heute noch ausgeben?“ · „Wie viel hab ich für Café ausgegeben?“ · „Wie steht mein Puffer?“'],['Wunsch','„Wunsch Kopfhörer 89 Euro, gestresst“'],['Sparziel','„20 Euro für Reisekoffer zurücklegen“'],
@@ -95,12 +95,12 @@ function siriApplyOne(txt){const v=String(txt||'').trim(),l=v.toLowerCase();if(!
 /* Von Siri & Apple Pay übernommene Buchungen: 48 h als Hinweis zum Nachbearbeiten */
 function qkGet(){const q=S.qk;if(!q||!q.ids)return null;if(Date.now()-(q.t||0)>48*3600e3){delete S.qk;return null}q.ids=q.ids.filter(id=>S.exp.some(e=>e.id==id));if(!q.ids.length){delete S.qk;return null}q.ed=(q.ed||[]).filter(id=>q.ids.includes(id));return q}
 function qkAdd(ids){ids=(ids||[]).filter(Boolean);if(!ids.length)return;const q=qkGet()||{ids:[],ed:[]};q.ids=[...new Set([...q.ids,...ids])];q.t=Date.now();S.qk=q}
-function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[],had=new Set(S.exp.map(e=>e.id));const _t=toast,_r=render,_ra=renderAsst;toast=()=>{};render=()=>{};renderAsst=()=>{};
+function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[],had=new Set(S.exp.map(e=>e.id));const _t=toast,_tl=tell,_r=render,_ra=renderAsst;toast=()=>{};tell=()=>{};render=()=>{};renderAsst=()=>{};
   try{items.forEach(it=>{let r;try{r=siriApplyOne(it.txt)}catch(e){r={ok:false,why:'Fehler: '+(e.message||e)}}if(r.ok){done.push(r.lab);if(r.part)pend.push({id:uid(),txt:it.txt,t:Date.parse(it.created_at)||Date.now(),why:r.part})}else pend.push({id:uid(),txt:it.txt,t:Date.parse(it.created_at)||Date.now(),why:r.why})})}
-  finally{toast=_t;render=_r;renderAsst=_ra}
+  finally{toast=_t;tell=_tl;render=_r;renderAsst=_ra}
   qkAdd(S.exp.filter(e=>!had.has(e.id)&&!e.ruOf&&!(e.tg||[]).includes('wechselgeld')).map(e=>e.id));
   if(pend.length)S.siriPend=[...(S.siriPend||[]),...pend];$('sheetRoot').innerHTML='';save();render();
-  const n=items.length;toast(`${n} ${n==1?'Eintrag':'Einträge'} aus Siri übernommen${pend.length?' · '+pend.length+' bitte prüfen':''}`,()=>{S=JSON.parse(before);save();render()});
+  const n=items.length;tell(`${n} ${n==1?'Eintrag':'Einträge'} aus Siri übernommen${pend.length?' · '+pend.length+' bitte prüfen':''}`,()=>{S=JSON.parse(before);save();render()});
   if(S.urgePend){delete S.urgePend;save();setTimeout(()=>openUrge(),600)}return{done,pend}}
 /* Beleg (Teilen-Menü, Text aus Bild) und Mitteilung (Mail/SMS-Automation) → „Buchung: Händler Betrag“ */
 const SMARTRX=/^\s*(beleg|mitteilung|mail|sms)\s*:\s*/i;
@@ -202,7 +202,7 @@ function clipParse(v,tag){const sv=E,recs=[],bad=[];v=v.replace(/^(buchung)\s*:?
   recs.push({type:E.type,b:E.b,to:E.to,c:E.type=='tr'?'':E.c,a,n:E.n,dt:E.dt||today(),tag})});E=sv;return{recs,bad}}
 function clipCommit(recs){const sn=snap(),done=[],bad=[];let ruN=0;recs.forEach(r=>{if(r.type!='in'&&isTabu(r.b)){bad.push(r.b+' ist tabu');return}if(r.type=='tr'&&isLock(r.to)){bad.push('Notfallbremse '+r.to);return}if(r.type=='out'&&isLock(r.b)&&calc(r.b).rest-r.a<0){bad.push(r.b+' reicht nicht');return}
  const[yy,mm,dd]=r.dt.split('-').map(Number),rec={id:uid(),type:r.type,b:r.b,c:r.c,a:r.a,n:r.n,t:r.t||(r.dt==today()?Date.now():new Date(yy,mm-1,dd,12).getTime()),tg:[r.tag]};if(r.type=='tr')rec.to=r.to;if(r.card)rec.card=r.card;S.exp.push(rec);if(rec.type=='out'&&rec.n&&rec.c)try{ruleLearn(rec.n,rec.c,rec.b)}catch(e){}if(r.type=='out')S.lastAcc=r.b;if(rec.type=='out'&&ruFor(rec,r.tag)){const tr=ruSync(rec,{on:true});if(tr)ruN+=tr.a}done.push(rec)});
- qkAdd(done.map(r=>r.id));save();render();toast(done.length?`${done.length} Buchung${done.length>1?'en':''} gesichert${ruN?' · '+eur(ruN)+' Wechselgeld angelegt':''}${bad.length?' · '+bad.join(', '):''}`:'Nichts gebucht: '+bad.join(', '),done.length?()=>restore(sn):undefined);
+ qkAdd(done.map(r=>r.id));save();render();tell(done.length?`${done.length} Buchung${done.length>1?'en':''} gesichert${ruN?' · '+eur(ruN)+' Wechselgeld angelegt':''}${bad.length?' · '+bad.join(', '):''}`:'Nichts gebucht: '+bad.join(', '),done.length?()=>restore(sn):undefined);
  const gro=done.filter(isGro);if(gro.length)setTimeout(()=>shopRecon(gro),500)}
 const clipLine=r=>`<div class="clipb"><b>${r.type=='in'?'+':r.type=='tr'?'':'−'}${eur(r.a)}</b> ${esc(r.n||r.c||'Umbuchung')}<div class="s">${r.type=='in'?'Einnahme':r.type=='tr'?'Umbuchung':'Ausgabe'}${r.c?' · '+esc(r.c):''} · ${r.type=='in'?'auf':'von'} ${esc(SHORT[r.b]||r.b)}${r.card?' · '+esc(r.card):''}${r.type=='out'&&ruFor({type:'out',b:r.b,card:r.card},r.tag)&&ruAmt(r.a)?' · +'+eur(ruAmt(r.a))+' Wechselgeld → '+esc(ruLab(ruTo(r),ruDepOf(r))):''}${r.type=='tr'?' → '+esc(SHORT[r.to]||r.to):''}${r.t?' · '+new Date(r.t).toLocaleString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):r.dt!=today()?' · '+new Date(r.dt+'T12:00').toLocaleDateString('de-DE'):''}</div></div>`;
 const clipPre=r=>({type:r.type,b:r.b,to:r.to,c:r.c,amt:String(r.a),n:r.n,dt:r.dt,src:r.tag,card:r.card||''});
@@ -217,12 +217,12 @@ function shopRecon(recs){const sh=shopS(),D=sh.items.filter(x=>x.done);if(!D.len
    sh.items=sh.items.filter(x=>!x.done);save();render();return sn};
  const undo=sn=>()=>{S.shop=JSON.parse(sn);save();render()};
  const big=!est||Math.abs(diff)>=3||Math.abs(pct)>=10;
- if(!big&&!learn){const sn=close(0);toast(`Einkauf passt zum Zettel: ${eur(act)} statt ca. ${eur(est)}. Abgehakte Artikel entfernt.`,undo(sn));return}
+ if(!big&&!learn){const sn=close(0);tell(`Einkauf passt zum Zettel: ${eur(act)} statt ca. ${eur(est)}. Abgehakte Artikel entfernt.`,undo(sn));return}
  const h=`<p><b>${esc(store)} ${eur(act)}</b> · geplant ca. ${eur(est)} (${D.length} Artikel im Wagen)${est?` · <b class="${diff>0?'bad':'in'}">${diff>0?'+':'−'}${eur(Math.abs(diff))} (${diff>0?'+':'−'}${Math.abs(Math.round(pct))} %)</b>`:''}</p>${unk.length?`<p class="s">Ohne Preis: ${esc(unk.map(x=>x.n).join(', '))}</p>`:''}${learn?`<p>${esc(unk[0].n)} hat also ca. ${eur(learn)} gekostet?</p>`:''}`;
  const a=[];
- if(learn)a.push(['Preis merken und abschließen',()=>{const x=unk[0],k=x.n.toLowerCase();x.p=learn;x.est=false;x.unk=false;sh.prices[k]=learn;if(sh.unk)delete sh.unk[k];try{phAdd(k,learn)}catch(e){}const sn=close(0);toast(`${x.n}: ${eur(learn)} gemerkt. Abgehakte Artikel entfernt.`,undo(sn))}]);
- a.push(['Zettel abschließen',()=>{const sn=close(0);toast('Abgehakte Artikel entfernt.',undo(sn))}]);
- if(diff>=3&&!learn)a.push(['Mehr als geplant gekauft',()=>{const sn=close(diff);toast(`${eur(diff)} als ungeplant vermerkt. Abgehakte Artikel entfernt.`,undo(sn))}]);
+ if(learn)a.push(['Preis merken und abschließen',()=>{const x=unk[0],k=x.n.toLowerCase();x.p=learn;x.est=false;x.unk=false;sh.prices[k]=learn;if(sh.unk)delete sh.unk[k];try{phAdd(k,learn)}catch(e){}const sn=close(0);tell(`${x.n}: ${eur(learn)} gemerkt. Abgehakte Artikel entfernt.`,undo(sn))}]);
+ a.push(['Zettel abschließen',()=>{const sn=close(0);tell('Abgehakte Artikel entfernt.',undo(sn))}]);
+ if(diff>=3&&!learn)a.push(['Mehr als geplant gekauft',()=>{const sn=close(diff);tell(`${eur(diff)} als ungeplant vermerkt. Abgehakte Artikel entfernt.`,undo(sn))}]);
  a.push(['Später',()=>{}]);
  AQ.msgs.push({q:'Einkauf abgleichen',h,a});asstOpen=true;renderAsst()}
 function shopHistHtml(){const H=(shopS().trips||[]).filter(h=>h.est>0);if(!H.length)return '';const dev=h=>(h.act-h.est)/h.est*100,avg=H.reduce((s,h)=>s+dev(h),0)/H.length,by={};H.forEach(h=>{(by[h.store]=by[h.store]||[]).push(dev(h))});const f=v=>(v>=0?'+':'−')+Math.abs(Math.round(v))+' %';
@@ -238,7 +238,7 @@ function clipOne(t,say,trust){
   if(k=='shop'){const a=shopVoice(t);save();prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(a);return}
   if(k=='urge'){openUrge();return}
   if(k=='ask'){asstAsk(t);return}
-  if(k=='misc'){const r=siriApplyOne(t);save();render();toast(r.ok?r.lab:'Nicht übernommen: '+r.why);return}
+  if(k=='misc'){const r=siriApplyOne(t);save();render();tell(r.ok?r.lab:'Nicht übernommen: '+r.why);return}
   const P=clipParse(t,'siri');
   if(!P.recs.length){say('<p>Ich habe keinen Betrag erkannt. Sag z. B. „12,50 Rewe“.</p>',[['Neue Buchung',()=>openSheet()]]);return}
   const one=P.recs.length==1,r0=P.recs[0];

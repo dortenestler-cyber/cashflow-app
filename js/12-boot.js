@@ -12,7 +12,7 @@ function openOnb(){let st=0;const draw=()=>{const steps=[
   if($('onbNext'))$('onbNext').onclick=()=>{keep();st++;draw()};$('onbBack').onclick=()=>{keep();st--;draw()};$('onbSkip').onclick=()=>{keep();fin()};
   if($('onbSync'))$('onbSync').onclick=()=>{fin();tab='more';setView='sync';render()};
   if($('onbImp'))$('onbImp').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0;S.ex=false;S.rec=[];fin();tab='more';setView='import';render()};
-  if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();toast('Los geht’s. Tippe auf +, um zu buchen.')};
+  if($('onbClean'))$('onbClean').onclick=()=>{S.exp=[];S.wish=[];S.goals=[];S.gespart=0;S.gespartAdj=0;S.ex=false;S.rec=[];S.accts.forEach(a=>{if(a.kind=='konto')a.start=a.start});fin();tell('Los geht’s. Tippe auf +, um zu buchen.')};
   if($('onbKeep'))$('onbKeep').onclick=fin};draw();renderAsst()}
 const BIOK='cf_bio',bioName=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)?'Face ID':/Mac/.test(navigator.userAgent)?'Touch ID':'Fingerabdruck / Windows Hello';
 const bioGet=()=>{try{return JSON.parse(localStorage.getItem(BIOK)||'null')}catch(e){return null}};

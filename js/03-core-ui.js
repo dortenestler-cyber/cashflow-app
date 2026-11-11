@@ -157,10 +157,10 @@ function lsDraw(){if(!LS)return;const L=LS,sel=L.sel,prevB=document.querySelecto
   if($('lsC'))$('lsC').oninput=()=>{L.sel.c=$('lsC').value;document.querySelectorAll('#sheetRoot .cell .bm').forEach(t=>t.style.setProperty('--bc',L.sel.c))};
   if($('lsT'))$('lsT').onchange=()=>{L.thr=+$('lsT').value/100;const c=L.sel.c;rasterMask(L.raw,L.thr,L.inv).then(r=>{L.sel.m=r.m;L.sel.c=c;lsDraw()})};
   if($('lsI'))$('lsI').onchange=()=>{L.inv=$('lsI').checked;const c=L.sel.c;rasterMask(L.raw,L.thr,L.inv).then(r=>{L.sel.m=r.m;L.sel.c=c;lsDraw()})};
-  if($('lsDel'))$('lsDel').onclick=()=>{delete S.brandIcons[L.key];save();close();render();toast('Eigenes Logo entfernt, das Kürzel-Icon ist zurück.')};
+  if($('lsDel'))$('lsDel').onclick=()=>{delete S.brandIcons[L.key];save();close();render();tell('Eigenes Logo entfernt, das Kürzel-Icon ist zurück.')};
   if($('lsOk'))$('lsOk').onclick=()=>{let key=L.key;if(!key)key=L.dom&&/\./.test(L.dom)?L.dom.toLowerCase().replace(/^www\./,''):sel.slug?'si:'+sel.slug:'own:'+sh32(L.name||String(Date.now()));
     S.brandIcons=S.brandIcons||{};S.brandIcons[key]={m:sel.m,c:sel.c,src:sel.src,t:sel.t||''};if(L.name){const bk=bKey(L.name);if(bk&&brandOf({n:L.name,type:'out'})!==key){S.brandMap=S.brandMap||{};S.brandMap[bk]=key}}
-    save();close();render();toast('Logo übernommen.'+(L.name?' Gilt für alle Buchungen mit „'+L.name+'“.':''))}}
+    save();close();render();tell('Logo übernommen.'+(L.name?' Gilt für alle Buchungen mit „'+L.name+'“.':''))}}
 
 function brandsHtml(){const M=S.brandMap||{},cnt={},none={};S.exp.forEach(e=>{if(e.type=='tr'||!e.n)return;const d=brandOf(e);if(d){cnt[d]=(cnt[d]||0)+1}else{const k=bKey(e.n);if(k.length>=3&&!/^(einkauf|sonstiges|bargeld|kontoabgleich|monatsabschluss|sparplan)/.test(k))none[k]=(none[k]||0)+1}});
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]),miss=Object.entries(none).sort((a,b)=>b[1]-a[1]).slice(0,20);

@@ -95,7 +95,7 @@ const periodAt=t=>{for(let k=-36;k<=24;k++){const p=period(k);if(t>=p.s.getTime(
 function adjReset(rid,v){if(!v)return;const r=(S.rec||[]).find(x=>x.id==rid);const snap=JSON.stringify({ov:S.monthOv||{},pn:S.planNext||null});
   if(v.kind=='once'){const o=(S.monthOv||{})[v.pk];if(o){if(o.r)delete o.r[rid];const pa=pufAcc();if(r&&o.b&&pa&&r.b==pa.n&&o.b[r.to]!=null)delete o.b[r.to];if(!Object.keys(o.r||{}).length&&!Object.keys(o.b||{}).length)delete S.monthOv[v.pk]}}
   else if(v.kind=='next'&&S.planNext){const pn=S.planNext;if(v.src&&v.src.startsWith('b:'))delete (pn.b||{})[v.src.slice(2)];else delete (pn.r||{})[rid];if(!Object.keys(pn.r||{}).length&&!Object.keys(pn.b||{}).length)delete S.planNext}
-  save();render();toast('Anpassung entfernt – es gilt wieder '+eur(v.base)+'.',()=>{const o=JSON.parse(snap);S.monthOv=o.ov;if(o.pn)S.planNext=o.pn;else delete S.planNext;save();render()})}
+  save();render();tell('Anpassung entfernt – es gilt wieder '+eur(v.base)+'.',()=>{const o=JSON.parse(snap);S.monthOv=o.ov;if(o.pn)S.planNext=o.pn;else delete S.planNext;save();render()})}
 function applyRec(){const p=period(0),k=pkey(p);S.rec.forEach(r=>{if(r.paused)return;const d=recDue(r,p);
   if(d&&d<=now&&!S.exp.some(e=>e.rid==r.id&&e.pk==k)){const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;S.exp.push(x)}});save()}
 applyRec();
@@ -108,7 +108,7 @@ function closeMonths(){if(!S.rollTo||!ALL.includes(S.rollTo))return;const done=[
     if(it.length){S.restProp=(S.restProp||[]).filter(x=>x.pk!=k);S.restProp.push({pk:k,t:p.e.getTime()-60000,label:p.label,to:S.rollTo,items:it});done.push(k)}S.closed.push(k)}
   save()}
 function restPropDo(i,take){const x=(S.restProp||[])[i];if(!x)return;if(take){const sn=snap();x.items.forEach(([b,v])=>{if(ALL.includes(b)&&ALL.includes(x.to))S.exp.push({id:uid(),type:'tr',b,to:x.to,c:'',a:v,n:'Monatsabschluss',t:x.t,roll:true,closeOf:x.pk})});
-  S.restProp.splice(i,1);save();render();toast(eur(x.items.reduce((s,y)=>s+y[1],0))+' nach '+(SHORT[x.to]||x.to)+' umgebucht.',()=>{restore(sn);render()})}else{S.restProp.splice(i,1);save();render();toast('Vorschlag verworfen. Das Restgeld bleibt, wo es ist.')}}
+  S.restProp.splice(i,1);save();render();tell(eur(x.items.reduce((s,y)=>s+y[1],0))+' nach '+(SHORT[x.to]||x.to)+' umgebucht.',()=>{restore(sn);render()})}else{S.restProp.splice(i,1);save();render();tell('Vorschlag verworfen. Das Restgeld bleibt, wo es ist.')}}
 const pufAcc=()=>S.accts.find(a=>a.rolle=='eingang');
 function pufOpen(){const a=pufAcc();if(!a)return{list:[],sum:0};const P=period(0),k=pkey(P),L=[];
   (S.rec||[]).forEach(r=>{if(r.paused||r.b!=a.n||r.type=='in')return;const d=recDue(r,P);if(!d)return;if(S.exp.some(e=>e.rid==r.id&&e.pk==k))return;L.push({n:r.n,a:r.a,d})});

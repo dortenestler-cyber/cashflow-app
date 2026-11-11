@@ -359,7 +359,7 @@ function openBackfill(i,editId){const D=depot(),h=D[i];if(!h)return;h.tx=h.tx||[
    document.querySelectorAll('#bfM button').forEach(b=>b.onclick=()=>{keep();st.ser=b.dataset.v=='1';warn=null;draw()});
    if($('bfD'))$('bfD').onchange=()=>{keep();fetchSug()};
    if($('bfUse'))$('bfUse').onclick=()=>{keep();st.p=String(Math.round(sug.p*100)/100).replace('.',',');draw()};
-   if($('bfDel'))$('bfDel').onclick=()=>{const sn=JSON.stringify(h.tx);h.tx=h.tx.filter(x=>x.id!=ex.id);save();close();toast('Nachtrag gelöscht.',()=>{h.tx=JSON.parse(sn);save();render()})};
+   if($('bfDel'))$('bfDel').onclick=()=>{const sn=JSON.stringify(h.tx);h.tx=h.tx.filter(x=>x.id!=ex.id);save();close();tell('Nachtrag gelöscht.',()=>{h.tx=JSON.parse(sn);save();render()})};
    if($('bfKeep'))$('bfKeep').onclick=()=>commit(warn.items,false);if($('bfFix'))$('bfFix').onclick=()=>commit(warn.items,true);
    $('bfS').onclick=()=>{keep();build()}};
   const fetchSug=async()=>{busy=true;sug=null;draw();let r=null;try{r=await priceOn(h,st.d)}catch(e){}busy=false;sug=r;if(r&&!st.p)st.p=String(Math.round(r.p*100)/100).replace('.',',');if(document.querySelector('[aria-label="Nachtragen"]'))draw()};
@@ -380,7 +380,7 @@ function openBackfill(i,editId){const D=depot(),h=D[i];if(!h)return;h.tx=h.tx||[
   const commit=(items,fix)=>{const sn=JSON.stringify({tx:h.tx,q:h.qty,i:h.inv,bd:h.bd});h.tx=h.tx.filter(x=>!ex||x.id!=ex.id).concat(items);
     if(fix&&warn){h.qty=Math.round(((+h.qty||0)+warn.dq)*1e8)/1e8;h.inv=Math.round(((+h.inv||0)+warn.di)*100)/100;h.avg=avgOf(h)}
     h.bd=newBd(items);
-    save();$('sheetRoot').innerHTML='';render();toast((items.length>1?items.length+' Einträge':'Eintrag')+' nachgetragen'+(fix?' · Bestand angepasst':'')+'.',()=>{const o=JSON.parse(sn);h.tx=o.tx;h.qty=o.q;h.inv=o.i;h.bd=o.bd;save();render()})};
+    save();$('sheetRoot').innerHTML='';render();tell((items.length>1?items.length+' Einträge':'Eintrag')+' nachgetragen'+(fix?' · Bestand angepasst':'')+'.',()=>{const o=JSON.parse(sn);h.tx=o.tx;h.qty=o.q;h.inv=o.i;h.bd=o.bd;save();render()})};
   draw();if(!ex||!st.p)fetchSug()}
 const fxOf=h=>(h.cur||'EUR')=='EUR'?1:(fxGet(h.cur)||h.fx||1),avgOf=h=>h.qty?Math.round(h.inv/h.qty/fxOf(h)*10000)/10000:null;
 function openTrade(i,kind,o){o=o||{};const D=depot(),h=D[i];if(!h)return;const tr={type:kind||'buy',d:o.d||today(),q:'',p:'',fee:'',book:o.book===false?false:!!h.to,acc:pufAcc()?pufAcc().n:ALL.find(a=>!isTabu(a))};let sug=null,busy=false,ptouched=false;
@@ -414,7 +414,7 @@ function openTrade(i,kind,o){o=o||{};const D=depot(),h=D[i];if(!h)return;const t
      else{const real=Math.round((amt-fee-q*avgE)*100)/100;h.inv=Math.round(Math.max(0,(h.inv||0)-q*avgE)*100)/100;h.qty=Math.round((curQ-q)*1e8)/1e8;h.real=Math.round(((h.real||0)+real)*100)/100;tr.real=real}
      h.tx.push({id:uid(),t,type:tr.type,q,p:pr,fee,real:tr.real||null,bk:!!(tr.book&&tr.acc&&h.to)});
      if(tr.book&&tr.acc&&h.to){S.exp.push({id:uid(),type:'tr',b:tr.type=='buy'?tr.acc:h.to,to:tr.type=='buy'?h.to:tr.acc,c:'',a:tr.type=='buy'?amt+fee:Math.max(0,amt-fee),n:(tr.type=='buy'?'Kauf ':'Verkauf ')+(h.n||h.sym),t:t>Date.now()?Date.now():t,dep:h.id})}
-     save();$('sheetRoot').innerHTML='';render();toast((tr.type=='buy'?'Kauf':'Verkauf')+' gespeichert: '+q.toLocaleString('de-DE',{maximumFractionDigits:6})+' × '+eur(pr)+'.',()=>{const o=JSON.parse(snap);S.depot=o.d;S.exp=o.e;save();render()})}};
+     save();$('sheetRoot').innerHTML='';render();tell((tr.type=='buy'?'Kauf':'Verkauf')+' gespeichert: '+q.toLocaleString('de-DE',{maximumFractionDigits:6})+' × '+eur(pr)+'.',()=>{const o=JSON.parse(snap);S.depot=o.d;S.exp=o.e;save();render()})}};
   const fetchSug=async()=>{busy=true;sug=null;draw();const r=await priceOn(h,tr.d);busy=false;sug=r;if(r&&(!ptouched||!tr.p))tr.p=String(Math.round(r.p*100)/100).replace('.',',');if(o.amt&&!tr.q&&qNum(tr.p))tr.q=String(Math.round(o.amt/qNum(tr.p)*1e6)/1e6).replace('.',',');if(document.querySelector('[aria-label="Kauf oder Verkauf"]'))draw()};
   draw();fetchSug()}
 function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',sym:'',qty:'',inv:'',rate:'',day:1,plan:true,manual:false,price:'',book:true};
@@ -453,7 +453,7 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
    if($('dpBd')&&i<0)$('dpBd').onchange=async()=>{keep();if(!h.bd||!h.sym||h.type=='robo'||($('dpI')&&$('dpI').value))return;$('dpEstMsg').textContent='Suche Kurs am '+new Date(h.bd+'T12:00').toLocaleDateString('de-DE')+' …';const r=await priceOn(h,h.bd);if(!$('dpI'))return;if(r){const fx=(h.cur||'EUR')=='EUR'?1:(fxGet(h.cur)||1);$('dpI').value=String(Math.round(r.p/fx*100)/100).replace('.',',');upT();$('dpEstMsg').textContent='Kurs am '+new Date(r.at).toLocaleDateString('de-DE')+' als Ø Kaufpreis vorgeschlagen. Bei Bedarf anpassen.'}else $('dpEstMsg').textContent='Für dieses Datum gibt es keinen Kurs. Bitte den Kaufpreis selbst eintragen.'};
    if($('dpEst'))$('dpEst').onclick=async()=>{keep();if(!h.sym){$('dpEstMsg').textContent='Bitte zuerst ISIN, Ticker oder Kürzel eintragen.';return}$('dpEstMsg').textContent='Suche im Kursverlauf …';const tmp=[...depot()];if(!depot().includes(h))S.depot.push(h);let r;try{r=await estimateBuy(h)}finally{S.depot=tmp}
      if(r.err){$('dpEstMsg').textContent=r.err;return}if(r.pre)h.bd='pre';else h.bd=r.date;draw();$('dpEstMsg').textContent=r.msg+' Du kannst das Datum jederzeit ändern.'};if($('dpFr'))$('dpFr').onchange=()=>{keep();draw()};
-   if($('dpDel'))$('dpDel').onclick=()=>{const b=$('dpDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(D),sr=JSON.stringify(S.rec);const rid=D[i].rid;D.splice(i,1);if(rid)S.rec=S.rec.filter(r=>r.id!=rid);save();$('sheetRoot').innerHTML='';render();toast('Position gelöscht'+(rid?', Sparplan-Buchung auch.':'.'),()=>{S.depot=JSON.parse(s);S.rec=JSON.parse(sr);save();render()})};
+   if($('dpDel'))$('dpDel').onclick=()=>{const b=$('dpDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen?';return}const s=JSON.stringify(D),sr=JSON.stringify(S.rec);const rid=D[i].rid;D.splice(i,1);if(rid)S.rec=S.rec.filter(r=>r.id!=rid);save();$('sheetRoot').innerHTML='';render();tell('Position gelöscht'+(rid?', Sparplan-Buchung auch.':'.'),()=>{S.depot=JSON.parse(s);S.rec=JSON.parse(sr);save();render()})};
    $('dpS').onclick=()=>{keep();if(!h.n&&!h.sym){$('dpE').textContent='Bitte Name oder Kürzel eintragen.';return}if(isNaN(h.qty))h.qty=0;
      if(h.rate&&h.plan){const d=new Date();let n=dueIn(d.getFullYear(),d.getMonth(),h.day);if(n<=d)n=dueIn(d.getFullYear(),d.getMonth()+1,h.day);if(!h.next||i<0||D[i].day!=h.day||!D[i].plan)h.next=ymd(n.getTime())}
      if(h.manual)h.pt=Date.now();if(i>=0&&D[i].sym!=h.sym){h.pt=0;h.ysym=null}
@@ -463,7 +463,7 @@ function openDep(i){const D=depot(),h=i>=0?{...D[i]}:{id:uid(),type:'etf',n:'',s
        const nx=h.next||(()=>{const d=new Date();let n=dueIn(d.getFullYear(),d.getMonth(),h.day);if(n<=d)n=dueIn(d.getFullYear(),d.getMonth()+1,h.day);return ymd(n.getTime())})();
        const r=Object.assign(ri>=0?S.rec[ri]:{id:uid()},{type:'tr',b:h.from,to:h.to,c:'',a:h.rate,n:'Sparplan '+(h.n||h.sym),day:h.day,every:1,dep:h.id});if(ri<0){r.start=nx;S.rec.push(r)}h.rid=r.id;note=ri>=0?' Wiederkehrende Buchung angepasst.':' Wiederkehrende Buchung angelegt: '+eur(h.rate)+' am '+h.day+'. von '+h.from+' nach '+h.to+'.'}
      else if(ri>=0){S.rec.splice(ri,1);delete h.rid;note=' Wiederkehrende Buchung entfernt.'}
-     if(i>=0)D[i]=h;else D.push(h);save();$('sheetRoot').innerHTML='';render();toast((i>=0?'Position gesichert.':'Position angelegt.')+note,()=>{S.rec=JSON.parse(sr);S.accts=JSON.parse(sa);S.depot=JSON.parse(sd);refreshA();save();render()});depRefresh(true)}};draw();renderAsst()}
+     if(i>=0)D[i]=h;else D.push(h);save();$('sheetRoot').innerHTML='';render();tell((i>=0?'Position gesichert.':'Position angelegt.')+note,()=>{S.rec=JSON.parse(sr);S.accts=JSON.parse(sa);S.depot=JSON.parse(sd);refreshA();save();render()});depRefresh(true)}};draw();renderAsst()}
 const on2=(id,f)=>{const el=$(id);if(el)el.onclick=f};
 function posGo(dir){const O=posOrder(),k=O.indexOf(posView),n=k+dir;if(k<0||n<0||n>=O.length){const w=$('posWrap');if(w){w.classList.remove('bump');void w.offsetWidth;w.classList.add('bump')}return}tcHide();posAnim=dir>0?'pin-r':'pin-l';posView=O[n];render();window.scrollTo(0,0);setTimeout(()=>posAnim='',300)}
 function posSwipe(){const v=document.querySelector('#app .view');if(!v||v.__ps)return;v.__ps=1;let x0=null,y0=null,t0=0;
@@ -566,7 +566,7 @@ function openVaultNew(){const draw=(err)=>{$('sheetRoot').innerHTML=`<div class=
   $('scrim').onclick=$('vnX').onclick=()=>{$('sheetRoot').innerHTML=''};
   $('vnS').onclick=()=>{const n=safeAcct($('vnN').value),v=qNum($('vnV').value||'0'),z=qNum($('vnZ').value),sr=qNum($('vnR').value);if(!$('vnN').value.trim())return draw('Bitte einen Namen eingeben.');if(ALL.includes(n))return draw('Diesen Namen gibt es schon.');if(isNaN(v))return draw('Bitte einen gültigen Stand eingeben.');
    const col=ACOL.find(c=>!S.accts.some(a=>a.col==c))||ACOL[3],t=Date.now();S.accts.push({n,kind:'konto',col,vis:true,tot:false,start:0,rolle:'vermoegen',sperre:{art:'tabu'},baseD:t,baseVal:Math.round(v*100)/100,baseAt:t,rates:!isNaN(z)&&z>0?[{from:today(),p:z}]:[]});S.cats[n]=[["Sonstiges","dot"]];S.bg[n]={g:7};
-   refreshA();for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();toast(n+' liegt jetzt im Vermögen.');if(!isNaN(sr)&&sr>0){const pa=pufAcc();setTimeout(()=>openRec(-1,{type:'tr',b:pa?pa.n:ALL[0],to:n,c:'',a:Math.round(sr*100)/100,n:'Sparrate '+n,every:1}),300)}}};draw()}
+   refreshA();for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();tell(n+' liegt jetzt im Vermögen.');if(!isNaN(sr)&&sr>0){const pa=pufAcc();setTimeout(()=>openRec(-1,{type:'tr',b:pa?pa.n:ALL[0],to:n,c:'',a:Math.round(sr*100)/100,n:'Sparrate '+n,every:1}),300)}}};draw()}
 function vaultRows(V,Vv){return `<div class="group" style="margin-top:10px">${V.map(n=>{const a=acc(n),r=rateNow(n);return `<div class="cell"><button class="cell" data-vkb="${esc(n)}" style="padding:0;flex:1;min-width:0;min-height:0"><div class="ico" style="background:color-mix(in srgb,${a.col||'#1F9D6B'} 16%,transparent);color:${a.col||'#1F9D6B'}">${I('lock')}</div><div class="t"><div>${esc(n)}</div><div class="s">${r?String(r).replace('.',',')+' % · Zinsen bisher '+Vv(eur(zinsAt(n,Date.now()))):'ohne Zinsen'}</div></div><div class="v">${Vv(eur(calc(n).rest))}</div></button><button class="link" data-vabg="${esc(n)}" style="margin-left:8px">Abgleichen</button></div>`}).join('')}</div>`}
 const vaultCash=()=>vaultAccs().filter(n=>!depot().some(h=>h.to==n));
 function balAt(n,t){const a=acc(n);if(a.baseD&&t<a.baseD)return 0;return rawBal(n,t)+zinsAt(n,t)}
@@ -580,7 +580,7 @@ function vaultChart(S0,V,show){if(S0.length<2)return '';const W=340,H=180,top=12
   const per=V.length<2?'':V.map((n,k)=>vOff[n]?'':`<polyline points="${line(x=>x.per[k])}" fill="none" stroke="${acc(n).col||PCOL[k%PCOL.length]}" stroke-width="1.6" opacity=".9"/>`).join('');
   const tips=S0.map(x=>tcHead(new Date(x.t).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short',year:'numeric'}))+(vOff.__tot?'':tcRow(V.length>1?'Vermögen':'',x.v,V.length>1?'#1F9D6B':'',!show))+(V.length<2?'':V.map((n,k)=>vOff[n]?'':tcRow(SHORT[n]||n,x.per[k],acc(n).col||PCOL[k%PCOL.length],!show)).join('')));
   return tcWrap(`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:400px" role="img" aria-label="Vermögensverlauf">${grid}${per}${vOff.__tot?'':`<polyline points="${line(x=>x.v)}" fill="none" stroke="#1F9D6B" stroke-width="2.6" stroke-linejoin="round"/><circle cx="${X(S0.length-1)}" cy="${Y(S0[S0.length-1].v)}" r="3.5" fill="#1F9D6B"/>`}${ticks}</svg>`,{W,H,xs:S0.map((_,i)=>X(i)),tips,y0:H-bot,y1:top})}
-function openVaultBase(){const V=vaultCash();if(!V.length){toast('Noch keine Sparkonten. Unter Einstellungen › Buchen & Kategorien › Sparkonten festlegen.');return}
+function openVaultBase(){const V=vaultCash();if(!V.length){tell('Noch keine Sparkonten. Unter Einstellungen › Buchen & Kategorien › Sparkonten festlegen.');return}
   const st=V.map(n=>{const a=acc(n);return{n,d:a.baseD?ymd(a.baseD+12*36e5):HISTD(),v:'',z:rateNow(n)?String(rateNow(n)).replace('.',','):'',zf:today()}});
   st.forEach(x=>{const t=new Date(x.d+'T00:00').getTime();x.v=String(Math.round((acc(x.n).baseVal!=null&&acc(x.n).baseD&&ymd(acc(x.n).baseD+12*36e5)==x.d?acc(x.n).baseVal:rawBal(x.n,t-1))*100)/100).replace('.',',')});
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Vermögen"><div class="sheet-h"><button id="vbX">Abbrechen</button><b>Bestand & Zinsen</b><button id="vbS" style="font-weight:600">Sichern</button></div>
@@ -599,7 +599,7 @@ function openVaultBase(){const V=vaultCash();if(!V.length){toast('Noch keine Spa
     st.forEach((x,i)=>{const a=acc(x.n),d=null,v=NaN,z=qNum($('vbZ'+i).value),zf=$('vbF'+i).value||d;
       if(d&&!isNaN(v)){const t=new Date(d+'T00:00').getTime(),net=S.exp.reduce((s,e)=>e.t>t-1||isPlan(e)?s:((e.type=='in'&&e.b==x.n)||(e.type=='tr'&&e.to==x.n))?s+e.a:((e.type=='out'||e.type=='tr')&&e.b==x.n)?s-e.a:s,0);a.baseD=t;a.baseVal=v;a.start=Math.round((v-net)*100)/100;a.baseAt=Date.now()}
       if(!isNaN(z)&&z!==rateNow(x.n)){a.rates=(a.rates||[]).filter(r=>r.from!=zf);a.rates.push({from:zf,p:z})}else if(isNaN(z)&&$('vbZ'+i).value.trim()===''&&rateNow(x.n)){a.rates=(a.rates||[]).filter(r=>r.from!=zf);a.rates.push({from:zf,p:0})}});
-    for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();toast('Sparkonto gesichert.',()=>{S.accts=JSON.parse(sa);refreshA();save();render()})}};
+    for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();tell('Sparkonto gesichert.',()=>{S.accts=JSON.parse(sa);refreshA();save();render()})}};
 function vaultSecHtml(show){const V=vaultCash();if(!V.length)return `<div class="sec" style="grid-column:1/-1"><div class="sh">Vermögen</div><div class="mmcard"><div class="srow" style="display:flex;align-items:center;gap:8px"><span class="s" style="color:var(--muted);font-size:13px;flex:1">Noch keine Sparkonten. Unter Einstellungen › Buchen & Kategorien › Sparkonten legst du fest, welche Konten dazugehören.</span>${eyeBtn()}</div></div></div>`;
   const S0=vaultSeries(),f=S0[0],l=S0[S0.length-1],sg=v=>v>0?'+':'',Vv=x=>show?x:'•••',dl=l.v-f.v;
   return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Vermögen · ${RGL[dRange]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span><button class="link" id="vInOpen">Einzahlen</button><button class="link" id="vbOpen">Zinsen</button></span></div>
@@ -617,8 +617,8 @@ function pufMoveDo(parts,label){const p=pufAcc();if(!p)return;const sn=snap(),gs
   parts.forEach(([t,a])=>{a=Math.round(a*100)/100;if(!a)return;const g=t.startsWith('goal:')?S.goals.find(x=>x.id==t.slice(5)):null;
     if(g){const tgt=g.acct&&ALL.includes(g.acct)?g.acct:(ALL.includes('Sinking Funds')?'Sinking Funds':vermAcc());const eid=uid();S.exp.push({id:eid,type:'tr',b:p.n,to:tgt,c:'',a,n:'Sparziel: '+g.n,t:Date.now(),tg:['puffer'],goal:g.id});g.dep.push({a,t:Date.now(),src:p.n,eid});done.push(eur(a)+' → '+g.n)}
     else{S.exp.push({id:uid(),type:'tr',b:p.n,to:t,c:'',a,n:'Puffer-Überschuss',t:Date.now(),tg:['puffer']});done.push(eur(a)+' → '+(SHORT[t]||t))}});
-  if(!done.length)return;save();$('sheetRoot').innerHTML='';render();toast((label||'Verschoben: ')+done.join(', '),()=>{restore(sn);S.goals=JSON.parse(gs);save();render()});if(S.cele!==false)celebrate(done.join(' · '))}
-function openPufMove(){const p=pufAcc();if(!p){toast('Kein Eingangskonto festgelegt.');return}const free=Math.max(pufVal(),0),ex=pufExcess();let amt=ex?String(ex).replace('.',','):'',to=vermAcc();
+  if(!done.length)return;save();$('sheetRoot').innerHTML='';render();tell((label||'Verschoben: ')+done.join(', '),()=>{restore(sn);S.goals=JSON.parse(gs);save();render()});if(S.cele!==false)celebrate(done.join(' · '))}
+function openPufMove(){const p=pufAcc();if(!p){tell('Kein Eingangskonto festgelegt.');return}const free=Math.max(pufVal(),0),ex=pufExcess();let amt=ex?String(ex).replace('.',','):'',to=vermAcc();
   const goals=S.goals.filter(g=>!g.done&&!g.dropped),accs=ALL.filter(a=>a!=p.n);
   const draw=()=>{const v=pNum(amt)||0,lk=isLock(to);
    $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Überschuss verschieben"><div class="sheet-h"><button id="pmX">Abbrechen</button><b>Verschieben</b><span style="min-width:70px"></span></div>
@@ -686,7 +686,7 @@ function openEinzahlung(pre){pre=pre||{};const pa=pufAcc(),VT=vaultCash();if(!VT
      if(!same){eid=uid();const e=ext?{id:eid,type:'in',b:T.acc,c:her,a,n:nm,t,tg:['einzahlung']}:{id:eid,type:'tr',b:src,to:T.acc,c:'',a,n:nm,t,tg:['einzahlung']};if(T.k=='goal')e.goal=T.g.id;S.exp.push(e)}
      if(T.k=='goal'){before=T.g.dep.reduce((s,x)=>s+x.a,0);T.g.dep.push({a,t,src:ext?'Von außen':src,eid})}
      if(!ext)S.lastEinSrc=src;save();$('sheetRoot').innerHTML='';if(T.k=='goal'&&T.g.ziel)growFrom[T.g.id]=Math.min(before/T.g.ziel,1);render();
-     toast(same?`${eur(a)} für ${T.lbl} reserviert.`:`${eur(a)} ${fut?'geplant':'eingezahlt'}: ${ext?'von außen':SHORT[src]||src} → ${T.lbl}`,()=>{restore(sn);S.goals=JSON.parse(gs);S.accts=JSON.parse(sa);refreshA();save();render()});
+     tell(same?`${eur(a)} für ${T.lbl} reserviert.`:`${eur(a)} ${fut?'geplant':'eingezahlt'}: ${ext?'von außen':SHORT[src]||src} → ${T.lbl}`,()=>{restore(sn);S.goals=JSON.parse(gs);S.accts=JSON.parse(sa);refreshA();save();render()});
      try{pnReact(T.k=='dep'?'chart':'coins')}catch(e){}
      if(T.k=='dep'&&buy)setTimeout(()=>openTrade(T.i,'buy',{book:false,amt:a,d:fut?today():d}),350)}};
   draw();renderAsst()}
@@ -699,7 +699,7 @@ function maybeAskPuf(force){const p=pufAcc();if(!p||$('sheetRoot').innerHTML||$(
   showAnswer('Monatsabschluss',`<b>${eur(ex)} übrig</b><p>Dein Puffer liegt nach allen Fixkosten über 1.000 €. Wohin soll der Überschuss?</p>`,[
     ['Alles in den Vermögensaufbau',()=>{mark();pufMoveDo([[v,ex]])}],
     ...(sk?[['Halb Vermögensaufbau, halb Sinking Funds',()=>{mark();pufMoveDo([[v,h1],[sk,ex-h1]])}]]:[]),
-    ['Selbst aufteilen',()=>{mark();openPufMove()}],['Bleibt im Puffer',()=>{mark();toast('Alles klar, der Überschuss bleibt im Puffer.')}]]);
+    ['Selbst aufteilen',()=>{mark();openPufMove()}],['Bleibt im Puffer',()=>{mark();tell('Alles klar, der Überschuss bleibt im Puffer.')}]]);
   $('ansX').onclick=$('scrim').onclick=()=>{mark();$('sheetRoot').innerHTML='';renderAsst()}}
 function vaultHtml(inner){const V=vaultAccs();if(!V.length||S.vaultHide)return '';const P=period(0),ys=new Date(new Date().getFullYear(),0,1).getTime();
   const cut=n=>acc(n).baseD||histT(),into=(e)=>e.t<=Date.now()&&((e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b)&&e.t>=cut(e.to))||(e.type=='in'&&V.includes(e.b)&&e.t>=cut(e.b)));

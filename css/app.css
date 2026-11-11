@@ -290,7 +290,7 @@ body:not(.mm) .apop{-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-f
 .apop-f{font-size:11px;color:var(--muted);text-align:center;padding:6px 0 10px}
 
 body.mm .tabbar{z-index:12}
-#toastRoot{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);display:flex;justify-content:center;z-index:30;pointer-events:none;padding-inline:16px}
+#toastRoot{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);bottom:auto;display:flex;justify-content:center;z-index:70;pointer-events:none;padding-inline:16px}
 .toast{pointer-events:auto;background:#1f2326;color:#fff;border-radius:14px;padding:11px 14px;display:flex;gap:14px;align-items:center;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:100%}
 .toast button{border:0;background:none;color:#CBB8FF;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.toast{animation:pop .2s ease-out}}
@@ -525,7 +525,7 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
  body[data-tab="list"] .fpanel{grid-column:1/-1}
  .sheet{top:50%;bottom:auto;left:50%;right:auto;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:88vh;border-radius:22px!important;animation:fade .2s ease!important;box-shadow:0 30px 80px rgba(0,0,0,.35)}
  #asstRoot{left:96px!important;bottom:24px!important}
- #toastRoot{left:76px;bottom:28px}
+ #toastRoot{left:76px;top:16px;bottom:auto}
  .apop{width:400px}
  .pad{max-width:300px!important}
  body.mm .view.detail{max-width:980px!important}
@@ -929,7 +929,8 @@ body[data-pz] .penny.pa .pn-eyes{transform:scaleY(.12)}body[data-pz] .penny.pa .
 @keyframes pnConf{0%{opacity:0;transform:translateY(10px) scale(.5)}15%{opacity:1;transform:translateY(-10px) scale(1.2)}100%{opacity:0;transform:translateY(30px) rotate(40deg)}}@keyframes pnTurn{50%{transform:scaleX(-1)}}
 @keyframes pnDizzy{0%{opacity:0;transform:rotate(0)}10%,85%{opacity:1}100%{opacity:0;transform:rotate(720deg)}}@keyframes pnWobble{25%{transform:rotate(-6deg)}50%{transform:rotate(5deg)}75%{transform:rotate(-3deg)}}
 @keyframes pnZ{0%{opacity:0;transform:translate(0,4px)}40%{opacity:1}100%{opacity:0;transform:translate(4px,-6px)}}
-#pnSay{position:fixed;z-index:40;max-width:220px;padding:9px 13px;border-radius:16px;background:#fff;color:#1F1A33;font-size:14px;font-weight:600;line-height:1.3;filter:drop-shadow(0 6px 14px rgba(20,16,40,.24));pointer-events:none;opacity:0;transform:translateY(6px) scale(.9);transform-origin:0 100%;transition:opacity .2s,transform .25s cubic-bezier(.3,1.5,.5,1)}#pnSay.on{opacity:1;transform:none}#pnSay.dn{transform-origin:100% 0}#pnSay::after{content:'';position:absolute;left:16px;bottom:-8px;width:16px;height:9px;background:#fff;clip-path:polygon(0 0,100% 0,20% 100%)}#pnSay.dn::after{left:auto;right:16px;bottom:auto;top:-8px;clip-path:polygon(80% 0,100% 100%,0 100%)}#pnSay.act.on{pointer-events:auto;cursor:pointer}#pnSay.act:active{transform:scale(.97)}
+#pnSay{position:fixed;z-index:40;max-width:260px;padding:9px 13px;border-radius:16px;background:#fff;color:#1F1A33;font-size:14px;font-weight:600;line-height:1.3;filter:drop-shadow(0 6px 14px rgba(20,16,40,.24));pointer-events:none;opacity:0;transform:translateY(6px) scale(.9);transform-origin:0 100%;transition:opacity .2s,transform .25s cubic-bezier(.3,1.5,.5,1)}#pnSay.on{opacity:1;transform:none}#pnSay.dn{transform-origin:100% 0}#pnSay::after{content:'';position:absolute;left:16px;bottom:-8px;width:16px;height:9px;background:#fff;clip-path:polygon(0 0,100% 0,20% 100%)}#pnSay.dn::after{left:auto;right:16px;bottom:auto;top:-8px;clip-path:polygon(80% 0,100% 100%,0 100%)}#pnSay.act.on{pointer-events:auto;cursor:pointer}#pnSay.act:active{transform:scale(.97)}
+/* v265: Bestätigung mit Rückgängig in Pennys Blase */#pnSay b{font-weight:800}#pnSay .pnU{display:block;margin-top:6px;padding:0;border:0;background:none;color:#6D28D9;font:inherit;font-weight:800;cursor:pointer}#pnSay.un{padding-bottom:12px}#pnSay.un::before{content:'';position:absolute;left:13px;right:13px;bottom:5px;height:3px;border-radius:2px;background:#8B5CF6;transform-origin:0 0;animation:pnUndo 5s linear forwards}@keyframes pnUndo{to{transform:scaleX(0)}}
 body.pn-sync .penny.pa .pn-ant{animation:pnSat 1s linear infinite}body.pn-off .penny.pa .pn-ant{transform:rotate(38deg) translate(-1px,2px)}body.pn-off .penny.pa .pn-ball{fill:#9CA3AF;animation:none}
 .penny .pn-halo{animation:pnHalo 3s ease-in-out infinite}.penny .pn-flame{transform-origin:50% 100%;animation:pnFlame .5s ease-in-out infinite alternate}
 .penny .pn-chl{stroke-dasharray:24;stroke-dashoffset:0}.penny .pn-pgf{transform-origin:0 50%;transform:scaleX(var(--pnp,.5))}
