@@ -40,9 +40,10 @@ function asstDrag(){const g=$('aGrab'),p=document.querySelector('#asstRoot .apop
   g.addEventListener('touchend',()=>{if(y0==null)return;y0=null;p.style.transition='';const r=p.getBoundingClientRect().height/innerHeight;if(r<.22){asstOpen=false;renderAsst();return}ASH=r<.45?'third':r<.72?'half':'full';p.style.height=ASHV[ASH]})}
 
 /* Penny-Chatverlauf (nur lokal) */
+/* Wiederaufbau von Knopf-Aktionen beim Öffnen aus dem Verlauf (Funktionen lassen sich nicht speichern) */const ACTREB={};
 const chatsGet=()=>{try{return JSON.parse(localStorage.getItem('cfChats')||'[]')}catch(e){return[]}},chatsPut=l=>{try{localStorage.setItem('cfChats',JSON.stringify(l.slice(0,30)))}catch(e){}};
 const chatTitle=ms=>{const q=(ms.find(m=>m.q)||{}).q;return q?(q.length>28?q.slice(0,27)+'…':q):ms.length?'Tagesbrief':'Neuer Chat'};
-function chatSync(){if(!AQ.msgs.length)return;AQ.msgs.forEach(m=>{if(!m.t)m.t=Date.now()});if(!AQ.id)AQ.id=Date.now();const l=chatsGet().filter(c=>c.id!=AQ.id);l.unshift({id:AQ.id,t:Date.now(),ti:chatTitle(AQ.msgs),msgs:AQ.msgs.map(m=>({q:m.q||'',h:m.h,t:m.t}))});chatsPut(l)}
+function chatSync(){if(!AQ.msgs.length)return;AQ.msgs.forEach(m=>{if(!m.t)m.t=Date.now()});if(!AQ.id)AQ.id=Date.now();const l=chatsGet().filter(c=>c.id!=AQ.id);l.unshift({id:AQ.id,t:Date.now(),ti:chatTitle(AQ.msgs),msgs:AQ.msgs.map(m=>({q:m.q||'',h:m.h,t:m.t,ad:m.ad}))});chatsPut(l)}
 let asstHist=false;
 /* v240: ein Hinweis-Kanal – Penny erzeugt, Badge und Heute zeigen nur Pennys Hinweise */let PNN=0,PNTOP=null;let asstAll=false,asstTips=false,asstPlus=false,asstOpTip=0;function renderAsst(){pnTick();pnPage();const r=$('asstRoot');if(!r)return;chatSync();const hl=asstOpen?chatsGet():[],hc=hl.length;if(!asstOpen)asstHist=false;document.body.classList.toggle('asst-open',!!asstOpen&&!$('sheetRoot').innerHTML);const clip=typeof clipAsk!='undefined'&&clipAsk&&featOn('shopclip'),t0=tipsList(),hide=!!$('sheetRoot').innerHTML||setView=='import';
   if(hide){r.innerHTML='';return}
@@ -64,7 +65,7 @@ let asstHist=false;
     {const ho=()=>{asstHist=true;asstTips=false;asstPlus=false;renderAsst()},hx=()=>{asstHist=false;renderAsst()};$('aHist').onclick=ho;if($('aPill'))$('aPill').onclick=ho;if($('ahX'))$('ahX').onclick=hx;if($('ahDim'))$('ahDim').onclick=hx;
      if($('ahNew'))$('ahNew').onclick=()=>{AQ.msgs=[];AQ.id=0;AQ.ctx=null;asstHist=false;renderAsst()};
      r.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=+b.dataset.hdel;chatsPut(chatsGet().filter(c=>c.id!=id));if(id==AQ.id){AQ.msgs=[];AQ.id=0}renderAsst()});
-     r.querySelectorAll('[data-hc]').forEach(b=>{const f=()=>{const c=chatsGet().find(x=>x.id==+b.dataset.hc);if(!c)return;AQ.msgs=c.msgs.map(m=>({...m}));AQ.id=c.id;asstHist=false;renderAsst();aiScroll()};b.onclick=f;b.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();f()}}})}
+     r.querySelectorAll('[data-hc]').forEach(b=>{const f=()=>{const c=chatsGet().find(x=>x.id==+b.dataset.hc);if(!c)return;AQ.msgs=c.msgs.map(m=>{const x={...m};if(x.ad&&ACTREB[x.ad.k])x.a=ACTREB[x.ad.k](x.ad);return x});AQ.id=c.id;asstHist=false;renderAsst();aiScroll()};b.onclick=f;b.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();f()}}})}
     $('aqForm').onsubmit=e=>{e.preventDefault();const v=$('aqI').value;$('aqI').value='';document.body.classList.remove('pn-ty');pnReact('nod');asstAsk(v)};$('aqI').addEventListener('input',pnType);
     $('aqMic').onclick=()=>pnReact('ear')||listen(v=>asstAsk(v),$('aqI'),'Ich höre zu …');
     bindChips();asstDrag();if($('aDim'))$('aDim').onclick=e=>{e.stopPropagation();asstOpen=false;renderAsst()};$('aqI').oninput=()=>{const b=$('aChips');if(b){b.innerHTML=chipsHtml($('aqI').value);bindChips()}};
@@ -72,7 +73,7 @@ let asstHist=false;
     r.querySelectorAll('[data-atog]').forEach(b=>{const f=()=>{const i=+b.dataset.atog;asstOpTip=asstOpTip==i?-1:i;renderAsst()};b.onclick=f;b.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();f()}}});
     $('aqPlus').onclick=()=>{asstPlus=!asstPlus;renderAsst()};if($('aClip'))$('aClip').onclick=()=>{asstPlus=false;asstOpen=false;renderAsst();TIPFN.clipGo()};
     {const ap=r.querySelector('.apop'),qi=$('aqI');qi.onfocus=()=>ap.classList.add('typing');qi.onblur=()=>setTimeout(()=>{if(document.activeElement!==qi)ap.classList.remove('typing')},250)}
-    r.querySelectorAll('[data-afu]').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=AQ.msgs[AQ.msgs.length-1],t=m&&m.f&&m.f[+b.dataset.afu];if(t)fuGo(t)});document.querySelectorAll('[data-aact]').forEach(b=>b.onclick=()=>{const[mi,xi]=b.dataset.aact.split('|').map(Number);const f=AQ.msgs[mi]&&AQ.msgs[mi].a&&AQ.msgs[mi].a[xi];if(f){asstOpen=false;renderAsst();f[1]()}});
+    r.querySelectorAll('[data-afu]').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=AQ.msgs[AQ.msgs.length-1],t=m&&m.f&&m.f[+b.dataset.afu];if(t)fuGo(t)});document.querySelectorAll('[data-aact]').forEach(b=>b.onclick=()=>{const[mi,xi]=b.dataset.aact.split('|').map(Number);const m=AQ.msgs[mi],f=m&&m.a&&m.a[xi];if(f){if(f[2]){m.a=null;delete m.ad}asstOpen=false;renderAsst();f[1]()}});
     r.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>openJournal(b.dataset.jr));
     r.querySelectorAll('[data-aex]').forEach(b=>b.onclick=()=>{const e=S.exp.find(x=>x.id==b.dataset.aex);if(e)openSheet(e)});
     r.querySelectorAll('.atip').forEach(el=>{let x0=null,y0=null,dx=0,drag=false;

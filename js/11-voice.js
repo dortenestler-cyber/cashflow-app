@@ -244,11 +244,22 @@ function clipOne(t,say,trust){
   const one=P.recs.length==1,r0=P.recs[0];
   say(`<p>${one?'Buchung':'Buchungen'} erkannt:</p>${P.recs.map(clipLine).join('')}${P.bad.length?`<p class="s">Nicht erkannt: ${esc(P.bad.join(', '))}</p>`:''}`,
    [[one?'Buchen':'Alle buchen',()=>clipCommit(P.recs)],...(one?[['Bearbeiten',()=>openSheet(null,clipPre(r0))]]:[]),['Verwerfen',()=>{}]])}
+/* Aktionen der Siri-/Apple-Pay-Karte aus Daten bauen, damit sie auch nach Wiederöffnen aus dem Verlauf funktionieren. Drittes Feld 1 = Karte danach erledigt */
+const clipMark=keys=>{S.clipSeen=[...(S.clipSeen||[]),...keys].slice(-400);save()};
+function clipActs(d){const recs=d.recs||[],dups=d.dups||[],open=d.open||[],acts=[];
+ if(recs.length)acts.push([recs.length==1?'Buchen':'Alle '+recs.length+' buchen',()=>{clipMark([...recs.map(r=>r.key),...dups.map(r=>r.key)]);clipCommit(recs)},1]);
+ recs.slice(0,3).forEach(r=>acts.push([recs.length==1?'Bearbeiten':'Bearbeiten: '+esc(r.n||r.c),()=>{clipMark([r.key]);openSheet(null,clipPre(r))}]));
+ open.slice(0,3).forEach(o=>acts.push(['Eingeben: '+esc(o.pre.n).slice(0,24),()=>{clipMark([o.key]);openSheet(null,o.pre)}]));
+ if(dups.length)acts.push(['Trotzdem buchen ('+dups.length+')',()=>{clipMark(dups.map(r=>r.key));clipCommit(dups)},1]);
+ if(recs.length||open.length||dups.length)acts.push(['Verwerfen',()=>clipMark([...recs.map(r=>r.key),...open.map(o=>o.key),...dups.map(r=>r.key)]),1]);
+ if(d.shop)acts.push(['Zettel öffnen',()=>{prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0)}]);
+ return acts}
+ACTREB.clip=clipActs;
 const CLIPPFX=/^(apple ?pay\b|buchung\s*:|einkauf(?:sliste|szettel)?\s*:)/i;
 Object.assign(TIPFN,{
  clipGo:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}return TIPFN.clipRun((t||'').trim())},
  clipRun:t=>{
-  const say=(h,a,q)=>{AQ.msgs.push({q:q!=null?q:(t?'Von Siri: „'+t.slice(0,80)+(t.length>80?'…':'')+'“':''),h,a:a||[]});asstOpen=true;renderAsst()};
+  const say=(h,a,q,ad)=>{AQ.msgs.push({q:q!=null?q:(t?'Von Siri: „'+t.slice(0,80)+(t.length>80?'…':'')+'“':''),h,a:a||[],ad});asstOpen=true;renderAsst()};
   if(!t){say('<p>Die Zwischenablage ist leer oder das Einfügen wurde nicht erlaubt.</p>',[['Einkaufsliste einfügen',()=>{shopS().paste='';prevTab=tab;tab='more';setView='shop';render()}],['Neue Buchung',()=>openSheet()]]);return}
   const lines0=t.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean),trust=new Set(),lines=lines0.map(x=>{if(CLIPMK.test(x)){x=x.replace(CLIPMK,'').trim();trust.add(x)}else if(CLIPPFX.test(x))trust.add(x);return x}).filter(Boolean);
   if(!lines.length){say('<p>Die Zwischenablage ist leer.</p>');return}
@@ -261,7 +272,7 @@ Object.assign(TIPFN,{
   const fresh=items.filter(o=>o.kind!='skip'&&!(o.ts&&Date.now()-o.ts>3*864e5)).filter(o=>o.dd?!seen.has(o.key):t!==S.clipLast);
   if(!fresh.length&&(skipN||oldN)){S.clipLast=t;save();say('<p>Nichts Neues übernommen'+(oldN?': '+oldN+' Einträge sind älter als 3 Tage':'')+(skipN?(oldN?', ':': ')+skipN+' Zeilen stammen nicht von einem Kurzbefehl':'')+'.</p>');return}
   if(!fresh.length){say('<p>Das habe ich schon alles übernommen.</p>');return}
-  const mark=keys=>{S.clipSeen=[...(S.clipSeen||[]),...keys].slice(-400);save()};S.clipLast=t;
+  const mark=clipMark;S.clipLast=t;
   const shopN=[];fresh.filter(o=>o.kind=='shop').forEach(o=>shopN.push(...(shopVoice(o.strip)||[])));
   const misc=fresh.filter(o=>o.kind=='misc').map(o=>{const r=siriApplyOne(o.body);return r.ok?r.lab:'Nicht übernommen: '+r.why});
   const asks=fresh.filter(o=>o.kind=='ask'),urge=fresh.some(o=>o.kind=='urge'),empty=fresh.filter(o=>o.kind=='empty');
@@ -274,13 +285,8 @@ Object.assign(TIPFN,{
   if(!recs.length&&!open.length&&!misc.length&&!empty.length&&!dups.length&&shopN.length){prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0);shopVoiceDone(shopN)}
   else{const cnt=[shopN.length&&shopN.length+' Artikel',dups.length&&dups.length+' schon gebucht',recs.filter(r=>r.tag=='applepay').length&&recs.filter(r=>r.tag=='applepay').length+' Apple Pay',recs.filter(r=>r.tag!='applepay').length&&recs.filter(r=>r.tag!='applepay').length+' Buchung'+(recs.filter(r=>r.tag!='applepay').length>1?'en':''),open.length&&open.length+' offen'].filter(Boolean).join(' · ');
    const h=`${shopN.length?`<p>${I('cart',14)} Auf den Einkaufszettel: ${esc(shopN.join(', '))}</p>`:''}${misc.length?`<p>${misc.map(esc).join('<br>')}</p>`:''}${recs.length?`<p>Bitte bestätigen:</p>${recs.map(clipLine).join('')}`:''}${open.length?`<p>${open.map(o=>o.lab).join('<br>')}</p>`:''}${dups.length?`<p class="s">Schon gebucht, daher übersprungen: ${dups.map(r=>esc((r.n||r.c)+' '+eur(r.a))+' (wie '+esc(r.dupOf)+')').join(', ')}</p>`:''}${skipN||oldN?`<p class="s">Ignoriert: ${[skipN&&skipN+' fremde Zeile'+(skipN>1?'n':''),oldN&&oldN+' älter als 3 Tage'].filter(Boolean).join(', ')}.</p>`:''}${empty.length?`<p class="s">Leer übergeben: ${empty.map(o=>'„'+esc(o.body)+'“').join(', ')}. Prüfe im Kurzbefehl, ob die Variable <b>Diktierter Text</b> im Text steht.</p>`:''}`;
-   const acts=[];if(recs.length)acts.push([recs.length==1?'Buchen':'Alle '+recs.length+' buchen',()=>{mark([...recs.map(r=>r.key),...dups.map(r=>r.key)]);clipCommit(recs)}]);
-   recs.slice(0,3).forEach(r=>acts.push([recs.length==1?'Bearbeiten':'Bearbeiten: '+esc(r.n||r.c),()=>{mark([r.key]);openSheet(null,clipPre(r))}]));
-   open.slice(0,3).forEach(o=>acts.push(['Eingeben: '+esc(o.pre.n).slice(0,24),()=>{mark([o.key]);openSheet(null,o.pre)}]));
-   if(dups.length)acts.push(['Trotzdem buchen ('+dups.length+')',()=>{mark(dups.map(r=>r.key));clipCommit(dups)}]);
-   if(recs.length||open.length||dups.length)acts.push(['Verwerfen',()=>mark([...recs.map(r=>r.key),...open.map(o=>o.key),...dups.map(r=>r.key)])]);
-   if(shopN.length)acts.push(['Zettel öffnen',()=>{prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0)}]);
-   say(h,acts,'Von Siri & Apple Pay: '+(cnt||'nichts Neues'))}
+   const ad={k:'clip',recs,dups,open,shop:shopN.length>0},acts=clipActs(ad);
+   say(h,acts,'Von Siri & Apple Pay: '+(cnt||'nichts Neues'),recs.length||dups.length||open.length?ad:undefined)}
   asks.forEach(o=>asstAsk(o.body));if(urge)openUrge()},
  clipNo:()=>{clipAsk=false;renderAsst()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')clipHidAt=Date.now();else if(clipHidAt&&Date.now()-clipHidAt>30*60e3)setTimeout(clipPrompt,600)});setTimeout(clipPrompt,1500);
