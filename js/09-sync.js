@@ -358,7 +358,7 @@ async function syFetch(path,opt={},auth=true){const h=Object.assign({apikey:SY.k
   const r=await fetch(SY.url.replace(/\/$/,'')+path,Object.assign({},opt,{headers:h}));if(r.status==401&&auth&&!opt._retry){await syRefresh();return syFetch(path,Object.assign({},opt,{_retry:1}),auth)}return r}
 async function syAuthSet(j){if(!j.access_token)throw new Error(j.error_description||j.msg||j.error||'Anmeldung fehlgeschlagen');SY.access=j.access_token;SY.refresh=j.refresh_token;SY.exp=Date.now()+(j.expires_in||3600)*1000;SY.uid=j.user&&j.user.id||SY.uid;SY.email=j.user&&j.user.email||SY.email;sySave()}
 async function syRefresh(){const r=await fetch(SY.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SY.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:SY.refresh})});
-  const j=await r.json().catch(()=>({}));if(!r.ok){SY.refresh=null;SY.access=null;sySave();throw new Error('Sitzung abgelaufen. Bitte neu anmelden.')}await syAuthSet(j)}
+  const j=await r.json().catch(()=>({}));if(!r.ok){if(r.status==400||r.status==401){SY.refresh=null;SY.access=null;sySave();throw new Error('Sitzung abgelaufen. Bitte neu anmelden.')}throw new Error('Keine Verbindung zu Supabase ('+r.status+'). Später erneut versuchen.')}await syAuthSet(j)}
 async function syGet(){const r=await syFetch('/rest/v1/cashflow?select=*&user_id=eq.'+SY.uid);if(!r.ok)throw new Error('Laden fehlgeschlagen ('+r.status+'). Ist die Tabelle angelegt?');const a=await r.json();return a[0]||null}
 setTimeout(()=>{try{syMarkKeys()}catch(e){}},0);
 function syBase(st){syIds(st);const b={};COLS.forEach(c=>b[c]=cGet(st,c).map(x=>x&&x.id).filter(Boolean));return b}
@@ -412,7 +412,7 @@ async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,'')
     await sync(false);render();toast(row?'Verbunden. Deine Daten sind auf diesem Gerät.':'Verbunden. Deine Daten sind jetzt verschlüsselt online gesichert.')}
   catch(e){$('syErr').textContent=e.message||String(e)}}
 const confirmMerge=false;
-function syLogout(wipe){if(SY.access)fetch(SY.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SY.key,Authorization:'Bearer '+SY.access}}).catch(()=>{});
+function syLogout(wipe){if(SY.access)fetch(SY.url+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:SY.key,Authorization:'Bearer '+SY.access}}).catch(()=>{});
   const keep={url:SY.url,key:SY.key,email:SY.email};SY=keep;syKey=null;sySave();
   if(wipe){try{localStorage.removeItem('dodo4')}catch(e){}location.reload();return}render();toast('Abgemeldet.')}
 function viewSync(){const on=syOn(),need=on&&!SY.k&&!syKey;
