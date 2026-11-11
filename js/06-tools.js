@@ -467,17 +467,40 @@ function viewRefund(){const L=refunds().sort((a,b)=>(a.rf.due||'9')<(b.rf.due||'
   ${G.length?`<div class="sec"><div class="sh">Erhalten</div><div class="group">${G.map(row).join('')}</div></div>`:''}`}
 /* 6 Belege & Garantien */
 let docQ='',docF='';
-const DOCF=[['','Alle'],['foto','Fotos'],['pdf','PDFs'],['warr','Garantie'],['tax','Steuer']],hasDoc=e=>!!(e.img||e.doc);
-function viewDocs(){const q=docQ.toLowerCase().trim(),fit={foto:e=>e.img||(e.doc&&e.doc.typ!='pdf'),pdf:e=>e.doc&&e.doc.typ=='pdf',warr:e=>e.warr,tax:e=>e.tax&&hasDoc(e)}[docF]||(()=>true),
+const DOCART=[['kauf','Kaufbeleg'],['rech','Rechnung'],['vert','Vertrag'],['schr','Schreiben']],artOf=e=>e.art||(e.ctr?'vert':'kauf'),artLab=k=>(DOCART.find(x=>x[0]==k)||DOCART[0])[1],
+ DOCF=[['','Alle'],...DOCART,['warr','Garantie'],['tax','Steuer']],hasDoc=e=>!!(e.img||e.doc);let docFor='';
+function viewDocs(){const q=docQ.toLowerCase().trim(),fit=DOCART.some(x=>x[0]==docF)?e=>hasDoc(e)&&artOf(e)==docF:{warr:e=>e.warr,tax:e=>e.tax&&hasDoc(e)}[docF]||(()=>true),
   L=S.exp.filter(e=>(hasDoc(e)||e.warr)&&!isPlan(e)&&fit(e)&&(!q||[e.n,e.c,e.sc,e.p,(e.doc||{}).name,(e.tg||[]).join(' ')].join(' ').toLowerCase().includes(q))).sort((a,b)=>b.t-a.t),soon=S.exp.filter(e=>e.warr&&e.warr>=today()&&e.warr<=ymd(Date.now()+60*864e5)),M=[];
   L.forEach(e=>{const k=new Date(e.t).toLocaleDateString('de-DE',{month:'long',year:'numeric'});if(!M.length||M[M.length-1][0]!=k)M.push([k,[]]);M[M.length-1][1].push(e)});
-  const row=e=>{const wl=e.warr?Math.ceil((new Date(e.warr+'T12:00')-Date.now())/864e5):null;return `<button class="cell" data-doc="${esc(e.id)}">${docThumb(e)||`<div class="ico" style="background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)">${I('shield',16)}</div>`}<div class="t"><div>${esc(e.n||e.c||'Beleg')}</div><div class="s">${dLong(e.t)} · ${esc(SHORT[e.b]||e.b)}${e.warr?` · <span class="${wl<0?'':wl<=60?'out':'in'}">${wl<0?'Garantie abgelaufen':'Garantie bis '+dLong(e.warr)}</span>`:''}</div></div><div class="v">${eur(e.a)}</div></button>`};
+  const row=e=>{const wl=e.warr?Math.ceil((new Date(e.warr+'T12:00')-Date.now())/864e5):null;return `<button class="cell" data-doc="${esc(e.id)}">${docThumb(e)||`<div class="ico" style="background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)">${I('shield',16)}</div>`}<div class="t"><div>${esc(e.n||e.c||'Beleg')}</div><div class="s">${hasDoc(e)?artLab(artOf(e))+' · ':''}${dLong(e.t)} · ${esc(SHORT[e.b]||e.b)}${docExtra(e)}${e.warr?` · <span class="${wl<0?'':wl<=60?'out':'in'}">${wl<0?'Garantie abgelaufen':'Garantie bis '+dLong(e.warr)}</span>`:''}</div></div><div class="v">${eur(e.a)}</div></button>`};
   return `${appbar({title:'Belege & Garantien',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${S.exp.filter(hasDoc).length} Belege</span><b>${S.exp.filter(e=>e.warr&&e.warr>=today()).length} Garantien aktiv</b></div><div class="hc-line">${soon.length?soon.length+' laufen in den nächsten 60 Tagen ab':'keine Garantie läuft bald ab'}</div>`})}
   <div class="search" style="margin-bottom:10px"><span style="color:var(--muted)">${I('search',16)}</span><input id="docQ" placeholder="z. B. Staubsauger, MediaMarkt" value="${esc(docQ)}" autocomplete="off"></div>
   <div class="chips" style="margin-bottom:10px">${DOCF.map(([k,l])=>`<button class="chip ${docF==k?'on':''}" data-docf="${k}">${l}</button>`).join('')}</div>
   ${docErr?`<div class="tip">${esc(docErr)}</div>`:''}
-  ${M.map(([k,A])=>`<div class="sec"><div class="sh">${esc(k)}</div><div class="group">${A.map(row).join('')}</div></div>`).join('')||'<div class="group"><div class="empty">Keine Belege gefunden. Fotos, PDFs und „Garantie bis“ fügst du im Buchungsfenster unter „Mehr“ hinzu.</div></div>'}
+  <label class="btn soft" id="docAddL" for="docAddIn" style="margin-bottom:14px">${I('plus',18)} Beleg hinzufügen</label><input id="docAddIn" type="file" accept="image/*,application/pdf,.pdf" hidden>
+  ${!q&&!docF?docMissHtml():''}
+  ${M.map(([k,A])=>`<div class="sec"><div class="sh">${esc(k)}</div><div class="group">${A.map(row).join('')}</div></div>`).join('')||'<div class="group"><div class="empty">Keine Belege gefunden.</div></div>'}
   `}
+/* Belege: Art, Fälligkeit, Vertrag, Hinzufügen, fehlende Belege */
+const ymdD=v=>{const[y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d,12)},dTT=v=>{const d=ymdD(v);return d.getDate()+'.'+(d.getMonth()+1)+'.'};
+function docExtra(e){const k=hasDoc(e)?artOf(e):'';if(k=='rech'&&e.due){const dl=Math.ceil((ymdD(e.due)-Date.now())/864e5);return ` · <span class="${isPlan(e)&&dl<=3?'out':''}">${isPlan(e)?'fällig '+dTT(e.due):'bezahlt'}</span>`}
+  if(k=='vert'&&e.ctr){const c=(S.contracts||[]).find(c=>c.id==e.ctr);return c?' · '+esc(c.n):''}return ''}
+function docMissHtml(){const L=S.exp.filter(e=>e.type=='out'&&!hasDoc(e)&&!isPlan(e)&&e.a>=50&&e.t>Date.now()-30*864e5&&!(typeof isRecE=='function'&&isRecE(e))&&!e.corr).sort((a,b)=>b.a-a.a).slice(0,5);if(!L.length)return '';
+  return `<div class="sec"><div class="sh">Beleg fehlt?</div><div class="group">${L.map(e=>`<label class="cell" for="docAddIn" data-docfor="${esc(e.id)}"><div class="ico" style="background:var(--fill);color:var(--muted)">${I('receipt',16)}</div><div class="t"><div>${esc(e.n||e.c||'Ausgabe')}</div><div class="s">${dLong(e.t)} · ${esc(SHORT[e.b]||e.b)}</div></div><div class="v">${eur(e.a)}</div></label>`).join('')}</div></div>`}
+function docAttach(e,r){const sn=JSON.stringify({img:e.img,doc:e.doc});e.doc=r.doc;e.img=r.img;save();render();tell(`Beleg an „${e.n||e.c||'Buchung'}“ (<b>${eur(e.a)}</b>) angehängt.`,()=>{const o=JSON.parse(sn);e.doc=o.doc;e.img=o.img;if(!e.doc)delete e.doc;if(!e.img)delete e.img;save();render()})}
+async function docAdd(f){let r;try{r=await docPick(f)}catch(err){tell(err.message||String(err));return}
+  const tgt=docFor&&S.exp.find(x=>x.id==docFor);docFor='';if(tgt)return docAttach(tgt,r);
+  const C=S.exp.filter(e=>e.type=='out'&&!hasDoc(e)&&e.t>Date.now()-14*864e5&&e.t<Date.now()+60*864e5).sort((a,b)=>b.t-a.t).slice(0,5),a=C.map(e=>[`${e.n||e.c||'Ausgabe'} · ${eur(e.a)} · ${dTT(ymd(e.t))}`,()=>docAttach(e,r)]);
+  a.push(['Neue Buchung damit',()=>{openSheet();E.doc=r.doc;E.img=r.img;drawSheet();if(aiOn()&&(r.doc.typ!='pdf'||f.size<=5*1048576))aiReceipt(r.src)}]);a.push(['Abbrechen',()=>{}]);
+  AQ.msgs.push({q:'Beleg zuordnen',h:`<p>${C.length?'Zu welcher Buchung gehört der Beleg?':'Keine passende Buchung aus den letzten 14 Tagen.'}</p>`,a});asstOpen=true;renderAsst()}
+function docArtHtml(e){if(!hasDoc(e))return '';const k=artOf(e),C=S.contracts||[];
+  return `<div class="docv-art"><div class="chips">${DOCART.map(([x,l])=>`<button class="chip ${k==x?'on':''}" data-dart="${x}">${l}</button>`).join('')}</div>
+  ${k=='rech'?`<div class="docv-f"><label for="dvDue">Fällig am <small>optional</small></label><input type="date" id="dvDue" value="${esc(e.due||'')}"></div>`:''}
+  ${k=='vert'&&C.length?`<div class="docv-f"><label for="dvCtr">Vertrag</label><select id="dvCtr"><option value="">–</option>${C.map(c=>`<option value="${esc(c.id)}" ${e.ctr==c.id?'selected':''}>${esc(c.n)}</option>`).join('')}</select></div>`:''}</div>`}
+function docArtBind(e,redraw){document.querySelectorAll('[data-dart]').forEach(b=>b.onclick=()=>{const k=b.dataset.dart;e.art=k;if(k!='rech')delete e.due;if(k!='vert'&&e.ctr)delete e.ctr;save();render();redraw()});
+  const du=$('dvDue');if(du)du.onchange=()=>{const v=du.value,sn=e.t;if(v){e.due=v;if(v>today())e.t=ymdD(v).getTime()}else delete e.due;save();render();redraw();
+    tell(v&&v>today()?`Als geplante Zahlung am ${dTT(v)} eingetragen.`:v?'Fälligkeit gespeichert.':'Fälligkeit entfernt.',v&&v>today()?()=>{e.t=sn;save();render()}:undefined)};
+  const ct=$('dvCtr');if(ct)ct.onchange=()=>{if(ct.value)e.ctr=ct.value;else delete e.ctr;save();render()}}
 /* 10 Steuer */
 let taxY=new Date().getFullYear();
 function taxData(y){const L=S.exp.filter(e=>e.tax&&!isPlan(e)&&new Date(e.t).getFullYear()==y).sort((a,b)=>a.t-b.t),G={};L.forEach(e=>{(G[e.tax]=G[e.tax]||[]).push(e)});return{L,G,sum:L.reduce((s,e)=>s+e.a,0)}}
@@ -576,7 +599,7 @@ function bindIdeas(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f},all=(s
     all('[data-pjpa]',b=>{const x=projs().find(q=>q.id==b.dataset.pjpa);if(!x)return;const v=prompt('Mit wem teilst du '+x.n+'? Namen mit Komma trennen:');const nm=(v||'').split(/[,;]+/).map(s=>s.trim().slice(0,30)).filter(Boolean);if(!nm.length)return;if(!x.people||!x.people.length)x.people=[{id:'me',n:'Ich'}];nm.forEach(n=>x.people.push({id:uid(),n}));save();render()});
     document.querySelectorAll('.projc [data-e],.projc .cell[data-id]').forEach(()=>{})}
   if(setView=='refund')all('[data-rfg]',b=>refundGot(b.dataset.rfg));
-  if(setView=='docs'){const q=$('docQ');if(q){q.oninput=()=>{docQ=q.value;const pos=q.selectionStart;render();const q2=$('docQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos)}catch(e){}}}}all('[data-docf]',b=>{docF=b.dataset.docf;render()});all('[data-doc]',b=>{const e=S.exp.find(x=>x.id==b.dataset.doc);if(e)hasDoc(e)?docView(e,true):openSheet(e)})}
+  if(setView=='docs'){const q=$('docQ');if(q){q.oninput=()=>{docQ=q.value;const pos=q.selectionStart;render();const q2=$('docQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos)}catch(e){}}}}all('[data-docf]',b=>{docF=b.dataset.docf;render()});all('[data-doc]',b=>{const e=S.exp.find(x=>x.id==b.dataset.doc);if(e)hasDoc(e)?docView(e,true):openSheet(e)});all('[data-docfor]',b=>{docFor=b.dataset.docfor});const di=$('docAddIn');if(di)di.onchange=ev=>{const f=ev.target.files[0];ev.target.value='';if(f)docAdd(f);else docFor=''};if($('docAddL'))$('docAddL').onclick=()=>{docFor=''}}
   if(setView=='tax'){all('[data-ty]',b=>{taxY=+b.dataset.ty;render()});on('taxPdf',taxPrint)}
   if(setView=='yearrev'){all('[data-yy]',b=>{yrY=+b.dataset.yy;render()});const sc=$('yrs');if(sc)sc.onscroll=()=>{const i=Math.round(sc.scrollLeft/sc.clientWidth);document.querySelectorAll('#yrDots i').forEach((d,k)=>d.classList.toggle('on',k==i))};
     on('yrShare',()=>{const D=yearData(yrY||new Date().getFullYear()),txt=`Mein Jahr ${D.y} mit CashFlow: ${eur0(D.inc-D.out)} unterm Strich, ${eur0(D.saved+D.bav)} fürs Alter zurückgelegt, ${D.nW} Impulsen widerstanden (${eur0(D.letGo)}), ${D.ns} ausgabenfreie Tage.`;try{navigator.clipboard.writeText(txt);$('yrMsg').textContent='Kopiert.'}catch(e){$('yrMsg').textContent=txt}})}
