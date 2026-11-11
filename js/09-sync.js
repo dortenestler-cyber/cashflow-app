@@ -339,11 +339,11 @@ function openRecover(){$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"><
       $('sheetRoot').innerHTML='';await sync(false);render();toast('Wiederhergestellt (Stand '+row.ym+'). Neues Sync-Passwort ist aktiv.')}catch(e){E.textContent=e.message||String(e)}}}
 const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
 const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
-let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal','wish','depot','shop.items'];
+let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal','wish','depot','shop.items','loose'];
 const cGet=(st,c)=>{const[a,b]=c.split('.');const v=b?(st[a]&&st[a][b]):st[a];return Array.isArray(v)?v:[]},cSet=(st,c,v)=>{const[a,b]=c.split('.');if(b){if(st[a]&&typeof st[a]=='object')st[a][b]=v}else st[a]=v};
 function sh32(s){let x=0;for(let i=0;i<s.length;i++)x=Math.imul(x^s.charCodeAt(i),16777619);return (x>>>0).toString(36)}
 function syIds(st){COLS.forEach(c=>cGet(st,c).forEach(x=>{if(x&&typeof x=='object'&&!x.id)x.id='k'+sh32(String(x.t||'')+'|'+(x.n||x.sym||x.isin||''))}))}
-const SYTOP=s=>Object.keys(s).filter(k=>!['_m','_km','exp','rec','goals','contracts','debts','journal','wish','depot'].includes(k));let syKH={};
+const SYTOP=s=>Object.keys(s).filter(k=>!['_m','_km','exp','rec','goals','contracts','debts','journal','wish','depot','loose'].includes(k));let syKH={};
 function syMarkKeys(){S._km=S._km||{};const now0=Date.now();SYTOP(S).forEach(k=>{let j;try{j=JSON.stringify(k=='shop'?Object.assign({},S.shop,{items:0}):S[k])}catch(e){return}const hh=sh32(j||'');if(syKH[k]!==undefined&&syKH[k]!==hh)S._km[k]=now0;syKH[k]=hh})}
 const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 function b64big(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)}
@@ -556,7 +556,7 @@ async function docMigrate(){const L=S.exp.filter(e=>e.img&&!e.doc&&/^data:image/
   if(n){save();docFlush()}}
 /* Aufräumen höchstens einmal am Tag und nur direkt nach erfolgreichem Sync: lokal alles ohne Buchung, online nur Unbenutztes älter als 30 Tage */
 async function docGC(){if(!syOn()||!SY.uid||Date.now()-(SY.at||0)>120000)return;let last=0;try{last=+localStorage.getItem('cf-docgc')||0}catch(e){}if(Date.now()-last<864e5)return;try{localStorage.setItem('cf-docgc',String(Date.now()))}catch(e){}
-  const used=new Set(S.exp.filter(e=>e.doc).map(e=>e.doc.id));if(typeof E!='undefined'&&E&&E.doc)used.add(E.doc.id);
+  const used=new Set([...S.exp,...(S.loose||[])].filter(e=>e.doc).map(e=>e.doc.id));if(typeof E!='undefined'&&E&&E.doc)used.add(E.doc.id);
   try{const q=new Set(await docTx('q','readonly',s=>s.getAllKeys()));for(const k of await docTx('f','readonly',s=>s.getAllKeys()))if(!used.has(k)&&!q.has(k))await docDelL(k)}catch(e){}
   try{const r=await syFetch('/storage/v1/object/list/belege',{method:'POST',body:JSON.stringify({prefix:SY.uid,limit:1000,offset:0})});if(!r.ok)return;
     const old=(await r.json()).filter(o=>o&&o.id&&o.name&&!used.has(o.name)&&Date.now()-new Date(o.created_at||Date.now()).getTime()>30*864e5).map(o=>docPath(o.name));
