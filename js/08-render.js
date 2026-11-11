@@ -251,7 +251,7 @@ function qp(v){E.heard=v;const b0=E.b;quickParse(v);const accSaid=E.b!=b0||ALL.s
     else{const c=catList().find(x=>words.some(w=>x.c.toLowerCase().includes(w)||w.includes(x.c.toLowerCase().slice(0,5))));if(c)E.c=c.c;else{const ic=typeof iconFor=='function'&&words.map(iconFor).find(Boolean);if(ic){const c2=catList().find(x=>x.ico==ic);if(c2)E.c=c2.c}}}}
   if(E.c&&!E.accManual&&E.type=='out')E.b=bestAcc(E.c);if(E.type=='in'&&!accSaid&&pufAcc())E.b=pufAcc().n}
 function catStats(){const since=Date.now()-120*864e5,M={};S.exp.forEach(e=>{if(e.type!='out'||!e.c||e.t<since||isPlan(e)||isRecE(e))return;const m=M[e.c]=M[e.c]||{n:0,acc:{}};m.n++;m.acc[e.b]=(m.acc[e.b]||0)+1});return M}
-function catList(){const seen=new Map();const add=b=>(cats(b)||[]).forEach(c=>{if(!seen.has(c[0]))seen.set(c[0],{c:c[0],ico:c[1],home:b})});
+function catList(){const seen=new Map();const add=b=>(cats(b)||[]).forEach(c=>{const o=seen.get(c[0]);if(!o)seen.set(c[0],{c:c[0],ico:c[1],home:b});else if((!o.ico||o.ico=='dot')&&c[1]&&c[1]!='dot')o.ico=c[1]});
   if(E&&E.b)add(E.b);BUDG.forEach(add);ALL.filter(b=>!isTabu(b)).forEach(add);return [...seen.values()]}
 function bestAcc(c){const m=catStats()[c];if(m){const ok=Object.entries(m.acc).filter(([b])=>ALL.includes(b)&&!isTabu(b)).sort((a,b)=>b[1]-a[1]),bud=ok.filter(([b])=>!isK(b));const top=bud[0]||null;if(top)return top[0]}
   if(KONSUM.includes(c)&&ALL.includes(GN()))return GN();const hb=BUDG.find(b=>!isK(b)&&!isTabu(b)&&(cats(b)||[]).some(x=>x[0]==c));if(hb)return hb;if(m){const k=Object.keys(m.acc).find(b=>ALL.includes(b)&&!isTabu(b));if(k)return k}

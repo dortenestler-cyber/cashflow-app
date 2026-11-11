@@ -124,7 +124,7 @@ function streak(){const bs=TOTM;if(!bs.length)return 0;let n=0;
     let o=0;while(!inP({t},period(o))&&o>-30)o--;const p=period(o),lim=budOf(bs)/p.len,ds=d.toDateString();
     const sp=S.exp.filter(e=>new Date(e.t).toDateString()==ds&&e.type=='out'&&bs.includes(e.b)).reduce((s,e)=>s+e.a,0);if(sp<=lim)n++;else break}return n}
 const cats=b=>S.sink3&&b==sinkAcc()?[['Sparziel','target'],['Sonstiges','dot']]:S.cats[b]||[];
-const icoOf=(b,c)=>I((cats(b).find(x=>x[0]==c)||(S.cats[b]||[]).find(x=>x[0]==c)||['','dot'])[1]);
+const icoOf=(b,c)=>{const ok=x=>x&&x[0]==c&&x[1]&&x[1]!='dot';let k=((cats(b)||[]).find(ok)||(S.cats[b]||[]).find(ok)||[])[1];if(!k)for(const L of Object.values(S.cats||{})){const x=(L||[]).find(ok);if(x){k=x[1];break}}if(!k&&c&&typeof iconFor=='function')k=iconFor(c);return I(k||'dot')};
 const std=p=>{const x=p/S.lohn;return x<1?Math.round(x*60)+' Min. Arbeit':x.toLocaleString('de-DE',{maximumFractionDigits:1})+' Std. Arbeit'};
 const WAITD=14,wait=p=>WAITD*864e5;
 const ANCHOR='Mein Geld hat bereits einen Job. Mein Gönn-dir-Budget ist mein bewusstes, erlaubtes Limit. Ist es leer, ist es leer.';
