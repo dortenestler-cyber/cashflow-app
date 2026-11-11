@@ -210,7 +210,9 @@ const clipPre=r=>({type:r.type,b:r.b,to:r.to,c:r.c,amt:String(r.a),n:r.n,dt:r.dt
 const isGro=r=>r&&r.type=='out'&&(/lebensmittel|drogerie|haushalt|supermarkt/i.test(r.c||'')||SUPRX.test(r.n||''));
 function shopRecon(recs){const sh=shopS(),D=sh.items.filter(x=>x.done);if(!D.length||!recs.length)return;
  const act=Math.round(recs.reduce((s,r)=>s+r.a,0)*100)/100,est=Math.round(D.reduce((s,x)=>s+(x.p||0)*(x.q||1),0)*100)/100,unk=D.filter(x=>!x.p),diff=Math.round((act-est)*100)/100,pct=est?diff/est*100:0,store=[...new Set(recs.map(r=>r.n||r.c))].join(' + ');
- const learn=unk.length==1&&diff>0?Math.round(diff/(unk[0].q||1)*100)/100:0;
+ /* Betrag passt nicht zum Zettel (z. B. Fachhändler) → kein Abgleich */
+ if(est>0&&act>Math.max(est*2,est+20))return;
+ let learn=unk.length==1&&diff>0?Math.round(diff/(unk[0].q||1)*100)/100:0;if(learn>30)learn=0;/* unplausibler Einzelpreis */
  const close=spont=>{const id=uid(),sn=JSON.stringify(sh);sh.trips=sh.trips||[];sh.trips.unshift({id,t:Date.now(),store,bids:recs.map(r=>r.id),items:D.map(x=>({n:x.n,q:x.q||1,p:x.p||0})),est,/* Plan vor dem Einkauf, nicht nach „Preis merken“ */act,spont:spont||0,ru:Math.round(recs.reduce((s,r)=>{const e=S.exp.find(q=>q.id==r.id),t=e&&e.ru&&S.exp.find(q=>q.id==e.ru);return s+(t?t.a:0)},0)*100)/100});sh.trips=sh.trips.slice(0,60);
    recs.forEach(r=>{const e=S.exp.find(q=>q.id==r.id);if(e){e.shop=id;if(spont)e.tg=[...new Set([...(e.tg||[]),'ungeplant'])]}});
    const st=(recs[0].n||'').toLowerCase().split(' ')[0];if(recs.length==1&&st){sh.pricesBy=sh.pricesBy||{};sh.pricesBy[st]=sh.pricesBy[st]||{};D.forEach(x=>{if(x.p)sh.pricesBy[st][x.n.toLowerCase()]=x.p})}
@@ -226,7 +228,7 @@ function shopRecon(recs){const sh=shopS(),D=sh.items.filter(x=>x.done);if(!D.len
  a.push(['Später',()=>{}]);
  AQ.msgs.push({q:'Einkauf abgleichen',h,a});asstOpen=true;renderAsst()}
 function shopHistHtml(){const H=(shopS().trips||[]).filter(h=>h.est>0);if(!H.length)return '';const dev=h=>(h.act-h.est)/h.est*100,avg=H.reduce((s,h)=>s+dev(h),0)/H.length,by={};H.forEach(h=>{(by[h.store]=by[h.store]||[]).push(dev(h))});const f=v=>(v>=0?'+':'−')+Math.abs(Math.round(v))+' %';
- return `<div class="sec"><div class="sh"><span>Einkäufe im Vergleich zum Zettel</span><span>Ø ${f(avg)}</span></div><div class="mmcard">${H.slice(0,6).map(h=>{const d=h.act-h.est;return `<div class="cell plain"><div class="t"><div>${esc(h.store)}${h.spont?' · ungeplant':''}</div><div class="s">${new Date(h.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${h.items.length} Artikel · geplant ca. ${eur(h.est)}${h.ru?' · +'+eur(h.ru)+' angelegt':''}</div></div><div class="v ${d>0?'out':'in'}">${eur(h.act)}<div class="s">${d>=0?'+':'−'}${eur(Math.abs(d))}</div></div></div>`}).join('')}</div>
+ return `<div class="sec"><div class="sh"><span>Einkäufe im Vergleich zum Zettel</span><span>Ø ${f(avg)}</span></div><div class="mmcard">${H.slice(0,6).map(h=>{const d=h.act-h.est;return `<div class="swr" data-sw="${h.id}"><div class="swa"><button class="sw-del" data-sht="${h.id}">${I('close',18)}<span>Entfernen</span></button></div><div class="cell plain"><div class="t"><div>${esc(h.store)}${h.spont?' · ungeplant':''}</div><div class="s">${new Date(h.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${h.items.length} Artikel · geplant ca. ${eur(h.est)}${h.ru?' · +'+eur(h.ru)+' angelegt':''}</div></div><div class="v ${d>0?'out':'in'}">${eur(h.act)}<div class="s">${d>=0?'+':'−'}${eur(Math.abs(d))}</div></div></div></div>`}).join('')}</div>
  ${Object.keys(by).length>1?`<div class="note">Ø Abweichung je Händler: ${Object.entries(by).map(([k,v])=>esc(k)+' '+f(v.reduce((a,b)=>a+b,0)/v.length)).join(' · ')}</div>`:''}<div class="note">${avg>=3?`Du kaufst im Schnitt ${Math.round(avg)} % mehr als geplant.`:'Du bleibst im Schnitt im Plan.'}</div></div>`}
 /* Einzelner Text ohne Stichwort (alte Kurzbefehle): wie bisher erkennen */
 function clipOne(t,say,trust){

@@ -302,6 +302,7 @@ function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const s
   on('shUnk',openShopPrices);
   document.querySelectorAll('[data-she]').forEach(b=>b.onclick=()=>openShopEdit(b.dataset.she));
   document.querySelectorAll('[data-sho]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.sho);x.opt=!x.opt;save();render()});
+  document.querySelectorAll('[data-sht]').forEach(b=>b.onclick=()=>{const id=b.dataset.sht,ss=JSON.stringify(sh.trips||[]),eb=S.exp.filter(e=>e.shop==id).map(e=>e.id);sh.trips=(sh.trips||[]).filter(t=>t.id!=id);S.exp.forEach(e=>{if(e.shop==id)delete e.shop});save();render();tell('Einkauf aus dem Vergleich entfernt.',()=>{sh.trips=JSON.parse(ss);S.exp.forEach(e=>{if(eb.includes(e.id))e.shop=id});save();render()})});
   document.querySelectorAll('[data-shx]').forEach(b=>b.onclick=()=>{const ss=JSON.stringify(sh.items);sh.items=sh.items.filter(i=>i.id!=b.dataset.shx);save();render();tell('Entfernt.',()=>{sh.items=JSON.parse(ss);save();render()})});
   if($('shAccSel'))$('shAccSel').onchange=()=>{sh.acct=$('shAccSel').value;save();render()};
   on('shBook',openShopBook);on('shClear',()=>{const ss=JSON.stringify(sh.items);sh.items=[];save();render();tell('Zettel geleert.',()=>{sh.items=JSON.parse(ss);save();render()})})}
