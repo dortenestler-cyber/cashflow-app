@@ -53,6 +53,7 @@ if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
 if(!S.vaultHideV){S.vaultHide=true;S.vaultHideV=1;save()}
 function applyTheme(){const t=S.theme||'system';if(t=='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);document.body.classList.toggle('bigcal',!!S.bigCal)}
 applyTheme();
+{const m=location.hash.match(/^#ab-gehalt=(.+)$/);if(m){history.replaceState(null,'',location.pathname);let o=null;try{o=JSON.parse(decodeURIComponent(m[1]))}catch(e){}tab='dash';setTimeout(()=>abGehalt(o),400)}}
 if(/^#(sync|einrichtung)$/i.test(location.hash)){history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync'}
 if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_token=/.test(location.hash);history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync';setTimeout(()=>toast(ok?'E-Mail bestätigt. Jetzt unten „Anmelden“ tippen.':'Der Bestätigungslink ist abgelaufen oder wurde schon benutzt. Versuch einfach „Anmelden“.'),600)}
 

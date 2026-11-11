@@ -859,3 +859,18 @@ function celebrate(msg,big){const r=$('modalRoot'),C=['#6E4BD8','#D946EF','#F065
   const conf=big?Array.from({length:60},(_,i)=>`<i style="left:${Math.random()*100}%;background:${C[i%C.length]};animation-delay:${(Math.random()*.5).toFixed(2)}s;animation-duration:${(1.6+Math.random()*1.2).toFixed(2)}s;transform:rotate(${Math.random()*360|0}deg);${i%3?'':'border-radius:50%;'}"></i>`).join(''):'';
   r.innerHTML=`<div class="cele ${big?'big':''}" role="status">${conf?`<div class="confetti">${conf}</div>`:''}<div class="cele-ring">${I(big?'target':'piggy',34)}</div><b>${esc(msg)}</b>${big?'<span>Du hast es geschafft. Jetzt darfst du bewusst kaufen.</span>':''}</div>`;
   setTimeout(()=>{if(r.querySelector('.cele'))r.innerHTML=''},big?3200:1700)}
+
+/* ---------- Gehaltsnachweis aus der Ablage (#ab-gehalt=…): Netto als Gehalt buchen, Jahresbrutto in die Zusatzversorgung ----------
+   Ablage schreibt nichts in CashFlow; sie öffnet nur diesen Link. Die Buchung bestätigst du in der normalen Buchungsmaske (e.ab = Dokument-ID). */
+function abGehalt(o){if(!o||!o.id||!(+o.netto>0)){toast('Gehaltsnachweis unvollständig: Netto fehlt.');return}
+  const net=Math.round(+o.netto*100)/100,dt=/^\d{4}-\d{2}-\d{2}$/.test(o.dt||'')?o.dt:today(),done=S.exp.find(e=>e.ab==o.id);
+  const P=PEN(),jb=Math.round(+o.jb||(+o.brutto||0)*12);
+  (P.bav||[]).filter(b=>b.art==ZVK&&b.zvMode!='end'&&!b.free).forEach(b=>{if(jb>0&&Math.round(+b.zvE||0)!=jb&&confirm('Jahresentgelt '+eur(jb)+(o.jb?'':' (12 × Brutto)')+' für „'+(b.n||b.art)+'“ in der Altersvorsorge übernehmen? Bisher: '+(b.zvE?eur(+b.zvE):'leer')+'.')){b.zvE=jb;save()}});
+  if(done){openSheet(done,{amt:String(net).replace('.',',')});return}
+  const t=new Date(dt+'T12:00'),p=periodAt(t),k=pkey(p),r=(S.rec||[]).find(x=>x.type=='in'&&x.c=='Gehalt'&&(!x.end||new Date(x.end+'T23:59')>=t));
+  const booked=r&&S.exp.find(e=>e.rid==r.id&&e.pk==k&&!e.ab);
+  if(booked){openSheet(booked,{amt:String(net).replace('.',','),ab:o.id});return}
+  if(r){openSheet(null,{type:'in',b:r.b,c:r.c,amt:String(net).replace('.',','),n:r.n,dt,rid:r.id,pk:k,ab:o.id});return}
+  const near=S.exp.find(e=>e.type=='in'&&e.c=='Gehalt'&&!e.ab&&Math.abs(e.t-t.getTime())<7*864e5);
+  if(near){openSheet(near,{amt:String(net).replace('.',','),ab:o.id});return}
+  openSheet(null,{type:'in',c:'Gehalt',amt:String(net).replace('.',','),n:'Gehalt'+(o.arb?' '+String(o.arb).slice(0,40):''),dt,ab:o.id})}
