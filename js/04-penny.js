@@ -92,7 +92,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='279 (11.11.)';
+const APP_VER='280 (11.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -524,11 +524,11 @@ function aiReceipt(src,tgt){if(/^data:application\/pdf/.test(src)){aiReceiptGo({
     aiReceiptGo(B,tgt)};im.src=src}
 async function aiReceiptGo(blk,tgt){
   tell('KI liest den Beleg …');const it={type:'object',properties:{name:{type:'string'},menge:{type:'number'},preis:{type:'number',description:'Einzelpreis in Euro'}},required:['name','menge','preis'],additionalProperties:false};
-  const sch={type:'object',properties:{ist_beleg:{type:'boolean'},haendler:{type:'string'},datum:{type:'string',description:'YYYY-MM-DD oder leer'},summe:{type:'number'},artikel:{type:'array',items:it}},required:['ist_beleg','haendler','datum','summe','artikel'],additionalProperties:false};
+  const sch={type:'object',properties:{ist_beleg:{type:'boolean'},haendler:{type:'string'},bezeichnung:{type:'string',description:'kurze Bezeichnung des Gekauften'},datum:{type:'string',description:'YYYY-MM-DD oder leer'},summe:{type:'number'},artikel:{type:'array',items:it}},required:['ist_beleg','haendler','bezeichnung','datum','summe','artikel'],additionalProperties:false};
   const bl=[].concat(blk),pre=bl.length>1?'Der Beleg ist in '+bl.length+' überlappende Bildteile von oben nach unten geteilt; Zeilen an den Nahtstellen nur einmal zählen. ':'';
-  try{const j=await aiOnce(aiCfg().deep,[...bl,{type:'text',text:pre+'Lies diesen Kassenbon oder diese Rechnung. Händlername kurz (z. B. "Rewe"), Datum, Gesamtsumme in Euro und alle Artikel mit Menge und Einzelpreis. Pfand und Rabatte als eigene Artikel, Rabatte mit negativem Preis. Artikelnamen verständlich ausschreiben (z. B. "Haferdrink" statt "HAFERDR.BIO"). Ist es kein Kassenbon, setze ist_beleg auf false und den Rest leer.'}],sch,4000,'medium');
+  try{const j=await aiOnce(aiCfg().deep,[...bl,{type:'text',text:pre+'Lies diesen Kassenbon oder diese Rechnung. Händlername kurz (z. B. "Rewe"), Datum, Gesamtsumme in Euro und alle Artikel mit Menge und Einzelpreis. Pfand und Rabatte als eigene Artikel, Rabatte mit negativem Preis. Artikelnamen verständlich ausschreiben (z. B. "Haferdrink" statt "HAFERDR.BIO"). bezeichnung: 1–3 Wörter für das Gekaufte, bei einem Hauptartikel dieser (z. B. "Staubsauger"), bei vielen Lebensmitteln "Lebensmittel", sonst die passende Sammelbezeichnung (z. B. "Drogerieartikel"). Ist es kein Kassenbon, setze ist_beleg auf false und den Rest leer.'}],sch,4000,'medium');
     if(!j.ist_beleg){looseDone(tgt);tell('Auf dem Beleg erkennt die KI keinen Kassenbon.');return}
-    const t=aiD(j.datum);if(tgt){const x=(S.loose||[]).find(z=>z.id==tgt.id);if(x){if(j.haendler)x.n=String(j.haendler).slice(0,40);if(j.summe>0)x.a=aiR2(j.summe);if(t&&t<=Date.now())x.t=t;x.ai=1;save();render()}}
+    const t=aiD(j.datum);if(tgt){const x=(S.loose||[]).find(z=>z.id==tgt.id);if(x){const bz=String(j.bezeichnung||j.haendler||'').trim();if(bz)x.n=bz.slice(0,40);if(j.haendler)x.h=String(j.haendler).slice(0,40);if(j.summe>0)x.a=aiR2(j.summe);if(t&&t<=Date.now())x.t=t;x.ai=1;save();render()}}
     else if($('sheetRoot').innerHTML&&E){if(!(pNum(E.amt)>0)&&j.summe>0)E.amt=String(aiR2(j.summe));if(!E.n&&j.haendler)E.n=j.haendler;if(t&&!E.id&&t<=Date.now())E.dt=ymd(t);drawSheet()}
     aiTrip(j,t);tell('Beleg gelesen: '+(j.haendler||'Einkauf')+' · '+(j.artikel||[]).length+' Artikel · '+eur(j.summe||0)+'. Preise sind im Einkaufsverlauf.')}
   catch(e){looseDone(tgt);toast(aiErr(e))}}
