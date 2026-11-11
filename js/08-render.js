@@ -403,7 +403,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     else if(k==','){if(!seg.includes('.'))E.amt+=(seg?'':'0')+'.'}
     else if(!/\.\d\d$/.test(seg)&&seg.replace('.','').length<7){E.amt=(E.amt=='0'?'':E.amt)+k}
     drawSheet()});
-  if($('eimg'))$('eimg').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;keep();const E0=E;try{const r=await docPick(f);if(E!==E0||!$('sheetRoot').innerHTML)return;E.doc=r.doc;E.img=r.img;drawSheet();if(aiOn()&&(r.doc.typ!='pdf'||f.size<=5*1048576))aiReceipt(r.src)}catch(e){toast(e.message||String(e))}};
+  if($('eimg'))$('eimg').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;keep();const E0=E;try{const r=await docPick(f);if(E!==E0||!$('sheetRoot').innerHTML)return;E.doc=r.doc;E.img=r.img;drawSheet();if(aiOn()&&(r.doc.typ!='pdf'||f.size<=5*1048576))aiReceipt(r.src)}catch(e){if(!e.quiet)toast(e.message||String(e))}};
   if($('imgOpen'))$('imgOpen').onclick=()=>docView({doc:E.doc,img:E.img,n:E.n},false);
   if($('imgDel'))$('imgDel').onclick=()=>{keep();E.img='';E.doc=null;drawSheet()};
   if($('eLogoS'))$('eLogoS').onclick=()=>{keep();const nm=E.n,d=brandOf({n:nm,type:'out'});openLogoSearch({name:nm,key:d||''})};

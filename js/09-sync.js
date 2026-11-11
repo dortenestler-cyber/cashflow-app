@@ -479,9 +479,55 @@ const docGetL=id=>docTx('f','readonly',s=>s.get(id)),docPutL=(id,b)=>docTx('f','
 const docQAdd=id=>docTx('q','readwrite',s=>s.put('up',id)).then(()=>docFlush()).catch(()=>{});
 function docImg(src,max){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv)};im.onerror=()=>rej(new Error('Das Bild lässt sich nicht lesen.'));im.src=src})}
 const docCvBlob=(cv,q)=>new Promise(r=>cv.toBlob(r,'image/jpeg',q)),docRead=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(b)});
+/* ---------- Beleg-Scanner: Ecken erkennen, zuschneiden, entzerren, für KI aufbereiten ---------- */
+function scanFit(cv,max){const s=Math.min(1,max/Math.max(cv.width,cv.height));if(s>=1)return cv;const o=document.createElement('canvas');o.width=Math.round(cv.width*s);o.height=Math.round(cv.height*s);o.getContext('2d').drawImage(cv,0,0,o.width,o.height);return o}
+function scanDetect(cv){const sm=scanFit(cv,360),w=sm.width,h=sm.height,d=sm.getContext('2d').getImageData(0,0,w,h).data,n=w*h,g=new Uint8Array(n),hist=new Array(256).fill(0);
+  for(let i=0;i<n;i++){const v=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000|0;g[i]=v;hist[v]++}
+  let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sB=0,wB=0,best=0,t=128;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=n-wB;if(!wF)break;sB+=i*hist[i];const mB=sB/wB,mF=(sum-sB)/wF,b=wB*wF*(mB-mF)*(mB-mF);if(b>best){best=b;t=i}}
+  const lab=new Int32Array(n).fill(-1),st=new Int32Array(n);let bestC=-1,bestA=0,c=0;
+  for(let i=0;i<n;i++){if(g[i]<=t||lab[i]>=0)continue;let sp=0,a=0;st[sp++]=i;lab[i]=c;while(sp){const p=st[--sp];a++;const x=p%w,y=(p/w)|0;
+      if(x>0&&g[p-1]>t&&lab[p-1]<0){lab[p-1]=c;st[sp++]=p-1}if(x<w-1&&g[p+1]>t&&lab[p+1]<0){lab[p+1]=c;st[sp++]=p+1}
+      if(y>0&&g[p-w]>t&&lab[p-w]<0){lab[p-w]=c;st[sp++]=p-w}if(y<h-1&&g[p+w]>t&&lab[p+w]<0){lab[p+w]=c;st[sp++]=p+w}}
+    if(a>bestA){bestA=a;bestC=c}c++}
+  const k=cv.width/w,ins=[[.04,.04],[.96,.04],[.96,.96],[.04,.96]].map(([x,y])=>[x*cv.width,y*cv.height]);
+  if(bestA<n*.08||bestA>n*.97)return ins;
+  let tl=[0,0,1e9],tr=[0,0,-1e9],br=[0,0,-1e9],bl=[0,0,1e9];
+  for(let i=0;i<n;i++){if(lab[i]!=bestC)continue;const x=i%w,y=(i/w)|0,s=x+y,df=x-y;if(s<tl[2])tl=[x,y,s];if(s>br[2])br=[x,y,s];if(df>tr[2])tr=[x,y,df];if(df<bl[2])bl=[x,y,df]}
+  return [tl,tr,br,bl].map(p=>[Math.min(cv.width,(p[0]+.5)*k),Math.min(cv.height,(p[1]+.5)*k)])}
+function scanH(q){const[[x0,y0],[x1,y1],[x2,y2],[x3,y3]]=q,dx1=x1-x2,dx2=x3-x2,dx3=x0-x1+x2-x3,dy1=y1-y2,dy2=y3-y2,dy3=y0-y1+y2-y3;let g=0,h=0;
+  if(Math.abs(dx3)>1e-6||Math.abs(dy3)>1e-6){const den=dx1*dy2-dx2*dy1;if(Math.abs(den)>1e-9){g=(dx3*dy2-dx2*dy3)/den;h=(dx1*dy3-dx3*dy1)/den}}
+  return[x1-x0+g*x1,x3-x0+h*x3,x0,y1-y0+g*y1,y3-y0+h*y3,y0,g,h]}
+function scanWarp(cv,q){const L=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);let W=Math.max(L(q[0],q[1]),L(q[3],q[2])),H=Math.max(L(q[0],q[3]),L(q[1],q[2]));const s=Math.min(1,2400/Math.max(W,H));W=Math.max(8,Math.round(W*s));H=Math.max(8,Math.round(H*s));
+  const sw=cv.width,sh=cv.height,src=cv.getContext('2d').getImageData(0,0,sw,sh).data,o=document.createElement('canvas');o.width=W;o.height=H;const ox=o.getContext('2d'),im=ox.createImageData(W,H),dd=im.data,[a,b,c,d,e,f,g,h]=scanH(q);
+  for(let j=0;j<H;j++){const v=(j+.5)/H;for(let i=0;i<W;i++){const u=(i+.5)/W,z=g*u+h*v+1;let x=(a*u+b*v+c)/z-.5,y=(d*u+e*v+f)/z-.5;x=Math.max(0,Math.min(sw-1.001,x));y=Math.max(0,Math.min(sh-1.001,y));
+      const xi=x|0,yi=y|0,fx=x-xi,fy=y-yi,p=(yi*sw+xi)*4,p2=p+sw*4,t=(j*W+i)*4;
+      for(let k=0;k<3;k++)dd[t+k]=(src[p+k]*(1-fx)+src[p+4+k]*fx)*(1-fy)+(src[p2+k]*(1-fx)+src[p2+4+k]*fx)*fy;dd[t+3]=255}}
+  ox.putImageData(im,0,0);return o}
+function scanEnh(cv0){const cv=scanFit(cv0,2400),w=cv.width,h=cv.height,x=cv.getContext('2d'),im=x.getImageData(0,0,w,h),d=im.data,n=w*h,g=new Float32Array(n),I=new Float64Array((w+1)*(h+1));
+  for(let i=0;i<n;i++)g[i]=d[i*4]*.299+d[i*4+1]*.587+d[i*4+2]*.114;
+  for(let y=0;y<h;y++){let r=0;for(let i=0;i<w;i++){r+=g[y*w+i];I[(y+1)*(w+1)+i+1]=I[y*(w+1)+i+1]+r}}
+  const R=Math.max(8,Math.round(Math.max(w,h)/24)),hist=new Uint32Array(256),o=new Uint8ClampedArray(n);
+  for(let y=0;y<h;y++){const y0=Math.max(0,y-R),y1=Math.min(h,y+R+1);for(let i=0;i<w;i++){const x0=Math.max(0,i-R),x1=Math.min(w,i+R+1),m=(I[y1*(w+1)+x1]-I[y0*(w+1)+x1]-I[y1*(w+1)+x0]+I[y0*(w+1)+x0])/((y1-y0)*(x1-x0));
+      const v=Math.min(255,g[y*w+i]/Math.max(m,1)*235);o[y*w+i]=v;hist[v|0]++}}
+  let lo=0,hi=255,acc=0;for(;lo<255;lo++){acc+=hist[lo];if(acc>n*.01)break}acc=0;for(;hi>0;hi--){acc+=hist[hi];if(acc>n*.4)break}if(hi-lo<40){lo=Math.max(0,hi-40)}
+  for(let i=0;i<n;i++){const v=Math.max(0,Math.min(255,(o[i]-lo)*255/(hi-lo)));d[i*4]=d[i*4+1]=d[i*4+2]=v}
+  x.putImageData(im,0,0);return cv}
+function scanAsk(cv){return new Promise(res=>{const q=scanDetect(cv),el=document.createElement('div');el.className='scan';el.setAttribute('role','dialog');el.setAttribute('aria-label','Beleg zuschneiden');
+  el.innerHTML=`<div class="scan-h"><button data-s="x">Abbrechen</button><b>Zuschneiden</b><button data-s="ok"><b>Fertig</b></button></div><div class="scan-b"><div class="scan-w"><canvas></canvas><svg><polygon/></svg>${[0,1,2,3].map(i=>`<div class="scan-k" data-k="${i}" aria-label="Ecke ${i+1}"></div>`).join('')}</div></div><div class="scan-f"><span>Ecken auf die Belegkanten ziehen.</span><button data-s="o">Ohne Zuschnitt</button></div>`;
+  document.body.appendChild(el);const wr=el.querySelector('.scan-w'),pc=el.querySelector('canvas'),pg=el.querySelector('polygon'),K=[...el.querySelectorAll('.scan-k')],pv=scanFit(cv,1200);pc.width=pv.width;pc.height=pv.height;pc.getContext('2d').drawImage(pv,0,0);
+  let sc=1;const lay=()=>{const b=el.querySelector('.scan-b').getBoundingClientRect();sc=Math.min((b.width-32)/cv.width,(b.height-32)/cv.height);wr.style.width=cv.width*sc+'px';wr.style.height=cv.height*sc+'px';draw()},
+    draw=()=>{pg.setAttribute('points',q.map(p=>p[0]*sc+','+p[1]*sc).join(' '));K.forEach((k,i)=>{k.style.left=q[i][0]*sc+'px';k.style.top=q[i][1]*sc+'px'})};
+  K.forEach((k,i)=>{k.onpointerdown=ev=>{ev.preventDefault();k.setPointerCapture(ev.pointerId);const r=wr.getBoundingClientRect();k.classList.add('on');
+    k.onpointermove=e=>{q[i]=[Math.max(0,Math.min(cv.width,(e.clientX-r.left)/sc)),Math.max(0,Math.min(cv.height,(e.clientY-r.top)/sc))];draw()};
+    k.onpointerup=k.onpointercancel=()=>{k.onpointermove=null;k.classList.remove('on')}}});
+  const end=v=>{removeEventListener('resize',lay);el.remove();res(v)};addEventListener('resize',lay);
+  el.querySelector('[data-s="x"]').onclick=()=>end(null);el.querySelector('[data-s="o"]').onclick=()=>end('orig');el.querySelector('[data-s="ok"]').onclick=()=>end(q.map(p=>p.slice()));
+  requestAnimationFrame(lay)})}
 async function docPick(f){const id=uid(),src=await docRead(f);
   if(f.type=='application/pdf'||/\.pdf$/i.test(f.name||'')){if(f.size>10*1048576)throw new Error('Das PDF ist größer als 10 MB.');await docPutL(id,new Blob([f],{type:'application/pdf'}));docQAdd(id);return{doc:{id,typ:'pdf',name:String(f.name||'Beleg.pdf').slice(0,80),kb:Math.round(f.size/1024)},img:'',src}}
-  const b=await docCvBlob(await docImg(src,1600),.8);if(!b)throw new Error('Das Bild lässt sich nicht speichern.');await docPutL(id,b);docQAdd(id);return{doc:{id,typ:'jpg',name:'Foto',kb:Math.round(b.size/1024)},img:(await docImg(src,200)).toDataURL('image/jpeg',.6),src}}
+  const cv0=await docImg(src,3000),q=await scanAsk(cv0);if(!q){const e=new Error('');e.quiet=1;throw e}
+  const cv=Array.isArray(q)?scanWarp(cv0,q):cv0,b=await docCvBlob(scanFit(cv,1600),.85);if(!b)throw new Error('Das Bild lässt sich nicht speichern.');await docPutL(id,b);docQAdd(id);
+  return{doc:{id,typ:'jpg',name:'Foto',kb:Math.round(b.size/1024)},img:scanFit(cv,200).toDataURL('image/jpeg',.6),src:scanEnh(cv).toDataURL('image/jpeg',.9)}}
 async function docEnc(blob){const iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},syKey,await blob.arrayBuffer()),o=new Uint8Array(12+ct.byteLength);o.set(iv);o.set(new Uint8Array(ct),12);return o}
 async function docDec(buf,typ){const u=new Uint8Array(buf),pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},syKey,u.slice(12));return new Blob([pt],{type:typ=='pdf'?'application/pdf':'image/jpeg'})}
 let docBusy=false,docErr='';

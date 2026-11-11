@@ -92,7 +92,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='277 (11.11.)';
+const APP_VER='278 (11.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -519,11 +519,14 @@ function aiShopRun(){const sh=shopS(),K=Object.keys(AISH).filter(k=>AISH[k]===1)
     shopMatch();save();render();if(n)tell('Penny hat '+n+' Preis'+(n>1?'e':'')+' geschätzt.')})
   .catch(()=>{K.forEach(k=>delete AISH[k])})}
 function aiReceipt(src){if(/^data:application\/pdf/.test(src)){aiReceiptGo({type:'document',source:{type:'base64',media_type:'application/pdf',data:src.split(',')[1]}});return}
-  const im=new Image();im.onload=()=>{const s=Math.min(1,1568/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);aiReceiptGo({type:'image',source:{type:'base64',media_type:'image/jpeg',data:cv.toDataURL('image/jpeg',.8).split(',')[1]}})};im.src=src}
+  const im=new Image();im.onload=()=>{const W=im.width,H=im.height,r=H/W,n=r>2.4?Math.min(3,Math.ceil(r/2)):1,ov=n>1?Math.round(H*.05):0,ph=Math.ceil((H+ov*(n-1))/n),B=[];
+    for(let i=0;i<n;i++){const y0=Math.max(0,Math.min(H-ph,i*(ph-ov))),s=Math.min(1,1568/Math.max(W,ph)),cv=document.createElement('canvas');cv.width=Math.round(W*s);cv.height=Math.round(ph*s);cv.getContext('2d').drawImage(im,0,y0,W,ph,0,0,cv.width,cv.height);B.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:cv.toDataURL('image/jpeg',.88).split(',')[1]}})}
+    aiReceiptGo(B)};im.src=src}
 async function aiReceiptGo(blk){
   tell('KI liest den Beleg …');const it={type:'object',properties:{name:{type:'string'},menge:{type:'number'},preis:{type:'number',description:'Einzelpreis in Euro'}},required:['name','menge','preis'],additionalProperties:false};
   const sch={type:'object',properties:{ist_beleg:{type:'boolean'},haendler:{type:'string'},datum:{type:'string',description:'YYYY-MM-DD oder leer'},summe:{type:'number'},artikel:{type:'array',items:it}},required:['ist_beleg','haendler','datum','summe','artikel'],additionalProperties:false};
-  try{const j=await aiOnce(aiCfg().deep,[blk,{type:'text',text:'Lies diesen Kassenbon oder diese Rechnung. Händlername kurz (z. B. "Rewe"), Datum, Gesamtsumme in Euro und alle Artikel mit Menge und Einzelpreis. Pfand und Rabatte als eigene Artikel, Rabatte mit negativem Preis. Artikelnamen verständlich ausschreiben (z. B. "Haferdrink" statt "HAFERDR.BIO"). Ist es kein Kassenbon, setze ist_beleg auf false und den Rest leer.'}],sch,4000,'medium');
+  const bl=[].concat(blk),pre=bl.length>1?'Der Beleg ist in '+bl.length+' überlappende Bildteile von oben nach unten geteilt; Zeilen an den Nahtstellen nur einmal zählen. ':'';
+  try{const j=await aiOnce(aiCfg().deep,[...bl,{type:'text',text:pre+'Lies diesen Kassenbon oder diese Rechnung. Händlername kurz (z. B. "Rewe"), Datum, Gesamtsumme in Euro und alle Artikel mit Menge und Einzelpreis. Pfand und Rabatte als eigene Artikel, Rabatte mit negativem Preis. Artikelnamen verständlich ausschreiben (z. B. "Haferdrink" statt "HAFERDR.BIO"). Ist es kein Kassenbon, setze ist_beleg auf false und den Rest leer.'}],sch,4000,'medium');
     if(!j.ist_beleg){tell('Auf dem Beleg erkennt die KI keinen Kassenbon.');return}
     const t=aiD(j.datum);if($('sheetRoot').innerHTML&&E){if(!(pNum(E.amt)>0)&&j.summe>0)E.amt=String(aiR2(j.summe));if(!E.n&&j.haendler)E.n=j.haendler;if(t&&!E.id&&t<=Date.now())E.dt=ymd(t);drawSheet()}
     aiTrip(j,t);tell('Beleg gelesen: '+(j.haendler||'Einkauf')+' · '+(j.artikel||[]).length+' Artikel · '+eur(j.summe||0)+'. Preise sind im Einkaufsverlauf.')}
