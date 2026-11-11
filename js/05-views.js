@@ -112,7 +112,7 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
     <div class="mini-s">${s.k=='bad'?'aufgebraucht':'pro Tag · '+(s.k=='warn'?eur0(s.over)+' über Plan':eur0(c.rest)+' übrig')}</div></button>`}).join('')}</div>
   ${pt?`<button class="fcwarn ${pt.sev=='bad'?'':'warn'}" id="pnCard" data-act="${pt.act||''}" data-tk="${esc(pt._k)}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(pt.ttl)}</b><div class="s">${String(pt.txt||'').replace(/<[^>]*>/g,'').replace(/^„[^“]*“\s*/,'').slice(0,140)}</div></div><span class="chev">›</span></button>`:''}${fw?`<div class="fcwarn" id="fcWarnBtn" role="button" tabindex="0" data-fwk="${esc(fcWarnKey(fw))}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(SHORT[fw.n]||fw.n)} reicht im ${period(fw.o).s.toLocaleDateString('de-DE',{month:'long'})} nicht</b><div class="s">Laut Prognose ${eur0(fw.v)}${fw.puf?' nach allen geplanten Abgängen':''}. Tippen für Details.</div></div><button class="fcx" id="fcWarnX" aria-label="Hinweis ausblenden">×</button></div>`:''}
   ${carousel(tot,P)}
-  ${S.ex?'<div class="note">Beispieldaten zum Ausprobieren. Unter Einstellungen › Daten löschst du sie.</div>':''}
+  
   <div class="quick"><button class="btn soft" id="shopBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('cart',18)}Einkauf${(S.shop&&S.shop.items.length)?` <span class="cnt">${S.shop.items.length}</span>`:''}</button><button class="btn soft" id="umBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Umbuchen</button><button class="btn soft" id="accBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('wallet',18)}Konten</button></div>
 
   ${up.length?`<div class="sec"><div class="sh">Demnächst geplant</div><div class="group">${up.map((x,ui)=>`<button class="cell" data-up="${ui}"><div class="ico" style="background:color-mix(in srgb,${COL[x.r.b]} 16%,transparent);color:${COL[x.r.b]}">${icoOf(x.r.b,x.r.c)}</div><div class="t"><div>${esc(x.r.n)}</div><div class="s">${x.d.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} · ${SHORT[x.r.b]}</div>${x.pl?'':adjTag({adj:adjOf(x.r,P)})}</div><div class="v ${x.r.type=='in'?'in':''}">${x.r.type=='in'?'+':x.r.type=='tr'?'':'−'}${eur(x.pl?x.r.a:recA(x.r,P))}</div><span class="chev">›</span></button>`).join('')}</div></div>`:''}
@@ -214,7 +214,7 @@ const DOTC=['#3b8fd9','#f25c54','#a06bf2','#2fc4a3','#f0a12d','#e56bb0','#5fb35a
     return head+sum(inc,out)+`${showF||flt!='Alle'?`${fltSeg()}`:''}
     <div class="cal2"><div class="calh2">${['Mo','Di','Mi','Do','Fr','Sa','So'].map((w,i)=>`<span class="${i==6?'sun':i==5?'sat':''}">${w}</span>`).join('')}</div><div class="calg2">${cells.join('')}</div></div>
     <div class="legend"><span><i style="background:var(--in)"></i>Einnahmen</span><span><i style="background:var(--out)"></i>Ausgaben</span><span><i style="background:var(--fg)"></i>Einnahmen − Ausgaben</span><span>Punkte = Kategorien</span><span style="font-style:italic">kursiv = geplant</span><span style="color:var(--bad)">${I('lock',11)} = Notfallbremse gelöst</span><span style="color:var(--accent)">${I('pen',11)} = Journal</span></div>
-    ${sel?`<button class="btn soft" id="calAdd" data-dt="${calDay}">+ Buchung am ${new Date(calDay).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</button>`+(()=>{const jd=(S.journal||[]).filter(j=>new Date(j.t).toDateString()==calDay).sort((a,b)=>a.t-b.t);return jd.length?`<div class="sec"><div class="sh">Journal</div><div class="mmcard">${jd.map(jRow).join('')}</div></div>`:''})()+dayBlocks(sel):'<div class="note">Tippe auf einen Tag, um seine Buchungen zu sehen.</div>'}`}
+    ${sel?`<button class="btn soft" id="calAdd" data-dt="${calDay}">+ Buchung am ${new Date(calDay).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</button>`+(()=>{const jd=(S.journal||[]).filter(j=>new Date(j.t).toDateString()==calDay).sort((a,b)=>a.t-b.t);return jd.length?`<div class="sec"><div class="sh">Journal</div><div class="mmcard">${jd.map(jRow).join('')}</div></div>`:''})()+dayBlocks(sel):''}`}
 function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).filter(e=>inP(e,p));
   if(flt!='Alle')L=L.filter(e=>e.b==flt||e.to==flt);
   if(q){const s=q.toLowerCase().replace(/^#/,'');L=L.filter(e=>[e.n,e.c,e.p,e.b,e.sc,(e.tg||[]).join(' ')].join(' ').toLowerCase().includes(s)||String(e.a).includes(s.replace(',','.')))}
@@ -236,7 +236,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
     return head+sum(inc,out)+`<div class="mmcard">${ws.map(w=>`<button class="mrow ${w.cur?'curw':''}" data-wk="${w.a0},${w.a1}"><span class="mlab"><b>${new Date(w.a0).getDate()}.–${new Date(w.a1-864e5).getDate()}.</b><small>${w.cur?'diese Woche':'KW '+kw(new Date(w.a0))}</small></span>
      <span class="mbars"><i class="in" style="width:${(w.i/mx*100).toFixed(1)}%"></i><i class="out" style="width:${(w.x/mx*100).toFixed(1)}%"></i></span>
      <span class="mval"><span class="in">${eur0(w.i)}</span><span class="out">${eur0(w.x)}</span></span></button>`).join('')}</div>
-    <div class="note">Wochenbudget aller Töpfe im Gesamtbudget: rund ${eur0(wb)}. Tippe auf eine Woche, um ihre Buchungen zu sehen.</div>`}
+    `}
   if(listV=='Summe')return head+viewSumme(p);
   if(listV=='Monat'){const rows=[];for(let i=0;i<12;i++){const o=off-i,pp=period(o),LL=S.exp.filter(e=>inP(e,pp)&&(flt=='Alle'||e.b==flt));
       rows.push({o,pp,i:LL.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),x:LL.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0)})}
@@ -374,7 +374,7 @@ function viewReport(bs,head){const R=reportData(bs),outs=R.cat.filter(c=>c.type=
    <div class="rp-f">Erstellt am ${new Date().toLocaleDateString('de-DE')}</div></div>
   <div class="group"><div class="cell plain"><label for="rpList">Einzelbuchungen anhängen</label><span style="flex:1"></span><input id="rpList" type="checkbox" class="switch" ${rpList?'checked':''}></div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn soft" id="rpCopy">Bericht kopieren</button><button class="btn soft" id="rpCsv">Als CSV kopieren</button></div>
-  <div class="note" id="rpMsg">Den kopierten Bericht kannst du in Notizen oder eine Mail einfügen. PDF und Drucken kommen mit der echten App.</div><textarea class="box" id="rpOut" hidden readonly></textarea>`}
+  <div class="note" id="rpMsg"></div><textarea class="box" id="rpOut" hidden readonly></textarea>`}
 let drill=null,yOff=0;
 const MN=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 function monthOff(Y,m){const c=period(0).s;return (Y*12+m)-(c.getFullYear()*12+c.getMonth())}
@@ -385,7 +385,7 @@ function viewYear(bs){const Y=period(0).s.getFullYear()+yOff,ms=[];
     ms.push({m,o,fut,i:L.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),x:L.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0)})}
   let cum=0;const pts=ms.map(r=>r.fut?null:(cum+=r.i-r.x));const ti=ms.reduce((s,r)=>s+r.i,0),tx=ms.reduce((s,r)=>s+r.x,0),n=ms.filter(r=>!r.fut&&(r.i||r.x)).length||1;
   return yearHead(Y,'Jahressaldo '+Y,repB=='Alle'?'Alle sichtbaren Konten':repB)+`<div class="chartbox">${lineChart({n:12,series:[{pts,col:'var(--in)',area:true,dot:true,w:2.4}],labels:ms.map((r,i)=>({i,t:MN[i].slice(0,3),on:r.o==0})),h:190,tipLab:i=>MN[i]+' '+Y+' · Saldo'})}
-   <div class="note" style="padding:4px 4px 0">Kumulierter Saldo: Einnahmen minus Ausgaben, Monat für Monat aufaddiert.</div></div>
+   </div>
   <div class="mmcard"><div class="srow"><div class="srow-h"><span>Einnahmen</span><span></span><span class="in">${eur(ti)}</span></div></div><div class="srow"><div class="srow-h"><span>Ausgaben</span><span></span><span class="out">${eur(tx)}</span></div></div>
    <div class="srow"><div class="srow-h"><span><b>Saldo</b></span><span></span><b class="${ti-tx<0?'out':'in'}">${eur(ti-tx)}</b></div></div><div class="srow"><div class="srow-h"><span>Ø Ausgaben pro Monat</span><span></span><span>${eur(tx/n)}</span></div></div></div>
   <div class="mmcard">${ms.map(r=>`<button class="yrow" ${r.fut?'disabled':''} data-ym="${r.o}"><span>${MN[r.m]}</span><span class="ym"><small class="in">${r.i?eur0(r.i):''}</small><small class="out">${r.x?eur0(r.x):''}</small></span><b class="${r.i-r.x<0?'out':''}">${r.fut?'':eur(r.i-r.x)}</b><span class="chev">›</span></button>`).join('')}</div>`}
@@ -405,7 +405,7 @@ function catTrend(bs){
   rows.sort((a,b)=>b.cur-a.cur||b.avg-a.avg);
   const spark=(vals,col)=>{const mx=Math.max(...vals,1),pts=vals.map((v,i)=>`${(i/(vals.length-1)*76+2).toFixed(1)},${(26-v/mx*22).toFixed(1)}`);
     return `<svg viewBox="0 0 80 30" width="80" height="30" aria-hidden="true"><polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.8" fill="${col}"/></svg>`};
-  return `<div class="note">Jede Kategorie über 6 Monate. Der Pfeil vergleicht ${period(off).s.toLocaleDateString('de-DE',{month:'long'})} mit dem Schnitt davor${run?', im laufenden Monat anteilig bis heute':''}.</div>
+  return `
    <div class="group">${rows.map(r=>`<button class="cell" data-dc="${esc(r.b)}|${esc(r.c[0])}"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${I(r.c[1])}</div>
    <div class="t"><div>${esc(r.c[0])}</div><div class="s">${SHORT[r.b]} · Ø ${eur0(r.avg)}</div></div>${spark(r.vals,COL[r.b])}
    <div class="v" style="min-width:64px">${eur0(r.cur)}${r.wait?'<div class="s">noch nichts</div>':`<div class="s" style="color:${r.ch>.15?'var(--bad)':r.ch<-.15?'var(--ok)':'var(--muted)'}">${I(r.ch>0?'up':r.ch<0?'down':'flat',12)} ${Math.abs(Math.round(r.ch*100))} %</div>`}</div></button>`).join('')||'<div class="empty">Noch keine Daten.</div>'}</div>`}
@@ -470,7 +470,7 @@ function simHtml(){const pa=pufAcc();if(!pa)return `<div class="tip">Lege zuerst
     <div style="display:flex;gap:8px;margin-top:8px"><button class="btn soft" id="simReset" style="flex:1;margin:0">Zurücksetzen</button><button class="btn" id="simApply" style="flex:2;margin:0">Übernehmen</button></div>
     ${Object.keys(S.monthOv||{}).length?`<div class="sec" style="margin-top:6px"><div class="sh">Nur für einen Monat</div><div class="group">${Object.entries(S.monthOv).sort().map(([pk,o])=>`<div class="cell plain"><div class="t" style="flex:1"><div>${esc(o.label||pk)}</div><div class="s">${[...Object.entries(o.b||{}).map(([b,v])=>esc(SHORT[b]||b)+' '+eur0(v)),...Object.entries(o.r||{}).map(([id,v])=>{const x=(S.rec||[]).find(q=>q.id==id);return esc(x?(x.n||'Sparrate'):'Sparrate')+' '+eur0(v)})].join(' · ')}</div></div><button class="del" data-ovx="${esc(pk)}" aria-label="Entfernen">${I('minus',20)}</button></div>`).join('')}</div></div>`:''}
     ${S.planNext?`<div class="note">Vorgemerkt ab ${esc(S.planNext.label||'')}: ${Object.keys(S.planNext.b||{}).length} Budgets, ${Object.keys(S.planNext.r||{}).length} Sparraten. <button class="link" id="simPendX">Verwerfen</button></div>`:''}
-    <div class="note">Fixkosten und Einnahmen änderst du wie gewohnt bei den wiederkehrenden Buchungen. Übernommen wird in die Monatsbudgets und die wiederkehrenden Umbuchungen – das Depot liest die Sparraten automatisch mit.</div></div>
+    </div>
    <div class="sec"><div class="sh">Szenarien</div><div class="group">${sc.map((x,i)=>`<div class="cell plain"><button class="link" data-sl="${i}" style="flex:1;text-align:left">${esc(x.n)}</button><span class="a-s" style="font-size:12px">${eur0(Object.values(x.b||{}).reduce((s,v)=>s+v,0))} Budgets · ${eur0(Object.values(x.r||{}).reduce((s,v)=>s+v,0))} Sparen</span><button class="del" data-sx="${i}" aria-label="Löschen">${I('minus',20)}</button></div>`).join('')}<div class="cell plain"><input id="simScN" placeholder="Name, z. B. „Urlaub sparen“" style="flex:1;text-align:left"><button class="link" id="simScS">Speichern</button></div></div></div>`}
 function simGrow(c){const g6=c.sm.L.reduce((s,x)=>s+x.m.spar+x.x,0),g6c=c.cur.L.reduce((s,x)=>s+x.m.spar+x.x,0);return `Sparen + Puffer-Überschuss in 6 Monaten: <b>${eur0(g6)}</b>${Math.abs(g6-g6c)>=1?` (${g6>g6c?'+':'−'}${eur0(Math.abs(g6-g6c))} ggü. heute)`:''} · in 12 Monaten etwa <b>${eur0(g6*2)}</b>.`}
 function simPaint(){const c=simCalc(SIM);if(!c)return;$('simTop').innerHTML=simTop(c);$('simBar').innerHTML=simBar(c);$('simLine').innerHTML=simLine(c);$('simGrow').innerHTML=simGrow(c);$('simHints').innerHTML=simHints(c)}
@@ -528,7 +528,7 @@ function fcAccHtml(ctx){const N=ctx.N,F=fcAccModel(ctx),mi=Math.min(Math.max(1,f
    <div class="chartbox">${chart}
     <div class="dlg">${all.map(r=>`<button class="dlg-i ${fcOff[r.n]?'off':''}" data-fcl="${esc(r.n)}"><i style="background:${r.col}"></i><span>${esc(SHORT[r.n]||r.n)}</span><b>${eur0(r.vals[mi])}</b><small class="${r.kind=='bud'?(r.vals[mi]<0?'out':''):r.vals[mi]-r.vals[0]<0?'out':'in'}">${r.kind=='bud'?'Rest':(r.vals[mi]-r.vals[0]>=0?'+':'−')+eur0(Math.abs(r.vals[mi]-r.vals[0]))}</small></button>`).join('')}</div></div>
    ${moSeg}
-   <div class="note" style="padding:2px 4px 6px">Stand Ende ${period(mi).label}. Gestrichelt = Budgets (Rest am Monatsende).</div>
+   <div class="note" style="padding:2px 4px 6px">Stand Ende ${period(mi).label}.</div>
    <div class="group">${F.rows.map(row).join('')}</div>
    ${V.length?`<div class="fcv ${showV?'on':''}"><div class="fcv-h"><div><b>Vermögen</b><div class="s">${showV?'Einzahlungen und angenommene Wertentwicklung':'ausgeblendet – zum Ansehen tippen'}</div></div><button class="eyeb" id="fcVault" aria-label="${showV?'Vermögen ausblenden':'Vermögen einblenden'}">${I(showV?'eyeoff':'eye',18)}</button></div>
     ${showV?`<div class="pos-kpi k4"><div><span>Vermögen Ende ${F.lab[mi]}</span><b>${eur0(tv)}</b></div><div><span>Einzahlung</span><b class="in">+${eur0(F.depA.slice(1,mi+1).reduce((s,x)=>s+x,0))}</b></div><div><span>Wertzuwachs</span><b class="in">+${eur0(F.grA.slice(1,mi+1).reduce((s,x)=>s+x,0))}</b><small>angenommen</small></div><div><span>in 10 Jahren</span><b class="in">${eur0(y10)}</b><small>bei gleicher Rate</small></div></div>
@@ -661,7 +661,7 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
     return head+kseg+`<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Einmalig<b>${eur0(tU-tR)}</b></div><div class="kpi">Wiederkehrend<b>${eur0(tR)}</b></div><div class="kpi">${repB=='Alle'||!isK(repB)?'Budget':'Fix geplant'}<b>${eur0(repB=='Alle'||!isK(repB)?budOf(bs):recPlan(bs,off))}</b></div></div>
     ${repB=='Alle'?`<div class="note">Nur deine Monatsbudgets. Fixkosten vom Eingangskonto und Sinking Funds (Bestand) zählen hier nicht mit. Wähle oben ein Konto, um sie zu sehen.</div>`:''}
     <div class="sec"><div class="sh">Ausgabenkurve${kf!='Alle'?' · '+kf:''}</div>${cumChart(bs,off,col,kf)}</div>
-    <div class="sec"><div class="sh">Pro Tag</div><div class="chartbox">${barChart({vals:v,col,hi:off==0?p.idx-1:null,tipLab:i=>new Date(p.s.getTime()+i*864e5).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'}),tipName:'Ausgaben',ref:lim&&kf!='Wiederkehrend'&&(repB=='Alle'||!isK(repB))?{v:lim/p.len,label:'Tagesbudget '+eur0(lim/p.len)}:null,labels:[0,9,19,p.len-1].filter(i=>i<p.len).map(i=>({i,t:new Date(p.s.getTime()+i*864e5).getDate()+'.'}))})}<div class="note" style="padding:6px 4px 0">Rote Balken liegen über dem Tagesbudget.</div></div></div>
+    <div class="sec"><div class="sh">Pro Tag</div><div class="chartbox">${barChart({vals:v,col,hi:off==0?p.idx-1:null,tipLab:i=>new Date(p.s.getTime()+i*864e5).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'}),tipName:'Ausgaben',ref:lim&&kf!='Wiederkehrend'&&(repB=='Alle'||!isK(repB))?{v:lim/p.len,label:'Tagesbudget '+eur0(lim/p.len)}:null,labels:[0,9,19,p.len-1].filter(i=>i<p.len).map(i=>({i,t:new Date(p.s.getTime()+i*864e5).getDate()+'.'}))})}</div></div>
     ${repB=='Alle'?hgSection(p,kf):''}
     <div class="sec"><div class="sh">Nach Kategorie</div><div class="chartbox">${donut(parts)}</div>
      ${parts.length?`<div class="group">${parts.map(x=>`<button class="cell" data-dc="${esc(x.b)}|${esc(x.c)}"><div class="ico" style="background:${x.col};color:#fff">${x.ico}</div><div class="t"><div>${esc(x.k)}</div><div class="bar"><i style="width:${(x.v/tot*100).toFixed(0)}%;background:${x.col}"></i></div></div><div class="v">${eur(x.v)}<div class="s">${Math.round(x.v/tot*100)} %</div></div><span class="chev">›</span></button>`).join('')}</div>`:''}</div>
@@ -687,7 +687,7 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
       <div class="legend"><span><i style="background:var(--fill)"></i>Budget</span><span><i style="background:var(--blue)"></i>Ausgegeben</span></div></div></div>
      <div class="sec"><div class="sh">Woche · Monat · Jahr</div><div class="mmcard"><div class="cmp" style="grid-template-columns:1.2fr repeat(3,1fr)"><span></span><b>Woche</b><b>Monat</b><b>12 Monate</b>
      ${rows.map(r=>`<span>${esc(r.b)}</span><span>${eur0(r.c.total*7/r.c.p.len)}</span><span class="${stat(r.c).k=='bad'?'out':''}">${eur0(r.c.used)} / ${eur0(r.c.total)}</span><span class="${r.y>r.yb?'out':''}">${eur0(r.y)} / ${eur0(r.yb)}</span>`).join('')}</div></div>
-     <div class="note">Woche zeigt das Wochenbudget, Monat und 12 Monate jeweils Ausgaben gegen Budget.</div></div>`}
+     </div>`}
   if(repV=='Entwicklung')return head+devHtml();
   if(repV=='Verlauf'){const ds0=dataStart(),ms=[];for(let i=11;i>=0;i--){const o=off-i;if(period(o).e.getTime()>ds0||i<2)ms.push(o)}const N=ms.length;
     const lab=ms.map((o,i)=>({i,t:period(o).s.toLocaleDateString('de-DE',{month:'narrow'}),on:o==off}));
@@ -770,7 +770,7 @@ function moodCal(){const base=new Date();base.setDate(1);base.setMonth(base.getM
    <div class="mcal">${['Mo','Di','Mi','Do','Fr','Sa','So'].map(w=>`<span class="mh">${w}</span>`).join('')}${cells.join('')}</div>
    <div class="legend"><span><i style="background:${vCol(-3)}"></i>sehr schlecht</span><span><i style="background:${vCol(-1)}"></i>eher schlecht</span><span><i style="background:${vCol(0)}"></i>neutral</span><span><i style="background:${vCol(1)}"></i>eher gut</span><span><i style="background:${vCol(3)}"></i>sehr gut</span><span>Balken = Ausgaben aus Budgets</span></div>
    ${ins.length?`<div class="mmcard">${ins.map(x=>`<div class="srow"><div class="srow-h"><span><i class="mdot" style="background:${vCol(GEFV[x.g]!=null?GEFV[x.g]:EMOOF(x.g))}"></i>${esc(x.g)} <small style="color:var(--muted)">${x.n} Tag${x.n>1?'e':''}</small></span><span></span><b>Ø ${eur0(x.v)}</b></div></div>`).join('')}<div class="srow"><div class="srow-h"><span style="color:var(--muted)">Tage ohne Eintrag</span><span></span><b>Ø ${eur0(base0)}</b></div></div></div>
-   ${(()=>{const t=ins[0];return t&&noMood.length>=3&&t.n>=2&&t.v>base0*1.3&&t.v-base0>10?`<div class="note">An Tagen mit „${esc(t.g)}“ gibst du im Schnitt ${eur0(t.v-base0)} mehr aus als sonst.</div>`:''})()}`:'<div class="note">Trag im Journal ein Gefühl ein, dann färben sich die Tage und du siehst, ob Stimmung und Ausgaben zusammenhängen.</div>'}</div>`}
+   ${(()=>{const t=ins[0];return t&&noMood.length>=3&&t.n>=2&&t.v>base0*1.3&&t.v-base0>10?`<div class="note">An Tagen mit „${esc(t.g)}“ gibst du im Schnitt ${eur0(t.v-base0)} mehr aus als sonst.</div>`:''})()}`:''}</div>`}
 /* Reue-Check */
 const isKonsum=e=>e.type=='out'&&!isRecE(e)&&!e.corr&&e.a>=10&&(/gönn/i.test(e.b)||KONSUM.some(k=>(e.c||'').includes(k)));
 function rgDue(){if(!S.rgSince){S.rgSince=Date.now();save()}const n=Date.now();return S.exp.filter(e=>isKonsum(e)&&e.rg==null&&!isPlan(e)&&e.t>=S.rgSince-864e5&&n-e.t>=20*36e5&&n-e.t<7*864e5).sort((a,b)=>b.t-a.t).slice(0,2)}
@@ -783,7 +783,7 @@ function openUrge(jid){S.journal=S.journal||[];if(!jid){const r=S.journal.slice(
    $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kurz warten"><div class="sheet-h"><button id="ugX">Schließen</button><b>Kurz warten</b><span style="width:60px"></span></div>
    <div class="sheet-b"><div class="urge-t">${left==null?'Kurz innehalten.':left>0?'Atmen. Warten. Weitergehen.':'Die 10 Minuten sind um.'}</div>
    <div class="urge-c ${left===0?'done':''}">${left===0?I('check',40):mm}</div>
-   ${left==null?`<button class="btn" id="ugGo">10 Minuten warten</button>`:left>0?`<div class="note" style="text-align:center;padding:0">Ich erinnere dich, wenn die Zeit um ist.</div>`:''}
+   ${left==null?`<button class="btn" id="ugGo">10 Minuten warten</button>`:left>0?``:''}
    <div class="mmcard">${j.a?`<div class="srow"><div class="srow-h"><span>${I('briefcase',15)} Das sind</span><span></span><b>${std(j.a)}</b></div></div>`:''}
     ${g?`<div class="srow"><div class="srow-h"><span>${I('target',15)} ${esc(g.x.n)}</span><span></span><b>noch ${eur0(Math.max(g.x.ziel-g.ist,0))}</b></div></div>`:''}
     <div class="srow"><div class="srow-h"><span>${I('heart',15)} Auf die Wunschliste setzen</span><span></span><b>${j.a?Math.round(wait(j.a)/864e5)+' Tage':'Wartezeit'}</b></div></div>
@@ -797,7 +797,7 @@ function openUrge(jid){S.journal=S.journal||[];if(!jid){const r=S.journal.slice(
 function journalHtml(){const J=(S.journal||[]).slice().sort((a,b)=>b.t-a.t),st=jStats(Date.now()-30*864e5),HL=['morgens','mittags','abends','nachts'],hm=st.hrs.indexOf(Math.max(...st.hrs));
   const RG=S.exp.filter(e=>e.rg!=null&&e.t>Date.now()-90*864e5),rgN=RG.filter(e=>e.rg).length;
   return `<div class="jbtns"><button class="btn" id="jUrge" style="display:flex;justify-content:center;gap:6px;align-items:center;background:var(--bad)">${I('alert',18)}Ich habe gerade einen Kaufimpuls</button><button class="btn soft" id="jNew" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('plus',18)}Eintrag schreiben</button></div>
-   <div class="note" style="padding:2px 4px 0">Oder sag dem Assistenten z. B. „Journal: hatte Lust auf Sneaker, aus Langeweile, widerstanden, 120 Euro“.</div>
+   
    ${st.J.length>=3?`<div class="sec"><div class="sh">Deine Muster · 30 Tage</div><div class="jins">
     <div><b>${st.res}</b><span>widerstanden${st.resV?' · '+eur0(st.resV):''}</span></div><div><b>${st.bou}</b><span>nachgegeben${st.bouV?' · '+eur0(st.bouV):''}</span></div>
     ${st.g[0]?`<div><b>${esc(st.g[0][0])}</b><span>häufigstes Gefühl (${st.g[0][1]}×)</span></div>`:''}${st.tr[0]?`<div><b>${esc(st.tr[0][0])}</b><span>häufigster Auslöser (${st.tr[0][1]}×)</span></div>`:''}
@@ -865,7 +865,7 @@ function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offe
   if(wishS=='Verzicht')return head+wseg+wirkungHtml()+notBoughtHtml()+musterHtml();
   if(wishS=='Journal')return head+wseg+journalHtml();
   return head+wseg+`<div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div><div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine offenen Wünsche. Neue Wünsche kommen zuerst für 14 Tage hierher.</div>'}</div>
-    <div class="note">Regel: Jeder Wunsch wartet mindestens 14 Tage. Danach entscheidest du: aus ${esc(GN())} kaufen, als Ziel ansparen oder verwerfen.</div>`}
+    `}
 function openDebt(i){const d=i>=0?Object.assign({},S.debts[i]):{n:'',total:'',interest:'',rate:'',start:ymd(Date.now()),match:'',note:''};
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Kredit"><div class="sheet-h"><button id="dX">Abbrechen</button><b>${i>=0?'Kredit bearbeiten':'Neuer Kredit'}</b><button id="dS" style="font-weight:600">Sichern</button></div>
   <div class="sheet-b"><div class="group">
@@ -958,7 +958,7 @@ function contractsHtml(){const C=(S.contracts||[]).map((c,i)=>({c,i,x:contractNe
     ${cn?`<div class="s">Endet am ${x.d.toLocaleDateString('de-DE')}</div>`:`<div class="ctr-l"><span>${c.auto?'Verlängert sich':'Endet'} am <b>${x.d.toLocaleDateString('de-DE')}</b></span><span>${x.kd?'Kündigen bis <b>'+x.kd.toLocaleDateString('de-DE')+'</b>':'keine Frist'}</span></div>
     ${x.kd?`<div class="bar" style="height:6px"><i style="width:${(pc*100).toFixed(0)}%;background:${dl<=30?'var(--bad)':dl<=60?'var(--warn)':'var(--ok)'}"></i></div>`:''}`}</button>`}).join('')||'<div class="empty">Noch keine Verträge.</div>'}</div>
   <button class="btn soft" id="ctrAdd">Vertrag hinzufügen</button>
-  <div class="note">Der Balken füllt sich in den 90 Tagen vor der Kündigungsfrist. Kosten kommen aus deinen Daueraufträgen oder aus dem Vertrag selbst.</div>`}
+  `}
 function openContract(i){const c=i>=0?JSON.parse(JSON.stringify(S.contracts[i])):{id:uid(),n:'',prov:'',start:ymd(Date.now()),term:{u:'y',n:1},auto:true,renew:{u:'y',n:1},notice:{u:'m',n:1},next:'',state:'active'};
   const per=(id,pp)=>`<span style="display:flex;gap:6px;align-items:center"><input id="${id}N" inputmode="numeric" value="${pp?pp.n:''}" placeholder="–" style="width:44px;background:var(--fill);border-radius:8px;padding:6px;text-align:center"><select id="${id}U" style="width:auto">${Object.entries(PU).map(([u,l])=>`<option value="${u}" ${pp&&pp.u==u?'selected':''}>${l}</option>`).join('')}</select></span>`;
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Vertrag"><div class="sheet-h"><button id="cX">Abbrechen</button><b>${i>=0?'Vertrag bearbeiten':'Neuer Vertrag'}</b><button id="cS" style="font-weight:600">Sichern</button></div>
@@ -991,7 +991,7 @@ function openWish(ei){const E=ei!=null?S.wish[ei]:null;const W=E?{n:E.n,p:String
    <div class="hours" id="wstd" style="padding-inline:4px"></div>
    <div class="sh" style="padding:0">Wie fühle ich mich gerade?</div><div class="chips wrap">${GEF.map(x=>`<button class="chip ${W.g==x?'on':''}" data-wg="${x}">${x}</button>`).join('')}</div>
    <div class="sh" style="padding:0">Wo kam der Wunsch her?</div><div class="chips wrap">${TRIG.map(x=>`<button class="chip ${W.tr==x?'on':''}" data-wt="${x}">${x}</button>`).join('')}</div>
-   <div class="note" style="padding:0">${E?'Die Sperre läuft weiter wie bisher. Ein niedrigerer Preis verkürzt sie nicht.':'Der Wunsch kommt für 14 Tage auf die Wunschliste. Gekauft wird nicht impulsiv.'}</div>${E?'<button class="btn danger" id="wDel">Wunsch löschen</button>':''}<div class="note" id="wErr" style="padding:0;color:var(--bad)"></div></div></div>`;
+   ${E?'<button class="btn danger" id="wDel">Wunsch löschen</button>':''}<div class="note" id="wErr" style="padding:0;color:var(--bad)"></div></div></div>`;
   const keep=()=>{if($('eMore'))0;W.n=$('wname').value;W.p=$('wpreis').value;W.l=$('wlink').value;W.w=$('wwarum').value};
   const hrs=()=>{const v=pNum($('wpreis').value);$('wstd').textContent=v?'Das sind '+std(v)+'.':''};hrs();$('wpreis').oninput=hrs;
   $('scrim').onclick=$('wCancel').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};

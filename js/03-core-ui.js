@@ -23,7 +23,7 @@ function openBg(k){const draw=()=>{const x=S.bg[k]||{g:0};$('sheetRoot').innerHT
   <div class="swatches">${GR.map((g,i)=>`<button class="sw ${!x.img&&(x.g||0)==i?'on':''}" style="background:${g[1]}" data-g="${i}" aria-label="${g[0]}"></button>`).join('')}</div>
   <div class="sh" style="padding:0">Eigenes Bild</div>
   <label class="btn soft" for="bgimg" style="text-align:center;box-sizing:border-box">Foto aus Mediathek wählen</label><input id="bgimg" type="file" accept="image/*" hidden>
-  ${x.img?'<button class="btn danger" id="bgDel">Foto entfernen</button>':''}<div class="note" id="bgMsg" style="padding:0">Ein dunkler Schleier wird über dein Foto gelegt, damit die Zahlen lesbar bleiben.</div></div></div>`;
+  ${x.img?'<button class="btn danger" id="bgDel">Foto entfernen</button>':''}<div class="note" id="bgMsg" style="padding:0"></div></div></div>`;
   $('scrim').onclick=$('bgDone').onclick=()=>{$('sheetRoot').innerHTML='';render()};
   document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{S.bg[k]={g:+b.dataset.g};save();draw()});
   if($('bgDel'))$('bgDel').onclick=()=>{S.bg[k]={g:0};save();draw()};
@@ -166,11 +166,11 @@ function brandsHtml(){const M=S.brandMap||{},cnt={},none={};S.exp.forEach(e=>{if
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]),miss=Object.entries(none).sort((a,b)=>b[1]-a[1]).slice(0,20);
   return `<div class="group"><div class="cell plain"><div class="t"><div>Marken-Logos anzeigen</div><div class="s">In Buchungslisten, in der Buchung unter Details und hier</div></div><input type="checkbox" class="switch" id="blOn" ${S.brandLogos===true?'checked':''}></div>${S.brandLogos===true?`<div class="cell plain"><div class="t"><div>In Listen statt Kategorie-Icon</div><div class="s">Marke links, die Kategorie als kleines Abzeichen</div></div><input type="checkbox" class="switch" id="blList" ${S.brandList!==false?'checked':''}></div>`:''}</div>
    <button class="btn soft" id="lsOpen" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('search',16)} Logo suchen und importieren</button>
-   <div class="sec"><div class="sh">Erkannt in deinen Buchungen · ${top.length}</div><div class="bl-grid">${top.map(([d,n])=>`<button class="bl-i ls-r" data-lsk="${esc(d)}">${bIcon(d,'bl-ic',false)}<span>${esc(d.replace(/\.(de|com|eu|capital)$/,''))}</span><small>${n}×${bIco(d)?' · eigenes':''}</small></button>`).join('')||'<div class="note">Noch keine Marken erkannt.</div>'}</div><div class="note">Tippe ein Logo an, um ein anderes zu suchen.</div></div>
+   <div class="sec"><div class="sh">Erkannt in deinen Buchungen · ${top.length}</div><div class="bl-grid">${top.map(([d,n])=>`<button class="bl-i ls-r" data-lsk="${esc(d)}">${bIcon(d,'bl-ic',false)}<span>${esc(d.replace(/\.(de|com|eu|capital)$/,''))}</span><small>${n}×${bIco(d)?' · eigenes':''}</small></button>`).join('')||'<div class="note">Noch keine Marken erkannt.</div>'}</div></div>
    ${miss.length?`<div class="sec"><div class="sh">Ohne Logo · häufig</div><div class="group">${miss.map(([k,n],i)=>`<div class="cell plain"><div class="t" style="flex:1;min-width:0"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</div><div class="s">${n} Buchung${n>1?'en':''}</div></div><input data-bmk="${esc(k)}" placeholder="webseite.de" autocapitalize="off" style="max-width:110px;text-align:right"><button class="ed-ic" data-lsn="${esc(k)}" aria-label="Logo suchen" style="color:var(--blue)">${I('search',18)}</button></div>`).join('')}</div>
-    <div class="note">Trag die Webseite der Marke ein (z. B. „friseur-mueller.de“), dann erscheint ihr Logo bei allen passenden Buchungen. Leer lassen, wenn es keine Marke ist.</div></div>`:''}
+    </div>`:''}
    ${Object.keys(M).length?`<div class="sec"><div class="sh">Deine Zuordnungen</div><div class="group">${Object.entries(M).map(([k,d])=>`<div class="cell plain">${d?bIcon(d):''}<div class="t" style="flex:1"><div>${esc(k)}</div><div class="s">${esc(d)}</div></div><button class="del" data-bmx="${esc(k)}" aria-label="Entfernen">${I('minus',20)}</button></div>`).join('')}</div></div>`:''}
-   <div class="note">Alle Marken erscheinen einheitlich als flache Icons im App-Design: importierte Logos als einfarbige Form, sonst Markenfarbe mit Kürzel.</div>`}
+   `}
 function txList(list,showB){if(!list.length)return '<div class="group"><div class="empty">Keine Buchungen gefunden.</div></div>';
   const by={};list.slice().sort((a,b)=>b.t-a.t).forEach(e=>{const k=new Date(e.t).toDateString();(by[k]=by[k]||[]).push(e)});
   return Object.entries(by).map(([k,es])=>{const dt=new Date(k),lab=dt.toDateString()==now.toDateString()?'Heute':dt.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
