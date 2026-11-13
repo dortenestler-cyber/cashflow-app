@@ -217,7 +217,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
    ${bioGet()?`<button class="btn soft" id="bioTest">${bioName()} jetzt testen</button>`:''}<div class="note">Wird nur auf diesem Gerät eingerichtet, nicht über den Sync. Am Arbeits-PC also einfach ausgeschaltet lassen.</div></div>`;
   if(k=='bg')return back+`<h1 class="lt">Hintergründe</h1></div>${['Gesamt',...ALL].map(x=>`<button class="bgprev" data-bg="${x}" style="${bgStyle(x)};border:0;width:100%;cursor:pointer;font:inherit;font-weight:700;font-size:20px;text-align:left">${x=='Gesamt'?'Alle Budgets':x}</button>`).join('')}`;
   if(k=='import')return viewImport();
-  if(k=='look')return back+`<h1 class="lt">Design</h1></div><div class="seg" id="lookSeg">${[['mm','Money Manager'],['glass','Glas']].map(x=>`<button class="${(S.look||'mm')==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div>
+  if(k=='look')return back+`<h1 class="lt">Design</h1></div><div class="seg" id="lookSeg">${[['mm','Klar'],['glass','Glas']].map(x=>`<button class="${(S.look||'mm')==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div>
    `;
   if(k=='export')return back+`<h1 class="lt">Export & Backup</h1></div>
    <div class="sec"><div class="sh">CSV für Excel</div><button class="btn soft" id="csvBtn">CSV kopieren</button><div class="note">Kopiert alle Buchungen. In Numbers oder Excel einfügen.</div></div>

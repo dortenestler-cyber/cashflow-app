@@ -1302,3 +1302,33 @@ body.mm[data-tab="rep"] .kpis.kts{gap:4px}body.mm[data-tab="rep"] .kpis.kts .kpi
 .ofc-i{width:28px;height:28px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);flex:none}.ofc-i svg{width:15px;height:15px}
 .ofc-f{display:block;height:5px;border-radius:3px;background:color-mix(in srgb,var(--c) 22%,transparent);overflow:hidden;margin-top:3px}.ofc-f i{position:static;display:block;height:100%;border-radius:0;background:var(--c)}
 @media (max-width:360px){.ofc-b{display:none}}
+/* v307: Look „Glas“ nach den 8 Regeln – gleiche Struktur und Farben wie „Klar“, Flächen als Glas über ruhigem Farbgrund.
+   Anker-Karten bleiben dunkel (Regel 3), Violett nur für Bedienung (Regel 5), Radien 22/30 (Regel 7). */
+body.mm.gl .bgfx{display:block;position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(60vmax 40vmax at 8% -6%,color-mix(in srgb,var(--accent) 26%,transparent),transparent 70%),
+  radial-gradient(50vmax 36vmax at 105% 30%,color-mix(in srgb,#3BA3D9 18%,transparent),transparent 70%),
+  radial-gradient(46vmax 34vmax at 10% 92%,color-mix(in srgb,#22A699 16%,transparent),transparent 70%),var(--bg)}
+body.mm.gl{background:transparent}
+body.mm.gl .group,body.mm.gl .mmcard:not(.potc),body.mm.gl .chartbox,body.mm.gl .wcard,body.mm.gl .report,body.mm.gl .kq,body.mm.gl .d-up .cell,body.mm.gl .fcwarn:not(.pncard),body.mm.gl .btn.soft,body.mm.gl .quick .btn,body.mm.gl .search,body.mm.gl .vault,body.mm.gl .d2-fav span,body.mm.gl .seg:not(.wc-rg){background:var(--glcard)!important;-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:inset 0 0 0 1px var(--gledge)!important;border:0!important}
+body.mm.gl .group,body.mm.gl .mmcard:not(.potc),body.mm.gl .chartbox,body.mm.gl .wcard,body.mm.gl .vault{border-radius:22px!important}
+body.mm.gl .seg button.on{background:var(--glpill)!important}
+body.mm.gl .mini.tank{background:color-mix(in srgb,var(--c) 10%,var(--glcard))!important;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:inset 0 0 0 1px var(--gledge)!important}
+body.mm.gl .tank>.tk-f{background:color-mix(in srgb,var(--c) 28%,transparent)}
+body.mm.gl .cell{background:transparent}
+body.mm.gl .lthead,body.mm.gl .stickhead{background:transparent}
+body.mm.gl .sheet{background:var(--glbg);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%)}
+/* v307: Plus in der Leiste immer Violett (Regel 1 + 5: gleiche Farbwerte in Hell und Dunkel, Violett = Bedienung) */
+body.mm .tabbar .tb-plus{background:var(--accent-fill)}
+/* v307: iPad (Touch, ab 1000 px) nutzt wie das iPhone die schwebende Glas-Leiste mit Plus in der Mitte; Einstellungen über das Zahnrad */
+@media (min-width:1000px) and (pointer:coarse){
+ body.mm .tabbar{top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 16px)!important;left:calc(50% - 300px)!important;right:calc(50% - 300px)!important;width:auto!important;height:66px!important;flex-direction:row!important;justify-content:space-around!important;align-items:center!important;gap:0!important;padding:0 6px!important;border-radius:33px!important;overflow:visible!important;border:1px solid color-mix(in srgb,#fff 70%,transparent)!important;background:color-mix(in srgb,var(--card) 80%,transparent)!important;-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);box-shadow:0 12px 34px rgba(30,20,60,.18)!important}
+ :root[data-theme="dark"] body.mm .tabbar{border-color:rgba(255,255,255,.12)!important}
+ body.mm .tabbar button{flex:1 1 auto!important;flex-direction:column!important;gap:3px!important;font-size:10px!important;padding:6px 4px!important;width:auto!important;min-height:44px!important;justify-content:center!important;align-items:center!important;background:none!important}
+ body.mm .tabbar button span{opacity:1!important}
+ body.mm .tabbar .tb-new,body.mm .tabbar .tb-more{display:none!important}
+ body.mm .tabbar .tb-plus{display:grid!important;flex:none!important;width:58px!important;height:58px!important;padding:0!important;margin:-28px 6px 0!important;border-radius:50%!important;background:var(--accent-fill)!important;border:4px solid var(--bg)!important}
+ body.mm .tabbar .tb-plus svg{width:26px;height:26px;stroke:#fff;stroke-width:2.4;fill:none}
+ .hc-gear{display:grid!important}.d2-gear{display:grid!important}
+ .view{margin-left:auto!important;margin-right:auto!important;padding-bottom:130px!important}
+ #toastRoot{left:0}
+}
