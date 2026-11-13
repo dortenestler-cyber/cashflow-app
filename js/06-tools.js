@@ -176,13 +176,6 @@ function shopCheck(){const sh=shopS(),c=calc(sh.acct),P=c.p,left=Math.max(P.left
   else if(tagA<c.tag*0.6){k='warn';const ov=sh.items.filter(x=>x.opt).reduce((s,x)=>s+(x.p||0)*(x.q||1),0);txt=`Passt, aber danach bleiben nur noch ${eur(tagA)} pro Tag statt ${eur(c.tag)}.`+(ov?` Ohne die „Kann“-Artikel wären es ${eur((after+ov)/left)} pro Tag.`:'')}
   else{k='ok';txt=`Passt. Danach bleiben ${eur(after)}, also ${eur(tagA)} pro Tag bis Monatsende.`}
   return{c,est,rest,after,tagA,k,txt,cut}}
-let pdbQ='';
-function viewPdb(){const sh=shopS(),q=pdbQ.toLowerCase();
-  return `${appbar({title:'Preisliste',back:'pdbBack',noGear:true,stats:`<div class="hc-big"><span>Richtwerte · ${PLEVEL[sh.level||'disc'][1]}</span><b>${Object.keys(PDB).length} Artikel</b></div><div class="hc-line">${Object.values(PDB).filter(x=>x.s).length} Preise aus deinen Kassenbons · antippen legt auf den Zettel</div>`})}
-  <label class="search" for="pdbQ">${I('search',17)}<input id="pdbQ" placeholder="Suchen, z. B. Käse" value="${esc(pdbQ)}"></label>
-  ${PRICEDB.map(([g,L])=>{const f=L.filter(([n])=>!q||n.toLowerCase().includes(q));return f.length?`<div class="sec"><div class="sh">${g}</div><div class="mmcard">${f.map(([n,u,p])=>{const k=n.toLowerCase(),own=sh.prices[k],on=sh.items.some(x=>x.n.toLowerCase()==k);
-    const src=(PDB[k]||{}).s;return `<button class="pdbrow" data-pdb="${esc(n)}"><span class="t"><span>${esc(n)}</span><small>${esc(u)}</small></span><span class="v">${own?`<b>${eur(own)}</b><small>dein Preis</small>`:src&&(sh.level||'disc')=='disc'?`<b>${eur(p)}</b><small class="bon">${I('receipt',11)} Bon ${esc(src)}</small>`:`<b>ca. ${eur(dbPrice({p}))}</b>`}</span><span class="pdbadd ${on?'on':''}">${I(on?'check':'plus',16)}</span></button>`}).join('')}</div></div>`:''}).join('')}
-  `}
 function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),open=sh.items.filter(x=>!x.done),done=sh.items.filter(x=>x.done);
   const sug=Object.entries(sh.hist||{}).filter(([n])=>!sh.items.some(x=>x.n.toLowerCase()==n)).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const row=x=>`<div class="swr" data-sw="${x.id}"><div class="swa"><button class="sw-edit" data-she="${x.id}">${I('pen',18)}<span>Bearbeiten</span></button><button class="sw-del" data-shx="${x.id}">${I('close',18)}<span>Entfernen</span></button></div><div class="shrow ${x.done?'done':''}"><button class="shck" data-shd="${x.id}" aria-label="${x.done?'Nicht gekauft':'Gekauft'}">${x.done?I('check',16):''}</button>
