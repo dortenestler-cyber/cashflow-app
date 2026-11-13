@@ -1253,3 +1253,12 @@ body[data-tab="dash"] .mini.tank .mini-r{font-size:32px}
 .fillcard{position:relative;isolation:isolate;overflow:hidden}
 .fillcard .bar{position:absolute!important;inset:0;height:auto!important;margin:0!important;background:none!important;border-radius:0;z-index:-1;pointer-events:none}
 .fillcard .bar i{position:absolute;left:0;right:0;bottom:0;width:100%!important;height:var(--fp,0%);border-radius:0!important;opacity:.16;transition:height .6s}
+/* v302: Rückblick-Kennzahlen als klickbare Kacheln mit Füllstand */
+.kpis .kt{position:relative;isolation:isolate;overflow:hidden;border:0;background:none;font:inherit;color:inherit;cursor:pointer;text-align:inherit;border-radius:22px;min-height:44px}
+.kpis .kt::before{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--fp,0%);background:currentColor;opacity:.1;z-index:-1}
+.kpis .kt:has(b.out)::before{background:#FF8A9B;opacity:.16}.kpis .kt:has(b.in)::before{background:#3CCB92;opacity:.16}
+.kpis .kt .kt-c{position:absolute;right:12px;top:10px;font-size:18px;line-height:1;opacity:.55}
+.kpis .kt:active{transform:scale(.98)}
+.kpis .kt small{opacity:.85;margin-top:2px}
+body.mm[data-tab="rep"] .kpis.kts{gap:4px}body.mm[data-tab="rep"] .kpis.kts .kpi:nth-child(n+3){border-top:0!important}
+.kpis .kt{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding-right:28px!important}
