@@ -1070,3 +1070,4 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  body.mm .view.detail .chartbox svg{max-height:300px}
 }
 .hero.onbg{min-height:320px;box-sizing:border-box}
+.hero .hhc svg{max-width:none}
