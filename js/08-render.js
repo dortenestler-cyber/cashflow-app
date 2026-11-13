@@ -38,7 +38,7 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
   on('back',()=>{curB=null;render()});
   on('umBtn',()=>openSheet(null,{type:'tr'}));on('shopBtn2',()=>{prevTab=tab;setView='shop';render();scrollTo(0,0)});on('umBtn2',()=>openSheet(null,{type:'tr',b:curB}));on('accBtn',()=>{tab='more';setView='accts';render();scrollTo(0,0)});
   document.querySelectorAll('[data-bg]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();openBg(b.dataset.bg)});
-  document.querySelectorAll('.slide[data-k]').forEach(s=>{if(s.dataset.k=='Gesamt')return;const go=()=>{curB=s.dataset.k;swipeDir='';render();scrollTo(0,0)};s.onclick=go;s.onkeydown=e=>{if(e.key=='Enter')go()}});
+  document.querySelectorAll('.slide[data-k]').forEach(s=>{const go=()=>{curB=s.dataset.k=='Gesamt'?(BN.find(isK)||BN[0]):s.dataset.k;if(!curB)return;swipeDir='';render();scrollTo(0,0)};s.onclick=go;s.onkeydown=e=>{if(e.key=='Enter')go()}});
   const car=$('car');if(car){const w=()=>car.clientWidth+10;car.scrollLeft=carIdx*w();const n=car.children.length,go=i=>{i=(i+n)%n;car.scrollTo({left:i*w(),behavior:'smooth'})};
    const upd=()=>{if($('carP'))$('carP').style.visibility=carIdx>0?'visible':'hidden';if($('carN'))$('carN').style.visibility=carIdx<n-1?'visible':'hidden'};upd();
    if($('carP'))$('carP').onclick=e=>{e.stopPropagation();go(carIdx-1)};if($('carN'))$('carN').onclick=e=>{e.stopPropagation();go(carIdx+1)};

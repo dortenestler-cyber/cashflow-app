@@ -1069,3 +1069,4 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  body.mm .view.detail>.sec:has(.chartbox)+.note+.sec,body.mm .view.detail>.sec:has(.chartbox)+.sec{grid-column:2}
  body.mm .view.detail .chartbox svg{max-height:300px}
 }
+.hero.onbg{min-height:320px;box-sizing:border-box}

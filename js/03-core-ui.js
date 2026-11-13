@@ -9,8 +9,8 @@ function kontoSlide(b,c){return `<div class="slide" data-k="${b}" style="${bgSty
    <div class="lbl">${esc(b)} <span style="opacity:.7">›</span></div><div class="bal">${WH(b)?MASK:eur(c.rest)}</div><div style="font-size:13px;opacity:.9">Kontostand${acc(b).tot?'':' · nicht im Gesamtbudget'}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">+${eur0(c.inc+c.trI)} rein</span><span class="pill" style="background:rgba(255,255,255,.22)">−${eur0(c.out+c.trO)} raus</span></div>
    <div style="font-size:12px;opacity:.85;margin-top:auto">Diesen Monat</div></div>`}
-function carousel(tot,P){const sl=[`<div class="slide" data-k="Gesamt" style="${bgStyle('Gesamt')}" role="group" aria-label="Gesamt">
-   <div class="lbl">Monatsverlauf<span class="lbl-m">${P.label}</span></div><div style="font-size:13px;opacity:.9">Alle Töpfe zusammen · noch ${eur(tot)} · ${P.left} Tage übrig</div><div class="mcw" style="color:#fff">${miniCum()}</div></div>`,
+function carousel(tot,P){const sl=[`<div class="slide" data-k="Gesamt" style="${bgStyle('Gesamt')}" role="button" tabindex="0" aria-label="Monatsverlauf – Konten öffnen">
+   <div class="lbl">Monatsverlauf <span style="opacity:.7">›</span><span class="lbl-m">${P.label}</span></div><div style="font-size:13px;opacity:.9">Alle Töpfe zusammen · noch ${eur(tot)} · ${P.left} Tage übrig</div><div class="mcw" style="color:#fff">${miniCum()}</div></div>`,
   /* v253: Topf-Karten entfallen, die Tachos darüber zeigen dasselbe */...[].filter(b=>!isK(b)).map(b=>{const c=calc(b);return `<div class="slide ${stat(c).k=='bad'?'sl-bad':''}" data-k="${b}" style="${bgStyle(b)}" role="button" tabindex="0" aria-label="${b} öffnen">
    <div class="lbl">${b} <span style="opacity:.7">›</span></div>${badge(stat(c),1)}<div class="bal">${eur(c.rest)}</div><div style="font-size:13px;opacity:.9">übrig von ${eur0(c.total)}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.tag)} / Tag</span><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.woche)} / Woche</span></div>
