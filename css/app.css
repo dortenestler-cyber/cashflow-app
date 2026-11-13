@@ -1231,3 +1231,25 @@ body.mm[data-tab="rep"] .kpis .kpi:nth-child(n+3){border-top:1px solid rgba(255,
  body[data-tab="dash"] .view>.stickhead .slide.hero2{min-height:360px}
 }
 .hero2 .lbl{white-space:nowrap;gap:10px}
+/* v301: Füllstand statt Tacho und Balken (Regel 4, Variante A „Tank“) */
+.tank{position:relative;overflow:hidden;isolation:isolate}
+.tank>.tk-f{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--c,var(--accent)) 26%,var(--card));z-index:-1;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.tank>.tk-p{position:absolute;left:12px;right:12px;height:0;border-top:2px dashed color-mix(in srgb,var(--c,var(--accent)) 70%,var(--fg));opacity:.7;z-index:-1}
+.tank>.tk-p span{position:absolute;right:0;bottom:3px;font-size:10px;font-weight:700;font-style:normal;color:color-mix(in srgb,var(--c,var(--accent)) 70%,var(--fg))}
+body.mm .minis .mini.tank{background:color-mix(in srgb,var(--c) 9%,var(--card));border:0!important;border-radius:22px;box-shadow:none;align-items:flex-start;min-height:150px;padding:14px 14px 13px;text-align:left}
+body.mm .minis.mtop .mini.tank::after{display:none}
+body.mm .minis.mtop .mini.tank{border-radius:30px}
+.mini.tank .mini-r{margin-top:auto;font-family:var(--round);font-size:26px;font-weight:800;letter-spacing:-.02em}
+.mini.tank .mini-s{text-align:left;font-size:12px;margin-top:2px}
+.mini.tank.st-bad{box-shadow:inset 0 0 0 1.5px var(--bad)}
+body[data-tab="dash"] .mini.tank{min-height:190px}
+body[data-tab="dash"] .mini.tank .mini-r{font-size:32px}
+.hero.hero-tank{min-height:220px}
+.hero.hero-tank>.tk-f{background:rgba(255,255,255,.16)}
+.hero.hero-tank>.tk-p{border-top-color:rgba(255,255,255,.8)}.hero.hero-tank>.tk-p span{color:#fff}
+.fillrow{position:relative;isolation:isolate}
+.fillrow .bar{position:absolute!important;inset:0;height:auto!important;margin:0!important;background:none!important;border-radius:inherit;z-index:-1;overflow:hidden;pointer-events:none}
+.fillrow .bar i{border-radius:0!important;opacity:.16;height:100%}
+.fillcard{position:relative;isolation:isolate;overflow:hidden}
+.fillcard .bar{position:absolute!important;inset:0;height:auto!important;margin:0!important;background:none!important;border-radius:0;z-index:-1;pointer-events:none}
+.fillcard .bar i{position:absolute;left:0;right:0;bottom:0;width:100%!important;height:var(--fp,0%);border-radius:0!important;opacity:.16;transition:height .6s}

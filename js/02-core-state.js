@@ -170,6 +170,9 @@ const badge=(s,onbg)=>s.k=='ok'?'':`<span class="badge ${s.k}${onbg?' onb':''}">
 function gData(b,c,o=0){let cc=0;const{v}=dayVals([b],o);return{t:Math.round(c.total*100)/100,u:Math.round(c.used*100)/100,s:c.p.s.getTime(),len:c.p.len,idx:c.p.idx,cum:v.map(x=>Math.round((cc+=x)*100)/100)}}
 function gTip(g,d){const today=g.idx>0&&g.idx<=g.len?g.idx:0,dt=new Date(g.s+(d-1)*864e5),soll=g.t*d/g.len,fut=today&&d>today,spent=fut||!g.cum.length?g.u:g.cum[Math.min(d,g.cum.length)-1],diff=soll-spent;
   return tcHead((d==today?'Heute · ':'Bis ')+dt.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})+` · Tag ${d}/${g.len}`)+tcRow('Ausgeben erlaubt',soll,'')+tcRow(fut?'Ausgegeben bis heute':'Ausgegeben',spent,'')+`<span class="tr" style="color:color-mix(in srgb,${diff>=0?'var(--ok)':'var(--bad)'} 80%,var(--bg))">${diff>=0?'Noch im Plan':'Über Plan'} <b>${eur(Math.abs(diff))}</b></span>`+(fut&&soll>g.u?`<span class="tr">Ab heute pro Tag <b>${eur(Math.max(0,(soll-g.u)/(d-today+1)))}</b></span>`:'')}
+/* v301: Füllstand statt Tacho (Variante A „Tank“): Fläche = was übrig ist, gestrichelte Linie = wo der Stand heute sein sollte */
+function tankFx(c){const P=c.p||period(0),r=c.total>0?Math.max(0,Math.min(1,c.rest/c.total)):0,pl=1-Math.min((P.idx||P.len)/P.len,1);
+  return `<i class="tk-f" style="height:${(r*100).toFixed(1)}%" aria-hidden="true"></i>${pl>0.005&&pl<0.995?`<i class="tk-p" style="bottom:${(pl*100).toFixed(1)}%" aria-hidden="true"><span>heute</span></i>`:''}`}
 function gauge(pct,col,big,max,sc,gd){const P=gd?{idx:gd.idx,len:gd.len}:period(0),soll=(P.idx-.5)/P.len,r=78,cx=100,cy=92,a=p=>Math.PI*(1-Math.max(0,Math.min(p,1)));
   const pt=(p,rr)=>[cx+rr*Math.cos(a(p)),cy-rr*Math.sin(a(p))];
   const arc=(p0,p1,c)=>{const[x1,y1]=pt(p0,r),[x2,y2]=pt(p1,r);return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${c}" stroke-width="14" fill="none" stroke-linecap="round"/>`};

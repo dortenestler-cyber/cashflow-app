@@ -40,6 +40,11 @@ const TABS=[["dash","Heute",'<path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5
 let prevTab='dash',showF=false,showPuf=false;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tabgo]');if(!b)return;tab=b.dataset.tabgo;calDay=null;off=0;curB=null;setView=null;drill=null;render();scrollTo(0,0)});
 document.addEventListener('input',e=>{if(e.target.id!='moreQ')return;const q=e.target.value.trim().toLowerCase(),H=document.querySelector('.morelist .mhome'),R=document.querySelector('.morelist .msearch');if(!H||!R)return;H.hidden=!!q;let any=false;R.querySelectorAll('.cell').forEach(c=>{const h=!c.textContent.toLowerCase().includes(q);c.hidden=h;if(!h)any=true});R.hidden=!q||!any});
+/* v301: Füllstand statt Balken – Anteile füllen ihre Zeile von links, Fortschritt füllt die Karte von unten */
+function fillify(root){(root||document).querySelectorAll('.bar:not([data-fx])').forEach(b=>{b.dataset.fx=1;const i=b.querySelector('i');if(!i)return;
+  const cd=b.closest('.gcard2'),row=cd?null:b.closest('.srow,.cell,.wrow,.abo');const host=cd||row||b.parentElement;if(!host||host.closest('.sheet .pad'))return;
+  host.classList.add(row?'fillrow':'fillcard');if(!row){const w=parseFloat(i.style.width)||0;host.style.setProperty('--fp',Math.max(0,Math.min(100,w))+'%')}
+  const c=i.style.background;if(c)host.style.setProperty('--fc',c)})}
 /* v300: Darstellung je Gerät – iPhone/iPad dunkel, Desktop hell. Die Wahl gilt nur für dieses Gerät (wird nicht synchronisiert). */
 const THK='cf_theme',devDark=()=>/iPhone|iPad|iPod|Android/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1)||matchMedia('(pointer:coarse)').matches;
 function themeRaw(){try{return localStorage.getItem(THK)||''}catch(e){return ''}}
