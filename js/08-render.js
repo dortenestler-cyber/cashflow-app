@@ -26,7 +26,7 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
     const r=x.r,P=period(0);openSheet(null,{type:r.type,b:r.b,to:r.to||ALL.find(a=>a!=r.b),c:r.c,amt:String(r.a),n:r.n,dt:today(),rid:r.id,pk:pkey(P),alloc:r.alloc})});
   document.querySelectorAll('.bar i.grow[data-from]').forEach(el=>{const to=el.dataset.to;el.style.transition='none';el.style.width=el.dataset.from+'%';requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.transition='width .9s cubic-bezier(.2,.8,.2,1)';el.style.width=to+'%'}))});
   for(const k in growFrom)delete growFrom[k];{const w=$('wealthOn');if(w)w.onchange=()=>{S.showWealth=w.checked;save();render()}}if(setView=='shop')bindShop();
-  if(['yplan','ng','review'].includes(setView)||(tab=='wish'&&!setView&&wishV=='Ziele'&&zielV=='Zeit'))bindPlan();
+  if(['yplan','ng','review'].includes(setView)||(tab=='wish'&&!setView&&wishV=='Ziele'&&zielV=='Zeit')||$('rvCopy'))bindPlan();
   document.querySelectorAll('#thSeg button').forEach(b=>b.onclick=()=>{themeSet(b.dataset.f);applyTheme();render()});
   {const bc=$('bigCal');if(bc)bc.onchange=()=>{S.bigCal=bc.checked;save();applyTheme()}}{const co=$('celeOn');if(co)co.onchange=()=>{S.cele=co.checked;save()}}
   {const sr=$('sumR');if(sr)sr.onchange=()=>{sumR=sr.value;render()}}

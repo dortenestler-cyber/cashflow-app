@@ -555,7 +555,7 @@ function lockLines(){try{const D=depot().filter(h=>(h.qty||0)>0);if(!D.length)re
   return `<svg class="lk-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="lkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A48BFF" stop-opacity=".28"/><stop offset="1" stop-color="#A48BFF" stop-opacity="0"/></linearGradient></defs>
    ${D.length>1?top.map((x,i)=>`<path d="${path(x[0],70+i*30,230)}" fill="none" stroke="#fff" stroke-width="2" opacity=".3" ${i?'stroke-dasharray="1 6"':''} stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join(''):''}
    <path d="${mt} L${W-10} ${H} L10 ${H}Z" fill="url(#lkg)"/><path d="${mt}" fill="none" stroke="#C9BBFF" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`}catch(e){return ''}}
-function lockHi(){const l=lockLines();return l+`<div class="lk-hi"><div class="lk-d">${new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</div><div class="lk-w">Willkommen zurück${uName()?', '+esc(uName()):''}</div>${l?`<div class="lk-c">${I('chart',14)} Dein Depot, ohne Beträge</div>`:''}</div>`}
+function lockHi(){const l=lockLines();return l+`<div class="lk-hi"><div class="lk-w">Willkommen zurück${uName()?', '+esc(uName()):''}</div></div>`}
 /* v304: Vermögenskarte in Geld – Gesamt mit Verlauf, Zeiträumen und Zusammensetzung (Füllstand von links) */
 let wRange='3m';const WR={'1m':['1M',30],'3m':['3M',91],'6m':['6M',182],'1y':['1J',365],'all':['Alle',0]};
 function wParts(){const pa=pufAcc(),V=vaultCash(),D=depot(),out=[];
