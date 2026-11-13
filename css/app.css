@@ -1360,3 +1360,4 @@ body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!import
 .arflt{display:flex;gap:6px;flex-wrap:wrap}.arsel{flex:1 1 30%;min-width:0;font:inherit;font-size:13px;padding:7px 8px;border-radius:9px;border:1px solid var(--sep);background:var(--card);color:var(--fg)}
 .arcorr{opacity:.55}
 .yrchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}.yrchips .chip{border:1.5px solid var(--sep);background:var(--card);color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer}.yrchips .chip.on{background:var(--card)}
+.cell.armap{flex-wrap:wrap;gap:6px}.cell.armap .t{flex:1 1 55%;min-width:0}.cell.armap .arsel{flex:0 1 45%;max-width:48%}
