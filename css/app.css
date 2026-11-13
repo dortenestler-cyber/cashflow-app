@@ -1276,3 +1276,18 @@ body.mm[data-tab="rep"] .kpis.kts{gap:4px}body.mm[data-tab="rep"] .kpis.kts .kpi
 .wc-eye{width:auto;margin:0;padding:8px 14px}
 .wc-row .v .s{font-size:12px;color:var(--muted);font-weight:500}
 @media (min-width:1000px){body[data-tab="geld"] .view>.wcard{grid-column:1/-1}body[data-tab="geld"] .wc-ch{height:140px}}
+/* v305: Entsperren – immer dunkel, Depot-Linien der letzten 3 Monate ohne Beträge */
+.lock.lk-dep{background:linear-gradient(160deg,#2B2147,#120D1F);color:#F3F0FA;--fg:#F3F0FA;--muted:#C9C2DD;--accent:#C9BBFF;gap:16px;overflow:hidden}
+.lock.lk-dep>*{position:relative;z-index:1}
+.lock.lk-dep>.lk-lines{position:absolute;z-index:0;left:0;right:0;top:18%;width:100%;height:38%;pointer-events:none}
+.lk-hi{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;order:-1}
+.lk-d{font-size:14px;color:#C9C2DD}.lk-w{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.lk-c{font-size:13px;color:#C9C2DD;display:flex;align-items:center;gap:6px;margin-top:2px}.lk-c svg{width:14px;height:14px;stroke:#C9BBFF}
+.lock.lk-dep .lk-av{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.lock.lk-dep .pad button{background:rgba(255,255,255,.1)!important;color:#fff!important;box-shadow:none!important;border:0!important}
+.lock.lk-dep .lk-pin{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}
+@media (max-height:760px){.lk-w{font-size:22px}.lock.lk-dep{gap:10px}}
+.lock.lk-dep>.lk-lines{opacity:.55}
+.lock.lk-dep .pad button{background:rgba(52,42,84,.92)!important}
+.lock.lk-dep .lk-av{background:rgba(43,33,71,.9)}
+.lk-hi,.lock.lk-dep .note,.lock.lk-dep .dots{text-shadow:0 1px 8px rgba(18,13,31,.8)}

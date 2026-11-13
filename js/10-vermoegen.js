@@ -547,6 +547,15 @@ function balAt(n,t){const a=acc(n);if(a.baseD&&t<a.baseD)return 0;return rawBal(
 function vaultSeries(){const V=vaultCash(),y0=rStart(dRange),days=Math.max(1,Math.ceil((Date.now()-y0)/864e5)),out=[];
   for(let i=0;i<=days;i++){const t=i==days?Date.now():Math.min(y0+i*864e5,Date.now());const per=V.map(n=>balAt(n,t));out.push({t,v:per.reduce((s,x)=>s+x,0),per})}return out}
 let vOff={};
+/* v305: Entsperren mit Depot-Linien der letzten 3 Monate – nur Form, keine Beträge */
+function lockLines(){try{const D=depot().filter(h=>(h.qty||0)>0);if(!D.length)return '';const BB=D.map(h=>posBase(h)),now=Date.now(),t0=now-91*864e5,N=46,ts=[...Array(N+1)].map((_,i)=>t0+(now-t0)*i/N);
+  const pv=(h,k,t)=>posAt(h,BB[k],t).q*(priceAt(h,t,'d')||h.price||0),per=D.map((h,k)=>ts.map(t=>pv(h,k,t))),tot=ts.map((_,i)=>per.reduce((x,a)=>x+a[i],0));
+  const W=390,H=260,path=(a,lo,hi)=>{const mn=Math.min(...a),mx=Math.max(...a),rg=mx-mn||1;return 'M'+a.map((v,i)=>(10+i/N*(W-20)).toFixed(1)+' '+(lo+(1-(v-mn)/rg)*(hi-lo)).toFixed(1)).join(' L')};
+  const top=per.map((a,k)=>[a,a[N]]).sort((x,y)=>y[1]-x[1]).slice(0,2).filter(x=>Math.max(...x[0])>0),mt=path(tot,30,200);
+  return `<svg class="lk-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="lkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A48BFF" stop-opacity=".28"/><stop offset="1" stop-color="#A48BFF" stop-opacity="0"/></linearGradient></defs>
+   ${D.length>1?top.map((x,i)=>`<path d="${path(x[0],70+i*30,230)}" fill="none" stroke="#fff" stroke-width="2" opacity=".3" ${i?'stroke-dasharray="1 6"':''} stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join(''):''}
+   <path d="${mt} L${W-10} ${H} L10 ${H}Z" fill="url(#lkg)"/><path d="${mt}" fill="none" stroke="#C9BBFF" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`}catch(e){return ''}}
+function lockHi(){const l=lockLines();return l+`<div class="lk-hi"><div class="lk-d">${new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</div><div class="lk-w">Willkommen zurück${uName()?', '+esc(uName()):''}</div>${l?`<div class="lk-c">${I('chart',14)} Dein Depot, ohne Beträge</div>`:''}</div>`}
 /* v304: Vermögenskarte in Geld – Gesamt mit Verlauf, Zeiträumen und Zusammensetzung (Füllstand von links) */
 let wRange='3m';const WR={'1m':['1M',30],'3m':['3M',91],'6m':['6M',182],'1y':['1J',365],'all':['Alle',0]};
 function wParts(){const pa=pufAcc(),V=vaultCash(),D=depot(),out=[];
