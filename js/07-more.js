@@ -23,7 +23,8 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten'],
   ['setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})()],
   ['export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel'],
-  ['import','export','Import aus MoneyControl','Backup oder CSV übernehmen']]],
+  ['import','export','Import aus MoneyControl','Backup oder CSV übernehmen'],
+  ['archiv','book','Archiv MoneyControl',ARCH?ARCH.rows.length.toLocaleString('de-DE')+' alte Buchungen · nur zur Ansicht':'Alte Buchungen ansehen, ohne Konten zu ändern']]],
  'g:rep':['Berichte','book',c4,[
   ['report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen'],
   ['yearrev','sparkle','Dein Jahr','Rückblick als Story']]],
@@ -216,6 +217,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
    ${bioGet()?`<button class="btn soft" id="bioTest">${bioName()} jetzt testen</button>`:''}<div class="note">Wird nur auf diesem Gerät eingerichtet, nicht über den Sync. Am Arbeits-PC also einfach ausgeschaltet lassen.</div></div>`;
   if(k=='bg')return back+`<h1 class="lt">Hintergründe</h1></div>${['Gesamt',...ALL].map(x=>`<button class="bgprev" data-bg="${x}" style="${bgStyle(x)};border:0;width:100%;cursor:pointer;font:inherit;font-weight:700;font-size:20px;text-align:left">${x=='Gesamt'?'Alle Budgets':x}</button>`).join('')}`;
   if(k=='import')return viewImport();
+  if(k=='archiv')return viewArch();
   if(k=='look')return back+`<h1 class="lt">Design</h1></div><div class="seg" id="lookSeg">${[['mm','Klar'],['glass','Glas']].map(x=>`<button class="${(S.look||'mm')==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div>
    `;
   if(k=='export')return back+`<h1 class="lt">Export & Backup</h1></div>

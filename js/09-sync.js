@@ -556,7 +556,7 @@ async function docMigrate(){const L=S.exp.filter(e=>e.img&&!e.doc&&/^data:image/
   if(n){save();docFlush()}}
 /* Aufräumen höchstens einmal am Tag und nur direkt nach erfolgreichem Sync: lokal alles ohne Buchung, online nur Unbenutztes älter als 30 Tage */
 async function docGC(){if(!syOn()||!SY.uid||Date.now()-(SY.at||0)>120000)return;let last=0;try{last=+localStorage.getItem('cf-docgc')||0}catch(e){}if(Date.now()-last<864e5)return;try{localStorage.setItem('cf-docgc',String(Date.now()))}catch(e){}
-  const used=new Set([...S.exp,...(S.loose||[])].filter(e=>e.doc).map(e=>e.doc.id));if(typeof E!='undefined'&&E&&E.doc)used.add(E.doc.id);
+  const used=new Set([...S.exp,...(S.loose||[])].filter(e=>e.doc).map(e=>e.doc.id));if(typeof E!='undefined'&&E&&E.doc)used.add(E.doc.id);used.add('archiv-mc');
   try{const q=new Set(await docTx('q','readonly',s=>s.getAllKeys()));for(const k of await docTx('f','readonly',s=>s.getAllKeys()))if(!used.has(k)&&!q.has(k))await docDelL(k)}catch(e){}
   try{const r=await syFetch('/storage/v1/object/list/belege',{method:'POST',body:JSON.stringify({prefix:SY.uid,limit:1000,offset:0})});if(!r.ok)return;
     const old=(await r.json()).filter(o=>o&&o.id&&o.name&&!used.has(o.name)&&Date.now()-new Date(o.created_at||Date.now()).getTime()>30*864e5).map(o=>docPath(o.name));

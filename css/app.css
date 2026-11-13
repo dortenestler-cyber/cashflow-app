@@ -1351,3 +1351,11 @@ body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!import
 .ico.ico-scn{overflow:hidden;padding:0;background:none;width:42px;height:42px;border-radius:12px}.ico-scn .scn{width:100%;height:100%}.ico-scn .scn-w{display:none}
 .hero.onbg{position:relative;isolation:isolate}.hero-scn{position:absolute;inset:0;z-index:-1;opacity:.3;mix-blend-mode:luminosity;pointer-events:none;border-radius:inherit;overflow:hidden}.hero-scn .scn{height:100%}.hero-scn .scn-w{display:none}
 .yr-leg{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--muted);padding:4px 0 6px}.yr-leg span{display:flex;align-items:center;gap:5px}.yr-leg i{width:10px;height:10px;border-radius:3px;display:block}
+/* v318: Archiv MoneyControl */
+.yrseg{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.yrseg::-webkit-scrollbar{display:none}.yrseg button{flex:0 0 auto;min-width:58px;padding:6px 10px}
+.tip.arhd{border-left-color:var(--muted)}.tip.arhd b{display:block;margin-bottom:2px}
+.yrow.arcy{position:relative;flex-wrap:wrap;padding-bottom:12px}.yrow.arcy.on{background:var(--fill)}
+.arctag{display:inline-block;margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:6px;background:var(--fill);color:var(--muted);vertical-align:1px}.arctag.live{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.arcbar{position:absolute;left:14px;right:14px;bottom:4px;height:4px;display:flex;flex-direction:column;gap:1px}.arcbar i{display:block;height:2px;border-radius:2px;opacity:.6}.arcbar i.in{background:var(--in,var(--ok))}.arcbar i.out{background:var(--out,var(--bad))}
+.arflt{display:flex;gap:6px;flex-wrap:wrap}.arsel{flex:1 1 30%;min-width:0;font:inherit;font-size:13px;padding:7px 8px;border-radius:9px;border:1px solid var(--sep);background:var(--card);color:var(--fg)}
+.arcorr{opacity:.55}

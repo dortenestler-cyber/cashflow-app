@@ -80,6 +80,7 @@ function viewImport(){const back=`<div class="lthead"><button class="back" id="s
    <label class="btn" for="impFile" style="text-align:center;box-sizing:border-box">Umzugs- oder CSV-Datei auswählen</label><input id="impFile" type="file" accept=".csv,.txt,.json,text/csv,text/plain,application/json" hidden>
    <div class="sec"><div class="sh">Oder Text einfügen</div><textarea class="box" id="impText" placeholder="Inhalt der CSV-Datei hier einfügen"></textarea><button class="btn soft" id="impParse">Einlesen</button></div>
    ${IMP&&IMP.err?`<div class="tip bad">${esc(IMP.err)}</div>`:''}
+   <button class="btn soft" id="impArch">Nur als Archiv ansehen, ohne Konten zu ändern</button>
    <div class="note">Das interne MoneyControl-Backup ist ein eigenes Format. Für den Umzug ist der CSV-Export der richtige Weg. Wiederkehrende Buchungen erkennt die App danach aus deinem Verlauf.</div>
    ${(S.imports||[]).length?`<div class="sec"><div class="sh">Bisherige Importe</div><div class="mmcard">${S.imports.map(x=>`<div class="srow"><div class="srow-h"><span>${new Date(x.t).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})}</span><span>${x.n} Buchungen</span><button class="link" data-undo="${x.id}" style="color:var(--bad)">Rückgängig</button></div></div>`).join('')}</div></div>`:''}`;
   if(IMP.step=='mc'){const d=IMP.d,ts=d.exp.map(e=>e.t),vis=d.accts.filter(a=>a.vis),hid=d.accts.filter(a=>!a.vis),c=d.exp.reduce((m,e)=>(m[e.b]=(m[e.b]||0)+1,m),{});
@@ -112,7 +113,7 @@ function viewImport(){const back=`<div class="lthead"><button class="back" id="s
     <div class="t"><div>${esc(r.n)}</div><div class="s">Am ${r.day}. · ${esc(r.b)} · ${r.cnt} Monate gefunden</div></div><div class="v ${r.type=='in'?'in':'out'}">${r.type=='in'?'+':'−'}${eur(r.a)}</div><input type="checkbox" class="switch" data-rc="${i}" ${r.on?'checked':''}></div>`).join('')||'<div class="empty">Keine regelmäßigen Buchungen gefunden.</div>'}</div>
     <div class="note">Mindestens drei Monate mit gleichem Betrag, ähnlichem Tag und gleicher Notiz. Prüfe die Auswahl, bevor du sie übernimmst.</div></div>
    ${IMP.rec.length?'<button class="btn" id="recTake">Auswahl als wiederkehrend übernehmen</button>':''}<button class="btn soft" id="impDone">Fertig</button>`}
-function bindImport(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
+function bindImport(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};on('impArch',()=>{IMP=null;setView='archiv';render();scrollTo(0,0)});
   document.querySelectorAll('[data-pg]').forEach(c=>c.onchange=()=>{IMP.plan[c.dataset.pg]=c.checked});
   if($('mcBal'))$('mcBal').oninput=()=>{IMP.bal=$('mcBal').value};if($('mcKeep'))$('mcKeep').onchange=()=>{IMP.keepW=$('mcKeep').checked};
   on('mcGo',()=>{const d=IMP.d;S.accts=d.accts;S.budgets=d.budgets;S.cats=d.cats;S.exp=d.exp.filter(e=>!e.plan||(IMP.plan||{})[(e.n||e.c)+'|'+e.b]!==false).map(e=>{if(e.plan){const o=Object.assign({},e);delete o.plan;delete o.arch;return o}return e});S.debts=(d.debts||[]).map(x=>Object.assign({},x));S.contracts=d.contracts||[];S.rec=d.rec;S.fav=d.fav;S.bg=Object.assign({},S.bg||{},d.bg);
@@ -538,16 +539,16 @@ function yplanStatus(){const it=yplanItems().map(x=>{const d=yplanNext(x),mo=Mat
     x.got=Math.min(x.a,gSaved(x.g));x.exp=exp;x.behind=Math.max(0,exp-x.got);x.ok=x.behind<1;x.need=(x.a-x.got)/moE;x.moE=moE;x.skipNext=(x.skip||[]).includes(pkey(period(1)))});return it}
 /* 8 Dein Jahr */
 let yrY=null;
-function yearData(y){const s=new Date(y,0,1).getTime(),e=new Date(y+1,0,1).getTime(),L=RX().filter(x=>x.t>=s&&x.t<e&&!isPlan(x)&&!x.corr),VA=vaultAccs(),O=L.filter(x=>realOut(x)&&!VA.includes(x.b));
+function yearData(y){const s=new Date(y,0,1).getTime(),e=new Date(y+1,0,1).getTime(),AR=archIn(s,e),L=RX().filter(x=>x.t>=s&&x.t<e&&!isPlan(x)&&!x.corr).concat(AR),VA=vaultAccs(),O=L.filter(x=>realOut(x)&&!VA.includes(x.b));
   const inc=L.filter(x=>x.type=='in'&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0),out=O.reduce((a,x)=>a+x.a,0),saved=L.filter(x=>x.type=='tr'&&VA.includes(x.to)&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0);
-  const mer={};O.filter(x=>x.n&&!x.rid).forEach(x=>{const k=x.n.trim();mer[k]=mer[k]||{v:0,n:0};mer[k].v+=x.a;mer[k].n++});const top=Object.entries(mer).sort((a,b)=>b[1].v-a[1].v).slice(0,3);
+  const mer={};O.filter(x=>x.n&&!x.rid&&!x.arch).forEach(x=>{const k=x.n.trim();mer[k]=mer[k]||{v:0,n:0};mer[k].v+=x.a;mer[k].n++});const top=Object.entries(mer).sort((a,b)=>b[1].v-a[1].v).slice(0,3);
   const cat={};O.forEach(x=>{const k=x.c||'Sonstiges';cat[k]=(cat[k]||0)+x.a});const cats=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
-  const pan=(()=>{try{const p=pufAcc();return p&&p.n}catch(e){return null}})(),fix=O.filter(x=>x.rid||x.b==pan||/fixkost/i.test(x.c||'')).reduce((a,x)=>a+x.a,0),big=O.slice().sort((a,b)=>b.a-a.a)[0];
+  const pan=(()=>{try{const p=pufAcc();return p&&p.n}catch(e){return null}})(),fix=O.filter(x=>x.arch?/miete|nebenkost|versicher|telekom|streaming|spotify|kontogeb|gebühr|ratenzahl/i.test(x.c||''):x.rid||x.b==pan||/fixkost/i.test(x.c||'')).reduce((a,x)=>a+x.a,0),big=O.slice().sort((a,b)=>b.a-a.a)[0];
   const W=(S.wish||[]).filter(w=>w.s=='verworfen'&&(w.dt||w.t||0)>=s&&(w.dt||w.t||0)<e),letGo=W.reduce((a,w)=>a+(+w.p||+w.a||0),0);
   const sd=spendDays();let ns=0;for(let d=new Date(Math.max(s,dataStart()));d.getTime()<Math.min(e,Date.now())&&ymd(d.getTime())<today();d.setDate(d.getDate()+1))if(!sd.has(ymd(d.getTime())))ns++;
   const ms=[];for(let m=0;m<12;m++){const a=new Date(y,m,1).getTime(),b=new Date(y,m+1,1).getTime();if(a>Date.now())break;const i=L.filter(x=>x.t>=a&&x.t<b&&x.type=='in'&&!VA.includes(x.b)).reduce((q,x)=>q+x.a,0),o=O.filter(x=>x.t>=a&&x.t<b).reduce((q,x)=>q+x.a,0);if(i||o)ms.push({m,i,o,v:i-o})}
-  const so=ms.slice().sort((a,b)=>b.v-a.v),jn=(S.journal||[]).filter(j=>j.t>=s&&j.t<e).length,bav=S.pension?bavMon()*Math.max(0,Math.min(12,(Math.min(e,Date.now())-Math.max(s,histT()))/(30.44*864e5))):0;
-  return{y,s,inc,out,saved,top,cats,fix,big,letGo,nW:W.length,ns,ms,best:so[0],worst:so.length>1?so[so.length-1]:null,jn,n:L.length,bav:Math.round(bav)}}
+  const so=ms.slice().sort((a,b)=>b.v-a.v),jn=(S.journal||[]).filter(j=>j.t>=s&&j.t<e).length,bav=S.pension?bavMon()*Math.max(0,Math.min(12,(Math.min(e,Date.now())-Math.max(s,histT(),dataStart()))/(30.44*864e5))):0;
+  return{y,s,inc,out,saved,top,cats,fix,big,letGo,nW:W.length,ns,ms,best:so[0],worst:so.length>1?so[so.length-1]:null,jn,n:L.length,arch:AR.length,bav:Math.round(bav)}}
 /* Budgets im Jahr: abgeschlossene Zeiträume, in denen das Budget gehalten hat */
 function yearBud(y){const os=[],ds=dataStart();for(let o=-1;o>-25;o--){const P=period(o);if(P.e.getTime()<=ds)break;const yy=P.s.getFullYear();if(yy>y)continue;if(yy<y)break;os.push(o)}
   return BUDG.map(b=>{const r=os.map(o=>calc(b,o)).filter(c=>c.total>0);return{b,ok:r.filter(c=>c.rest>=0).length,n:r.length}}).filter(x=>x.n)}
@@ -560,14 +561,15 @@ function yrChart(ms,best,worst){const W=340,H=170,X0=40,top=12,bot=H-22,mx0=Math
   const ln=(key,col)=>{const P=ms.map(d=>[X0+d.m*sw+sw*(key=='i'?.16:.52)+sw*.16,Y(d[key])]);if(!P.length)return'';return (P.length>1?`<polyline points="${P.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`:'')+P.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.4" fill="var(--card)" stroke="${col}" stroke-width="2.2"/>`).join('')};
   g+=ln('i','var(--in,var(--ok))')+ln('o','var(--out,var(--bad))');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Einnahmen und Ausgaben je Monat">${g}</svg><div class="yr-leg"><span><i style="background:var(--in,var(--ok))"></i>Einnahmen</span><span><i style="background:var(--out,var(--bad))"></i>Ausgaben</span></div>`}
-function viewYear(){const cy=new Date().getFullYear(),ys=[cy-1,cy].filter(v=>v==cy||yearData(v).n),y=ys.includes(yrY)?yrY:cy,D=yearData(y),MN3=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  const head=`${appbar({title:'Dein Jahr',back:'setBack',noGear:true})}${ys.length>1?`<div class="seg" style="margin-bottom:10px">${ys.map(v=>`<button class="${v==y?'on':''}" data-yy="${v}">${v}</button>`).join('')}</div>`:''}`;
+function viewYear(){const cy=new Date().getFullYear(),ys=[...new Set([...archYears(),cy-1,cy])].sort((a,b)=>a-b).filter(v=>v==cy||yearData(v).n),y=ys.includes(yrY)?yrY:cy,D=yearData(y),MN3=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const head=`${appbar({title:'Dein Jahr',back:'setBack',noGear:true})}${ys.length>1?`<div class="seg${ys.length>4?' yrseg':''}" style="margin-bottom:10px">${ys.map(v=>`<button class="${v==y?'on':''}" data-yy="${v}">${v}</button>`).join('')}</div>`:''}`;
   if(!D.n)return head+`<div class="empty">Für ${y} gibt es noch keine Buchungen.</div>`;
-  const nm=D.ms.length||1,avg=k=>D.ms.reduce((a,x)=>a+x[k],0)/nm,ds=dataStart(),part=ds>D.s,now0=new Date();
+  const nm=D.ms.length||1,avg=k=>D.ms.reduce((a,x)=>a+x[k],0)/nm,ds=ARCH&&ARCH.rows.length?Math.min(dataStart(),ARCH.rows[0].t):dataStart(),part=ds>D.s,now0=new Date();
   const lm=D.ms.filter(x=>!(y==cy&&x.m==now0.getMonth())).slice(-1)[0],cmp=lm&&D.ms.length>1;
   const arr=(k,goodUp)=>{if(!cmp)return'';const d=lm[k]-avg(k);if(Math.abs(d)<1)return'';const up=d>0;return `<small class="yr-d ${up==goodUp?'in':'out'}">${up?'↑':'↓'} ${eur0(Math.abs(d))}</small>`};
   const kp=(t,v,sub,ar)=>`<div class="yr-k"><span>${t}</span><b>${v}</b><small>${sub}</small>${ar||''}</div>`,q=D.inc?Math.round((D.inc-D.out)/D.inc*100):null;
-  const bil=`<div class="sec"><div class="sh">Bilanz${part?`<span>Daten ab ${MN3[new Date(ds).getMonth()]}</span>`:''}</div><div class="mmcard yr-bil">
+  const arn=D.arch?`<div class="tip arhd"><b>${D.arch==D.n?'Archivjahr':'Teilweise Archiv'} · MoneyControl</b><div>${D.arch==D.n?'Alle':D.arch.toLocaleString('de-DE')+' von '+D.n.toLocaleString('de-DE')} Buchungen stammen aus dem Archiv${D.arch<D.n?' (bis '+new Date(histT()-864e5).toLocaleDateString('de-DE')+'), der Rest aus CashFlow':''}. Nur zur Ansicht, ohne Einfluss auf deine Salden.</div></div>`:'';
+  const bil=arn+`<div class="sec"><div class="sh">Bilanz${part?`<span>Daten ab ${MN3[new Date(ds).getMonth()]}</span>`:''}</div><div class="mmcard yr-bil">
    ${kp('Einnahmen',eur0(D.inc),'Ø '+eur0(avg('i'))+'/Monat',arr('i',true))}${kp('Ausgaben',eur0(D.out),'Ø '+eur0(avg('o'))+'/Monat',arr('o',false))}
    ${kp('Überschuss',eur0(D.inc-D.out),'Ø '+eur0(avg('v'))+'/Monat',arr('v',true))}${kp('Sparquote',q==null?'–':q+' %','vom Einkommen behalten')}</div>
    ${cmp?`<div class="note">Pfeile: ${MN3[lm.m]} im Vergleich zum Monatsschnitt</div>`:''}</div>`;
@@ -583,7 +585,7 @@ function viewYear(){const cy=new Date().getFullYear(),ys=[cy-1,cy].filter(v=>v==
   const hls=`<div class="sec"><div class="sh">Highlights</div><div class="yr-hl">${hl.join('')}</div></div>`;
   const fz=[];if(D.inc)fz.push(D.inc>=D.out?`Du hast ${q} % deiner Einnahmen behalten.`:`Du hast ${eur0(D.out-D.inc)} mehr ausgegeben als eingenommen.`);if(D.cats[0])fz.push(`Am meisten ging an ${esc(D.cats[0][0])}: ${Math.round(D.cats[0][1]/D.out*100)} % deiner Ausgaben.`);if(B.length){const w=B.slice().sort((a,b)=>a.ok/a.n-b.ok/b.n)[0];if(w.ok<w.n)fz.push(`${esc(w.b)} war am häufigsten knapp.`)}
   const pz=`<div class="sec"><div class="sh">Pennys Fazit</div><div class="mmcard yr-pz"><div class="yr-pf"><span>${penny(pMood(),44)}</span><p>${fz.join(' ')||'Noch zu wenig Daten für ein Fazit.'}</p></div><button class="btn soft" id="yrPenny" data-ptalk="year">Jahr mit Penny besprechen</button></div></div>`;
-  return head+bil+chart+cats+bud+verm+hls+pz+`<button class="yr-share" id="yrShare">${I('copy',14)} Als Text kopieren</button><div class="note" id="yrMsg"></div>`}
+  return head+bil+chart+cats+bud+verm+hls+yearsCmp(y)+pz+`<button class="yr-share" id="yrShare">${I('copy',14)} Als Text kopieren</button><div class="note" id="yrMsg"></div>`}
 /* 9 Monatsabschluss */
 function closeTarget(){const P=period(0);return P.idx>=P.len-2?0:-1}
 function viewClose(emb){const o=closeTarget(),P=period(o),pk=pkey(P),done=(S.closeDone||{})[pk],sa=sinkAcc(),VA=vaultAccs(),tgt=sa||null;
@@ -643,7 +645,8 @@ function bindIdeas(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f},all=(s
   if(setView=='refund')all('[data-rfg]',b=>refundGot(b.dataset.rfg));
   if(setView=='docs'){const q=$('docQ');if(q){q.oninput=()=>{docQ=q.value;const pos=q.selectionStart;render();const q2=$('docQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos)}catch(e){}}}}all('[data-docf]',b=>{docF=b.dataset.docf;render()});all('[data-doc]',b=>{const e=S.exp.find(x=>x.id==b.dataset.doc);if(e)hasDoc(e)?docView(e,true):openSheet(e)});all('[data-docfor]',b=>{docFor=b.dataset.docfor});all('[data-loose]',b=>{const x=(S.loose||[]).find(z=>z.id==b.dataset.loose);if(x)looseAsk(x)});const lx=id=>(S.loose||[]).find(z=>z.id==id),ex=id=>S.exp.find(z=>z.id==id);all('[data-lved]',b=>{const x=lx(b.dataset.lved);if(x)docView(x,true)});all('[data-lvdel]',b=>{const x=lx(b.dataset.lvdel);if(x)looseDel(x)});all('[data-dved]',b=>{const e=ex(b.dataset.dved);if(e)docView(e,true)});all('[data-dvmv]',b=>{const e=ex(b.dataset.dvmv);if(e)docMove(e)});all('[data-dvrm]',b=>{const e=ex(b.dataset.dvrm);if(e)docUnlink(e)});all('[data-nodoc]',b=>{const e=S.exp.find(x=>x.id==b.dataset.nodoc);if(!e)return;e.nodoc=1;save();render();tell(`„${e.n||e.c||'Ausgabe'}“ braucht keinen Beleg.`,()=>{delete e.nodoc;save();render()})});const di=$('docAddIn');if(di)di.onchange=ev=>{const f=ev.target.files[0];ev.target.value='';if(f)docAdd(f);else docFor=''};if($('docAddL'))$('docAddL').onclick=()=>{docFor=''}}
   if(setView=='tax'){all('[data-ty]',b=>{taxY=+b.dataset.ty;render()});on('taxPdf',taxPrint)}
-  if(setView=='yearrev'){all('[data-yy]',b=>{yrY=+b.dataset.yy;render()});
+  if(setView=='archiv')bindArch();
+  if(setView=='yearrev'){all('[data-yy]',b=>{yrY=+b.dataset.yy;render();scrollTo(0,0)});
     on('yrShare',()=>{const D=yearData(yrY||new Date().getFullYear()),txt=`Mein Jahr ${D.y} mit CashFlow: ${eur0(D.inc-D.out)} unterm Strich, ${eur0(D.saved+D.bav)} fürs Alter zurückgelegt, ${D.nW} Impulsen widerstanden (${eur0(D.letGo)}), ${D.ns} ausgabenfreie Tage.`;try{navigator.clipboard.writeText(txt);$('yrMsg').textContent='Kopiert.'}catch(e){$('yrMsg').textContent=txt}})}
   if(!setView&&!curB&&tab=='wish'&&wishV=='Monat'){on('clAbg',()=>openAbgleich());all('[data-rpt]',b=>restPropDo(+b.dataset.rpt,true));all('[data-rpx]',b=>restPropDo(+b.dataset.rpx,false));on('clPuf',()=>{pufMoveDo([[vermAcc(),pufExcess()]],'Monatsabschluss: ')});all('[data-clm]',b=>{const[f,t2]=b.dataset.clm.split('|');closeMove(f,t2)});on('clYp',()=>{setView='yplan';render();scrollTo(0,0)});on('clSim',()=>{setView=null;tab='rep';repV='Simulator';SIM=null;render();scrollTo(0,0)});on('clRev',()=>{setView='review';S.revOff=closeTarget();render();scrollTo(0,0)});
     on('clDone',()=>{const pk=pkey(period(closeTarget()));S.closeDone=S.closeDone||{};S.closeDone[pk]=Date.now();save();tell('Monat abgeschlossen. Gut gemacht!',0,'trophy');setView=null;render();scrollTo(0,0)})}
@@ -940,3 +943,78 @@ function abGehalt(o){if(!o||!o.id||!(+o.netto>0)){toast('Gehaltsnachweis unvolls
   const near=S.exp.find(e=>e.type=='in'&&e.c=='Gehalt'&&!e.ab&&Math.abs(e.t-t.getTime())<7*864e5);
   if(near){openSheet(near,{amt:String(net).replace('.',','),ab:o.id});return}
   openSheet(null,{type:'in',c:'Gehalt',amt:String(net).replace('.',','),n:'Gehalt'+(o.arb?' '+String(o.arb).slice(0,40):''),dt,ab:o.id})}
+/* ---------- v318: Archiv MoneyControl – alte Buchungen nur zur Ansicht, ohne Einfluss auf Salden, Budgets und Prognose ----------
+   Liegt lokal in IndexedDB „cf-arch“ und, bei Online-Sync, verschlüsselt im Bucket „belege“ unter uid/archiv-mc. Übernommen wird nur, was vor histT() liegt. */
+let ARCH=null,ARP=null,ARERR='',ARF={y:'Alle',b:'Alle',c:'Alle',q:'',lim:150},ARDEL=0;const ARID='archiv-mc';
+function archDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open('cf-arch',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function archTx(mode,fn){const db=await archDB();return new Promise((res,rej)=>{const t=db.transaction('s',mode),r=fn(t.objectStore('s'));let out;if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error)})}
+const archAcct=s=>String(s||'').replace(/[✖❌️]/g,'').trim();
+/* Kompakt: [t, Typ 0=aus 1=ein 2=um, Betrag, Kategorie, Konto, Gegenkonto, Notiz, Hauptgruppe, Gruppe, Korrektur] */
+function archParse(text){const{rows}=parseCSV(text);if(rows.length<2)return{err:'Die Datei enthält keine Buchungen.'};
+  const hd=rows[0].map(x=>x.replace(/^﻿/,'').trim()),ix=n=>hd.indexOf(n),need=['Datum','Typ','Betrag','Kategorie','Konto','Gegenkonto'];
+  if(need.some(n=>ix(n)<0))return{err:'Das ist kein CSV-Export aus MoneyControl. Erwartet werden die Spalten '+need.join(', ')+'.'};
+  const cut=histT(),cn={},CM={'rückzahlungen':'Rückzahlung'},cat=s=>{s=String(s||'').trim();if(!s)return 'Ohne Kategorie';const k=s.toLowerCase();if(CM[k])return CM[k];return cn[k]=cn[k]||s};
+  const g=(r,n)=>{const i=ix(n);return i<0?'':String(r[i]||'').trim()},out=[];let skip=0,bad=0;
+  rows.slice(1).forEach(r=>{const t=pDate(g(r,'Datum')),a=Math.abs(pNum(g(r,'Betrag'))),ty=({Ausgaben:0,Einnahmen:1,Umbuchung:2})[g(r,'Typ')];
+    if(isNaN(t)||isNaN(a)||ty==null){bad++;return}if(t>=cut){skip++;return}const c=cat(g(r,'Kategorie'));
+    out.push([t,ty,Math.round(a*100)/100,c,archAcct(g(r,'Konto'))||'Ohne Konto',ty==2?archAcct(g(r,'Gegenkonto')):'',g(r,'Notiz'),g(r,'Person'),g(r,'Gruppe'),c=='Ausgleichsbuchung'?1:0])});
+  out.sort((x,y)=>x[0]-y[0]);return{rows:out,skip,bad,cut}}
+function archSet(d){if(!d||!Array.isArray(d.rows)){ARCH=null;return}const T=['out','in','tr'];
+  ARCH={t:d.t,cut:d.cut,rows:d.rows.map((r,i)=>({id:'mc'+i,t:r[0],type:T[r[1]],a:r[2],c:r[3],b:r[4],to:r[5]||'',n:r[6]||'',hg:r[7]||'',grp:r[8]||'',corr:!!r[9],arch:true}))};
+  ARCH.years=[...new Set(ARCH.rows.map(e=>new Date(e.t).getFullYear()))].sort((a,b)=>b-a);ARCH.accts=[...new Set(ARCH.rows.flatMap(e=>[e.b,e.to]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));
+  ARCH.cats=[...new Set(ARCH.rows.map(e=>e.c))].sort((a,b)=>a.localeCompare(b,'de'))}
+/* Archiv-Buchungen eines Zeitraums für Auswertungen: nur vor dem Stichtag, ohne Ausgleichsbuchungen */
+function archIn(s,e){if(!ARCH)return[];const h=histT();return ARCH.rows.filter(x=>x.t>=s&&x.t<e&&x.t<h&&!x.corr)}
+const archYears=()=>ARCH?ARCH.years.slice():[];
+async function archEnc(d){const b=new Blob([JSON.stringify(d)],{type:'application/json'});return docEnc(b)}
+async function archUp(d){try{if(!syOn()||!navigator.onLine||!SY.uid||!await syLoadKey())return;await syFetch('/storage/v1/object/belege/'+docPath(ARID),{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upsert':'true'},body:await archEnc(d)})}catch(e){}}
+async function archDown(){try{if(!syOn()||!navigator.onLine||!SY.uid||!await syLoadKey())return null;const r=await syFetch('/storage/v1/object/authenticated/belege/'+docPath(ARID),{headers:{'Content-Type':'application/octet-stream'}});if(!r.ok)return null;
+  const u=new Uint8Array(await r.arrayBuffer()),pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},syKey,u.slice(12));return JSON.parse(new TextDecoder().decode(pt))}catch(e){return null}}
+async function archLoad(){let d=null;try{d=await archTx('readonly',s=>s.get(ARID))}catch(e){}
+  if(!d&&S.archOn){d=await archDown();if(d)try{await archTx('readwrite',s=>s.put(d,ARID))}catch(e){}}
+  if(d){archSet(d);if(!S.archOn){S.archOn=1;save()}if(setView=='yearrev'||setView=='archiv')render()}}
+async function archSave(p){const d={v:1,src:'MoneyControl',t:Date.now(),cut:p.cut,rows:p.rows};await archTx('readwrite',s=>s.put(d,ARID));archSet(d);S.archOn=1;save();archUp(d)}
+async function archRemove(){try{await archTx('readwrite',s=>s.delete(ARID))}catch(e){}ARCH=null;S.archOn=0;save();
+  try{if(syOn()&&navigator.onLine&&SY.uid)await syFetch('/storage/v1/object/belege',{method:'DELETE',body:JSON.stringify({prefixes:[docPath(ARID)]})})}catch(e){}}
+function archSum(L){const i=L.filter(e=>e.type=='in'&&!e.corr).reduce((s,e)=>s+e.a,0),o=L.filter(e=>e.type=='out'&&!e.corr).reduce((s,e)=>s+e.a,0);return{i,o,v:i-o}}
+function archList(){if(!ARCH)return[];const q=ARF.q.trim().toLowerCase();return ARCH.rows.filter(e=>(ARF.y=='Alle'||new Date(e.t).getFullYear()==ARF.y)&&(ARF.b=='Alle'||e.b==ARF.b||e.to==ARF.b)&&(ARF.c=='Alle'||e.c==ARF.c)&&(!q||(e.n+' '+e.c+' '+e.b+' '+e.hg).toLowerCase().includes(q)))}
+/* Jahre im Vergleich: Archiv und CashFlow nebeneinander, gleiche Rechnung wie im Jahresrückblick */
+function yearsCmp(cur){const cy=new Date().getFullYear(),ys=[...new Set([...archYears(),cy-1,cy])].filter(y=>yearData(y).n).sort((a,b)=>b-a);if(ys.length<2)return '';const h=histT(),hy=new Date(h).getFullYear();
+  const R=ys.map(y=>{const D=yearData(y);return{y,D,tag:y<hy?'Archiv':y>hy?'CashFlow':ARCH&&D.arch?'Archiv + CashFlow':'CashFlow'}}),mx=Math.max(1,...R.map(r=>Math.max(r.D.inc,r.D.out)));
+  return `<div class="sec"><div class="sh">Jahre im Vergleich<span>Archiv bis ${new Date(h-864e5).toLocaleDateString('de-DE')}</span></div><div class="mmcard">${R.map(r=>`<button class="yrow arcy${r.y==cur?' on':''}" data-yy="${r.y}"><span><b>${r.y}</b><small class="arctag${r.tag=='CashFlow'?' live':''}">${r.tag}</small></span><span class="ym"><small class="in">${eur0(r.D.inc)}</small><small class="out">${eur0(r.D.out)}</small></span><b class="${r.D.inc-r.D.out<0?'out':'in'}">${eur0(r.D.inc-r.D.out)}</b><span class="chev">›</span><i class="arcbar"><i class="in" style="width:${r.D.inc/mx*100}%"></i><i class="out" style="width:${r.D.out/mx*100}%"></i></i></button>`).join('')}</div>
+   <div class="note">Einnahmen, Ausgaben und Saldo je Kalenderjahr. Archivjahre stammen aus MoneyControl, Ausgleichsbuchungen und Umbuchungen zählen nicht mit.</div></div>`}
+let ARTRY=0;function viewArch(){if(!ARCH&&S.archOn&&!ARTRY){ARTRY=1;archLoad().catch(()=>{})}const back=`<div class="lthead"><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Archiv MoneyControl</h1></div>`,cd=new Date(histT()-864e5).toLocaleDateString('de-DE');
+  const pick=(lbl)=>`<label class="btn${ARCH?' soft':''}" for="arFile" style="text-align:center;box-sizing:border-box">${lbl}</label><input id="arFile" type="file" accept=".csv,.txt,text/csv,text/plain" hidden>`;
+  if(ARP){const ts=ARP.rows.map(e=>e[0]),ac=new Set(ARP.rows.flatMap(e=>[e[4],e[5]]).filter(Boolean)),n=t=>ARP.rows.filter(e=>e[1]==t).length;
+    return back+`<div class="mmsum"><div>Buchungen<b>${ARP.rows.length.toLocaleString('de-DE')}</b></div><div>Konten<b>${ac.size}</b></div><div>Zeitraum<b style="font-size:12px">${ts.length?new Date(ts[0]).toLocaleDateString('de-DE')+' – '+new Date(ts[ts.length-1]).toLocaleDateString('de-DE'):'–'}</b></div></div>
+     <div class="mmcard"><div class="srow"><div class="srow-h"><span>Ausgaben</span><span></span><b>${n(0).toLocaleString('de-DE')}</b></div></div><div class="srow"><div class="srow-h"><span>Einnahmen</span><span></span><b>${n(1).toLocaleString('de-DE')}</b></div></div><div class="srow"><div class="srow-h"><span>Umbuchungen</span><span></span><b>${n(2).toLocaleString('de-DE')}</b></div></div>
+      ${ARP.skip?`<div class="srow"><div class="srow-h"><span>Ab ${new Date(ARP.cut).toLocaleDateString('de-DE')} (nicht übernommen)</span><span></span><b>${ARP.skip}</b></div></div>`:''}${ARP.bad?`<div class="srow"><div class="srow-h"><span>Nicht lesbar</span><span></span><b class="out">${ARP.bad}</b></div></div>`:''}</div>
+     <div class="tip" style="border-left-color:var(--ok)">Deine Konten, Salden, Budgets und die Prognose in CashFlow bleiben unverändert. Das Archiv ist nur zum Ansehen und Vergleichen.</div>
+     ${ARCH?'<div class="tip">Das bestehende Archiv wird durch diese Datei ersetzt.</div>':''}<button class="btn" id="arGo">Archiv anlegen</button><button class="btn soft" id="arCancel">Abbrechen</button>`}
+  if(!ARCH)return back+`<div class="mmcard"><div class="srow"><b>Alte Buchungen als Archiv</b><ol class="steps"><li>In MoneyControl den CSV-Export über den gesamten Zeitraum erstellen.</li><li>Die Datei in „Dateien“ sichern oder per AirDrop schicken.</li><li>Hier auswählen. Übernommen wird alles bis ${cd}.</li></ol></div></div>
+     ${pick('MoneyControl-CSV auswählen')}${ARERR?`<div class="tip bad">${esc(ARERR)}</div>`:''}
+     <div class="note">Das Archiv verändert keine Konten und Salden. Es erscheint hier und im Jahresrückblick, klar als Archiv markiert. Mit Online-Sync ist es verschlüsselt auch auf deinen anderen Geräten.</div>`;
+  const L=archList().sort((a,b)=>b.t-a.t),sm=archSum(L),y0=ARCH.rows[0],y1=ARCH.rows[ARCH.rows.length-1],MN3=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  const sel=(id,v,opts)=>`<select id="${id}" class="arsel">${opts.map(([k,l])=>`<option value="${esc(k)}" ${String(v)==String(k)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  const flt=`<div class="sec"><div class="sh">Buchungen durchsuchen</div><div class="arflt">${sel('arY',ARF.y,[['Alle','Alle Jahre'],...ARCH.years.map(y=>[y,String(y)])])}${sel('arB',ARF.b,[['Alle','Alle Konten'],...ARCH.accts.map(a=>[a,a])])}${sel('arC',ARF.c,[['Alle','Alle Kategorien'],...ARCH.cats.map(c=>[c,c])])}</div>
+    <input id="arQ" class="box" type="search" placeholder="Notiz, Kategorie oder Konto" value="${esc(ARF.q)}" style="width:100%;box-sizing:border-box;margin-top:8px"></div>`;
+  const sums=`<div class="mmsum"><div>Einnahmen<b class="in" style="font-size:14px">${eur0(sm.i)}</b></div><div>Ausgaben<b class="out" style="font-size:14px">${eur0(sm.o)}</b></div><div>Saldo<b class="${sm.v<0?'out':'in'}" style="font-size:14px">${eur0(sm.v)}</b></div></div>`;
+  const mon=ARF.y!='Alle'?(()=>{const ms=MN3.map((m,i)=>{const s=archSum(L.filter(e=>new Date(e.t).getMonth()==i));return{m,...s}}),mx=Math.max(1,...ms.map(x=>Math.max(x.i,x.o)));
+    return `<div class="sec"><div class="sh">Monate ${ARF.y}</div><div class="mmcard">${ms.map(x=>`<div class="yrow arcy" style="cursor:default"><span>${x.m}</span><span class="ym"><small class="in">${x.i?eur0(x.i):''}</small><small class="out">${x.o?eur0(x.o):''}</small></span><b class="${x.v<0?'out':''}">${x.i||x.o?eur0(x.v):''}</b><span></span><i class="arcbar"><i class="in" style="width:${x.i/mx*100}%"></i><i class="out" style="width:${x.o/mx*100}%"></i></i></div>`).join('')}</div></div>`})():'';
+  const cats=(()=>{const by={};L.filter(e=>e.type=='out'&&!e.corr).forEach(e=>{by[e.c]=(by[e.c]||0)+e.a});const E=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,8);if(!E.length||ARF.c!='Alle')return '';const m=E[0][1];
+    return `<div class="sec"><div class="sh">Größte Kategorien</div><div class="mmcard">${E.map(([c,v])=>`<button class="srow arcat" data-arc="${esc(c)}" style="all:unset;display:block;padding:10px 14px;cursor:pointer;box-sizing:border-box;width:100%"><div class="srow-h"><span>${esc(c)}</span><span></span><b>${eur0(v)}</b></div><div class="bar"><i style="width:${v/m*100}%;background:var(--accent)"></i></div></button>`).join('')}</div></div>`})();
+  const row=e=>`<div class="cell plain arrow${e.corr?' arcorr':''}"><div class="t"><div>${esc(e.n||e.c)}</div><div class="s">${new Date(e.t).toLocaleDateString('de-DE')} · ${esc(e.type=='tr'?e.b+' → '+(e.to||'?'):e.b)}${e.n?' · '+esc(e.c):''}${e.corr?' · Korrektur':''}${e.grp?' · '+esc(e.grp):''}</div></div><div class="v ${e.type=='in'?'in':e.type=='out'?'out':''}">${e.type=='out'?'−':e.type=='in'?'+':''}${eur(e.a)}</div></div>`;
+  const list=`<div class="sec"><div class="sh">${L.length.toLocaleString('de-DE')} Buchungen</div>${L.length?`<div class="group">${L.slice(0,ARF.lim).map(row).join('')}</div>${L.length>ARF.lim?`<button class="btn soft" id="arMore">Weitere ${Math.min(150,L.length-ARF.lim)} anzeigen</button>`:''}`:'<div class="empty">Keine Buchungen für diese Auswahl.</div>'}</div>`;
+  return back+`<div class="tip arhd"><b>Archiv · nur zur Ansicht</b><div>${ARCH.rows.length.toLocaleString('de-DE')} Buchungen von ${new Date(y0.t).toLocaleDateString('de-DE')} bis ${new Date(y1.t).toLocaleDateString('de-DE')} aus ${ARCH.accts.length} Konten. Zählt nicht zu Salden, Budgets und Prognose.</div></div>
+   ${yearsCmp(ARF.y=='Alle'?null:ARF.y)}${flt}${sums}${mon}${cats}${list}
+   <div class="sec"><div class="sh">Archiv verwalten</div>${pick('Neue CSV einlesen (ersetzt das Archiv)')}${ARERR?`<div class="tip bad">${esc(ARERR)}</div>`:''}<button class="btn danger" id="arDel">${ARDEL?'Wirklich entfernen? Nochmal tippen':'Archiv entfernen'}</button><div class="note">Entfernt nur das Archiv. Deine CashFlow-Daten bleiben, wie sie sind.</div></div>`}
+function bindArch(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f},ch=(id,k)=>{const el=$(id);if(el)el.onchange=()=>{ARF[k]=k=='y'&&el.value!='Alle'?+el.value:el.value;ARF.lim=150;render()}};
+  if($('arFile'))$('arFile').onchange=ev=>{const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const p=archParse(rd.result);if(p.err){ARERR=p.err;ARP=null}else if(!p.rows.length){ARERR='Die Datei enthält keine Buchungen vor dem '+new Date(p.cut).toLocaleDateString('de-DE')+'.';ARP=null}else{ARERR='';ARP=p}render();scrollTo(0,0)};rd.readAsText(f,'utf-8')};
+  on('arCancel',()=>{ARP=null;render()});
+  on('arGo',async()=>{const b=$('arGo');b.disabled=true;b.textContent='Lege Archiv an …';try{const n=ARP.rows.length;await archSave(ARP);ARP=null;ARF={y:'Alle',b:'Alle',c:'Alle',q:'',lim:150};render();scrollTo(0,0);tell(n.toLocaleString('de-DE')+' Buchungen ins Archiv übernommen.')}catch(e){ARERR='Das Archiv konnte nicht gespeichert werden.';ARP=null;render()}});
+  on('arDel',async()=>{if(!ARDEL){ARDEL=1;render();setTimeout(()=>{ARDEL=0},4000);return}ARDEL=0;await archRemove();render();toast('Archiv entfernt.')});
+  on('arMore',()=>{ARF.lim+=150;render()});ch('arY','y');ch('arB','b');ch('arC','c');
+  document.querySelectorAll('[data-arc]').forEach(b=>b.onclick=()=>{ARF.c=b.dataset.arc;ARF.lim=150;render()});
+  document.querySelectorAll('.arcy[data-yy]').forEach(b=>b.onclick=()=>{yrY=+b.dataset.yy;setView='yearrev';render();scrollTo(0,0)});
+  const q=$('arQ');if(q)q.oninput=()=>{ARF.q=q.value;ARF.lim=150;const pos=q.selectionStart;render();const q2=$('arQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos)}catch(e){}}}}
+setTimeout(()=>{archLoad().catch(()=>{})},1200);
