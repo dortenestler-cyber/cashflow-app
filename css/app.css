@@ -1011,7 +1011,7 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  #asstRoot .apop{left:auto!important;right:24px!important;top:24px!important;bottom:24px!important;width:460px!important;max-height:none!important;border-radius:24px!important;transform-origin:bottom right}
  #toastRoot{left:232px}
  /* Heute */
- body[data-tab="dash"] .view{grid-template-columns:minmax(280px,1fr) minmax(0,2fr) minmax(0,1.5fr)!important;grid-template-areas:"warn warn warn" "quick quick penny" "minis chart up" "minis chart safe";grid-template-rows:auto auto auto 1fr;gap:20px 24px!important}
+ body[data-tab="dash"] .view{grid-template-columns:minmax(280px,1fr) minmax(0,2fr) minmax(0,1.5fr)!important;grid-template-areas:"warn warn warn" "quick quick penny" "minis chart up" "minis chart last" "minis chart safe";grid-template-rows:auto auto auto auto 1fr;gap:20px 24px!important}
  body[data-tab="dash"] .view>.fcwarn{grid-area:warn}
  body[data-tab="dash"] .view>.quick{grid-area:quick;margin:0}
  body[data-tab="dash"] .view>.d-penny{grid-area:penny;margin:0;align-self:stretch}
@@ -1022,6 +1022,7 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  body[data-tab="dash"] .view>.stickhead .slide .lbl{font-size:18px}
  body[data-tab="dash"] .view>.d-up{grid-area:up;margin:0}
  body[data-tab="dash"] .view>.d-safe{grid-area:safe;margin:0}
+ body[data-tab="dash"] .view>.d-last{grid-area:last;margin:0}body[data-tab="dash"] .view>.d-last>.sh{margin-top:0}
  body[data-tab="dash"] .view>.d-up>.sh,body[data-tab="dash"] .view>.d-safe>.sh{margin-top:0}
  body[data-tab="dash"] .mini{padding:16px 18px 18px}
  body[data-tab="dash"] .mini svg{max-width:170px}
@@ -1225,7 +1226,7 @@ body.mm[data-tab="rep"] .kpis .kpi:nth-child(n+3){border-top:1px solid rgba(255,
 /* Heute auf Desktop: Bereiche */
 @media (min-width:700px) and (max-width:1279.98px){body[data-tab="dash"] .view>.d2-head,body[data-tab="dash"] .view>.d2-fav,body[data-tab="dash"] .view>.stickhead,body[data-tab="dash"] .view>.fcwarn{grid-column:1/-1}body[data-tab="dash"] .view>.d2-sal{grid-column:1/-1;justify-self:end}}
 @media (min-width:1280px){
- body[data-tab="dash"] .view{grid-template-areas:"head head head" "warn warn warn" "minis chart sal" "minis chart fav" "minis chart up" "quick quick safe" "penny penny safe"!important;grid-template-rows:auto auto auto auto 1fr auto auto!important}
+ body[data-tab="dash"] .view{grid-template-areas:"head head head" "warn warn warn" "minis chart sal" "minis chart fav" "minis chart up" "minis chart last" "quick quick safe" "penny penny safe"!important;grid-template-rows:auto auto auto auto auto 1fr auto auto!important}
  body[data-tab="dash"] .view>.d2-head{grid-area:head}body[data-tab="dash"] .view>.d2-sal{grid-area:sal;align-self:start;justify-self:start;margin:0}body[data-tab="dash"] .view>.d2-fav{grid-area:fav;align-self:start}
  body[data-tab="dash"] .view>.stickhead{padding-bottom:0}
  body[data-tab="dash"] .view>.stickhead .slide.hero2{min-height:360px}
@@ -1262,3 +1263,6 @@ body[data-tab="dash"] .mini.tank .mini-r{font-size:32px}
 .kpis .kt small{opacity:.85;margin-top:2px}
 body.mm[data-tab="rep"] .kpis.kts{gap:4px}body.mm[data-tab="rep"] .kpis.kts .kpi:nth-child(n+3){border-top:0!important}
 .kpis .kt{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding-right:28px!important}
+/* v303: Letzte Buchungen auf Heute */
+.d-last{min-width:0}.d-last .group{overflow:hidden}
+.d-last .sh .link{border:0;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;padding:0 0 0 12px;min-height:32px}
