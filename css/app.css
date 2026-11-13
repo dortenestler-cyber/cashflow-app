@@ -1011,7 +1011,12 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  .view{max-width:1600px!important;margin:0 auto 0 calc(232px + max(0px,(100vw - 232px - 1600px)/2))!important;padding:28px 48px 120px!important}
  body[data-tab="sub"] .view{margin-left:calc(232px + max(0px,(100vw - 232px - 760px)/2))!important}
  body[data-sv="setup"] .view,body[data-sv="catclean"] .view{margin-left:calc(232px + max(0px,(100vw - 232px - 1120px)/2))!important}
- #asstRoot,#asstRoot .apop{left:252px!important}
+ #asstRoot{left:24px!important;bottom:24px!important;width:auto!important;z-index:31}
+ body.asst-open #asstRoot{z-index:80}
+ #asstRoot.mini{transform:none!important;opacity:1!important}
+ body.pn-rest:not(.asst-open):not([data-pr]) #asstRoot .abar .abub,body:not(.asst-open) #asstRoot .abar .abub,body.pn-down #asstRoot .abub,body.fabaway #asstRoot .abub{transform:none!important;opacity:1!important;pointer-events:auto!important}
+ body.pn-hide:not(.asst-open) #asstRoot{opacity:1!important;transform:none!important;pointer-events:auto!important}
+ #asstRoot .apop{left:auto!important;right:24px!important;top:24px!important;bottom:24px!important;width:460px!important;max-height:none!important;border-radius:24px!important;transform-origin:bottom right}
  #toastRoot{left:232px}
  /* Heute */
  body[data-tab="dash"] .view{grid-template-columns:minmax(280px,1fr) minmax(0,2fr) minmax(0,1.5fr)!important;grid-template-areas:"warn warn warn" "quick quick penny" "minis chart up" "minis chart safe";grid-template-rows:auto auto auto 1fr;gap:20px 24px!important}
