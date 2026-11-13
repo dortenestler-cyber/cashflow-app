@@ -1359,3 +1359,4 @@ body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!import
 .arcbar{position:absolute;left:14px;right:14px;bottom:4px;height:4px;display:flex;flex-direction:column;gap:1px}.arcbar i{display:block;height:2px;border-radius:2px;opacity:.6}.arcbar i.in{background:var(--in,var(--ok))}.arcbar i.out{background:var(--out,var(--bad))}
 .arflt{display:flex;gap:6px;flex-wrap:wrap}.arsel{flex:1 1 30%;min-width:0;font:inherit;font-size:13px;padding:7px 8px;border-radius:9px;border:1px solid var(--sep);background:var(--card);color:var(--fg)}
 .arcorr{opacity:.55}
+.yrchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}.yrchips .chip{border:1.5px solid var(--sep);background:var(--card);color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer}.yrchips .chip.on{background:var(--card)}
