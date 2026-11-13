@@ -264,7 +264,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
   const tc=(()=>{const by={};LA.filter(e=>e.type=='out'&&e.c).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);return Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0])})();if(qc&&!tc.includes(qc))tc.unshift(qc);
   const scn=S.scnOff||!qc?'':`<div class="lscene" style="--sky:${scnSky(qc?scnIco(qc):'all',qc?catCol(qc):null)}">${scene(qc?scnIco(qc):'all',qc?catCol(qc):null)}<span class="lscene-l">${qc?I(scnIco(qc)||'dot',14)+esc(qc):'Alle Kategorien'}</span></div>`;
   const qch=tc.length?`<div class="qcats"><button class="chip ${qc?'':'on'}" data-qclr="1">Alle</button>${tc.map(c=>`<button class="chip ${qc==c?'on':''}" data-qcat="${esc(c)}" style="--cc:${catCol(c)}">${I(scnIco(c)||'dot',15)}${esc(c)}</button>`).join('')}</div>`:'';
-  const head=scn+head0+qch;
+  /* v310: keine Kategorie-Chips mehr in der Buchungsübersicht */const head=scn+head0;
   const sum=(i,o)=>`<div class="mmsum strip"><div>Einnahmen${off>0?' geplant':''}<b class="in">${eur(i)}</b></div><div>Ausgaben${off>0?' geplant':''}<b class="out">${eur(o)}</b></div><div>Einnahmen − Ausgaben<b class="${i-o<0?'out':''}">${eur(i-o)}</b></div></div>`;
   const filt=!(showF||fAct)?'':`<div class="fpanel"><label class="search" for="q">${I('search',17)}<input id="q" type="search" placeholder="Suchen: Notiz, Kategorie, Person, Betrag" value="${esc(q)}"></label>
   ${fltSeg()}

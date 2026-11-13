@@ -1338,3 +1338,6 @@ body.mm.gl .ssel{background:var(--glcard);box-shadow:inset 0 0 0 1px var(--gledg
  body[data-tab="dash"] .view>.minis{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important;grid-auto-flow:column;gap:20px;align-self:start;margin-top:26px!important}
  body[data-tab="dash"] .mini.tank{min-height:170px}
 }
+/* v310: Leiste wirklich durchsichtig (Glas) – Inhalt scheint verschwommen durch */
+body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!important;-webkit-backdrop-filter:blur(18px) saturate(1.8)!important;backdrop-filter:blur(18px) saturate(1.8)!important}
+@media (min-width:1000px) and (hover:hover) and (pointer:fine){body.mm .tabbar{background:var(--card)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
