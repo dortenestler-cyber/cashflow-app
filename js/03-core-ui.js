@@ -38,7 +38,7 @@ let prevTab='dash',showF=false,showPuf=false;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tabgo]');if(!b)return;tab=b.dataset.tabgo;calDay=null;off=0;curB=null;setView=null;drill=null;render();scrollTo(0,0)});
 document.addEventListener('input',e=>{if(e.target.id!='moreQ')return;const q=e.target.value.trim().toLowerCase(),H=document.querySelector('.morelist .mhome'),R=document.querySelector('.morelist .msearch');if(!H||!R)return;H.hidden=!!q;let any=false;R.querySelectorAll('.cell').forEach(c=>{const h=!c.textContent.toLowerCase().includes(q);c.hidden=h;if(!h)any=true});R.hidden=!q||!any});
 /* v257: Reiter Geld zeigt Vermögen, auch für Depot-Logik */
-const isVermV=()=>tab=='geld'||(tab=='rep'&&repV=='Vermögen');
+const isVermV=()=>tab=='geld';
 function renderTabs(){$('tabbar').innerHTML=`<button class="tb-new" id="tbNew" aria-label="Neue Buchung" title="Neue Buchung (N)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Neue Buchung</span></button>`+TABS.filter(t=>['dash','list','more'].includes(t[0])||featOn(t[0])).map(t=>`<button class="${tab==t[0]?'on':''} ${t[0]=='cal'?'tb-x':''} ${t[0]=='list'&&tab=='cal'?'on2':''}" data-t="${t[0]}" title="${t[1]}"><svg viewBox="0 0 24 24">${t[2]}</svg><span>${t[1]}</span></button>`).join('');
   $('tabbar').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
 function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class="${o.tabs.cur==v?'on':''}" data-f="${esc(v)}">${l}${n?` <span class="cnt">${n}</span>`:''}</button>`).join(''):'';

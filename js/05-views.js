@@ -654,7 +654,7 @@ function viewFix(head,kseg){const F=fixInfo(off),lim=F.rw+F.perSum,mon=d=>new Da
    <div class="sec"><div class="sh">Positionen · ${rows.filter(x=>x.on).length} aktiv</div><div class="mmcard">${rows.map(row).join('')||'<div class="srow"><span style="color:var(--muted)">Noch keine wiederkehrenden Ausgaben angelegt.</span></div>'}</div></div>`}
 
 function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[repB]):viewCatYear(drill);const p=period(off),bs=repB=='Alle'?TOT.filter(b=>!isStock(b)):[repB],col=repB=='Alle'?'var(--blue)':COL[repB],kf=repK,kseg=`<div class="seg kseg" id="repK">${[['Alle','Alle'],['Einmalig','Einmalig'],['Wiederkehrend','Wiederkehrend']].map(([v,l])=>`<button class="${repK==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`,seg=`<div class="seg" id="repV">${['Analyse','Monat','Verlauf','Prognose','Vermögen','Verträge'].map(x=>`<button class="${repV==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
-  const head=appbar({title:'Rückblick',big:repV=='Verzicht'?'Verzicht':repV=='Journal'?'Journal':repV=='Entwicklung'?'Entwicklung':repV=='Simulator'?'Simulator':repV=='Prognose'?'Nächste 6 Monate':repV=='Verträge'?'Fixkosten':repV=='Vermögen'?'Vermögen':'Bericht',month:repV!='Verzicht'&&repV!='Journal'&&repV!='Verträge'&&repV!='Prognose'&&repV!='Simulator'&&repV!='Vermögen'&&repV!='Entwicklung'&&(repV!='Bericht'||rpP=='Monat'),right:repV=='Entwicklung'||repV=='Verzicht'||repV=='Journal'?'':repV=='Vermögen'&&!S.showWealth?'':repV=='Analyse'||repV=='Prognose'||repV=='Simulator'||repV=='Verträge'||repV=='Vermögen'?'':`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG,...(sinkAcc()&&BN.includes(sinkAcc())?[sinkAcc()]:[])].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repG',cur:repGrp(repV),items:REPG.map(g=>[g[0],g[1]])}})+repSub();
+  const head=appbar({title:'Rückblick',big:'Bericht',month:repV!='Bericht'||rpP=='Monat',right:repV=='Analyse'?'':`<label class="ab-sel">${I('wallet',15)}<select id="repBsel" aria-label="Konto"><optgroup label="Budgets">${['Alle',...BUDG,...(sinkAcc()&&BN.includes(sinkAcc())?[sinkAcc()]:[])].map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${b=='Alle'?'Alle Budgets':esc(SHORT[b])}</option>`).join('')}</optgroup><optgroup label="Konten">${BN.filter(b=>isK(b)&&!WH(b)).map(b=>`<option value="${esc(b)}" ${repB==b?'selected':''}>${esc(SHORT[b])}</option>`).join('')}</optgroup></select></label>`,tabs:{id:'repG',cur:repGrp(repV),items:REPG.map(g=>[g[0],g[1]])}})+repSub();
   if(['Analyse','Monat','Budget'].includes(repV)&&period(off).e.getTime()<=histT())return head+`<div class="mmcard"><div class="empty">Dieser Monat liegt vor dem ${new Date(histT()).toLocaleDateString('de-DE')} und ist historisch. Er zählt nicht in Auswertungen. Den Stichtag änderst du unter Einstellungen › Finanzmonat.</div></div>`;
   if(repV=='Monat'){const{v}=dayVals(bs,off,kf),KL=kindLim(bs,off,kf),lim=KL?KL.v:0;
     const parts=[];bs.forEach(b=>{const by={};RX().filter(e=>inP(e,p)&&!isPlan(e)&&e.type=='out'&&e.b==b&&kOk(e,kf)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);
@@ -676,13 +676,7 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
   if(repV=='Analyse'){S.revOff=off;let bud='';{const sv=repV;repV='Budget';const s=viewRep();repV=sv;const i=s.indexOf('<div class="sec"><div class="sh">Budget gegen Ist');if(i>=0)bud=s.slice(i)}
     /* v253: Werkzeuge stehen unter den Zahlen, nicht davor */return head+reviewBody(off).replace('<div class="sec"><div class="sh">Was gut lief</div>',bud+'<div class="sec"><div class="sh">Was gut lief</div>')+toolBar(['report','yearrev'])}
   if(repV=='Bericht'||repV=='Jahr0')repV='Analyse';
-  if(repV=='Verzicht')return head+notBoughtHtml()+musterHtml();
-  if(repV=='Journal')return head+journalHtml();
-  if(repV=='Simulator')return head+simHtml();
   if(repV=='Bericht')return viewReport(bs,head);
-  if(repV=='Vermögen'&&posView)return posHtml();
-  if(repV=='Vermögen')return head+depotHtml();
-  if(repV=='Verträge')return head+aboBody(true);
   if(repV=='Jahr'){drill={k:'year'};return viewYear(bs)}
   if(repV=='Budget'){const B=bs.filter(b=>!isK(b));const rows=B.map(b=>{const c=calc(b,off);let y=0,yb=0;for(let o=off-11;o<=off;o++){const cc=calc(b,o);y+=cc.used;yb+=cc.total}return{b,c,y,yb}});
     const mx=Math.max(...rows.map(r=>Math.max(r.c.used,r.c.total)),1),W=330,bh=14,gap=34,H=rows.length*gap+16;
@@ -694,7 +688,6 @@ function viewRep(){if(drill)return drill.k=='year'?viewYear(repB=='Alle'?BN:[rep
      <div class="sec"><div class="sh">Woche · Monat · Jahr</div><div class="mmcard"><div class="cmp" style="grid-template-columns:1.2fr repeat(3,1fr)"><span></span><b>Woche</b><b>Monat</b><b>12 Monate</b>
      ${rows.map(r=>`<span>${esc(r.b)}</span><span>${eur0(r.c.total*7/r.c.p.len)}</span><span class="${stat(r.c).k=='bad'?'out':''}">${eur0(r.c.used)} / ${eur0(r.c.total)}</span><span class="${r.y>r.yb?'out':''}">${eur0(r.y)} / ${eur0(r.yb)}</span>`).join('')}</div></div>
      </div>`}
-  if(repV=='Entwicklung')return head+devHtml();
   if(repV=='Verlauf'){const ds0=dataStart(),ms=[];for(let i=11;i>=0;i--){const o=off-i;if(period(o).e.getTime()>ds0||i<2)ms.push(o)}const N=ms.length;
     const lab=ms.map((o,i)=>({i,t:period(o).s.toLocaleDateString('de-DE',{month:'narrow'}),on:o==off}));
     const ser=bs.map(b=>({pts:ms.map(o=>usedSum([b],o,kf)),col:COL[b],dot:true,area:bs.length==1,name:bs.length>1?SHORT[b]||b:''}));const mlab=i=>period(ms[i]).s.toLocaleDateString('de-DE',{month:'long',year:'numeric'});
