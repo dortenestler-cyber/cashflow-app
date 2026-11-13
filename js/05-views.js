@@ -98,6 +98,18 @@ let asstHist=false;
     r.querySelectorAll('[data-achk]').forEach(b=>b.onclick=()=>{asstOpen=false;renderAsst();openCheckin()})}}
 document.addEventListener('click',()=>{if(asstOpen){asstOpen=false;renderAsst()}});
 
+/* v297: Design 2.0 – Kopf, dunkle Saldo-Karte, Gehalt-Chip, Schnell buchen */
+function dashTop(tot,P){const days=Math.max(P.left||1,1),d=new Date(),fm=`${P.s.getDate()}.–${new Date(P.e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+  let sal=null;try{S.rec.filter(r=>r.type=='in'&&!r.paused).forEach(r=>{[0,1].forEach(o=>{const x=recDue(r,period(o));if(x&&x>now&&(!sal||x<sal.d))sal={d:x,n:r.n||r.c||'Gehalt'}})})}catch(e){}
+  const sd=sal?Math.max(0,Math.ceil((sal.d-Date.now())/864e5)):0,fav=(S.fav||[]).slice(0,4);
+  return `<header class="d2-head"><span class="d2-av">${penny(pMood(),36)}</span><div class="d2-hi"><div>${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</div><b>Willkommen zurück${uName()?', '+esc(uName()):''}</b></div><button class="d2-gear" data-tabgo="more" aria-label="Einstellungen" title="Einstellungen">${I('gear',22)}</button></header>
+  <div class="d2-card"><div class="d2-cbg"></div><div class="d2-cin"><div class="d2-ct"><span>Übrig diesen Monat</span><span class="d2-badge">noch ${days} ${days==1?'Tag':'Tage'}</span></div>
+   <div class="d2-big ${tot<0?'neg':''}">${eurD(tot)}</div>
+   <div class="d2-ft"><div><span>Finanzmonat</span><b>${fm}</b></div><div><span>Pro Tag</span><b>${eur0(Math.max(tot,0)/days)}</b></div><div><span>Puffer</span><b class="${pufVal()<0?'neg':'pos'}">${eur0(pufVal())}</b></div></div></div>
+   <button class="d2-mic" id="d2Mic" aria-label="Spracheingabe" title="Spracheingabe">${I('mic',24)}</button></div>
+  ${sal?`<button class="d2-sal" data-tabgo="cal">${I('wallet',17)} ${esc(sal.n)} ${sd<=0?'heute':sd==1?'morgen':'in '+sd+' Tagen'} <span class="chev">›</span></button>`:''}
+  ${fav.length?`<div class="d2-fav" aria-label="Schnell buchen">${fav.map((f,i)=>`<button data-qfav="${i}" style="--c:${COL[f.b]||'var(--accent)'}"><span>${icoOf(f.b,f.c)}</span>${esc(f.n||f.c)}</button>`).join('')}<button data-qfav="new"><span>${I('plus',22)}</span>Neu</button></div>`:''}`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-qfav],#d2Mic');if(!t)return;if(t.id=='d2Mic'){if(typeof voiceGo=='function')voiceGo(t);return}const k=t.dataset.qfav;if(k=='new')return openSheet();const f=(S.fav||[])[+k];if(f)openSheet(null,{b:f.b,c:f.c,n:f.n||'',amt:f.a?String(f.a):'',accManual:true})});
 function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
 
 
@@ -106,12 +118,12 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   window._up=null;const up=[...S.rec.filter(r=>!r.paused).map(r=>({r,d:recDue(r,P)})).filter(x=>x.d&&x.d>now&&!S.exp.some(e=>e.rid==x.r.id&&e.pk==k)),...S.exp.filter(e=>isPlan(e)&&e.t-NOWT<30*864e5).map(e=>({r:Object.assign({},e,{n:e.n||e.c}),d:new Date(e.t),pl:true}))].sort((a,b)=>a.d-b.d).slice(0,3);window._up=up;
   const fw=fcWarn();
   const pt=fw?null:(()=>{try{const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');const t=tipsList().filter(x=>!(S.dismTips||[]).includes(tkey(x)));const r=t.find(x=>x.sev=='bad')||t.find(x=>x.sev=='warn'&&!(S.seenTips||[]).includes(tkey(x)));return r?Object.assign({},r,{_k:tkey(r)}):null}catch(e){return null}})();
-  return `<h1 class="sr">Budget ${P.label}</h1>
-  <div class="minis mtop" style="grid-template-columns:repeat(${BUDG.filter(b=>b!=sinkAcc()).length||1},minmax(0,1fr))">${BUDG.filter(b=>b!=sinkAcc()).map(b=>{const c=calc(b),s=stat(c);return `<button class="mini st-${s.k}" data-b="${b}" style="--c:${COL[b]}">
+  return `<h1 class="sr">Budget ${P.label}</h1>${dashTop(tot,P)}
+  <div class="minis mtop" style="grid-template-columns:repeat(${BUDG.filter(b=>b!=sinkAcc()).length||1},minmax(0,1fr))">${BUDG.filter(b=>b!=sinkAcc()).map(b=>{const c=calc(b),s=stat(c);return `<button class="mini st-${s.k}" data-b="${b}" style="--c:${COL[b]};--f:${Math.max(0,Math.min(100,Math.round((c.pct||0)*100)))}%">
     <div class="mini-n"><span class="dotc"></span>${esc(SHORT[b])}</div>${gauge(c.pct,COL[b],0,0,s.col,gData(b,c))}<div class="mini-r ${s.k=='bad'?'out':''}">${s.k=='bad'?eur0(c.rest):eur(c.tag)}</div>
     <div class="mini-s">${s.k=='bad'?'aufgebraucht':'pro Tag · '+(s.k=='warn'?eur0(s.over)+' über Plan':eur0(c.rest)+' übrig')}</div>
     <div class="mini-x"><span>Budget<b>${eur0(c.total)}</b></span><span>ausgegeben<b>${eur0(c.used)}</b></span><span>übrig<b class="${c.rest<0?'out':''}">${eur0(c.rest)}</b></span></div></button>`}).join('')}</div>
-  ${pt?`<button class="fcwarn ${pt.sev=='bad'?'':'warn'}" id="pnCard" data-act="${pt.act||''}" data-tk="${esc(pt._k)}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(pt.ttl)}</b><div class="s">${String(pt.txt||'').replace(/<[^>]*>/g,'').replace(/^„[^“]*“\s*/,'').slice(0,140)}</div></div><span class="chev">›</span></button>`:''}${fw?`<div class="fcwarn" id="fcWarnBtn" role="button" tabindex="0" data-fwk="${esc(fcWarnKey(fw))}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(SHORT[fw.n]||fw.n)} reicht im ${period(fw.o).s.toLocaleDateString('de-DE',{month:'long'})} nicht</b><div class="s">Laut Prognose ${eur0(fw.v)}${fw.puf?' nach allen geplanten Abgängen':''}. Tippen für Details.</div></div><button class="fcx" id="fcWarnX" aria-label="Hinweis ausblenden">×</button></div>`:''}
+  ${pt?`<button class="fcwarn pncard ${pt.sev=='bad'?'':'warn'}" id="pnCard" data-act="${pt.act||''}" data-tk="${esc(pt._k)}"><span class="vault-ic">${I('alert',20)}</span><span class="pn-face">${penny(pt.sev=='bad'?'minus':'ausgeglichen',40)}</span><div class="t"><b>${esc(pt.ttl)}</b><div class="s">${String(pt.txt||'').replace(/<[^>]*>/g,'').replace(/^„[^“]*“\s*/,'').slice(0,140)}</div></div><span class="chev">›</span></button>`:''}${fw?`<div class="fcwarn" id="fcWarnBtn" role="button" tabindex="0" data-fwk="${esc(fcWarnKey(fw))}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(SHORT[fw.n]||fw.n)} reicht im ${period(fw.o).s.toLocaleDateString('de-DE',{month:'long'})} nicht</b><div class="s">Laut Prognose ${eur0(fw.v)}${fw.puf?' nach allen geplanten Abgängen':''}. Tippen für Details.</div></div><button class="fcx" id="fcWarnX" aria-label="Hinweis ausblenden">×</button></div>`:''}
   ${carousel(tot,P)}
   
   <div class="quick"><button class="btn soft" id="shopBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('cart',18)}Einkauf${(S.shop&&S.shop.items.length)?` <span class="cnt">${S.shop.items.length}</span>`:''}</button><button class="btn soft" id="umBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Umbuchen</button><button class="btn soft" id="accBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('wallet',18)}Konten</button></div>
@@ -221,6 +233,7 @@ const DOTC=['#3b8fd9','#f25c54','#a06bf2','#2fc4a3','#f0a12d','#e56bb0','#5fb35a
     <div class="cal2"><div class="calh2">${['Mo','Di','Mi','Do','Fr','Sa','So'].map((w,i)=>`<span class="${i==6?'sun':i==5?'sat':''}">${w}</span>`).join('')}</div><div class="calg2">${cells.join('')}</div></div>
     <div class="legend"><span><i style="background:var(--in)"></i>Einnahmen</span><span><i style="background:var(--out)"></i>Ausgaben</span><span><i style="background:var(--fg)"></i>Einnahmen − Ausgaben</span><span>Punkte = Kategorien</span><span style="font-style:italic">kursiv = geplant</span><span style="color:var(--bad)">${I('lock',11)} = Notfallbremse gelöst</span><span style="color:var(--accent)">${I('pen',11)} = Journal</span></div>
     ${sel?`<button class="btn soft" id="calAdd" data-dt="${calDay}">+ Buchung am ${new Date(calDay).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</button>`+(()=>{const jd=(S.journal||[]).filter(j=>new Date(j.t).toDateString()==calDay).sort((a,b)=>a.t-b.t);return jd.length?`<div class="sec"><div class="sh">Journal</div><div class="mmcard">${jd.map(jRow).join('')}</div></div>`:''})()+dayBlocks(sel):''}`}
+document.addEventListener('click',e=>{if(!e.target.closest)return;if(e.target.closest('[data-qclr]')){q='';render();return}const c=e.target.closest('[data-qcat]');if(c){q=q==c.dataset.qcat?'':c.dataset.qcat;render()}});
 function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).filter(e=>inP(e,p));
   if(flt!='Alle')L=L.filter(e=>e.b==flt||e.to==flt);
   if(q){const s=q.toLowerCase().replace(/^#/,'');L=L.filter(e=>[e.n,e.c,e.p,e.b,e.sc,(e.tg||[]).join(' ')].join(' ').toLowerCase().includes(s)||String(e.a).includes(s.replace(',','.')))}
@@ -229,7 +242,13 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
   const LW=wk?L.filter(e=>e.t>=wk[0]&&e.t<wk[1]):L;
   const LA=off>0?LW:LW.filter(e=>!isPlan(e)),out=LA.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0),inc=LA.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0);
   const fAct=flt!='Alle'||tflt!='Alle'||!!q||!!wk;
-  const bal=inc-out;const head=appbar({title:'Buchungen',month:true,right:`<span class="hc-cx ${bal<0?'out':'in'}" title="Einnahmen − Ausgaben">${eur(bal)}</span>`,left:`<button class="ab-ic ${showF||fAct?'act':''}" id="fBtn" aria-label="Suchen und filtern">${I('search',21)}</button>${featOn('cal')?`<button class="ab-ic vsw" data-tabgo="cal" aria-label="Kalenderansicht" title="Kalender">${I('calendar',21)}</button>`:''}`,tabs:{id:'listV',cur:listV,items:LV.map(x=>[x,x])}});
+  const bal=inc-out;const head0=appbar({title:'Buchungen',month:true,right:`<span class="hc-cx ${bal<0?'out':'in'}" title="Einnahmen − Ausgaben">${eur(bal)}</span>`,left:`<button class="ab-ic ${showF||fAct?'act':''}" id="fBtn" aria-label="Suchen und filtern">${I('search',21)}</button>${featOn('cal')?`<button class="ab-ic vsw" data-tabgo="cal" aria-label="Kalenderansicht" title="Kalender">${I('calendar',21)}</button>`:''}`,tabs:{id:'listV',cur:listV,items:LV.map(x=>[x,x])}});
+  /* v297: Kategorie-Szene im Kopf + Kategorie-Chips (Design 2.0) */
+  const qc=q?(Object.values(S.cats||{}).flat().map(x=>x&&x[0]).find(c=>c&&c.toLowerCase()==q.toLowerCase())||null):null;
+  const tc=(()=>{const by={};LA.filter(e=>e.type=='out'&&e.c).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);return Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0])})();if(qc&&!tc.includes(qc))tc.unshift(qc);
+  const scn=S.scnOff?'':`<div class="lscene">${scene(qc?scnIco(qc):'all',qc?catCol(qc):null)}<span class="lscene-l">${qc?I(scnIco(qc)||'dot',14)+esc(qc):'Alle Kategorien'}</span></div>`;
+  const qch=tc.length?`<div class="qcats"><button class="chip ${qc?'':'on'}" data-qclr="1">Alle</button>${tc.map(c=>`<button class="chip ${qc==c?'on':''}" data-qcat="${esc(c)}" style="--cc:${catCol(c)}">${I(scnIco(c)||'dot',15)}${esc(c)}</button>`).join('')}</div>`:'';
+  const head=scn+head0+qch;
   const sum=(i,o)=>`<div class="mmsum strip"><div>Einnahmen${off>0?' geplant':''}<b class="in">${eur(i)}</b></div><div>Ausgaben${off>0?' geplant':''}<b class="out">${eur(o)}</b></div><div>Einnahmen − Ausgaben<b class="${i-o<0?'out':''}">${eur(i-o)}</b></div></div>`;
   const filt=!(showF||fAct)?'':`<div class="fpanel"><label class="search" for="q">${I('search',17)}<input id="q" type="search" placeholder="Suchen: Notiz, Kategorie, Person, Betrag" value="${esc(q)}"></label>
   ${fltSeg()}
