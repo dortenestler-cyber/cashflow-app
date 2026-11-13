@@ -132,7 +132,7 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
     ${showPuf&&pufAcc()?`<div class="pufl">${pufOpen().list.map(x=>`<span>${x.d.getDate()}.${x.d.getMonth()+1}. ${esc(x.n)}</span><b>−${eur(x.a)}</b>`).join('')||'<span>Alle Fixkosten dieses Monats sind schon gebucht.</span><b></b>'}<span><b>Puffer</b></span><b>${eur(pufVal())}</b></div>`:''}</button>
    ${showPuf&&pufAcc()&&pufVal()>0?`<button class="btn soft" id="pufMove">${I('swap',16)} Überschuss verschieben${pufExcess()?' · '+eur0(pufExcess()):''}</button>`:''}
   </div>${vaultHtml(true)}</div>
-  <button class="btn soft d-penny" id="shareBtn">Mit Penny besprechen</button>`}
+  <button class="btn soft d-penny" id="shareBtn" data-ptalk="mon">Mit Penny besprechen</button>`}
 
 function miniCum(){const{p,v}=dayVals(TOTM,0),lim=budOf(TOTM)||1,n=p.len,big=innerWidth>=1280,W=big?600:300,H=big?320:54,pl=big?46:0,pb=big?20:0,X=i=>pl+i/(n-1)*(W-pl),Y=c=>H-pb-4-c/lim*(H-pb-8);let c=0;const pts=[];v.forEach((x,i)=>{c+=x;if(i<p.idx)pts.push([X(i),Y(c)])});
   const ideal=`M${pl} ${Y(0)} L${W} ${Y(lim)}`,d=pts.length?'M'+pl+' '+Y(0)+' L'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L'):'';const L=pts[pts.length-1]||[pl,Y(0)];

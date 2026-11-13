@@ -518,4 +518,7 @@ function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><d
      +(top.length?`<p class="a-s" style="margin-top:6px">Größte Ausgaben</p><div class="alist">${top.map(aRow).join('')}</div>`:'');
     f=ai?['Reicht es bis Monatsende?','Wo kann ich sparen?','Was ist auffällig?']:['Reicht es bis Monatsende?','Was kommt demnächst?','Vergleich zum Vormonat']}
   AQ.msgs=[{q,h,f}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;ASH='full';renderAsst();aiScroll()}
+/* v316: alle „Mit Penny besprechen“-Buttons über data-ptalk – öffnet Penny immer, auch wenn eine Auswertung scheitert */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-ptalk]');if(!b)return;e.stopPropagation();e.preventDefault();const k=b.dataset.ptalk;
+  try{pennyTalk(k)}catch(err){try{console.error(err)}catch(_){}AQ.msgs=[{q:k=='year'?'Jahr besprechen':k=='rev'?'Rückblick besprechen':'Monat besprechen',h:`<p>Die Zahlen konnten gerade nicht zusammengestellt werden. Frag mich trotzdem gern.</p><p class="a-s">Fehler: ${esc(String(err&&err.message||err))}</p>`,f:['Monatsbilanz','Was kommt demnächst?']}];AQ.id=0;AQ.ctx=null;asstOpen=true;ASH='full';renderAsst()}},true);
 
