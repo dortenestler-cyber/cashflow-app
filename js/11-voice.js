@@ -508,6 +508,11 @@ function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><d
      +`<p class="a-s">Einnahmen ${eur(A.I1)} · Ausgaben ${eur(A.O1)} · Vermögen ${eur(A.saved)} (${Math.round(A.quote*100)} %)${R.top.length?' · Größte Posten: '+R.top.slice(0,3).map(([c,v])=>esc(c)+' '+eur(v)).join(', '):''}</p>`;
     ctx=`Monatsrückblick ${R.p.label}: `+R.bs.map(x=>`${x.b} ${eur(x.c.used)} von ${eur(x.c.total)}`).join('; ')+`. Gut: ${R.good.join('; ')||'–'}. Nicht so gut: ${R.bad.join('; ')||'–'}. Größte Posten: ${R.top.map(([c,v])=>c+' '+eur(v)).join(', ')}. Einnahmen ${eur(A.I1)}, Ausgaben ${eur(A.O1)}, Vermögen ${eur(A.saved)}, Fixkosten ${eur(A.fix)}.${note?' Notiz: '+note:''}`;
     f=ai?['KI-Rückblick','Was sollte ich nächsten Monat anders machen?','Vergleich zum Vormonat']:['Vergleich zum Vormonat','Monatsbilanz','Was kommt demnächst?']}
+  else if(kind=='year'){const y=yrY||new Date().getFullYear(),D=yearData(y),nm=D.ms.length||1;q='Jahr '+y+' besprechen';
+    h=`<p><b>Dein Jahr ${y}</b></p>`+sr('Einnahmen',eur0(D.inc),'Ø '+eur0(D.inc/nm)+' pro Monat')+sr('Ausgaben',eur0(D.out),'Ø '+eur0(D.out/nm)+' pro Monat · Fixkosten '+eur0(D.fix))+sr('Unterm Strich',eur0(D.inc-D.out),'')
+     +(D.cats.length?`<p class="a-s">Größte Kategorien: ${D.cats.slice(0,3).map(([c,v])=>esc(c)+' '+eur0(v)).join(', ')}</p>`:'');
+    ctx=`Jahresrückblick ${y} (${D.ms.length} Monate mit Daten): Einnahmen ${eur0(D.inc)}, Ausgaben ${eur0(D.out)} (Fixkosten ${eur0(D.fix)}), Überschuss ${eur0(D.inc-D.out)}, ins Vermögen ${eur0(D.saved)}. Monate: ${D.ms.map(x=>(x.m+1)+'/'+y+' '+eur0(x.v)).join('; ')}. Kategorien: ${D.cats.slice(0,8).map(([c,v])=>c+' '+eur0(v)).join(', ')}.`;
+    f=ai?['Was lief gut, was nicht?','Wo kann ich nächstes Jahr sparen?','Welche Ziele passen fürs neue Jahr?']:['Monatsbilanz','Vergleich zum Vormonat','Was kommt demnächst?']}
   else{const P=period(0),top=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&inP(e,P)).sort((a,b)=>b.a-a.a).slice(0,3);q='Monat besprechen';
     h=`<p><b>${esc(P.label)} · noch ${P.left} Tage</b></p>`+BUDG.map(b=>{const c=calc(b);return sr(b,eur(c.rest)+' übrig',`von ${eur(c.total)} · ${eur(c.tag)} pro Tag`)}).join('')
      +(top.length?`<p class="a-s" style="margin-top:6px">Größte Ausgaben</p><div class="alist">${top.map(aRow).join('')}</div>`:'');

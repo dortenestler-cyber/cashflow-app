@@ -538,28 +538,49 @@ function yplanStatus(){const it=yplanItems().map(x=>{const d=yplanNext(x),mo=Mat
     x.got=Math.min(x.a,gSaved(x.g));x.exp=exp;x.behind=Math.max(0,exp-x.got);x.ok=x.behind<1;x.need=(x.a-x.got)/moE;x.moE=moE;x.skipNext=(x.skip||[]).includes(pkey(period(1)))});return it}
 /* 8 Dein Jahr */
 let yrY=null;
-function yearData(y){const s=new Date(y,0,1).getTime(),e=new Date(y+1,0,1).getTime(),L=RX().filter(x=>x.t>=s&&x.t<e&&!isPlan(x)&&!x.corr),VA=vaultAccs();
-  const inc=L.filter(x=>x.type=='in'&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0),out=L.filter(x=>realOut(x)&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0),saved=L.filter(x=>x.type=='tr'&&VA.includes(x.to)&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0);
-  const mer={};L.filter(x=>realOut(x)&&x.n&&!x.rid).forEach(x=>{const k=x.n.trim();mer[k]=mer[k]||{v:0,n:0};mer[k].v+=x.a;mer[k].n++});const top=Object.entries(mer).sort((a,b)=>b[1].v-a[1].v).slice(0,3);
-  const cat={};L.filter(x=>realOut(x)&&x.c&&!x.rid).forEach(x=>cat[x.c]=(cat[x.c]||0)+x.a);const tc=Object.entries(cat).sort((a,b)=>b[1]-a[1])[0];
+function yearData(y){const s=new Date(y,0,1).getTime(),e=new Date(y+1,0,1).getTime(),L=RX().filter(x=>x.t>=s&&x.t<e&&!isPlan(x)&&!x.corr),VA=vaultAccs(),O=L.filter(x=>realOut(x)&&!VA.includes(x.b));
+  const inc=L.filter(x=>x.type=='in'&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0),out=O.reduce((a,x)=>a+x.a,0),saved=L.filter(x=>x.type=='tr'&&VA.includes(x.to)&&!VA.includes(x.b)).reduce((a,x)=>a+x.a,0);
+  const mer={};O.filter(x=>x.n&&!x.rid).forEach(x=>{const k=x.n.trim();mer[k]=mer[k]||{v:0,n:0};mer[k].v+=x.a;mer[k].n++});const top=Object.entries(mer).sort((a,b)=>b[1].v-a[1].v).slice(0,3);
+  const cat={};O.forEach(x=>{const k=x.c||'Sonstiges';cat[k]=(cat[k]||0)+x.a});const cats=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
+  const fix=O.filter(x=>x.rid).reduce((a,x)=>a+x.a,0),big=O.slice().sort((a,b)=>b.a-a.a)[0];
   const W=(S.wish||[]).filter(w=>w.s=='verworfen'&&(w.dt||w.t||0)>=s&&(w.dt||w.t||0)<e),letGo=W.reduce((a,w)=>a+(+w.p||+w.a||0),0);
   const sd=spendDays();let ns=0;for(let d=new Date(Math.max(s,dataStart()));d.getTime()<Math.min(e,Date.now())&&ymd(d.getTime())<today();d.setDate(d.getDate()+1))if(!sd.has(ymd(d.getTime())))ns++;
-  const ms=[];for(let m=0;m<12;m++){const a=new Date(y,m,1).getTime(),b=new Date(y,m+1,1).getTime();if(a>Date.now())break;const i=L.filter(x=>x.t>=a&&x.t<b&&x.type=='in'&&!VA.includes(x.b)).reduce((q,x)=>q+x.a,0),o=L.filter(x=>x.t>=a&&x.t<b&&realOut(x)&&!VA.includes(x.b)).reduce((q,x)=>q+x.a,0);if(i||o)ms.push({m,v:i-o,o})}
-  const best=ms.slice().sort((a,b)=>b.v-a.v)[0],jn=(S.journal||[]).filter(j=>j.t>=s&&j.t<e).length,bav=S.pension?bavMon()*Math.max(0,Math.min(12,(Math.min(e,Date.now())-Math.max(s,histT()))/(30.44*864e5))):0;return{y,inc,out,saved,top,tc,letGo,nW:W.length,ns,best,jn,n:L.length,bav:Math.round(bav)}}
-function viewYear(){const y=yrY||new Date().getFullYear(),D=yearData(y),MN3=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  const card=(cls,big,t,s)=>`<div class="yrc ${cls}"><div class="yrc-t">${t}</div><div class="yrc-b">${big}</div><div class="yrc-s">${s}</div></div>`;
-  const cards=[card('c1',String(y),'Dein Jahr',`${D.n} Buchungen${D.y==2026?' · seit dem neuen Finanzsystem im November':''}`),
-   card('c2',eur0(D.inc-D.out),'Unterm Strich',`${eur0(D.inc)} rein · ${eur0(D.out)} raus`),
-   card('c3',eur0(D.saved+D.bav),'Fürs Alter zurückgelegt',`${eur0(D.saved)} ins Vermögen${D.bav?` · ${eur0(D.bav)} in die Betriebsrente (unsichtbar, direkt vom Gehalt)`:''}`),
-   card('c4',D.top.length?esc(D.top[0][0]):'–','Dein Top-Händler',D.top.map(([n,v],i)=>`${i+1}. ${esc(n)} · ${eur0(v.v)} (${v.n}×)`).join('<br>')||'Noch keine Daten'),
-   card('c5',D.tc?esc(D.tc[0]):'–','Lieblingskategorie',D.tc?eur0(D.tc[1])+' ausgegeben':'Noch keine Daten'),
-   card('c6',eur0(D.letGo),'Impulsen widerstanden',`${D.nW} Wünsche losgelassen${D.jn?' · '+D.jn+' Journal-Einträge':''}`),
-   card('c7',String(D.ns),'Ausgabenfreie Tage','Tage ohne spontane Ausgaben'),
-   card('c8',D.best?MN3[D.best.m]:'–','Bester Monat',D.best?eur0(D.best.v)+' Überschuss':'Noch keine Daten')];
-  return `${appbar({title:'Dein Jahr',back:'setBack',noGear:true})}
-  <div class="seg" style="margin-bottom:10px">${[...new Set([new Date().getFullYear()-1,new Date().getFullYear()])].map(v=>`<button class="${v==y?'on':''}" data-yy="${v}">${v}</button>`).join('')}</div>
-  <div class="yrs" id="yrs">${cards.join('')}</div><div class="pdots" id="yrDots">${cards.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>
-  <button class="btn soft" id="yrShare">${I('copy',16)} Als Text kopieren</button><div class="note" id="yrMsg"></div>`}
+  const ms=[];for(let m=0;m<12;m++){const a=new Date(y,m,1).getTime(),b=new Date(y,m+1,1).getTime();if(a>Date.now())break;const i=L.filter(x=>x.t>=a&&x.t<b&&x.type=='in'&&!VA.includes(x.b)).reduce((q,x)=>q+x.a,0),o=O.filter(x=>x.t>=a&&x.t<b).reduce((q,x)=>q+x.a,0);if(i||o)ms.push({m,i,o,v:i-o})}
+  const so=ms.slice().sort((a,b)=>b.v-a.v),jn=(S.journal||[]).filter(j=>j.t>=s&&j.t<e).length,bav=S.pension?bavMon()*Math.max(0,Math.min(12,(Math.min(e,Date.now())-Math.max(s,histT()))/(30.44*864e5))):0;
+  return{y,s,inc,out,saved,top,cats,fix,big,letGo,nW:W.length,ns,ms,best:so[0],worst:so.length>1?so[so.length-1]:null,jn,n:L.length,bav:Math.round(bav)}}
+/* Budgets im Jahr: abgeschlossene Zeiträume, in denen das Budget gehalten hat */
+function yearBud(y){const os=[],ds=dataStart();for(let o=-1;o>-25;o--){const P=period(o);if(P.e.getTime()<=ds)break;const yy=P.s.getFullYear();if(yy>y)continue;if(yy<y)break;os.push(o)}
+  return BUDG.map(b=>{const r=os.map(o=>calc(b,o)).filter(c=>c.total>0);return{b,ok:r.filter(c=>c.rest>=0).length,n:r.length}}).filter(x=>x.n)}
+function yrChart(ms,best,worst){const W=340,H=150,top=10,bot=H-22,mid=(top+bot)/2,mx=Math.max(1,...ms.map(x=>Math.abs(x.v))),sw=W/12,L='JFMAMJJASOND';let g=`<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--sep)" stroke-width="1"/>`;
+  for(let m=0;m<12;m++){const d=ms.find(x=>x.m==m),x=m*sw+sw*.2,w=sw*.6,hl=d&&(d===best||d===worst);
+    if(d){const h=Math.max(2,Math.abs(d.v)/mx*(mid-top));g+=`<rect x="${x}" y="${d.v>=0?mid-h:mid}" width="${w}" height="${h}" rx="3" fill="${d.v>=0?'var(--in,var(--ok))':'var(--out,var(--bad))'}"/>`}
+    else g+=`<rect x="${x}" y="${mid-1}" width="${w}" height="2" rx="1" fill="var(--fill)"/>`;
+    g+=`<text x="${m*sw+sw/2}" y="${H-6}" text-anchor="middle" font-size="11" font-weight="${hl?700:400}" fill="${hl?'var(--fg)':'var(--muted)'}">${L[m]}</text>`}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Überschuss je Monat">${g}</svg>`}
+function viewYear(){const cy=new Date().getFullYear(),ys=[cy-1,cy].filter(v=>v==cy||yearData(v).n),y=ys.includes(yrY)?yrY:cy,D=yearData(y),MN3=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const head=`${appbar({title:'Dein Jahr',back:'setBack',noGear:true})}${ys.length>1?`<div class="seg" style="margin-bottom:10px">${ys.map(v=>`<button class="${v==y?'on':''}" data-yy="${v}">${v}</button>`).join('')}</div>`:''}`;
+  if(!D.n)return head+`<div class="empty">Für ${y} gibt es noch keine Buchungen.</div>`;
+  const nm=D.ms.length||1,avg=k=>D.ms.reduce((a,x)=>a+x[k],0)/nm,ds=dataStart(),part=ds>D.s,now0=new Date();
+  const lm=D.ms.filter(x=>!(y==cy&&x.m==now0.getMonth())).slice(-1)[0],cmp=lm&&D.ms.length>1;
+  const arr=(k,goodUp)=>{if(!cmp)return'';const d=lm[k]-avg(k);if(Math.abs(d)<1)return'';const up=d>0;return `<small class="yr-d ${up==goodUp?'in':'out'}">${up?'↑':'↓'} ${eur0(Math.abs(d))}</small>`};
+  const kp=(t,v,sub,ar)=>`<div class="yr-k"><span>${t}</span><b>${v}</b><small>${sub}</small>${ar||''}</div>`,q=D.inc?Math.round((D.inc-D.out)/D.inc*100):null;
+  const bil=`<div class="sec"><div class="sh">Bilanz${part?`<span>Daten ab ${MN3[new Date(ds).getMonth()]}</span>`:''}</div><div class="mmcard yr-bil">
+   ${kp('Einnahmen',eur0(D.inc),'Ø '+eur0(avg('i'))+'/Monat',arr('i',true))}${kp('Ausgaben',eur0(D.out),'Ø '+eur0(avg('o'))+'/Monat',arr('o',false))}
+   ${kp('Überschuss',eur0(D.inc-D.out),'Ø '+eur0(avg('v'))+'/Monat',arr('v',true))}${kp('Sparquote',q==null?'–':q+' %','vom Einkommen behalten')}</div>
+   ${cmp?`<div class="note">Pfeile: ${MN3[lm.m]} im Vergleich zum Monatsschnitt</div>`:''}</div>`;
+  const chart=`<div class="sec"><div class="sh">Monatsverlauf</div><div class="mmcard" style="padding:12px 10px 6px">${yrChart(D.ms,D.best,D.worst)}</div>
+   ${D.best&&D.ms.length>1?`<div class="note">Bester Monat: ${MN3[D.best.m]} (${eur0(D.best.v)})${D.worst?` · Schwächster: ${MN3[D.worst.m]} (${eur0(D.worst.v)})`:''}</div>`:''}</div>`;
+  const fp=D.out?Math.round(D.fix/D.out*100):0,c0=D.cats.length?D.cats[0][1]:1;
+  const cats=D.out?`<div class="sec"><div class="sh">Wohin das Geld ging</div><div class="mmcard">
+   <div class="srow"><div class="srow-h"><span>Fixkosten ${fp} %</span><span></span><b>Variabel ${100-fp} %</b></div><div class="yr-split"><i style="width:${fp}%"></i></div><div class="s" style="font-size:12px;color:var(--muted)">${eur0(D.fix)} fix · ${eur0(D.out-D.fix)} variabel</div></div>
+   ${D.cats.slice(0,5).map(([c,v])=>`<div class="srow"><div class="srow-h"><span>${esc(c)}</span><span></span><b>${eur0(v)}</b></div><div class="bar"><i style="width:${v/c0*100}%;background:var(--accent)"></i></div><div class="s" style="font-size:12px;color:var(--muted)">Ø ${eur0(v/nm)}/Monat · ${Math.round(v/D.out*100)} % der Ausgaben</div></div>`).join('')}</div></div>`:'';
+  const B=yearBud(y),bud=B.length?`<div class="sec"><div class="sh">Budgets im Jahr</div><div class="mmcard">${B.map(x=>`<div class="srow"><div class="srow-h"><span>${esc(x.b)}</span><span></span><b>${x.ok} von ${x.n} ${x.n==1?'Monat':'Monaten'}</b></div><div class="bar"><i style="width:${x.ok/x.n*100}%;background:${x.ok==x.n?'var(--ok)':x.ok/x.n>=.5?'var(--warn)':'var(--bad)'}"></i></div></div>`).join('')}</div><div class="note">Wie oft das Budget im Rahmen blieb (abgeschlossene Monate).</div></div>`:'';
+  const verm=D.saved||D.bav?`<div class="sec"><div class="sh">Vermögen & Vorsorge</div><div class="mmcard">${D.saved?`<div class="srow"><div class="srow-h"><span>Ins Vermögen</span><span></span><b class="in">${eur0(D.saved)}</b></div></div>`:''}${D.bav?`<div class="srow"><div class="srow-h"><span>Betriebsrente</span><span></span><b class="in">${eur0(D.bav)}</b></div><div class="s" style="font-size:12px;color:var(--muted)">direkt vom Gehalt</div></div>`:''}</div></div>`:'';
+  const tl=(t,v,s)=>`<div class="yr-t"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:''}</div>`,hl=[D.top[0]?tl('Top-Händler',esc(D.top[0][0]),eur0(D.top[0][1].v)+' · '+D.top[0][1].n+'×'):'',D.big?tl('Größte Einzelausgabe',eur0(D.big.a),esc(D.big.n||D.big.c||'')):'',tl('Ausgabenfreie Tage',String(D.ns),'ohne spontane Ausgaben'),D.nW?tl('Impulsen widerstanden',eur0(D.letGo),D.nW+' Wünsche losgelassen'):''].filter(Boolean);
+  const hls=`<div class="sec"><div class="sh">Highlights</div><div class="yr-hl">${hl.join('')}</div></div>`;
+  const fz=[];if(D.inc)fz.push(D.inc>=D.out?`Du hast ${q} % deiner Einnahmen behalten.`:`Du hast ${eur0(D.out-D.inc)} mehr ausgegeben als eingenommen.`);if(D.cats[0])fz.push(`Am meisten ging an ${esc(D.cats[0][0])}: ${Math.round(D.cats[0][1]/D.out*100)} % deiner Ausgaben.`);if(B.length){const w=B.slice().sort((a,b)=>a.ok/a.n-b.ok/b.n)[0];if(w.ok<w.n)fz.push(`${esc(w.b)} war am häufigsten knapp.`)}
+  const pz=`<div class="sec"><div class="sh">Pennys Fazit</div><div class="mmcard yr-pz"><div class="yr-pf"><span>${penny(pMood(),44)}</span><p>${fz.join(' ')||'Noch zu wenig Daten für ein Fazit.'}</p></div><button class="btn soft" id="yrPenny">Jahr mit Penny besprechen</button></div></div>`;
+  return head+bil+chart+cats+bud+verm+hls+pz+`<button class="yr-share" id="yrShare">${I('copy',14)} Als Text kopieren</button><div class="note" id="yrMsg"></div>`}
 /* 9 Monatsabschluss */
 function closeTarget(){const P=period(0);return P.idx>=P.len-2?0:-1}
 function viewClose(emb){const o=closeTarget(),P=period(o),pk=pkey(P),done=(S.closeDone||{})[pk],sa=sinkAcc(),VA=vaultAccs(),tgt=sa||null;
@@ -619,7 +640,7 @@ function bindIdeas(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f},all=(s
   if(setView=='refund')all('[data-rfg]',b=>refundGot(b.dataset.rfg));
   if(setView=='docs'){const q=$('docQ');if(q){q.oninput=()=>{docQ=q.value;const pos=q.selectionStart;render();const q2=$('docQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos)}catch(e){}}}}all('[data-docf]',b=>{docF=b.dataset.docf;render()});all('[data-doc]',b=>{const e=S.exp.find(x=>x.id==b.dataset.doc);if(e)hasDoc(e)?docView(e,true):openSheet(e)});all('[data-docfor]',b=>{docFor=b.dataset.docfor});all('[data-loose]',b=>{const x=(S.loose||[]).find(z=>z.id==b.dataset.loose);if(x)looseAsk(x)});const lx=id=>(S.loose||[]).find(z=>z.id==id),ex=id=>S.exp.find(z=>z.id==id);all('[data-lved]',b=>{const x=lx(b.dataset.lved);if(x)docView(x,true)});all('[data-lvdel]',b=>{const x=lx(b.dataset.lvdel);if(x)looseDel(x)});all('[data-dved]',b=>{const e=ex(b.dataset.dved);if(e)docView(e,true)});all('[data-dvmv]',b=>{const e=ex(b.dataset.dvmv);if(e)docMove(e)});all('[data-dvrm]',b=>{const e=ex(b.dataset.dvrm);if(e)docUnlink(e)});all('[data-nodoc]',b=>{const e=S.exp.find(x=>x.id==b.dataset.nodoc);if(!e)return;e.nodoc=1;save();render();tell(`„${e.n||e.c||'Ausgabe'}“ braucht keinen Beleg.`,()=>{delete e.nodoc;save();render()})});const di=$('docAddIn');if(di)di.onchange=ev=>{const f=ev.target.files[0];ev.target.value='';if(f)docAdd(f);else docFor=''};if($('docAddL'))$('docAddL').onclick=()=>{docFor=''}}
   if(setView=='tax'){all('[data-ty]',b=>{taxY=+b.dataset.ty;render()});on('taxPdf',taxPrint)}
-  if(setView=='yearrev'){all('[data-yy]',b=>{yrY=+b.dataset.yy;render()});const sc=$('yrs');if(sc)sc.onscroll=()=>{const i=Math.round(sc.scrollLeft/sc.clientWidth);document.querySelectorAll('#yrDots i').forEach((d,k)=>d.classList.toggle('on',k==i))};
+  if(setView=='yearrev'){all('[data-yy]',b=>{yrY=+b.dataset.yy;render()});on('yrPenny',()=>pennyTalk('year'));
     on('yrShare',()=>{const D=yearData(yrY||new Date().getFullYear()),txt=`Mein Jahr ${D.y} mit CashFlow: ${eur0(D.inc-D.out)} unterm Strich, ${eur0(D.saved+D.bav)} fürs Alter zurückgelegt, ${D.nW} Impulsen widerstanden (${eur0(D.letGo)}), ${D.ns} ausgabenfreie Tage.`;try{navigator.clipboard.writeText(txt);$('yrMsg').textContent='Kopiert.'}catch(e){$('yrMsg').textContent=txt}})}
   if(!setView&&!curB&&tab=='wish'&&wishV=='Monat'){on('clAbg',()=>openAbgleich());all('[data-rpt]',b=>restPropDo(+b.dataset.rpt,true));all('[data-rpx]',b=>restPropDo(+b.dataset.rpx,false));on('clPuf',()=>{pufMoveDo([[vermAcc(),pufExcess()]],'Monatsabschluss: ')});all('[data-clm]',b=>{const[f,t2]=b.dataset.clm.split('|');closeMove(f,t2)});on('clYp',()=>{setView='yplan';render();scrollTo(0,0)});on('clSim',()=>{setView=null;tab='rep';repV='Simulator';SIM=null;render();scrollTo(0,0)});on('clRev',()=>{setView='review';S.revOff=closeTarget();render();scrollTo(0,0)});
     on('clDone',()=>{const pk=pkey(period(closeTarget()));S.closeDone=S.closeDone||{};S.closeDone[pk]=Date.now();save();tell('Monat abgeschlossen. Gut gemacht!',0,'trophy');setView=null;render();scrollTo(0,0)})}
