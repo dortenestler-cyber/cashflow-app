@@ -1291,3 +1291,14 @@ body.mm[data-tab="rep"] .kpis.kts{gap:4px}body.mm[data-tab="rep"] .kpis.kts .kpi
 .lock.lk-dep .pad button{background:rgba(52,42,84,.92)!important}
 .lock.lk-dep .lk-av{background:rgba(43,33,71,.9)}
 .lk-hi,.lock.lk-dep .note,.lock.lk-dep .dots{text-shadow:0 1px 8px rgba(18,13,31,.8)}
+/* v306: Finanzkarten in der Ersteinrichtung */
+.onb-hero{height:230px}
+.ofc{position:absolute;z-index:2;background:var(--card);border-radius:18px;padding:8px 11px;box-shadow:0 8px 22px rgba(46,26,102,.16);display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.2;color:var(--fg);max-width:44%}
+.ofc small{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap}.ofc small i{position:static;width:7px;height:7px;border-radius:4px;background:var(--c)}
+.ofc b{font-family:var(--round);font-weight:800;font-size:16px;white-space:nowrap;font-variant-numeric:tabular-nums}.ofc b.in{color:var(--in)}.ofc b.out{color:var(--out)}
+.ofc-a{left:12px;top:14px;transform:rotate(-4deg)}.ofc-d{right:12px;top:12px;transform:rotate(3deg);background:var(--accent-fill,#6E4BD8);color:#fff}.ofc-d small{color:rgba(255,255,255,.8)}.ofc-d b.in{color:#7DF2B9}.ofc-d b.out{color:#FFB3C0}
+.ofc-c{left:16px;bottom:16px;transform:rotate(2deg);flex-direction:row;align-items:center;gap:8px}.ofc-b{right:14px;bottom:20px;transform:rotate(-3deg);flex-direction:row;align-items:center;gap:8px}
+.ofc-c b,.ofc-b b{font-family:inherit;font-size:13px;font-weight:700}
+.ofc-i{width:28px;height:28px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);flex:none}.ofc-i svg{width:15px;height:15px}
+.ofc-f{display:block;height:5px;border-radius:3px;background:color-mix(in srgb,var(--c) 22%,transparent);overflow:hidden;margin-top:3px}.ofc-f i{position:static;display:block;height:100%;border-radius:0;background:var(--c)}
+@media (max-width:360px){.ofc-b{display:none}}
