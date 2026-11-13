@@ -58,8 +58,7 @@ function viewMore(){const G=moreItems(),T=moreTools(),pins=(S.toolPin||[]).filte
   const groups=['g:buchen','g:schutz','g:asst','g:look','g:data'].map(k=>{const g=G[k];return `<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${g[2]} 14%,transparent);color:${g[2]}">${I(g[1])}</div><div class="t"><div>${g[0]}</div><div class="s">${g[3].map(x=>x[2]).slice(0,3).join(', ')}${g[3].length>3?' …':''}</div></div><span class="chev">›</span></button>`}).join('');
   const all=Object.values(G).flatMap(g=>g[3].map(([k,ico,l,s])=>moreCell(k,ico,l,s,g[2]))).join('')+T.map(([k,ico,l,c])=>k=='g:rep'?'':k[0]=='~'?`<button class="cell" data-tabgo="${k.slice(1)}"><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><div class="t"><div>${l}</div></div><span class="chev">›</span></button>`:moreCell(k,ico,l.replace(/­/g,''),'',c)).join('');
   return `${appbar({title:'Einstellungen',noGear:true,slim:true})}<div class="morelist">
-  <div class="mhome"><div class="sec"><div class="sh">Einstellungen</div><div class="group">${groups}</div></div>
-  <div class="sec"><div class="group">${moreCell('g:help','book','Hilfe','Sprachbefehle, Tastaturkürzel, Hinweise',MC.c6)}</div></div></div>
+  <div class="mhome"><div class="sec"><div class="sh">Einstellungen</div><div class="group">${groups}${moreCell('g:help','book','Hilfe','Sprachbefehle, Tastaturkürzel, Hinweise',MC.c6)}</div></div></div>
   <div class="sec msearch" hidden><div class="group">${all}</div></div>
   </div><div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
 function bindMore(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};

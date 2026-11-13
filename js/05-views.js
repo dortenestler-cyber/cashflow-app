@@ -171,7 +171,7 @@ function viewDetail(b){if(isK(b))return viewKonto(b);const c=calc(b),byCat={};c.
   ${b=='Sinking Funds'?goalsHtml():''}
   <div class="sec"><div class="sh">Buchungen</div></div>${txList(c.list,false)}`}
 
-let listV='Täglich',calDay=null,wk=null,tflt='Alle';const LV=['Täglich','Woche','Monat','Summe'];
+let listV='Täglich',calDay=null,wk=null,tflt='Alle';const LV=['Täglich','Summe'];/* v309: Woche und Monat sind jetzt eine Auswahl in „Summe“ */let sumR='m';
 const WDS=['So','Mo','Di','Mi','Do','Fr','Sa'];
 function mmRow(e){if(ruHide(e))return '';return swWrap(e.id,mmRow0(e))}
 function mmRow0(e){const col=COL[e.b],tr=e.type=='tr',cls=e.type=='in'?'in':tr?'trc':'out';
@@ -194,12 +194,31 @@ function dayBlocks0(L){if(!L.length)return '<div class="mmcard"><div class="empt
     return sep+`<div class="mmcard${hh?' hist':''}"><div class="dayh"><span class="dnum">${d.getDate()}</span><span class="wd ${we==0?'sun':we==6?'sat':''}">${WDS[we]}</span><span class="my">${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}${d.toDateString()==now.toDateString()?' · Heute':''}</span>
      <span class="in">${inc?eur(inc):''}</span><span class="out">${out?eur(out):''}</span></div>${es.map(mmRow).join('')}</div>`}).join('')}
 const kw=d=>{const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7)};
-function viewSumme(p){const L=S.exp.filter(e=>inP(e,p)),pp=period(off-1),LP=S.exp.filter(e=>inP(e,pp));
+function sumWeeks(p){const ws=[];let s=new Date(p.s);s=new Date(s.getFullYear(),s.getMonth(),s.getDate()-((s.getDay()+6)%7));while(s<p.e){const e=new Date(s.getFullYear(),s.getMonth(),s.getDate()+7);ws.push([Math.max(s,p.s),Math.min(e,p.e),+s]);s=e}return ws}
+function viewSumme(p){const WS=sumWeeks(p);let R=sumR!='m'?WS.find(w=>w[0]+','+w[1]==sumR):null;if(!R)sumR='m';
+  const inR=(e,r)=>e.t>=r[0]&&e.t<r[1],fd2=t=>new Date(t).getDate()+'.',wl=w=>`KW ${kw(new Date(w[2]))} · ${fd2(w[0])}–${new Date(w[1]-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+  const sel=`<label class="ssel"><span>Zeitraum</span><select id="sumR" aria-label="Zeitraum"><option value="m" ${R?'':'selected'}>Ganzer Monat</option>${WS.map(w=>`<option value="${w[0]},${w[1]}" ${R&&w[0]==R[0]?'selected':''}>${wl(w)}${now>=w[0]&&now<w[1]?' (diese Woche)':''}</option>`).join('')}</select></label>`;
+  if(R)return sel+viewSummeW(p,R);
+  return sel+viewSummeM(p)}
+function viewSummeW(p,R){const RP=[R[0]-7*864e5,R[0]],days=(R[1]-R[0])/864e5,L=S.exp.filter(e=>e.t>=R[0]&&e.t<R[1]&&!isPlan(e)),LP=S.exp.filter(e=>e.t>=RP[0]&&e.t<RP[1]);
+  const s=(A,t)=>A.filter(e=>e.type==t).reduce((q,e)=>q+e.a,0),ci=s(L,'in'),co=s(L,'out'),pi=s(LP,'in'),po=s(LP,'out');
+  const ch=(a,b)=>b?Math.round((a-b)/b*100):0,byA={},trs={};L.filter(e=>e.type=='out').forEach(e=>byA[e.b]=(byA[e.b]||0)+e.a);
+  L.filter(e=>e.type=='tr').forEach(e=>{const k=e.b+' → '+e.to;trs[k]=(trs[k]||0)+e.a});const mxA=Math.max(...Object.values(byA),1);
+  return `<div class="sec"><div class="sh">Budgetstatus dieser Woche</div><div class="mmcard">${BUDG.filter(b=>!isStock(b)).map(b=>{const c=calc(b,off),t=c.total*days/p.len,u=L.filter(e=>e.type=='out'&&e.b==b).reduce((q,e)=>q+e.a,0),r=t-u;return `<div class="srow"><div class="srow-h"><span>${esc(b)}</span>${r<0?`<span class="badge" style="background:color-mix(in srgb,var(--warn) 18%,transparent);color:color-mix(in srgb,var(--warn) 70%,var(--fg))">${eur0(-r)} über Wochenplan</span>`:''}<span class="${r<0?'out':''}">${eur(u)} / ${eur0(t)}</span></div>
+    <div class="bar" style="height:8px"><i style="width:${Math.max(0,Math.min(r/(t||1)*100,100)).toFixed(0)}%;background:${COL[b]}"></i></div></div>`}).join('')}</div></div>
+  <div class="sec"><div class="sh">Vergleich zur Vorwoche</div><div class="mmcard"><div class="cmp"><span></span><b>KW ${kw(new Date(R[2]))}</b><b>Vorwoche</b><b>Änderung</b>
+    <span>Einnahmen</span><span class="in">${eur0(ci)}</span><span>${eur0(pi)}</span><span>${pi?(ch(ci,pi)>0?'+':'')+ch(ci,pi)+' %':'–'}</span>
+    <span>Ausgaben</span><span class="out">${eur0(co)}</span><span>${eur0(po)}</span><span class="${ch(co,po)>0?'out':'in'}">${po?(ch(co,po)>0?'+':'')+ch(co,po)+' %':'–'}</span></div></div>
+    ${now>=R[0]&&now<R[1]?'<div class="note">Die laufende Woche ist noch nicht vorbei.</div>':''}</div>
+  <div class="sec"><div class="sh">Ausgaben nach Konto</div><div class="mmcard">${Object.entries(byA).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span class="out">${eur(v)}</span></div><div class="bar" style="height:6px"><i style="width:${(v/mxA*100).toFixed(0)}%;background:${COL[k]||'var(--muted)'}"></i></div></div>`).join('')||'<div class="empty">Keine Ausgaben.</div>'}</div></div>
+  ${Object.keys(trs).length?`<div class="sec"><div class="sh">Umbuchungen</div><div class="mmcard">${Object.entries(trs).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span>${eur(v)}</span></div></div>`).join('')}</div></div>`:''}
+  <button class="btn soft" data-wk="${R[0]},${R[1]}">Buchungen dieser Woche anzeigen</button>`}
+function viewSummeM(p){const L=S.exp.filter(e=>inP(e,p)),pp=period(off-1),LP=S.exp.filter(e=>inP(e,pp));
   const s=(A,t)=>A.filter(e=>e.type==t).reduce((q,e)=>q+e.a,0),ci=s(L,'in'),co=s(L,'out'),pi=s(LP,'in'),po=s(LP,'out');
   const ch=(a,b)=>b?Math.round((a-b)/b*100):0,byA={},trs={};L.filter(e=>e.type=='out').forEach(e=>byA[e.b]=(byA[e.b]||0)+e.a);
   L.filter(e=>e.type=='tr').forEach(e=>{const k=e.b+' → '+e.to;trs[k]=(trs[k]||0)+e.a});const mxA=Math.max(...Object.values(byA),1);
   return `<div class="sec"><div class="sh">Budgetstatus</div><div class="mmcard">${BUDG.map(b=>{const c=calc(b,off),st=stat(c);return `<div class="srow"><div class="srow-h"><span>${esc(b)}</span>${badge(st)}<span class="${st.k=='bad'?'out':''}">${eur(c.used)} / ${eur0(c.total)}</span></div>
-    <div class="bar" style="height:8px"><i style="width:${Math.min(c.pct*100,100).toFixed(0)}%;background:${st.k=='bad'?'var(--bad)':st.k=='warn'?'var(--warn)':COL[b]}"></i></div></div>`}).join('')}</div></div>
+    <div class="bar" style="height:8px"><i style="width:${Math.max(0,Math.min((1-c.pct)*100,100)).toFixed(0)}%;background:${COL[b]}"></i></div></div>`}).join('')}</div></div>
   <div class="sec"><div class="sh">Vergleich zum Vormonat</div><div class="mmcard"><div class="cmp"><span></span><b>${p.s.toLocaleDateString('de-DE',{month:'short'})}</b><b>${pp.s.toLocaleDateString('de-DE',{month:'short'})}</b><b>Änderung</b>
     <span>Einnahmen</span><span class="in">${eur0(ci)}</span><span>${eur0(pi)}</span><span>${pi?(ch(ci,pi)>0?'+':'')+ch(ci,pi)+' %':'–'}</span>
     <span>Ausgaben</span><span class="out">${eur0(co)}</span><span>${eur0(po)}</span><span class="${ch(co,po)>0?'out':'in'}">${po?(ch(co,po)>0?'+':'')+ch(co,po)+' %':'–'}</span></div></div>
