@@ -497,13 +497,13 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 @media (min-width:1000px){.stickhead.cmp .hc-cx{display:inline-flex;align-items:center;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;padding:0 6px}.stickhead.cmp .hc-cx{color:inherit}}
 /* ===== Desktop ===== */
 .tb-new{display:none!important}
+/* v300: Leiste klappt nur mit Maus/Trackpad auf – auf dem iPad blieb sie nach dem Tippen offen und verdeckte den Inhalt */
+@media (min-width:1000px) and (hover:hover) and (pointer:fine){body.mm .tabbar:hover,body.mm .tabbar:focus-within{width:232px;box-shadow:12px 0 40px rgba(30,20,60,.14)}body.mm .tabbar:hover button span,body.mm .tabbar:focus-within button span{opacity:1}}
 @media (min-width:1000px){
  body.mm .tabbar{top:0;bottom:0;left:0;right:auto;width:76px;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:4px;padding:20px 12px;border-top:0;border-right:.5px solid var(--sep);box-shadow:none;overflow:hidden;transition:width .22s ease,box-shadow .22s;z-index:30}
- body.mm .tabbar:hover,body.mm .tabbar:focus-within{width:232px;box-shadow:12px 0 40px rgba(30,20,60,.14)}
  body.mm .tabbar button{flex:none;flex-direction:row;gap:14px;font-size:15px!important;letter-spacing:0;padding:12px 14px;border-radius:12px;justify-content:flex-start;width:100%;white-space:nowrap;min-height:46px}
  body.mm .tabbar button svg{flex:none}
  body.mm .tabbar button span{opacity:0;transition:opacity .15s}
- body.mm .tabbar:hover button span,body.mm .tabbar:focus-within button span{opacity:1}
  body.mm .tabbar button.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
  body.mm .tabbar button:hover{background:var(--fill)}
  body.mm .tabbar .tb-new{display:flex!important;background:var(--accent-fill)!important;color:#fff!important;margin-bottom:14px;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}

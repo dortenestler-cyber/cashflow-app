@@ -17,7 +17,7 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
   ['push','bell','Mitteilungen',pushOn()?'Aktiv auf diesem Gerät':'Aus'],
   ['siri','mic','Siri & Kurzbefehle',siriGet()?'Eingerichtet'+((S.siriPend||[]).length?' · '+S.siriPend.length+' prüfen':''):'Ohne App öffnen eintragen und fragen']]],
  'g:look':['Aussehen','palette',c5,[
-  ['theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[S.theme||'system']+' · Schrift im Kalender · Erfolge feiern'],
+  ['theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[themeGet()]+' · Schrift im Kalender · Erfolge feiern'],
   ['cfg','grid','Funktionen & Ansicht','Profile, Ein- und Ausblenden']]],
  'g:data':['Daten & Sync','repeat',c6,[
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten'],
@@ -150,7 +150,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
    
    <div class="bgl">${['Gesamt',...BN].map(b=>`<button class="bgcard" data-bg="${esc(b)}" style="${bgStyle(b)}"><span>${b=='Gesamt'?'Alle Budgets':esc(b)}</span><small>${S.bg[b]&&S.bg[b].img?'Eigenes Foto':esc((GR[(S.bg[b]||{g:0}).g||0]||GR[0])[0])} ›</small></button>`).join('')}</div>`;
   if(k=='theme')return `<div><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Darstellung</h1></div>
-   <div class="sec"><div class="sh">Erscheinungsbild</div><div class="seg" id="thSeg">${[['system','Automatisch'],['light','Hell'],['dark','Dunkel']].map(x=>`<button class="${(S.theme||'system')==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div></div>
+   <div class="sec"><div class="sh">Erscheinungsbild</div><div class="seg" id="thSeg">${[['system','Automatisch'],['light','Hell'],['dark','Dunkel']].map(x=>`<button class="${themeGet()==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div></div>
    <div class="group"><div class="cell plain"><div class="t"><div>Große Schrift im Kalender</div><div class="s">Beträge in den Tagesfeldern größer anzeigen</div></div><input type="checkbox" class="switch" id="bigCal" ${S.bigCal?'checked':''}></div>
     <div class="cell plain"><div class="t"><div>Erfolge feiern</div><div class="s">Kurze Animation, wenn du verzichtest oder ein Ziel schaffst</div></div><input type="checkbox" class="switch" id="celeOn" ${S.cele!==false?'checked':''}></div></div>`;
   if(k=='debts'){const D=S.debts||[];return back+`<h1 class="lt">Schuldenfrei</h1></div>

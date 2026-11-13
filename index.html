@@ -31,10 +31,11 @@
 .aq-fu{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.achip.fu{font-size:13px;padding:6px 11px;color:var(--accent);white-space:normal;text-align:left;max-width:100%;line-height:1.3}.achip.fu svg{width:12px;height:12px;opacity:.7}
 </style>
 <title>CashFlow</title>
+<script>/* v300: Darstellung vor dem ersten Bild setzen (iPhone/iPad dunkel, Desktop hell) */try{var t=localStorage.getItem('cf_theme')||((/iPhone|iPad|iPod|Android/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1)||matchMedia('(pointer:coarse)').matches)?'dark':'light');if(t!='system')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head><body>
 
 
-<link rel="stylesheet" href="css/app.css?v=299">
+<link rel="stylesheet" href="css/app.css?v=300">
 
 <div class="bgfx" aria-hidden="true"></div>
 <div id="app"></div>
@@ -47,18 +48,18 @@
 <div id="modalRoot"></div>
 <div id="lockRoot"></div>
 
-<script src="js/01-core-icons.js?v=299"></script>
-<script src="js/02-core-state.js?v=299"></script>
-<script src="js/03-core-ui.js?v=299"></script>
-<script src="js/04-penny.js?v=299"></script>
-<script src="js/05-views.js?v=299"></script>
-<script src="js/06-tools.js?v=299"></script>
-<script src="js/07-more.js?v=299"></script>
-<script src="js/08-render.js?v=299"></script>
-<script src="js/09-sync.js?v=299"></script>
-<script src="js/10-vermoegen.js?v=299"></script>
-<script src="js/11-voice.js?v=299"></script>
-<script src="js/12-boot.js?v=299"></script>
+<script src="js/01-core-icons.js?v=300"></script>
+<script src="js/02-core-state.js?v=300"></script>
+<script src="js/03-core-ui.js?v=300"></script>
+<script src="js/04-penny.js?v=300"></script>
+<script src="js/05-views.js?v=300"></script>
+<script src="js/06-tools.js?v=300"></script>
+<script src="js/07-more.js?v=300"></script>
+<script src="js/08-render.js?v=300"></script>
+<script src="js/09-sync.js?v=300"></script>
+<script src="js/10-vermoegen.js?v=300"></script>
+<script src="js/11-voice.js?v=300"></script>
+<script src="js/12-boot.js?v=300"></script>
 
 <script>if('serviceWorker' in navigator){let rl=false;const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl||!had)return;rl=true;const sr=document.getElementById('sheetRoot');if(sr&&sr.innerHTML){document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')location.reload()});return}location.reload()});
 window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{const up=()=>r.update().catch(()=>{});up();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')up()});setInterval(up,30*60*1000)}).catch(()=>{}))}</script>

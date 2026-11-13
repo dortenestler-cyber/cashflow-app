@@ -51,8 +51,8 @@ if(ALL.includes('Alltag')&&!ALL.includes('Flow'))renameAcct('Alltag','Flow');
 if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(r)S.debts.push({id:'d1',n:'Anyfin Umschuldungskredit',total:1482,interest:228,rate:r.a||60,start:r.start||'2026-12-30',match:'Anyfin',note:'iPhone 16 Pro (PayPal), Garmin Fenix 9 Pro (Advanzia)'});save()}
 if(S.iconV!==2){remapIcons(false);S.iconV=2;save()}
 if(!S.vaultHideV){S.vaultHide=true;S.vaultHideV=1;save()}
-function applyTheme(){const t=S.theme||'system';if(t=='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);document.body.classList.toggle('bigcal',!!S.bigCal)}
-applyTheme();
+function applyTheme(){const t=themeGet(),de=document.documentElement;if(t=='system')de.removeAttribute('data-theme');else de.setAttribute('data-theme',t);{const dk=t=='dark'||(t=='system'&&matchMedia('(prefers-color-scheme:dark)').matches),bg=dk?'#0E0B16':'#F6F4FB';document.querySelectorAll('meta[name=theme-color]').forEach(m=>{m.content=bg;m.removeAttribute('media')});de.style.colorScheme=dk?'dark':'light'}document.body.classList.toggle('bigcal',!!S.bigCal)}
+applyTheme();try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if(themeGet()=='system')applyTheme()})}catch(e){}
 {const m=location.hash.match(/^#ab-gehalt=(.+)$/);if(m){history.replaceState(null,'',location.pathname);let o=null;try{o=JSON.parse(decodeURIComponent(m[1]))}catch(e){}tab='dash';setTimeout(()=>abGehalt(o),400)}}
 if(/^#(sync|einrichtung)$/i.test(location.hash)){history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync'}
 if(/access_token=|error=|error_code=/.test(location.hash)){const ok=/access_token=/.test(location.hash);history.replaceState(null,'',location.pathname);S.onb=true;tab='more';setView='sync';setTimeout(()=>toast(ok?'E-Mail bestätigt. Jetzt unten „Anmelden“ tippen.':'Der Bestätigungslink ist abgelaufen oder wurde schon benutzt. Versuch einfach „Anmelden“.'),600)}
