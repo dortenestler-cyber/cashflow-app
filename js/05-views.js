@@ -868,7 +868,7 @@ function viewGeld(){if(posView)return posHtml();
   /* v299: Anker-Karte Geld = Puffer, darunter Eingang, Töpfe, Sinking (gleiche Zahlen wie in den Listen) */
   const tr=B.reduce((x,b)=>x+calc(b).rest,0),hero=pa||sa?`<div class="hero2c"><div class="lbl">${pa?'Puffer auf '+esc(pa.n):esc(SHORT[sa]||sa)+' · Bestand'}</div><div class="bal ${pa&&pv<0?'neg':''}">${pa?(WH(pa.n)?MASK:eurD(pv)):(WH(sa)?MASK:eurD(sp.bal))}</div>
    <div class="h2-ft">${pa?`<div><span>Eingang</span><b>${m(pa.n,eur0(pufBal()))}</b></div><div><span>Ziel</span><b>${eur0(pufZiel())}</b></div>`:''}<div><span>Töpfe übrig</span><b class="${tr<0?'neg':''}">${eur0(tr)}</b></div>${pa&&sa?`<div><span>${esc(SHORT[sa]||sa)}</span><b>${m(sa,eur0(sp.bal))}</b></div>`:''}</div></div>`:'';
-  return appbar({title:'Geld',big:'Wo dein Geld steht'})+hero+st('Eingang & Puffer',eing)+st('Ausgeben diesen Monat',aus)+st('Sparen für Wünsche & Reisen',spar)
+  return appbar({title:'Geld',big:'Wo dein Geld steht'})+hero+wealthCard()+st('Eingang & Puffer',eing)+st('Ausgeben diesen Monat',aus)+st('Sparen für Wünsche & Reisen',spar)
    +depotHtml()+toolBar(['ng','ru','pension'])}
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */

@@ -29,6 +29,7 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
   if(['yplan','ng','review'].includes(setView)||(tab=='wish'&&!setView&&wishV=='Ziele'&&zielV=='Zeit'))bindPlan();
   document.querySelectorAll('#thSeg button').forEach(b=>b.onclick=()=>{themeSet(b.dataset.f);applyTheme();render()});
   {const bc=$('bigCal');if(bc)bc.onchange=()=>{S.bigCal=bc.checked;save();applyTheme()}}{const co=$('celeOn');if(co)co.onchange=()=>{S.cele=co.checked;save()}}
+  document.querySelectorAll('[data-wr]').forEach(b=>b.onclick=()=>{wRange=b.dataset.wr;render()});
   document.querySelectorAll('[data-kgo]').forEach(b=>b.onclick=()=>{const g=b.dataset.kgo,o=+b.dataset.ko||0;curB=null;setView=null;if(g=='geld'){tab='geld'}else{tab='list';off=o;tflt=g;flt='Alle';q='';showF=true}render();scrollTo(0,0)});
   document.querySelectorAll('[data-gear]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();prevTab=tab;tab='more';curB=null;setView=null;render();scrollTo(0,0)});
   

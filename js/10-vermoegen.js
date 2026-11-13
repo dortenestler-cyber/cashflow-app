@@ -547,6 +547,25 @@ function balAt(n,t){const a=acc(n);if(a.baseD&&t<a.baseD)return 0;return rawBal(
 function vaultSeries(){const V=vaultCash(),y0=rStart(dRange),days=Math.max(1,Math.ceil((Date.now()-y0)/864e5)),out=[];
   for(let i=0;i<=days;i++){const t=i==days?Date.now():Math.min(y0+i*864e5,Date.now());const per=V.map(n=>balAt(n,t));out.push({t,v:per.reduce((s,x)=>s+x,0),per})}return out}
 let vOff={};
+/* v304: Vermögenskarte in Geld – Gesamt mit Verlauf, Zeiträumen und Zusammensetzung (Füllstand von links) */
+let wRange='3m';const WR={'1m':['1M',30],'3m':['3M',91],'6m':['6M',182],'1y':['1J',365],'all':['Alle',0]};
+function wParts(){const pa=pufAcc(),V=vaultCash(),D=depot(),out=[];
+  if(pa)out.push({k:'giro',n:SHORT[pa.n]||pa.n,ico:'wallet',col:COL[pa.n]||'var(--blue)',v:balAt(pa.n,Date.now()),f:t=>balAt(pa.n,t),b:pa.n});
+  if(V.length)out.push({k:'spar',n:V.length==1?(SHORT[V[0]]||V[0]):'Sparkonten',ico:'piggy',col:'var(--sink)',v:V.reduce((x,n)=>x+balAt(n,Date.now()),0),f:t=>V.reduce((x,n)=>x+balAt(n,t),0)});
+  if(D.length){const BB=D.map(h=>posBase(h));out.push({k:'dep',n:'Depot',ico:'chart',col:'var(--accent)',v:D.reduce((x,h)=>x+posVal(h),0),f:t=>D.reduce((x,h,i)=>x+posAt(h,BB[i],t).q*(priceAt(h,t,'d')||h.price||0),0)})}
+  return out}
+function wSeries(P,r){const now=Date.now();let t0=WR[r][1]?now-WR[r][1]*864e5:Math.min(now-30*864e5,...S.exp.map(e=>e.t).filter(t=>t>0).slice(0,5000),...depot().flatMap(h=>(h.tx||[]).map(x=>new Date(x.d||0).getTime()).filter(Boolean)));
+  t0=Math.max(t0,now-10*365*864e5);const n=60,out=[];for(let i=0;i<=n;i++){const t=i==n?now:t0+(now-t0)*i/n;out.push({t,v:i==n?P.reduce((x,p)=>x+p.v,0):P.reduce((x,p)=>x+(+p.f(t)||0),0)})}return out}
+function wealthCard(){const P=wParts();if(!P.length)return '';const show=S.showWealth||depShow;
+  if(!show)return `<div class="wcard"><div class="wc-h"><div><div class="wc-l">Vermögen gesamt</div><div class="wc-v">•••• €</div></div><button class="btn soft wc-eye" data-eye="1">${I('eye',16)} Einblenden</button></div></div>`;
+  const tot=P.reduce((x,p)=>x+p.v,0),Sr=wSeries(P,wRange),f=Sr[0].v,d=tot-f,pc=f?d/Math.abs(f)*100:0,W=320,H=86,vs=Sr.map(x=>x.v),mn=Math.min(...vs),mx=Math.max(...vs),rg=mx-mn||1;
+  const X=i=>i/(Sr.length-1)*W,Y=v=>H-6-(v-mn)/rg*(H-14),pts=Sr.map((x,i)=>X(i).toFixed(1)+' '+Y(x.v).toFixed(1)),ln='M'+pts.join(' L');
+  const pos=P.filter(p=>p.v>0),ps=pos.reduce((x,p)=>x+p.v,0)||1;
+  return `<div class="wcard"><div class="wc-h"><div><div class="wc-l">Vermögen gesamt</div><div class="wc-v">${eurD(tot)}</div></div><span class="badge ${d>=0?'up':'dn'}">${d>=0?'↑':'↓'} ${Math.abs(pc).toFixed(1).replace('.',',')} % · ${WR[wRange][0]}</span></div>
+   <svg class="wc-ch" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Vermögensverlauf ${WR[wRange][0]}: von ${eur0(f)} auf ${eur0(tot)}"><defs><linearGradient id="wcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".24"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><path d="${ln} L${W} ${H} L0 ${H}Z" fill="url(#wcg)"/><path d="${ln}" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+   <div class="seg wc-rg" role="group" aria-label="Zeitraum">${Object.entries(WR).map(([k,v])=>`<button class="${wRange==k?'on':''}" data-wr="${k}">${v[0]}</button>`).join('')}</div></div>
+   ${pos.length>1||P.length>1?`<div class="sec"><div class="sh"><span>Zusammensetzung</span></div><div class="group">${P.map(p=>`<${p.b?`button data-b="${esc(p.b)}"`:'div'} class="cell wc-row"><div class="ico" style="background:color-mix(in srgb,${p.col} 16%,transparent);color:${p.col}">${I(p.ico,16)}</div><div class="t"><div>${esc(p.n)}</div><div class="bar"><i style="width:${Math.max(0,p.v/ps*100).toFixed(0)}%;background:${p.col}"></i></div></div><div class="v${p.v<0?' out':''}">${eur(p.v)}<div class="s">${Math.round(Math.max(0,p.v)/ps*100)} %</div></div></${p.b?'button':'div'}>`).join('')}</div></div>`:''}`}
+
 function vaultChart(S0,V,show){if(S0.length<2)return '';const W=340,H=180,top=12,bot=22,l=show?52:6,r=6,all=[];S0.forEach(x=>{if(!vOff.__tot)all.push(x.v);x.per.forEach((v,k)=>{if(!vOff[V[k]])all.push(v)})});
   const mx0=Math.max(...all,1),st=nice(mx0/4),mx=Math.ceil(mx0/st)*st,rng=mx||1,X=i=>l+(W-l-r)*i/(S0.length-1),Y=v=>top+(H-top-bot)*(1-v/rng),line=f=>S0.map((x,i)=>`${X(i).toFixed(1)},${Y(f(x)).toFixed(1)}`).join(' ');
   let grid='';for(let v=0;v<=mx+0.01;v+=st)grid+=`<line x1="${l}" x2="${W-r}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--sep)"/>${show?`<text x="${l-5}" y="${(Y(v)+3).toFixed(1)}" font-size="9" text-anchor="end" style="fill:var(--muted)">${axf(v)}</text>`:''}`;

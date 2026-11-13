@@ -1266,3 +1266,13 @@ body.mm[data-tab="rep"] .kpis.kts{gap:4px}body.mm[data-tab="rep"] .kpis.kts .kpi
 /* v303: Letzte Buchungen auf Heute */
 .d-last{min-width:0}.d-last .group{overflow:hidden}
 .d-last .sh .link{border:0;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;padding:0 0 0 12px;min-height:32px}
+/* v304: Vermögenskarte in Geld */
+.wcard{background:var(--card);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.wc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wc-l{font-size:13px;color:var(--muted)}.wc-v{font-family:var(--round);font-weight:800;font-size:28px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wcard .badge.up{background:color-mix(in srgb,var(--in) 16%,transparent);color:var(--in)}.wcard .badge.dn{background:color-mix(in srgb,var(--out) 16%,transparent);color:var(--out)}
+.wc-ch{width:100%;height:86px;display:block}
+.wc-rg{margin:0}.wc-rg button{min-height:34px}
+.wc-eye{width:auto;margin:0;padding:8px 14px}
+.wc-row .v .s{font-size:12px;color:var(--muted);font-weight:500}
+@media (min-width:1000px){body[data-tab="geld"] .view>.wcard{grid-column:1/-1}body[data-tab="geld"] .wc-ch{height:140px}}
