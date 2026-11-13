@@ -10,7 +10,7 @@ function kontoSlide(b,c){return `<div class="slide" data-k="${b}" style="${bgSty
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">+${eur0(c.inc+c.trI)} rein</span><span class="pill" style="background:rgba(255,255,255,.22)">−${eur0(c.out+c.trO)} raus</span></div>
    <div style="font-size:12px;opacity:.85;margin-top:auto">Diesen Monat</div></div>`}
 function carousel(tot,P){const sl=[`<div class="slide" data-k="Gesamt" style="${bgStyle('Gesamt')}" role="group" aria-label="Gesamt">
-   <div class="lbl">Monatsverlauf<span class="lbl-m">${P.label}</span></div><div style="font-size:13px;opacity:.9">Alle Töpfe zusammen · noch ${eur(tot)} · ${P.left} Tage übrig</div><div style="color:#fff">${miniCum()}</div></div>`,
+   <div class="lbl">Monatsverlauf<span class="lbl-m">${P.label}</span></div><div style="font-size:13px;opacity:.9">Alle Töpfe zusammen · noch ${eur(tot)} · ${P.left} Tage übrig</div><div class="mcw" style="color:#fff">${miniCum()}</div></div>`,
   /* v253: Topf-Karten entfallen, die Tachos darüber zeigen dasselbe */...[].filter(b=>!isK(b)).map(b=>{const c=calc(b);return `<div class="slide ${stat(c).k=='bad'?'sl-bad':''}" data-k="${b}" style="${bgStyle(b)}" role="button" tabindex="0" aria-label="${b} öffnen">
    <div class="lbl">${b} <span style="opacity:.7">›</span></div>${badge(stat(c),1)}<div class="bal">${eur(c.rest)}</div><div style="font-size:13px;opacity:.9">übrig von ${eur0(c.total)}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.tag)} / Tag</span><span class="pill" style="background:rgba(255,255,255,.22)">${eur(c.woche)} / Woche</span></div>
@@ -49,7 +49,7 @@ function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class
    ${!o.month&&!o.stats&&!o.back&&!o.slim?`<div class="hc-month hc-bigt${o.big?'':' dup'}"><span class="hc-sp"></span><b>${o.big||o.title}</b><span class="hc-sp"></span></div>`:''}
    ${o.stats||''}</header>
    ${o.tabs?`<div class="seg" id="${o.tabs.id}">${items}</div>`:''}</div>`}
-function stickCmp(){const sh=document.querySelector('#app .stickhead,#app .lthead');if(!sh)return;const de=document.scrollingElement||document.documentElement,bd=document.body,y=scrollY||de.scrollTop||bd.scrollTop||0,th=innerWidth>=1000?200:sh.querySelector('.carw')?120:56,on=sh.classList.contains('cmp'),room=Math.max(de.scrollHeight-de.clientHeight,bd.scrollHeight-bd.clientHeight);
+function stickCmp(){const sh=document.querySelector('#app .stickhead,#app .lthead');if(!sh)return;if(innerWidth>=1280&&document.body.dataset.tab=='dash'){sh.classList.remove('cmp');return}const de=document.scrollingElement||document.documentElement,bd=document.body,y=scrollY||de.scrollTop||bd.scrollTop||0,th=innerWidth>=1000?200:sh.querySelector('.carw')?120:56,on=sh.classList.contains('cmp'),room=Math.max(de.scrollHeight-de.clientHeight,bd.scrollHeight-bd.clientHeight);
   if(!on&&y>th&&room>th+160)sh.classList.add('cmp');else if(on&&y<16)sh.classList.remove('cmp');if(sh.classList.contains('stickhead'))requestAnimationFrame(()=>document.documentElement.style.setProperty('--shh',sh.getBoundingClientRect().bottom+'px'))}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.stickhead.cmp .hc-t,.stickhead.cmp .hc-big,.stickhead.cmp .hc-month b,.lthead.cmp .lt');if(t){scrollTo({top:0,behavior:'smooth'});document.body.scrollTo({top:0,behavior:'smooth'})}});
 addEventListener('scroll',stickCmp,{passive:true,capture:true});
