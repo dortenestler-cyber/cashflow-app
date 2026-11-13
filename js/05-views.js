@@ -99,16 +99,12 @@ let asstHist=false;
 document.addEventListener('click',()=>{if(asstOpen){asstOpen=false;renderAsst()}});
 
 /* v297: Design 2.0 – Kopf, dunkle Saldo-Karte, Gehalt-Chip, Schnell buchen */
-function dashTop(tot,P){const days=Math.max(P.left||1,1),d=new Date(),fm=`${P.s.getDate()}.–${new Date(P.e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+function dashTop(tot,P){const d=new Date();
   let sal=null;try{S.rec.filter(r=>r.type=='in'&&!r.paused).forEach(r=>{[0,1].forEach(o=>{const x=recDue(r,period(o));if(x&&x>now&&(!sal||x<sal.d))sal={d:x,n:r.n||r.c||'Gehalt'}})})}catch(e){}
   const sd=sal?Math.max(0,Math.ceil((sal.d-Date.now())/864e5)):0,fav=(S.fav||[]).slice(0,4);
-  return `<header class="d2-head"><span class="d2-av">${penny(pMood(),36)}</span><div class="d2-hi"><div>${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</div><b>Willkommen zurück${uName()?', '+esc(uName()):''}</b></div><button class="d2-gear" data-tabgo="more" aria-label="Einstellungen" title="Einstellungen">${I('gear',22)}</button></header>
-  <div class="d2-card"><div class="d2-cbg"></div><div class="d2-cin"><div class="d2-ct"><span>Übrig diesen Monat</span><span class="d2-badge">noch ${days} ${days==1?'Tag':'Tage'}</span></div>
-   <div class="d2-big ${tot<0?'neg':''}">${eurD(tot)}</div>
-   <div class="d2-ft"><div><span>Finanzmonat</span><b>${fm}</b></div><div><span>Pro Tag</span><b>${eur0(Math.max(tot,0)/days)}</b></div><div><span>Puffer</span><b class="${pufVal()<0?'neg':'pos'}">${eur0(pufVal())}</b></div></div></div>
-   <button class="d2-mic" id="d2Mic" aria-label="Spracheingabe" title="Spracheingabe">${I('mic',24)}</button></div>
-  ${sal?`<button class="d2-sal" data-tabgo="cal">${I('wallet',17)} ${esc(sal.n)} ${sd<=0?'heute':sd==1?'morgen':'in '+sd+' Tagen'} <span class="chev">›</span></button>`:''}
-  ${fav.length?`<div class="d2-fav" aria-label="Schnell buchen">${fav.map((f,i)=>`<button data-qfav="${i}" style="--c:${COL[f.b]||'var(--accent)'}"><span>${icoOf(f.b,f.c)}</span>${esc(f.n||f.c)}</button>`).join('')}<button data-qfav="new"><span>${I('plus',22)}</span>Neu</button></div>`:''}`}
+  return [`<header class="d2-head"><span class="d2-av">${penny(pMood(),36)}</span><div class="d2-hi"><div>${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</div><b>Willkommen zurück${uName()?', '+esc(uName()):''}</b></div><button class="d2-gear" data-tabgo="more" aria-label="Einstellungen" title="Einstellungen">${I('gear',22)}</button></header>`,
+  `${sal?`<button class="d2-sal" data-tabgo="cal">${I('wallet',17)} ${esc(sal.n)} ${sd<=0?'heute':sd==1?'morgen':'in '+sd+' Tagen'} <span class="chev">›</span></button>`:''}
+  ${fav.length?`<div class="d2-fav" aria-label="Schnell buchen">${fav.map((f,i)=>`<button data-qfav="${i}" style="--c:${COL[f.b]||'var(--accent)'}"><span>${icoOf(f.b,f.c)}</span>${esc(f.n||f.c)}</button>`).join('')}<button data-qfav="new"><span>${I('plus',22)}</span>Neu</button></div>`:''}`]}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-qfav],#d2Mic');if(!t)return;if(t.id=='d2Mic'){if(typeof voiceGo=='function')voiceGo(t);return}const k=t.dataset.qfav;if(k=='new')return openSheet();const f=(S.fav||[])[+k];if(f)openSheet(null,{b:f.b,c:f.c,n:f.n||'',amt:f.a?String(f.a):'',accManual:true})});
 function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
 
@@ -118,14 +114,13 @@ function viewDash(){const P=period(0),soll=(P.idx-.5)/P.len;
   window._up=null;const up=[...S.rec.filter(r=>!r.paused).map(r=>({r,d:recDue(r,P)})).filter(x=>x.d&&x.d>now&&!S.exp.some(e=>e.rid==x.r.id&&e.pk==k)),...S.exp.filter(e=>isPlan(e)&&e.t-NOWT<30*864e5).map(e=>({r:Object.assign({},e,{n:e.n||e.c}),d:new Date(e.t),pl:true}))].sort((a,b)=>a.d-b.d).slice(0,3);window._up=up;
   const fw=fcWarn();
   const pt=fw?null:(()=>{try{const tkey=x=>x.sev+'|'+String(x.ttl).replace(/[\d.,]+\s*(€|×|Tage|Raten)?/g,'#');const t=tipsList().filter(x=>!(S.dismTips||[]).includes(tkey(x)));const r=t.find(x=>x.sev=='bad')||t.find(x=>x.sev=='warn'&&!(S.seenTips||[]).includes(tkey(x)));return r?Object.assign({},r,{_k:tkey(r)}):null}catch(e){return null}})();
-  return `<h1 class="sr">Budget ${P.label}</h1>${dashTop(tot,P)}
+  const DT=dashTop(tot,P);
+  return `<h1 class="sr">Budget ${P.label}</h1>${DT[0]}${carousel(tot,P)}${DT[1]}
   <div class="minis mtop" style="grid-template-columns:repeat(${BUDG.filter(b=>b!=sinkAcc()).length||1},minmax(0,1fr))">${BUDG.filter(b=>b!=sinkAcc()).map(b=>{const c=calc(b),s=stat(c);return `<button class="mini st-${s.k}" data-b="${b}" style="--c:${COL[b]};--f:${Math.max(0,Math.min(100,Math.round((c.pct||0)*100)))}%">
     <div class="mini-n"><span class="dotc"></span>${esc(SHORT[b])}</div>${gauge(c.pct,COL[b],0,0,s.col,gData(b,c))}<div class="mini-r ${s.k=='bad'?'out':''}">${s.k=='bad'?eur0(c.rest):eur(c.tag)}</div>
     <div class="mini-s">${s.k=='bad'?'aufgebraucht':'pro Tag · '+(s.k=='warn'?eur0(s.over)+' über Plan':eur0(c.rest)+' übrig')}</div>
     <div class="mini-x"><span>Budget<b>${eur0(c.total)}</b></span><span>ausgegeben<b>${eur0(c.used)}</b></span><span>übrig<b class="${c.rest<0?'out':''}">${eur0(c.rest)}</b></span></div></button>`}).join('')}</div>
   ${pt?`<button class="fcwarn pncard ${pt.sev=='bad'?'':'warn'}" id="pnCard" data-act="${pt.act||''}" data-tk="${esc(pt._k)}"><span class="vault-ic">${I('alert',20)}</span><span class="pn-face">${penny(pt.sev=='bad'?'minus':'ausgeglichen',40)}</span><div class="t"><b>${esc(pt.ttl)}</b><div class="s">${String(pt.txt||'').replace(/<[^>]*>/g,'').replace(/^„[^“]*“\s*/,'').slice(0,140)}</div></div><span class="chev">›</span></button>`:''}${fw?`<div class="fcwarn" id="fcWarnBtn" role="button" tabindex="0" data-fwk="${esc(fcWarnKey(fw))}"><span class="vault-ic">${I('alert',20)}</span><div class="t"><b>${esc(SHORT[fw.n]||fw.n)} reicht im ${period(fw.o).s.toLocaleDateString('de-DE',{month:'long'})} nicht</b><div class="s">Laut Prognose ${eur0(fw.v)}${fw.puf?' nach allen geplanten Abgängen':''}. Tippen für Details.</div></div><button class="fcx" id="fcWarnX" aria-label="Hinweis ausblenden">×</button></div>`:''}
-  ${carousel(tot,P)}
-  
   <div class="quick"><button class="btn soft" id="shopBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('cart',18)}Einkauf${(S.shop&&S.shop.items.length)?` <span class="cnt">${S.shop.items.length}</span>`:''}</button><button class="btn soft" id="umBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Umbuchen</button><button class="btn soft" id="accBtn" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('wallet',18)}Konten</button></div>
 
   ${up.length?`<div class="sec d-up"><div class="sh">Demnächst geplant</div><div class="group">${up.map((x,ui)=>`<button class="cell" data-up="${ui}"><div class="ico" style="background:color-mix(in srgb,${COL[x.r.b]} 16%,transparent);color:${COL[x.r.b]}">${icoOf(x.r.b,x.r.c)}</div><div class="t"><div>${esc(x.r.n)}</div><div class="s">${x.d.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} · ${SHORT[x.r.b]}</div>${x.pl?'':adjTag({adj:adjOf(x.r,P)})}</div><div class="v ${x.r.type=='in'?'in':''}">${x.r.type=='in'?'+':x.r.type=='tr'?'':'−'}${eur(x.pl?x.r.a:recA(x.r,P))}</div><span class="chev">›</span></button>`).join('')}</div></div>`:''}
@@ -247,7 +242,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
   /* v297: Kategorie-Szene im Kopf + Kategorie-Chips (Design 2.0) */
   const qc=q?(Object.values(S.cats||{}).flat().map(x=>x&&x[0]).find(c=>c&&c.toLowerCase()==q.toLowerCase())||null):null;
   const tc=(()=>{const by={};LA.filter(e=>e.type=='out'&&e.c).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);return Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0])})();if(qc&&!tc.includes(qc))tc.unshift(qc);
-  const scn=S.scnOff?'':`<div class="lscene" style="--sky:${scnSky(qc?scnIco(qc):'all',qc?catCol(qc):null)}">${scene(qc?scnIco(qc):'all',qc?catCol(qc):null)}<span class="lscene-l">${qc?I(scnIco(qc)||'dot',14)+esc(qc):'Alle Kategorien'}</span></div>`;
+  const scn=S.scnOff||!qc?'':`<div class="lscene" style="--sky:${scnSky(qc?scnIco(qc):'all',qc?catCol(qc):null)}">${scene(qc?scnIco(qc):'all',qc?catCol(qc):null)}<span class="lscene-l">${qc?I(scnIco(qc)||'dot',14)+esc(qc):'Alle Kategorien'}</span></div>`;
   const qch=tc.length?`<div class="qcats"><button class="chip ${qc?'':'on'}" data-qclr="1">Alle</button>${tc.map(c=>`<button class="chip ${qc==c?'on':''}" data-qcat="${esc(c)}" style="--cc:${catCol(c)}">${I(scnIco(c)||'dot',15)}${esc(c)}</button>`).join('')}</div>`:'';
   const head=scn+head0+qch;
   const sum=(i,o)=>`<div class="mmsum strip"><div>Einnahmen${off>0?' geplant':''}<b class="in">${eur(i)}</b></div><div>Ausgaben${off>0?' geplant':''}<b class="out">${eur(o)}</b></div><div>Einnahmen − Ausgaben<b class="${i-o<0?'out':''}">${eur(i-o)}</b></div></div>`;
@@ -869,7 +864,10 @@ function viewGeld(){if(posView)return posHtml();
     +cell(`data-b="${esc(pa.n)}"`,'var(--ok)','lock','Puffer',pv>=pufZiel()?`Ziel ${eur0(pufZiel())} erreicht`:`Ziel ${eur0(pufZiel())} · noch ${eur0(pufZiel()-pv)}`,m(pa.n,eur0(pv)),pv<0):'';
   const aus=B.map(b=>{const c=calc(b);return cell(`data-b="${esc(b)}"`,COL[b],'wallet',esc(SHORT[b]||b),`${eur(c.tag)} pro Tag`,eur0(c.rest),c.rest<0)}).join('');
   const spar=sa?cell(`data-tabgo="wish"`,COL[sa]||'var(--ok)','target',esc(SHORT[sa]||sa),`${eur0(sp.alloc)} für Ziele verplant · ${eur0(sp.free)} frei`,m(sa,eur0(sp.bal))):'';
-  return appbar({title:'Geld',big:'Wo dein Geld steht'})+st('Eingang & Puffer',eing)+st('Ausgeben diesen Monat',aus)+st('Sparen für Wünsche & Reisen',spar)
+  /* v299: Anker-Karte Geld = Puffer, darunter Eingang, Töpfe, Sinking (gleiche Zahlen wie in den Listen) */
+  const tr=B.reduce((x,b)=>x+calc(b).rest,0),hero=pa||sa?`<div class="hero2c"><div class="lbl">${pa?'Puffer auf '+esc(pa.n):esc(SHORT[sa]||sa)+' · Bestand'}</div><div class="bal ${pa&&pv<0?'neg':''}">${pa?(WH(pa.n)?MASK:eurD(pv)):(WH(sa)?MASK:eurD(sp.bal))}</div>
+   <div class="h2-ft">${pa?`<div><span>Eingang</span><b>${m(pa.n,eur0(pufBal()))}</b></div><div><span>Ziel</span><b>${eur0(pufZiel())}</b></div>`:''}<div><span>Töpfe übrig</span><b class="${tr<0?'neg':''}">${eur0(tr)}</b></div>${pa&&sa?`<div><span>${esc(SHORT[sa]||sa)}</span><b>${m(sa,eur0(sp.bal))}</b></div>`:''}</div></div>`:'';
+  return appbar({title:'Geld',big:'Wo dein Geld steht'})+hero+st('Eingang & Puffer',eing)+st('Ausgeben diesen Monat',aus)+st('Sparen für Wünsche & Reisen',spar)
    +depotHtml()+toolBar(['ng','ru','pension'])}
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */

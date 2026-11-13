@@ -90,6 +90,7 @@ function goBack(){const b=backTarget();if(b){b.click();return true}while(NAVS.le
 /* Tageswechsel erkennen: "heute" neu setzen, wenn die App aus dem Hintergrund kommt oder Mitternacht vorbei ist */
 function dayRefresh(){const d=new Date();if(d.toDateString()===now.toDateString()){now=d;NOWT=d.getTime();return false}DV++;now=d;NOWT=d.getTime();try{applyRec();closeMonths()}catch(e){}if(!$('sheetRoot').innerHTML)render();else renderAsst();return true}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dayRefresh()});setInterval(()=>{if(document.visibilityState==='visible')dayRefresh()},60000);
+/* v299: Farbliste beginnt jetzt mit „Dunkel“ – gewählte Farben behalten ihren Ton */if(!S.gr2){Object.values(S.bg||{}).forEach(x=>{if(x&&typeof x.g=='number')x.g++});S.bg=S.bg||{};S.bg.Gesamt={g:0};S.gr2=true;save()}
 closeMonths();render();lock();setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();
 /* v230: nach einem Update kurz melden, welche Version jetzt läuft */try{const lv=localStorage.getItem('cfVer'),cv=APP_VER.split(' ')[0];if(lv&&lv!==cv)setTimeout(()=>toast('Aktualisiert auf Version '+cv),1200);localStorage.setItem('cfVer',cv)}catch(e){}
 if(syOn())sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())
