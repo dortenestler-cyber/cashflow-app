@@ -1362,4 +1362,6 @@ body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!import
 .yrchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}.yrchips .chip{border:1.5px solid var(--sep);background:var(--card);color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:4px 10px;border-radius:14px;cursor:pointer}.yrchips .chip.on{background:var(--card)}
 .cell.armap{flex-wrap:wrap;gap:6px}.cell.armap .t{flex:1 1 55%;min-width:0}.cell.armap .arsel{flex:0 1 45%;max-width:48%}
 
-.tank>.tk-sc{position:absolute;top:0;right:0;bottom:0;width:58%;z-index:-1;opacity:.4;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 75%);mask-image:linear-gradient(90deg,transparent,#000 75%)}.tank>.tk-sc .scn{width:100%!important;max-width:none!important;height:100%}.tank>.tk-sc .scn-w{display:none}.hero.hero-tank>.tk-sc{width:60%;opacity:.5;mix-blend-mode:luminosity}
+.tank>.tk-sc{position:absolute;top:0;right:0;bottom:0;width:58%;z-index:-1;opacity:.4;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 75%);mask-image:linear-gradient(90deg,transparent,#000 75%)}.tank>.tk-sc .scn{width:100%!important;max-width:none!important;height:100%}.tank>.tk-sc .scn-w{display:none}.hero.hero-tank>.tk-sc{width:60%;opacity:.5;mix-blend-mode:luminosity}/* v-dhero: Konto-Kacheln einheitlich kompakt */
+.hero.onbg.dhero{height:236px;min-height:236px;overflow:hidden;gap:2px}
+.hero.dhero .hhc{margin-top:-2px}
