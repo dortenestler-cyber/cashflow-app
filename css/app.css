@@ -1052,3 +1052,28 @@ body[data-pr=coffee] .penny.pa .pn-fl{animation:none}
  .days .mmrow .amt{text-align:right}
 }
 @media (min-width:1280px){body[data-tab="dash"] .view>.stickhead .mcw{flex:1;display:flex;flex-direction:column;justify-content:center}}
+/* v291: Breites Layout auch für Einstellungen, Unterseiten und Finanzbericht */
+@media (min-width:1000px){body:not([data-tab="dash"]) .view>.stickhead,body[data-tab] .view>.lthead,body[data-tab="more"] .view>.morelist{grid-column:1/-1}}
+@media (min-width:1280px){
+ body[data-tab="more"] .mhome .group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ body[data-tab="sub"] .view{max-width:1240px!important;margin-left:calc(232px + max(0px,(100vw - 232px - 1240px)/2))!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-items:start}
+ body[data-tab="sub"] .view>:not(.sec),body[data-tab="sub"] .view:not(:has(>.sec~.sec))>.sec{grid-column:1/-1}
+ body[data-tab="sub"] .view>.sec{margin-top:0}
+ body[data-tab="sub"] .view>*+*{margin-top:16px}
+ body[data-tab="sub"] .view>.sec~.sec{margin-top:16px}
+ .report{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px 32px;padding:24px 28px}
+ .report>*{grid-column:1/-1}
+ .report>svg{grid-column:1;align-self:center;max-width:300px!important}
+ .report>svg+table{grid-column:2}
+ .report>.rp-kv{grid-column:1/-1;font-size:14px}
+ body.mm .view.detail{max-width:1240px!important;margin-left:calc(232px + max(0px,(100vw - 232px - 1240px)/2))!important}
+}
+@media (min-width:1280px){.report>svg+table{align-self:start}}
+@media (min-width:1280px){
+ body.mm .view.detail{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;align-items:start;grid-auto-flow:row dense}
+ body.mm .view.detail>*{grid-column:1/-1}
+ body.mm .view.detail>.sec{margin:0!important}
+ body.mm .view.detail>.sec:has(.chartbox){grid-column:1}
+ body.mm .view.detail>.sec:has(.chartbox)+.note+.sec,body.mm .view.detail>.sec:has(.chartbox)+.sec{grid-column:2}
+ body.mm .view.detail .chartbox svg{max-height:300px}
+}
