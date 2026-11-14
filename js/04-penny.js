@@ -80,6 +80,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   if(S.shop&&S.shop.unk&&Object.keys(S.shop.unk).length&&Date.now()-(S.shop.unkTip||0)>7*864e5){const U=Object.keys(S.shop.unk);t.push({sev:'info',act:'shopP',ttl:'Wochen-Abgleich Einkaufszettel',txt:U.length+' Artikel ohne Preis: '+U.slice(0,3).map(k=>esc(S.shop.unk[k].n)).join(', ')+(U.length>3?' …':'')+'. Trag die Preise vom Bon ein, dann rechnet die App künftig damit.'})}
   if(S.shop&&S.shop.items.length){const ck=shopCheck();if(ck.k=='bad'||ck.k=='warn')t.push({sev:ck.k=='bad'?'warn':'info',act:'shop',ttl:'Einkaufszettel: '+(ck.k=='bad'?'passt nicht':'wird knapp'),txt:ck.txt})}
   {const R=S.exp.filter(e=>e.due&&isPlan(e)&&hasDoc(e)&&artOf(e)=='rech'&&ymdD(e.due)-Date.now()<=3*864e5);if(R.length)t.push({sev:'info',sv:'docs',ttl:R.length>1?R.length+' Rechnungen bald fällig':'Rechnung bald fällig',txt:R.map(e=>`${esc(e.n||e.c||'Rechnung')} ${eur(e.a)} am ${dTT(e.due)}`).join(', ')})}
+  samTips(t);
   (S.contracts||[]).forEach(c=>{if(c.state=='cancelled')return;const x=contractNext(c);if(x.kd){const dl=Math.ceil((x.kd-now)/864e5);if(dl>0&&dl<=30)t.push({sev:'warn',act:'ctr',cid:c.id,ttl:`Kündigungsfrist ${c.n}`,txt:`Noch ${dl} Tage bis ${x.kd.toLocaleDateString('de-DE')}. Willst du verlängern?`})}});
   if(P.idx<=5){const R=reviewData(-1);if(R.bs.some(x=>x.c.used>0))t.push({sev:'info',act:'review',ttl:'Dein Monatsrückblick '+period(-1).label,txt:`${R.good.length} Dinge liefen gut${R.bad.length?', '+R.bad.length+' nicht so gut':''}. Schau ihn dir an.`})}
   if(CANFILE&&S.exp.length&&(!S.lastBak||Date.now()-S.lastBak>7*864e5))t.push({sev:'info',act:'bak',ttl:'Zeit für eine Sicherung',txt:S.lastBak?'Deine letzte Sicherung ist über eine Woche alt.':'Du hast noch nie eine Sicherung gespeichert. Leg sie in iCloud Drive ab.'});
@@ -92,7 +93,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='326 (13.11.)';
+const APP_VER='327 (14.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');

@@ -626,7 +626,7 @@ function forecastHtml(){const{N,pa,mn,ds,avg3,M,E0,x0,over,oneFrom,oneInfo,one}=
   <div class="sec"><div class="sh">Altersvorsorge</div>${penCard(x=>S.showWealth||depShow?x:'•••')}</div>`}
 /* ---------- Entwicklung: Kategorien/Begriffe über Zeit, Ladepreis, Einkaufszettel ---------- */
 const DEVR={'3m':['3M',3],'6m':['6M',6],'1y':['1J',12],'2y':['2J',24],'all':['Alles',0]};
-function devRange(r){const n=new Date();if(r=='all'){const t0=Math.min(...S.exp.map(e=>e.t),Date.now());const d=new Date(t0);return{s:new Date(d.getFullYear(),d.getMonth(),1).getTime(),e:Date.now()+1,m:(n.getFullYear()-d.getFullYear())*12+n.getMonth()-d.getMonth()+1}}const m=DEVR[r][1];return{s:new Date(n.getFullYear(),n.getMonth()-m+1,1).getTime(),e:Date.now()+1,m}}
+function devRange(r){const n=new Date();if(r=='all'){const t0=Math.min(...S.exp.map(e=>e.t),...samHistTs(),Date.now());const d=new Date(t0);return{s:new Date(d.getFullYear(),d.getMonth(),1).getTime(),e:Date.now()+1,m:(n.getFullYear()-d.getFullYear())*12+n.getMonth()-d.getMonth()+1}}const m=DEVR[r][1];return{s:new Date(n.getFullYear(),n.getMonth()-m+1,1).getTime(),e:Date.now()+1,m}}
 function devHtml(){const D=S.devSel=S.devSel||{r:'1y',c:'',q:''},R=devRange(D.r),q=(D.q||'').toLowerCase().trim();
   const inR=e=>e.t>=R.s&&e.t<R.e&&!isPlan(e)&&!e.corr&&e.type=='out'&&!WH(e.b),match=e=>(!D.c||e.c==D.c)&&(!q||[e.n,e.c,e.sc,e.p].join(' ').toLowerCase().includes(q));
   const L=RX().filter(e=>inR(e)&&match(e)),sum=L.reduce((s,e)=>s+e.a,0),len=R.e-R.s,prevL=RX().filter(e=>e.t>=R.s-len&&e.t<R.s&&!isPlan(e)&&!e.corr&&e.type=='out'&&!WH(e.b)&&match(e)),prev=prevL.reduce((s,e)=>s+e.a,0);
@@ -635,15 +635,8 @@ function devHtml(){const D=S.devSel=S.devSel||{r:'1y',c:'',q:''},R=devRange(D.r)
   const vals=ms.map(m=>L.filter(e=>e.t>=m.s&&e.t<m.e).reduce((s,e)=>s+e.a,0)),avg=vals.length?sum/vals.length:0;
   const byN={};L.forEach(e=>{const k=(e.n||e.c||'–').trim();byN[k]=byN[k]||{v:0,n:0};byN[k].v+=e.a;byN[k].n++});const top=Object.entries(byN).sort((a,b)=>b[1].v-a[1].v).slice(0,6);
   const step=Math.max(1,Math.ceil(ms.length/6)),lab=ms.map((m,i)=>({i,t:m.l})).filter((x,i)=>i%step==0||i==ms.length-1);
-  // charging
-  const CH=RX().filter(e=>e.kwh>0&&e.t>=R.s&&e.t<R.e).sort((a,b)=>a.t-b.t),chK=CH.reduce((s,e)=>s+e.kwh,0),chE=CH.reduce((s,e)=>s+e.a,0);
-  let chHtml='';if(CH.length){const pm=ms.map(m=>{const x=CH.filter(e=>e.t>=m.s&&e.t<m.e),k=x.reduce((s,e)=>s+e.kwh,0);return k?x.reduce((s,e)=>s+e.a,0)/k:null});
-    const prov={};CH.forEach(e=>{const k=(e.n||'Unbekannt').replace(/^\s*(laden|ladung|strom)\s+/i,'').replace(/\b(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|\d{1,2}\.?\d{0,2}\.?\d{0,4})\b/gi,'').replace(/\s+/g,' ').trim()||'Unbekannt';prov[k]=prov[k]||{k:0,e:0,n:0};prov[k].k+=e.kwh;prov[k].e+=e.a;prov[k].n++});const PV=Object.entries(prov).map(([k,v])=>({k,p:v.e/v.k,kwh:v.k,n:v.n})).sort((a,b)=>a.p-b.p);
-    chHtml=`<div class="sec"><div class="sh">Ladepreis E-Auto</div><div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Ø pro kWh<b>${(chE/chK).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3})} €</b></div><div class="kpi">Geladen<b>${Math.round(chK).toLocaleString('de-DE')} kWh</b></div><div class="kpi">Kosten<b>${eur0(chE)}</b></div></div>
-     ${pm.filter(x=>x!=null).length>1?`<div class="chartbox">${lineChart({n:ms.length,series:[{pts:pm,col:'var(--warn)',dot:true,name:'€/kWh'}],labels:lab,h:150,tipLab:i=>ms[i].ll,tips:pm.map((v,i)=>v==null?null:tcHead(ms[i].ll)+`<span class="tr"><b>${v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3})} €/kWh</b></span>`)})}</div>`:''}
-     <div class="mmcard">${PV.map((x,i)=>`<div class="srow"><div class="srow-h"><span>${i==0&&PV.length>1?'🏆 ':''}${esc(x.k)} <small style="color:var(--muted)">${x.n}× · ${Math.round(x.kwh)} kWh</small></span><span></span><b>${x.p.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3})} €/kWh</b></div></div>`).join('')}</div>
-     ${PV.length>1?`<div class="note">Bei ${esc(PV[0].k)} lädst du am günstigsten, ${((PV[PV.length-1].p-PV[0].p)*100).toFixed(0)} Cent pro kWh weniger als bei ${esc(PV[PV.length-1].k)}.</div>`:''}</div>`}
-  else chHtml=`<div class="sec"><div class="sh">Ladepreis E-Auto</div><div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">Trag beim Buchen einer Ladung die geladenen kWh ein (Feld erscheint bei Kategorie oder Notiz mit „Laden“). Dann siehst du hier deinen Preis pro kWh je Anbieter.</div></div></div>`;
+  // charging (v327: inkl. Sammelabrechnungen und alter Rechnungen)
+  const chHtml=ladeHtml(ms,lab);
   // shopping list
   const SB=RX().filter(e=>e.shop&&e.t>=R.s&&e.t<R.e),shX=e=>e.shop.est!=null?Math.round((e.a-e.shop.est)*100)/100:(e.shop.x||0),xs=SB.filter(e=>shX(e)>0.5),xsum=xs.reduce((s,e)=>s+shX(e),0),btot=SB.reduce((s,e)=>s+e.a,0),xi={};SB.forEach(e=>(e.shop.xi||[]).forEach(r=>{const k=r.n.toLowerCase();xi[k]=xi[k]||{n:r.n,c:0,v:0};xi[k].c++;xi[k].v+=r.p||0}));
   const ph=(S.shop&&S.shop.ph)||{},PH2=Object.entries(ph).filter(([k,L])=>L.length>=2).map(([k,L])=>{const f=L[0],l=L[L.length-1];return{k,f,l,ch:(l[1]/f[1]-1)*100}}).sort((a,b)=>Math.abs(b.ch)-Math.abs(a.ch)).slice(0,12);
@@ -897,7 +890,7 @@ function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offe
    const zseg=`<div class="seg" id="zielV">${[['Liste','Liste'],['Zeit','Zeitachse']].map(([v,l])=>`<button class="${zielV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;if(zielV=='Zeit')return head+zseg+viewYplan(true)+toolBar(['proj']);
    return head+zseg+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
   if(wishV=='Monat')return head+viewClose(true);
-  if(wishV=='Fixkosten')return head+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
+  if(wishV=='Fixkosten')return head+samCards()+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
   if(wishV=='Zukunft')return head+`<div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
 `;
   const wseg=`<div class="seg" id="wishS">${[['Offen','Offen'],['Verzicht','Verzicht'],['Journal','Journal']].map(([v,l])=>`<button class="${wishS==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;

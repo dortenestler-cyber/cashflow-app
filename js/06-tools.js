@@ -1073,3 +1073,119 @@ function viewArchMap(){const L=archOld(),C=cfCats(),m=S.archMap||{},done=L.filte
    <div class="group">${L.map(([c,[n,v]])=>{const cur=m[c]||'',sg=!cur?archSug(c):'';return `<div class="cell plain armap"><div class="t"><div>${esc(c)}</div><div class="s">${n}× · ${eur0(v)}${sg?` · Vorschlag: ${esc(sg)}`:''}</div></div><select data-arm="${esc(c)}" class="arsel" aria-label="CashFlow-Kategorie für ${esc(c)}"><option value="">– wie bisher –</option>${C.map(k=>`<option ${k==cur?'selected':''}>${esc(k)}</option>`).join('')}</select></div>`}).join('')}</div>
    ${done?'<button class="btn soft" id="arMapClr" style="color:var(--bad)">Alle Zuordnungen löschen</button>':''}
    <div class="note">Die Zuordnung gilt für Archivansicht, Jahresrückblick und Jahresvergleich und wird mit deinen anderen Geräten synchronisiert. „Ohne Kategorie“ und Ausgleichsbuchungen lassen sich nicht zuordnen.</div>`}
+/* v327: Ladestrom-Sammelabrechnung – Ladungen im Lademonat vormerken; gezählt wird nur eine Buchung, die mit der Abbuchung im Folgemonat (Standard: 20.) das Budget belastet.
+   Anbieter: S.sam=[{id,n,b,c,day,hist:[{ym,a,kwh}]}] · Sammelposten = geplante Buchung in S.exp mit e.sam={pid,ym,it:[{id,t,a,kwh,n}],inv:{a,kwh,at}|null} */
+const samP=()=>S.sam=S.sam||[];
+const samPv=id=>samP().find(p=>p.id==id);
+const samDM=t=>{const d=new Date(t);return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'};
+const samYm=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const samYmT=ym=>{const[y,m]=String(ym).split('-').map(Number);return new Date(y,m-1,1).getTime()};
+const samMon=(ym,y)=>new Date(samYmT(ym)).toLocaleDateString('de-DE',y?{month:'long',year:'numeric'}:{month:'long'});
+function samDue(p,ym){const[y,m]=ym.split('-').map(Number);return new Date(y,m,Math.min(Math.max(1,+(p&&p.day)||20),new Date(y,m+1,0).getDate()),12).getTime()}
+const samRem=ym=>{const[y,m]=ym.split('-').map(Number);return new Date(y,m,5).getTime()};
+const samL=()=>(S.exp||[]).filter(e=>e.sam);
+const samOf=(pid,ym)=>S.exp.find(e=>e.sam&&e.sam.pid==pid&&e.sam.ym==ym);
+const samEst=e=>Math.round(e.sam.it.reduce((s,x)=>s+(+x.a||0),0)*100)/100;
+const samKwh=e=>e.sam.inv&&e.sam.inv.kwh>0?e.sam.inv.kwh:Math.round(e.sam.it.reduce((s,x)=>s+(+x.kwh||0),0)*100)/100;
+const samKF=v=>(+v||0).toLocaleString('de-DE',{maximumFractionDigits:1});
+const samPK=(a,k)=>k>0?(a/k).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3})+' €/kWh':'';
+function samSync(e){const p=samPv(e.sam.pid);if(!e.sam.inv)e.a=samEst(e);e.n=(p?p.n:'Laden')+' · '+samMon(e.sam.ym);return e}
+function samAdd(pid,x){const p=samPv(pid),ym=samYm(x.t);let e=samOf(pid,ym);
+  if(!e){e={id:uid(),type:'out',b:ALL.includes(p.b)?p.b:(S.lastAcc||ALL[0]),c:p.c||'Laden',a:0,n:'',t:samDue(p,ym),sam:{pid,ym,it:[],inv:null}};S.exp.push(e)}
+  e.sam.it.push({id:uid(),t:x.t,a:x.a,kwh:x.kwh||0,n:x.n||''});e.sam.it.sort((a,b)=>a.t-b.t);return samSync(e)}
+/* Durchschnitt der letzten Abrechnungen eines Anbieters (für den Füllstand) */
+function samRef(pid,ym){const p=samPv(pid),V=[];samL().forEach(e=>{if(e.sam.pid==pid&&e.sam.ym<ym&&e.sam.inv)V.push([e.sam.ym,e.a])});((p&&p.hist)||[]).forEach(h=>{if(h.ym<ym&&!V.some(v=>v[0]==h.ym))V.push([h.ym,h.a])});
+  const L=V.sort((a,b)=>a[0]<b[0]?1:-1).slice(0,3);return L.length?L.reduce((s,v)=>s+v[1],0)/L.length:0}
+function samTips(t){const n=Date.now();samL().forEach(e=>{if(e.sam.inv||n<samRem(e.sam.ym))return;const p=samPv(e.sam.pid),past=!isPlan(e),c=e.sam.it.length;
+  t.push({sev:past?'warn':'info',sv:'samp:'+e.id,ttl:'Laderechnung '+(p?p.n+' ':'')+samMon(e.sam.ym)+' fehlt',txt:`${c} Ladung${c==1?'':'en'} vorgemerkt, zusammen ${eur(samEst(e))}. ${past?'Seit '+samDM(e.t)+' zählt die Schätzung als Buchung.':'Abbuchung ca. '+samDM(e.t)+'.'} Trag den Rechnungsbetrag ein, dann stimmt die Buchung.`})})}
+function samCardH(e){const p=samPv(e.sam.pid),est=samEst(e),miss=!e.sam.inv&&Date.now()>=samRem(e.sam.ym),ref=samRef(e.sam.pid,e.sam.ym),c=e.sam.it.length,k=samKwh(e);
+  let f;if(ref)f=Math.min(1,e.a/ref);else{const s=samYmT(e.sam.ym),[y,m]=e.sam.ym.split('-').map(Number),en=new Date(y,m,1).getTime();f=Math.max(.08,Math.min(1,(Date.now()-s)/(en-s)))}
+  const st=e.sam.inv?['Rechnung da','']:miss?['Rechnung fehlt','warn']:['sammelt',''];
+  return `<button class="samc" data-samp="${e.id}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('bolt',15)} ${esc(p?p.n:'Laden')} · ${samMon(e.sam.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
+   <div class="samc-v">${eur(e.a)}</div><div class="samc-s">${c} Ladung${c==1?'':'en'}${k?' · '+samKF(k)+' kWh':''} · Abbuchung ${isPlan(e)?'ca. ':''}${samDM(e.t)}${ref?' · Ø '+eur0(ref):''}${e.sam.inv&&Math.abs(e.a-est)>=.01?' · Differenz '+(e.a>est?'+':'−')+eur(Math.abs(e.a-est)):''}</div></button>`}
+/* Reiter Planen › Fixkosten: offene Sammelposten */
+function samCards(){if(!samP().length)return '';const L=samL().filter(e=>isPlan(e)||!e.sam.inv).sort((a,b)=>a.t-b.t);
+  return `<div class="sec"><div class="sh"><span>Sammelabrechnungen</span><button class="link" data-set="sam">Alle</button></div>${L.length?L.map(samCardH).join(''):`<div class="note">Gerade nichts vorgemerkt.</div>`}</div>`}
+function samView(){const P=samP();
+  return `${appbar({title:'Sammelabrechnungen',back:'setBack',noGear:true})}${P.map(p=>{const E2=samL().filter(e=>e.sam.pid==p.id).sort((a,b)=>b.t-a.t).slice(0,6),H=(p.hist||[]).slice().sort((a,b)=>a.ym<b.ym?1:-1);
+   return `<div class="sec"><div class="sh">${esc(p.n)}</div><div class="group"><div class="cell plain"><label>Name</label><input data-samf="n:${p.id}" value="${esc(p.n)}" style="margin-left:auto;max-width:55%;text-align:right"></div>
+    <div class="cell plain"><label>Abbuchung im Folgemonat am</label><input data-samf="day:${p.id}" type="number" inputmode="numeric" min="1" max="31" value="${+p.day||20}" style="margin-left:auto;max-width:64px;text-align:right"><span>.</span></div>
+    <div class="cell plain"><label>Topf</label><select data-samf="b:${p.id}" style="margin-left:auto;max-width:55%">${ALL.filter(b=>!isTabu(b)).map(b=>`<option ${b==p.b?'selected':''}>${esc(b)}</option>`).join('')}</select></div></div>
+    ${E2.map(samCardH).join('')}
+    <div class="sh" style="margin-top:12px">Alte Rechnungen</div><div class="group">${H.map(h=>`<div class="cell plain"><span>${samMon(h.ym,true)}</span><span style="flex:1"></span><span class="s" style="font-size:12px;color:var(--muted);margin-right:8px">${h.kwh?samKF(h.kwh)+' kWh · '+samPK(h.a,h.kwh):''}</span><b>${eur(h.a)}</b><button class="link" data-samhdel="${p.id}|${h.ym}" aria-label="Entfernen" style="color:var(--bad);padding-left:10px">×</button></div>`).join('')}
+     <div class="cell plain" style="gap:6px;flex-wrap:wrap"><input type="month" id="samHm-${p.id}" style="flex:1;min-width:120px"><input id="samHa-${p.id}" inputmode="decimal" placeholder="€" style="width:72px;text-align:right"><input id="samHk-${p.id}" inputmode="decimal" placeholder="kWh" style="width:64px;text-align:right"><button class="chip" data-samhadd="${p.id}">Hinzufügen</button></div></div>
+    <label class="btn soft" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px">${I('camera',16)} Rechnungen einlesen<input type="file" accept="image/*,application/pdf" multiple data-samfile="${p.id}" hidden></label>
+    <button class="link" data-sampdel="${p.id}" style="color:var(--bad);padding:8px 0 0 4px">Anbieter entfernen</button></div>`}).join('')}
+   <button class="btn soft" data-samnew="1">Anbieter hinzufügen</button>
+   <div class="note">Ladungen merkst du über das Plus vor: Kategorie Laden, dann „Zur Sammelabrechnung“. Sie belasten dein Budget erst mit der Abbuchung. Alte Rechnungen fließen nur in den Rückblick (Kosten und Preis pro kWh), nie in Kontostände.</div>`}
+function samPView(id){const e=S.exp.find(x=>x.id==id&&x.sam);if(!e){setView=setParent||null;setParent=null;return setView?viewSet(setView):''}
+  const p=samPv(e.sam.pid),est=samEst(e),inv=e.sam.inv,ed=!inv||SAMED==e.id,k=samKwh(e),d=inv?e.a-est:0;
+  return `${appbar({title:(p?p.n:'Laden')+' · '+samMon(e.sam.ym,true),back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${eur(e.a)}</span><b>${inv?'laut Rechnung':'vorgemerkt'}</b></div><div class="hc-line">${isPlan(e)?'Abbuchung ca. ':'Abgebucht am '}${samDM(e.t)} · ${esc(e.b)}${k?' · '+samKF(k)+' kWh · '+samPK(e.a,k):''}</div>`})}
+   <div class="sec"><div class="sh">Rechnung</div>${inv&&!ed?`<div class="group"><div class="cell plain"><span>Summe der Ladungen</span><span style="flex:1"></span><b>${eur(est)}</b></div><div class="cell plain"><span>Rechnung</span><span style="flex:1"></span><b>${eur(inv.a)}</b></div>
+     ${Math.abs(d)>=.01?`<div class="cell plain"><span>${d>0?'Grundgebühr, Aufschläge':'Gutschrift, Rundung'}</span><span style="flex:1"></span><b class="${d>0?'out':'in'}">${d>0?'+':'−'}${eur(Math.abs(d))}</b></div>`:''}</div>
+     <div class="choices" style="margin-top:8px"><button class="chip" data-samed="${e.id}">Rechnung ändern</button><button class="chip" data-saminvx="${e.id}">Rechnung entfernen</button></div>`
+    :`<div class="group"><div class="cell plain"><label for="samIA">Rechnungsbetrag</label><input id="samIA" inputmode="decimal" value="${inv?String(inv.a).replace('.',','):''}" placeholder="${String(est).replace('.',',')}" style="margin-left:auto;max-width:110px;text-align:right"><span>€</span></div>
+     <div class="cell plain"><label for="samIK">kWh laut Rechnung</label><input id="samIK" inputmode="decimal" value="${inv&&inv.kwh?String(inv.kwh).replace('.',','):''}" placeholder="optional" style="margin-left:auto;max-width:110px;text-align:right"></div>
+     <div class="cell plain"><label for="samID">Abbuchung</label><input id="samID" type="date" value="${ymd(e.t)}" style="margin-left:auto"></div></div>
+     <button class="btn" data-saminv="${e.id}" style="margin-top:8px">Rechnung übernehmen</button>`}</div>
+   <div class="sec"><div class="sh">Ladungen (${e.sam.it.length})</div><div class="group">${e.sam.it.map(x=>`<div class="cell plain"><span>${samDM(x.t)}${x.n?' · '+esc(x.n):''}</span><span style="flex:1"></span><span class="s" style="font-size:12px;color:var(--muted);margin-right:8px">${x.kwh?samKF(x.kwh)+' kWh':''}</span><b>${eur(x.a)}</b><button class="link" data-samdel="${e.id}|${x.id}" aria-label="Ladung entfernen" style="color:var(--bad);padding-left:10px">×</button></div>`).join('')||`<div class="cell plain" style="color:var(--muted)">Keine Ladungen.</div>`}</div></div>
+   <button class="btn soft" data-samopen="${e.id}">${I('receipt',16)} Buchung & Beleg öffnen</button>
+   <button class="link" data-samrm="${e.id}" style="color:var(--bad);padding:12px 0 0 4px">Sammelposten löschen</button>`}
+let SAMED=null;
+function samHistPut(p,ym,a,kwh){p.hist=(p.hist||[]).filter(h=>h.ym!=ym);p.hist.push({ym,a:Math.round(a*100)/100,kwh:kwh>0?Math.round(kwh*100)/100:0});p.hist.sort((x,y)=>x.ym<y.ym?-1:1)}
+const samHistTs=()=>samP().flatMap(p=>(p.hist||[]).map(h=>samYmT(h.ym)));
+function samBlk(f){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=()=>rej(r.error);r.onload=()=>{const src=r.result;if(/^data:application\/pdf/.test(src))return res({type:'document',source:{type:'base64',media_type:'application/pdf',data:src.split(',')[1]}});
+  const im=new Image();im.onerror=()=>rej(new Error('Bild nicht lesbar'));im.onload=()=>{const s=Math.min(1,1568/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res({type:'image',source:{type:'base64',media_type:'image/jpeg',data:c.toDataURL('image/jpeg',.88).split(',')[1]}})};im.src=src};r.readAsDataURL(f)})}
+async function samHistFiles(pid,files){const p=samPv(pid);if(!p||!files.length)return;if(!aiNet()){tell(aiOn()?'Gerade keine Verbindung. Trag die Werte von Hand ein oder versuch es später.':'Zum Einlesen braucht es die KI. Du kannst Monat, Betrag und kWh auch von Hand eintragen.');return}
+  let ok=0,bad=0;tell('Penny liest '+files.length+' Rechnung'+(files.length>1?'en':'')+' …');
+  const sch={type:'object',properties:{ist_rechnung:{type:'boolean'},monat:{type:'string',description:'Lademonat YYYY-MM'},summe:{type:'number'},kwh:{type:'number'}},required:['ist_rechnung','monat','summe','kwh'],additionalProperties:false};
+  for(const f of files){try{const j=await aiOnce(aiCfg().chat,[await samBlk(f),{type:'text',text:'Das ist eine Monatsrechnung für öffentliches Laden eines E-Autos. Gib zurück: monat = Monat, in dem geladen wurde (Abrechnungs- bzw. Leistungszeitraum, nicht das Rechnungsdatum), als YYYY-MM; summe = Rechnungsbetrag in Euro inklusive MwSt.; kwh = insgesamt geladene Energie (0, wenn nicht angegeben). Ist es keine Laderechnung, setze ist_rechnung auf false.'}],sch,600);
+    const ym=String(j.monat||'').slice(0,7);if(!j.ist_rechnung||!/^\d{4}-\d{2}$/.test(ym)||!(j.summe>0)){bad++;continue}samHistPut(p,ym,+j.summe,+j.kwh||0);ok++}catch(e){bad++}}
+  save();render();tell(ok?ok+' Rechnung'+(ok>1?'en':'')+' übernommen'+(bad?', '+bad+' nicht lesbar':'')+'. Du siehst sie im Rückblick unter Laden.':'Penny konnte keine Laderechnung erkennen. Trag die Werte von Hand ein.')}
+/* Rückblick: alle Ladekosten aus Sammelposten, alten Rechnungen und einzeln gebuchten Ladungen mit kWh */
+const ladeN=n=>(n||'Unbekannt').replace(/^\s*(laden|ladung|strom)\s+/i,'').replace(/\b(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|\d{1,2}\.?\d{0,2}\.?\d{0,4})\b/gi,'').replace(/\s+/g,' ').trim()||'Unbekannt';
+function ladeUnits(s,en){const U=[],k0=new Set();
+  samL().forEach(x=>{k0.add(x.sam.pid+'|'+x.sam.ym);const t=samYmT(x.sam.ym);if(t>=s&&t<en)U.push({t,a:x.a,kwh:samKwh(x),pv:(samPv(x.sam.pid)||{}).n||'Laden',plan:!x.sam.inv})});
+  samP().forEach(p=>(p.hist||[]).forEach(h=>{if(k0.has(p.id+'|'+h.ym))return;const t=samYmT(h.ym);if(t>=s&&t<en)U.push({t,a:h.a,kwh:h.kwh||0,pv:p.n,hist:1})}));
+  RX().forEach(x=>{if(x.sam||!(x.kwh>0)||isPlan(x)||x.t<s||x.t>=en)return;U.push({t:x.t,a:x.a,kwh:x.kwh,pv:ladeN(x.n)})});return U.sort((a,b)=>a.t-b.t)}
+function ladeHtml(ms,lab){const s=ms[0].s,en=ms[ms.length-1].e,CH=ladeUnits(s,en),CK=CH.filter(x=>x.kwh>0),chK=CK.reduce((a,x)=>a+x.kwh,0),kE=CK.reduce((a,x)=>a+x.a,0),chE=CH.reduce((a,x)=>a+x.a,0),f3=v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3});
+  const hd=`<div class="sh"><span>Laden</span><button class="link" data-set="sam">${samP().length?'Alte Rechnungen':'Sammelabrechnung'}</button></div>`;
+  if(!CH.length)return `<div class="sec">${hd}<div class="mmcard"><div class="srow" style="color:var(--muted);font-size:13px">Trag beim Buchen einer Ladung die kWh ein oder merk sie für eine Sammelabrechnung vor. Alte Monatsrechnungen kannst du unter „Sammelabrechnung“ einlesen. Dann siehst du hier Kosten und Preis pro kWh.</div></div></div>`;
+  const pc=ms.map(m=>Math.round(CH.filter(x=>x.t>=m.s&&x.t<m.e).reduce((a,x)=>a+x.a,0)*100)/100),pm=ms.map(m=>{const x=CK.filter(u=>u.t>=m.s&&u.t<m.e),k=x.reduce((a,u)=>a+u.kwh,0);return k?x.reduce((a,u)=>a+u.a,0)/k:null});
+  const prov={};CK.forEach(u=>{const k=u.pv;prov[k]=prov[k]||{k:0,e:0,n:0};prov[k].k+=u.kwh;prov[k].e+=u.a;prov[k].n++});const PV=Object.entries(prov).map(([k,v])=>({k,p:v.e/v.k,kwh:v.k,n:v.n})).sort((a,b)=>a.p-b.p);
+  return `<div class="sec">${hd}<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Ø pro kWh<b>${chK?f3(kE/chK)+' €':'–'}</b></div><div class="kpi">Geladen<b>${chK?Math.round(chK).toLocaleString('de-DE')+' kWh':'–'}</b></div><div class="kpi">Kosten<b>${eur0(chE)}</b></div></div>
+   <div class="chartbox">${barChart({vals:pc,col:'var(--warn)',labels:lab,flat:true,h:130,tipLab:i=>ms[i].ll,tipName:'Ladekosten'})}</div>
+   ${pm.filter(x=>x!=null).length>1?`<div class="chartbox">${lineChart({n:ms.length,series:[{pts:pm,col:'var(--accent)',dot:true,name:'€/kWh'}],labels:lab,h:130,tipLab:i=>ms[i].ll,tips:pm.map((v,i)=>v==null?null:tcHead(ms[i].ll)+`<span class="tr"><b>${f3(v)} €/kWh</b></span>`)})}</div>`:''}
+   ${PV.length?`<div class="mmcard">${PV.map((x,i)=>`<div class="srow"><div class="srow-h"><span>${i==0&&PV.length>1?'🏆 ':''}${esc(x.k)} <small style="color:var(--muted)">${Math.round(x.kwh)} kWh</small></span><span></span><b>${f3(x.p)} €/kWh</b></div></div>`).join('')}</div>`:''}
+   ${PV.length>1?`<div class="note">Bei ${esc(PV[0].k)} lädst du am günstigsten, ${((PV[PV.length-1].p-PV[0].p)*100).toFixed(0)} Cent pro kWh weniger als bei ${esc(PV[PV.length-1].k)}.</div>`:''}${CH.some(x=>x.plan)?`<div class="note">Monate ohne Rechnung zählen mit den vorgemerkten Ladungen.</div>`:''}</div>`}
+function samGo(v){if(!setView&&tab!='more')setFrom=tab;setParent=setView&&setView!=v?setView:null;setView=v;asstOpen=false;render();scrollTo(0,0)}
+document.addEventListener('click',ev=>{const g=ev.target.closest&&ev.target.closest('[data-samp],[data-samdel],[data-samrm],[data-saminv],[data-saminvx],[data-samed],[data-samopen],[data-samnew],[data-samhadd],[data-samhdel],[data-sampdel]');if(!g)return;const D=g.dataset;
+  if(D.samp){samGo('samp:'+D.samp);return}
+  if(D.samopen){const e=S.exp.find(x=>x.id==D.samopen);if(e)openSheet(e);return}
+  if(D.samed){SAMED=D.samed;render();return}
+  if(D.samnew){const last=S.exp.filter(e=>e.kwh>0&&e.type=='out').sort((a,b)=>b.t-a.t)[0],p={id:uid(),n:'Anbieter '+(samP().length+1),b:last?last.b:(S.lastAcc||ALL[0]),c:last?last.c:'Laden',day:20};samP().push(p);save();render();return}
+  if(D.sampdel){const p=samPv(D.sampdel);if(!p)return;if(samL().some(e=>e.sam.pid==p.id&&isPlan(e))){tell('Bei '+p.n+' sind noch Ladungen vorgemerkt. Lösch zuerst den offenen Sammelposten.');return}const o=JSON.stringify(samP());S.sam=samP().filter(x=>x.id!=p.id);save();render();tell(p.n+' entfernt.',()=>{S.sam=JSON.parse(o);save();render()});return}
+  if(D.samhadd){const p=samPv(D.samhadd),ym=($('samHm-'+p.id)||{}).value||'',a=pNum(($('samHa-'+p.id)||{}).value||''),k=pNum(($('samHk-'+p.id)||{}).value||'');if(!/^\d{4}-\d{2}$/.test(ym)||!(a>0)){tell('Bitte Monat und Betrag eintragen.');return}samHistPut(p,ym,a,k);save();render();tell(samMon(ym,true)+': '+eur(a)+' übernommen.');return}
+  if(D.samhdel){const[pid,ym]=D.samhdel.split('|'),p=samPv(pid);if(!p)return;const o=JSON.stringify(p.hist||[]);p.hist=(p.hist||[]).filter(h=>h.ym!=ym);save();render();tell(samMon(ym,true)+' entfernt.',()=>{p.hist=JSON.parse(o);save();render()});return}
+  const sn=snap();
+  if(D.samdel){const[eid,iid]=D.samdel.split('|'),e=S.exp.find(x=>x.id==eid);if(!e)return;const x=e.sam.it.find(i=>i.id==iid);e.sam.it=e.sam.it.filter(i=>i.id!=iid);samSync(e);save();render();tell('Ladung '+(x?eur(x.a)+' ':'')+'entfernt.',()=>restore(sn));return}
+  if(D.samrm){const e=S.exp.find(x=>x.id==D.samrm);if(!e)return;S.exp=S.exp.filter(x=>x.id!=e.id);setView=setParent||null;setParent=null;save();render();tell('Sammelposten gelöscht.',()=>restore(sn));return}
+  if(D.saminvx){const e=S.exp.find(x=>x.id==D.saminvx);if(!e)return;e.sam.inv=null;samSync(e);save();render();tell('Rechnung entfernt. Es gilt wieder die Summe der Ladungen: '+eur(e.a)+'.',()=>restore(sn));return}
+  if(D.saminv){const e=S.exp.find(x=>x.id==D.saminv);if(!e)return;const a=pNum(($('samIA')||{}).value||''),k=pNum(($('samIK')||{}).value||''),dv=($('samID')||{}).value||'';if(!(a>0)){tell('Bitte den Rechnungsbetrag eintragen.');return}
+    e.sam.inv={a:Math.round(a*100)/100,kwh:k>0?Math.round(k*100)/100:0,at:Date.now()};e.a=e.sam.inv.a;e.art='rech';if(/^\d{4}-\d{2}-\d{2}$/.test(dv)){const[y,m,d]=dv.split('-').map(Number);e.t=new Date(y,m-1,d,12).getTime();e.due=dv}SAMED=null;samSync(e);save();render();
+    const df=e.a-samEst(e);tell('Rechnung übernommen: '+eur(e.a)+(Math.abs(df)>=.01?' ('+(df>0?'+':'−')+eur(Math.abs(df))+' zu den Ladungen)':'')+', Abbuchung '+samDM(e.t),()=>restore(sn));return}});
+document.addEventListener('change',ev=>{const t=ev.target;if(!t||!t.dataset)return;
+  if(t.dataset.samfile){const f=[...(t.files||[])];t.value='';samHistFiles(t.dataset.samfile,f);return}
+  if(t.dataset.samf){const[k,pid]=t.dataset.samf.split(':'),p=samPv(pid);if(!p)return;
+    if(k=='n'){const v=t.value.trim().slice(0,40);if(!v)return;p.n=v}else if(k=='day'){p.day=Math.max(1,Math.min(31,Math.round(+t.value)||20));samL().forEach(e=>{if(e.sam.pid==p.id&&!e.sam.inv&&isPlan(e))e.t=samDue(p,e.sam.ym)})}else if(k=='b'&&ALL.includes(t.value)){p.b=t.value;samL().forEach(e=>{if(e.sam.pid==p.id&&isPlan(e))e.b=p.b})}
+    samL().forEach(e=>{if(e.sam.pid==p.id)samSync(e)});save();render()}});
+/* Buchungsmaske: Schalter „Zur Sammelabrechnung“ unter dem kWh-Feld (nur bei neuen Ausgaben) */
+function samSheetH(){const L=samP();if(E.sam==null&&!E.samT&&E.n){const m=L.find(x=>E.n.toLowerCase().includes(x.n.toLowerCase()));if(m)E.sam=m.id}
+  const on=!!E.sam,pid=E.sam,p=samPv(pid),nw=on&&!p;let due='';if(p){const t=E.dt?new Date(E.dt+'T12:00').getTime():Date.now();due=samDM(samDue(p,samYm(t)))}
+  return `<div class="cell plain"><label for="esam">Zur Sammelabrechnung</label><span style="flex:1"></span><input id="esam" type="checkbox" class="switch" ${on?'checked':''}></div>${on?`<div class="cell plain"><label for="esamP">Anbieter</label><select id="esamP" style="margin-left:auto;max-width:60%">${L.map(x=>`<option value="${x.id}" ${x.id==pid?'selected':''}>${esc(x.n)}</option>`).join('')}<option value="+" ${nw?'selected':''}>Neuer Anbieter …</option></select></div>${nw?`<div class="cell plain"><label for="esamN">Name</label><input id="esamN" value="${esc(E.samN||'')}" placeholder="z. B. EnBW" style="margin-left:auto;max-width:60%;text-align:right"></div>`:''}<div class="cell plain" style="padding-top:0"><span class="s" style="font-size:12px;color:var(--muted)">Nur vorgemerkt. Dein Budget wird erst mit der Abbuchung${due?' am '+due:' im Folgemonat'} belastet.</span></div>`:''}`}
+function samKeep(){if($('esam')){const was=!!E.sam;E.samT=1;E.sam=$('esam').checked?(E.sam||(samPv(S.samLast)?S.samLast:(samP()[0]||{}).id)||'+'):null;if(was!==!!E.sam)setTimeout(drawSheet,0)}
+  if($('esamP')&&E.sam){const v=$('esamP').value;if(v!=E.sam){E.sam=v;setTimeout(drawSheet,0)}}if($('esamN'))E.samN=$('esamN').value}
+/* Speichern: statt einer Buchung die Ladung in den Sammelposten legen. Gibt true zurück, wenn erledigt. */
+function samSave(a,t,close){let pid=E.sam;if(!samPv(pid)){const nm=((E.samN||'').trim()||(E.n||'').trim()).slice(0,40);if(!nm){$('eerr').textContent='Bitte einen Namen für den Anbieter eingeben.';return true}const np={id:uid(),n:nm,b:E.b,c:E.c,day:20};samP().push(np);pid=np.id}
+  S.samLast=pid;S.lastAcc=E.b;const p=samPv(pid);if(!p.c)p.c=E.c;const sn=snap(),ps=samAdd(pid,{t,a,kwh:pNum(E.kwh)>0?Math.round(pNum(E.kwh)*100)/100:0,n:(E.n||'').toLowerCase().includes(p.n.toLowerCase())?'':E.n});
+  save();close();render();tell('Vorgemerkt: '+eur(a)+' · '+p.n+' '+samMon(ps.sam.ym)+' jetzt '+eur(samEst(ps))+'. Abbuchung ca. '+samDM(ps.t)+'.',()=>restore(sn));return true}
