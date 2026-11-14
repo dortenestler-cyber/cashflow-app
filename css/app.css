@@ -1378,7 +1378,7 @@ body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!import
 .samc-t{flex:none;font-size:11px;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted);font-weight:600}
 .samc-t.warn{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
 /* v328: Buchungsmaske ohne Überlappung – kompakter Kopf, Auswahl-Blatt über der Tastatur */
-.bk.cmp .bk-hd>:not(.bk-top):not(.bk-amt){display:none!important}.bk.cmp .bk-amt{font-size:30px;text-decoration:none}.bk.cmp .bk-hd{padding:8px 12px;gap:2px}
+.bk.bkcmp .bk-hd>:not(.bk-top):not(.bk-amt){display:none!important}.bk.bkcmp .bk-amt{font-size:30px;text-decoration:none}.bk.bkcmp .bk-hd{padding:8px 12px;gap:2px}
 .bk-pk.full{top:0;max-height:none;border-radius:26px 26px 0 0}
 .bk-pk-h>span{display:flex;flex-direction:column;gap:2px}.bk-pk-sum{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .bk-pk-b{padding-bottom:calc(18px + max(env(safe-area-inset-bottom,0px),var(--kbh,0px)))}
