@@ -367,13 +367,17 @@ const SIRI_GUIDE=[
   'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion (mit der Adresse) antippen.',
   'Alte Apple-Pay-Automation mit „In Zwischenablage kopieren“ löschen.']],
  ['Kurzbefehl 8 · Beleg teilen (optional)',[
-  'Neuer Kurzbefehl *An CashFlow* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: Bilder.',
-  'Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
-  'Aktion *Text*: „Beleg: “ tippen, Variable *Text aus Bild*.',
+  'Neuer Kurzbefehl *An CashFlow* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: *Bilder* und *PDFs*.',
+  'Aktion *Datei sichern* – Eingabe *Kurzbefehl-Eingabe*. Auf den Pfeil › *Fragen, wo gesichert werden soll* aus › Ziel: iCloud Drive › *Rechnungen*. *Überschreiben* bleibt aus.',
+  'Aktion *Wenn*: *Kurzbefehl-Eingabe* antippen › *Dateierweiterung*, Bedingung *ist*, Wert „pdf“.',
+  'Unter *Wenn*: Aktion *Text aus PDF abrufen* (Kurzbefehl-Eingabe).',
+  'Unter *Sonst*: Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
+  'Nach *Ende*: Aktion *Text*: „Beleg: “ tippen, Variable *Wenn-Ergebnis*.',
   'Aktion *URL codieren* (ins Feld nur die Variable *Text*, nie die Adresse), dann zweite Aktion *Text* – Adresse von Kurzbefehl 8, *URL-codierter Text* direkt dahinter.',
   'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion antippen.',
   'Optional *Mitteilung anzeigen* mit „Inhalte der URL“.',
-  'Benutzen: Bon fotografieren › Teilen › *An CashFlow*.']],
+  'Benutzen: Bon fotografieren oder PDF öffnen › Teilen › *An CashFlow*. Die Buchung kommt per Text, die Datei liegt in *Rechnungen*.',
+  'Beleg anhängen: in CashFlow unter Belege & Gewährleistung *Aus Ordner* tippen und die Datei markieren. Sie wird an die passende Buchung gehängt.']],
  ['Kurzbefehl 9 · Mail (optional)',[
   'Tab *Automation* › *+* › *E-Mail* › Absender wählen (z. B. PayPal) › *Sofort ausführen* › Neuer leerer Kurzbefehl.',
   'Aktion *Text*: „Mitteilung: “, dann *Kurzbefehl-Eingabe › Betreff*, Leerzeichen, *Kurzbefehl-Eingabe › Inhalt*.',
@@ -390,13 +394,13 @@ const SIRI_GUIDE=[
   'Klappt etwas nicht: unten auf dieser Seite „Stand abrufen“ testen. Kommt ein Text, laufen Schlüssel und Funktion.']]];
 function siriGuideTxt(){return 'CashFlow · Siri & Kurzbefehle einrichten\n\n'+SIRI_GUIDE.map(([h,L],i)=>h+'\n'+L.map((x,j)=>(i&&L.length>1?(j+1)+'. ':'• ')+x.replace(/\*/g,'')).join('\n')).join('\n\n')}
 /* Beispiel-Ansicht je Kurzbefehl (Index = Abschnitt in SIRI_GUIDE). [x] = blaue Variable, {n} = Adresse von Kurzbefehl n */
-const SG_A={d:['🎙','#64d2ff'],u:['🔗','#8e8e93'],t:['≡','#ffd60a'],g:['⬇','#30d158'],s:['🔊','#ff453a'],o:['🧭','#0a84ff'],x:['🖼','#bf5af2'],m:['🔔','#ff9f0a'],w:['⚡','#5e5ce6']};
+const SG_A={d:['🎙','#64d2ff'],u:['🔗','#8e8e93'],t:['≡','#ffd60a'],g:['⬇','#30d158'],s:['🔊','#ff453a'],o:['🧭','#0a84ff'],x:['🖼','#bf5af2'],m:['🔔','#ff9f0a'],i:['⑂','#8e8e93'],w:['⚡','#5e5ce6']};
 const SG_BASE=n=>[['d','Text diktieren'],['u','URL codieren [Diktierter Text]'],['t','Text\n{'+n+'}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2],['s','[Inhalt der URL] sprechen']];
 const SIRI_MOCK={1:SG_BASE(1),2:SG_BASE(7),3:SG_BASE(5),
  4:[['t','Text\n{2 bzw. 6}',1],['g','Inhalte von [Text] abrufen',2],['s','[Inhalt der URL] sprechen']],
  5:[['d','Text diktieren'],['u','URL codieren [Diktierter Text]'],['t','Text\n{3}[URL-codierter Text]',1],['o','[Text] öffnen',2]],
  6:[['w','Automation: Wenn ich mit einer Karte bezahle · Sofort ausführen'],['t','Text\nApple Pay [Händler] [Betrag] · Karte: [Karte] · [Aktuelles Datum]'],['u','URL codieren [Text]'],['t','Text\n{4}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]],
- 7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['t','Text\nBeleg: [Text aus Bild]'],['u','URL codieren [Text]'],['t','Text\n{8}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2],['m','[Inhalt der URL] als Mitteilung anzeigen']],
+ 7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder, PDFs'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen'],['i','Wenn [Dateierweiterung] ist pdf'],['x','Text aus [PDF] abrufen'],['i','Sonst'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['i','Ende'],['t','Text\nBeleg: [Wenn-Ergebnis]'],['u','URL codieren [Text]'],['t','Text\n{8}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2],['m','[Inhalt der URL] als Mitteilung anzeigen']],
  9:[['w','Im Share-Sheet anzeigen · Eingabe: Dateien, Bilder'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen']],
  8:[['w','Automation: E-Mail von PayPal · Sofort ausführen'],['t','Text\nMitteilung: [Betreff] [Inhalt]'],['u','URL codieren [Text]'],['t','Text\n{9}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]]};
 const SG_NOTE={1:'Adresse einmal einsetzen, die blaue Marke direkt dahinter (kein Leerzeichen).',2:'Ins URL-Feld nur die Variable „Text“, keine Adresse.'};
