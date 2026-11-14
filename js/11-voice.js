@@ -354,6 +354,12 @@ const SIRI_GUIDE=[
   'Aktion *Text*: „Mitteilung: “, dann *Kurzbefehl-Eingabe › Betreff*, Leerzeichen, *Kurzbefehl-Eingabe › Inhalt*.',
   'Aktion *URL codieren* (ins Feld nur die Variable *Text*, nie die Adresse), dann zweite Aktion *Text* – Adresse von Kurzbefehl 9, *URL-codierter Text* direkt dahinter.',
   'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion antippen.']],
+ ['Rechnungen in iCloud sichern (optional)',[
+  'Braucht keine Adresse. Neuer Kurzbefehl *In Rechnungen sichern* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: Dateien und Bilder.',
+  'Aktion *Datei sichern* – Eingabe *Kurzbefehl-Eingabe*.',
+  'In der Aktion auf den Pfeil › *Fragen, wo gesichert werden soll* aus › Ziel: iCloud Drive › *Rechnungen*. *Überschreiben* bleibt aus.',
+  'Benutzen: in CashFlow unter Belege & Gewährleistung einen Beleg öffnen › Teilen › *In Rechnungen sichern*. Die Datei heißt dann nach Datum, Händler und Betrag. Geht auch aus Mail.',
+  'Zurück in die App: unter Belege & Gewährleistung *Aus Ordner* tippen und im Ordner alle Rechnungen markieren.']],
  ['Aufräumen',[
   'Alte Kurzbefehle mit der Aktion „In Zwischenablage kopieren“ löschen.',
   'Klappt etwas nicht: unten auf dieser Seite „Stand abrufen“ testen. Kommt ein Text, laufen Schlüssel und Funktion.']]];
@@ -366,6 +372,7 @@ const SIRI_MOCK={1:SG_BASE(1),2:SG_BASE(7),3:SG_BASE(5),
  5:[['d','Text diktieren'],['u','URL codieren [Diktierter Text]'],['t','Text\n{3}[URL-codierter Text]',1],['o','[Text] öffnen',2]],
  6:[['w','Automation: Wenn ich mit einer Karte bezahle · Sofort ausführen'],['t','Text\nApple Pay [Händler] [Betrag] · Karte: [Karte] · [Aktuelles Datum]'],['u','URL codieren [Text]'],['t','Text\n{4}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]],
  7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['t','Text\nBeleg: [Text aus Bild]'],['u','URL codieren [Text]'],['t','Text\n{8}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2],['m','[Inhalt der URL] als Mitteilung anzeigen']],
+ 9:[['w','Im Share-Sheet anzeigen · Eingabe: Dateien, Bilder'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen']],
  8:[['w','Automation: E-Mail von PayPal · Sofort ausführen'],['t','Text\nMitteilung: [Betreff] [Inhalt]'],['u','URL codieren [Text]'],['t','Text\n{9}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]]};
 const SG_NOTE={1:'Adresse einmal einsetzen, die blaue Marke direkt dahinter (kein Leerzeichen).',2:'Ins URL-Feld nur die Variable „Text“, keine Adresse.'};
 function siriMockHtml(L){const pill=v=>`<span style="display:inline-block;background:color-mix(in srgb,var(--blue) 18%,transparent);color:var(--blue);border-radius:7px;padding:0 7px;margin:1px 0;white-space:nowrap">${esc(v)}</span>`;

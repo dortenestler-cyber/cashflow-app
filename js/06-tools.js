@@ -468,7 +468,7 @@ function viewDocs(){const q=docQ.toLowerCase().trim(),fit=DOCART.some(x=>x[0]==d
   <div style="display:flex;gap:8px;margin-bottom:14px"><label class="btn soft" id="docAddL" for="docAddIn" style="flex:1;margin:0;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box">${I('plus',18)} Beleg hinzufügen</label><label class="btn soft" for="docBulkIn" style="flex:1;margin:0;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box">${I('doc',18)} Aus Ordner</label></div><input id="docAddIn" type="file" accept="image/*,application/pdf,.pdf" hidden><input id="docBulkIn" type="file" accept="application/pdf,.pdf,image/*" multiple hidden>
   ${!q&&!docF?docMissHtml():''}
   ${M.map(([k,A])=>`<div class="sec"><div class="sh">${esc(k)}</div><div class="group">${A.map(srow).join('')}</div></div>`).join('')||'<div class="group"><div class="empty">Keine Belege gefunden.</div></div>'}
-  <div class="note">„Aus Ordner“: im iCloud-Ordner alle Rechnungen markieren. Vor dem 01.10.2026 werden sie nur abgelegt, danach an die passende Buchung gehängt oder dir zum Buchen vorgeschlagen. Ablegen in iCloud: Beleg öffnen, oben Teilen, dann „In Dateien sichern“ oder dein Kurzbefehl. <button class="link" data-setsub="icsc">Kurzbefehl einrichten ›</button></div>
+  <div class="note">„Aus Ordner“: im iCloud-Ordner alle Rechnungen markieren. Vor dem 01.10.2026 werden sie nur abgelegt, danach an die passende Buchung gehängt oder dir zum Buchen vorgeschlagen. Ablegen in iCloud: Beleg öffnen, oben Teilen, dann „In Dateien sichern“ oder dein Kurzbefehl. <button class="link" data-setsub="siri">Kurzbefehl unter Siri & Kurzbefehle ›</button></div>
   `}
 /* Belege: Art, Fälligkeit, Vertrag, Hinzufügen, fehlende Belege */
 const ymdD=v=>{const[y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d,12)},dTT=v=>{const d=ymdD(v);return d.getDate()+'.'+(d.getMonth()+1)+'.'};
@@ -492,15 +492,6 @@ async function docBulkAi(x,src){const pdf=/^data:application\/pdf/.test(src),blk
   const j=await aiOnce(aiCfg().chat,[blk,{type:'text',text:'Lies dieses Dokument. art: kauf = Kassenbon/Kaufbeleg, rech = Rechnung, vert = Vertrag, schr = sonstiges Schreiben. bezeichnung: 1–3 Wörter für das Gekaufte oder den Anlass (z. B. "Staubsauger", "Stromrechnung"). haendler kurz. summe = Gesamtbetrag in Euro inkl. MwSt. (0, wenn keiner). datum und faellig als YYYY-MM-DD oder leer. Kein Beleg erkennbar: ist_beleg false.'}],sch,500);
   x.ai=1;if(!j.ist_beleg)return;const bz=String(j.bezeichnung||j.haendler||'').trim();if(bz)x.n=bz.slice(0,40);if(j.haendler)x.h=String(j.haendler).slice(0,40);if(j.summe>0)x.a=aiR2(j.summe);
   const t=aiD(j.datum);if(t&&t<=Date.now())x.t=t;if(DOCART.some(z=>z[0]==j.art))x.art=j.art;if(x.art=='rech'&&/^\d{4}-\d{2}-\d{2}$/.test(j.faellig||''))x.due=j.faellig}
-const ICSC=[['Kurzbefehl anlegen','Öffne die Kurzbefehle-App, tipp oben rechts auf „+“ und gib ihm den Namen „In Rechnungen sichern“.'],
- ['Ins Teilen-Menü holen','Tipp unten auf das „i“ bzw. die Einstellungen des Kurzbefehls und schalte „Im Share-Sheet anzeigen“ ein. Stell bei „Empfange … aus Share-Sheet“ nur „Dateien“ und „Bilder“ ein.'],
- ['Aktion „Datei sichern“','Füg über die Suche die Aktion „Datei sichern“ hinzu. Als Eingabe nimmst du „Kurzbefehleingabe“.'],
- ['Ordner fest einstellen','Tipp in der Aktion auf den Pfeil und schalte „Fragen, wo gesichert werden soll“ aus. Wähl als Ziel iCloud Drive › Rechnungen. „Überschreiben, falls vorhanden“ bleibt aus.'],
- ['Testen','Öffne hier einen Beleg, tipp oben auf Teilen und wähl „In Rechnungen sichern“. Die Datei landet mit Datum, Händler und Betrag im Namen im Ordner.']];
-function icscView(){return `${appbar({title:'Kurzbefehl: In Rechnungen sichern',back:'setBack',noGear:true})}
-  <div class="group">${ICSC.map(([t,d],i)=>`<div class="cell plain" style="align-items:flex-start"><div class="ico" style="background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-weight:700">${i+1}</div><div class="t"><div>${t}</div><div class="s" style="white-space:normal">${d}</div></div></div>`).join('')}</div>
-  <div class="note">Der Kurzbefehl funktioniert auch in Mail und anderen Apps über Teilen. Die Menüs können je nach iOS-Version etwas anders heißen.</div>
-  <button class="btn soft" id="icscSh" style="display:flex;align-items:center;justify-content:center;gap:6px">${I('export',16)} Anleitung teilen</button>`}
 async function docBulk(F){const net=aiOn()&&aiNet(),R={old:0,att:0,sug:[],skip:0,bad:0,raw:0};S.loose=S.loose||[];
   tell('Penny liest '+F.length+' Datei'+(F.length==1?'':'en')+' aus dem Ordner …');
   for(const f of F){if(docSeen(f)){R.skip++;continue}let r;try{r=await docPick(f)}catch(e){if(!(e&&e.quiet))R.bad++;continue}
@@ -661,7 +652,6 @@ function dashExtras(){const A=projActive().filter(x=>S.exp.some(e=>e.proj==x.id)
 function bindIdeas(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f},all=(s,f)=>document.querySelectorAll(s).forEach(b=>b.onclick=()=>f(b));
   all('[data-nsg]',b=>{S.nsGoal=+b.dataset.nsg;save();render()});
   all('[data-pjgo]',b=>{projOpen=b.dataset.pjgo;prevTab=tab;tab='more';setView='proj';render();scrollTo(0,0)});
-  on('icscSh',()=>{const t='Kurzbefehl „In Rechnungen sichern“\n\n'+ICSC.map(([a,b],i)=>(i+1)+'. '+a+': '+b).join('\n');if(navigator.share)navigator.share({title:'Kurzbefehl einrichten',text:t}).catch(()=>{});else{try{navigator.clipboard.writeText(t);tell('Anleitung kopiert.')}catch(e){}}});
   all('[data-setsub]',b=>{setParent=setView;setView=b.dataset.setsub;render();scrollTo(0,0)});all('[data-setgo]',b=>{prevTab=tab;setFrom=tab;tab='more';setView=b.dataset.setgo;render();scrollTo(0,0)});
   all('[data-wgo]',b=>{setView=null;tab='wish';wishV=b.dataset.wgo;render();scrollTo(0,0)});
   if(setView=='proj'){all('[data-pjo]',b=>{projOpen=projOpen==b.dataset.pjo?null:b.dataset.pjo;render()});all('[data-pjd]',b=>{const x=projs().find(q=>q.id==b.dataset.pjd);x.done=!x.done;save();render()});
