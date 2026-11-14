@@ -435,7 +435,7 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
      ${step(4,'„Inhalte von URL abrufen“','Feld leeren, „Variable auswählen“ › die Text-Aktion davor antippen. Im Feld steht nur „Text“.')}
      ${step(5,'„Text sprechen“','Ins Feld die Variable „Inhalt der URL“, nicht „Text“. Kurzbefehl „CashFlow Einkauf“ nennen.')}${siriMockHtml(SIRI_MOCK[2])}</div>
      <div class="note">Ersetzt den alten Einkaufs-Kurzbefehl über die Zwischenablage. Was du selbst kopierst, landet so nie mehr auf dem Zettel.</div></div>
-   <div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siS',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
+   <div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siBl',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
      ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: Bilder und Text.')}
      ${step(2,'„Text aus Bild extrahieren“','Aus Kurzbefehl-Eingabe. Liest Bon-Fotos und Screenshots direkt auf dem iPhone.')}
      ${step(3,'„Text“','Beleg: [Text aus Bild]')}
