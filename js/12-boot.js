@@ -38,7 +38,11 @@ async function pinOk(v){const p=pinGet();if(p)return (await pinHash(v,p.s))===p.
 const pinActive=()=>!!pinGet()||(!!S.pin&&S.pin!=='set');
 (async()=>{if(S.pin&&S.pin!=='set'&&!pinGet()){await pinSet(S.pin)}})();
 const IOSDEV=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
-function lock(){if(!pinActive())return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='';const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential,tapMode=IOSDEV();
+/* v338: Einkaufsmodus – Einkaufszettel ohne PIN, sonst nichts erreichbar */
+window.SHOPM=false;
+function shopModeOn(){if(S.shopNoPin===false)return;window.SHOPM=true;document.body.classList.add('shopm');$('lockRoot').innerHTML='';try{tcHide()}catch(e){}prevTab='dash';tab='more';setView='shop';curB=null;render();scrollTo(0,0)}
+function shopModeOff(){window.SHOPM=false;document.body.classList.remove('shopm');setView=null;tab='dash';if(/[?&]einkauf\b/.test(location.search))history.replaceState(history.state,'',location.pathname);render();scrollTo(0,0);lock()}
+function lock(){if(window.SHOPM||!pinActive())return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='';const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential,tapMode=IOSDEV();
   /* iOS erlaubt Face ID in Web-Apps nur direkt nach einem Tipp – sonst schiebt es das Passkey-Fenster davor. Daher dort kein Auto-Start; ein Tipp irgendwo startet Face ID. Nie zwei Aufrufe gleichzeitig. */
   const tryBio=async(auto)=>{if(window.__bioRun||!hasBio||!$('lockRoot').innerHTML)return;window.__bioRun=true;try{if(await bioCheck()){window.__bioOkAt=Date.now();hidAt=0;$('lockRoot').innerHTML='';notifFlush();return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen')}finally{window.__bioRun=false}};const t0=Date.now();
   /* Rechner (Maus/Trackpad): Windows-Anmeldung mit Penny-Avatar und PIN-Feld; iPhone/iPad: Penny statt Face-ID-Symbol, Ziffernfeld bleibt */
@@ -53,6 +57,7 @@ function lock(){if(!pinActive())return;if($('lockRoot').innerHTML)return;try{tcH
   ${showPad?pad():''}<div class="lk-opt"><span>Anmeldeoptionen</span><div>${hasBio?`<button id="bioGo" title="Mit ${bioName()} entsperren" aria-label="Mit ${bioName()} entsperren">${I('face',22)}</button>`:''}<button id="padGo" class="${showPad?'on':''}" title="Ziffernblock" aria-label="Ziffernblock">${I('grid',20)}</button></div></div></div>`
   :`<div class="lock lk-dep">${lockHi()}${hasBio?`<button class="biobtn lk-bio ${tapMode?'tap':''}" id="bioGo" aria-label="Mit ${bioName()} entsperren">${pn()}<span>${bioName()} oder PIN</span></button>`:pn()+'<div style="font-size:17px;font-weight:600">PIN eingeben</div>'}<div class="note kbhint" style="margin-top:-14px">Auch über die Tastatur</div>
   ${dots()}<div class="note" style="min-height:18px;color:var(--bad)">${msg||''}</div>${pad()}</div>`;
+  {const lkEl=document.querySelector('.lock');if(lkEl&&S.shopNoPin!==false){lkEl.insertAdjacentHTML('beforeend',`<button class="lk-shop" id="lkShop">${I('cart',18)}<span>Einkaufszettel</span></button>`);$('lkShop').onclick=e=>{e.stopPropagation();shopModeOn()}}}
   document.querySelectorAll('.lock .pad button').forEach(b=>b.onclick=()=>press(b.dataset.k));if($('padGo'))$('padGo').onclick=e=>{e.stopPropagation();showPad=!showPad;draw(msg)};if($('bioGo'))$('bioGo').onclick=e=>{e.stopPropagation();tryBio(false)};const lk=document.querySelector('.lock');if(lk&&tapMode&&hasBio)lk.onclick=e=>{if(e.target.closest('.pad,input,textarea'))return;tryBio(false)}};draw();if(hasBio&&!tapMode)setTimeout(()=>tryBio(true),250)}
 if(ALL.includes('Alltag')&&!ALL.includes('Flow'))renameAcct('Alltag','Flow');
 if(!S.debts){S.debts=[];const r=(S.rec||[]).find(x=>/anyfin/i.test(x.n||''));if(r)S.debts.push({id:'d1',n:'Anyfin Umschuldungskredit',total:1482,interest:228,rate:r.a||60,start:r.start||'2026-12-30',match:'Anyfin',note:'iPhone 16 Pro (PayPal), Garmin Fenix 9 Pro (Advanzia)'});save()}
@@ -99,7 +104,7 @@ function dayRefresh(){const d=new Date();if(d.toDateString()===now.toDateString(
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dayRefresh()});setInterval(()=>{if(document.visibilityState==='visible')dayRefresh()},60000);
 /* v299: Farbliste beginnt jetzt mit „Dunkel“ – gewählte Farben behalten ihren Ton */if(!S.gr2){Object.values(S.bg||{}).forEach(x=>{if(x&&typeof x.g=='number')x.g++});S.bg=S.bg||{};S.bg.Gesamt={g:0};S.gr2=true;save()}
 try{const mo=new MutationObserver(()=>fillify());mo.observe($('app'),{childList:true,subtree:true});mo.observe($('sheetRoot'),{childList:true,subtree:true})}catch(e){}
-closeMonths();render();lock();setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();
+closeMonths();if(/[?&]einkauf\b/.test(location.search)&&S.shopNoPin!==false&&pinActive())shopModeOn();else{render();lock()}setTimeout(()=>pushPlan(false),3000);if(!S.onb)openOnb();
 /* v230: nach einem Update kurz melden, welche Version jetzt läuft */try{const lv=localStorage.getItem('cfVer'),cv=APP_VER.split(' ')[0];if(lv&&lv!==cv)setTimeout(()=>toast('Aktualisiert auf Version '+cv),1200);localStorage.setItem('cfVer',cv)}catch(e){}
 if(syOn())sync();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync()});setInterval(()=>{if(document.visibilityState==='visible')sync()},60000);window.addEventListener('online',()=>sync())
 /* v253: Ruhezustand für Penny */let PNRT=null;function pnRest(){document.body.classList.remove('pn-rest');clearTimeout(PNRT);PNRT=setTimeout(()=>document.body.classList.add('pn-rest'),3500)}pnRest();new MutationObserver(()=>{if(document.body.dataset.pr)pnRest()}).observe(document.body,{attributes:true,attributeFilter:['data-pr']});

@@ -193,7 +193,7 @@ function bindRu(){const R=ruS(),sv=()=>{save();render()};
 let clipAsk=false,clipHidAt=0;
 const CLIPTIP={sev:'ok',ttl:'Von Siri übernehmen?',txt:'Hast du gerade etwas diktiert oder mit Apple Pay bezahlt? Ein Tipp holt es aus der Zwischenablage: Einkauf, Buchung, Wunsch oder Frage.',btns:[{l:'Übernehmen',fn:'clipGo'},{l:'Nicht jetzt',fn:'clipNo'}]};
 const SUPRX=/rewe|edeka|aldi|lidl|norma|netto|penny|kaufland|tegut|globus|real\b|denns|alnatura|bio company|\bdm\b|rossmann|müller/i;
-function clipPrompt(){if(!featOn('shopclip')||clipAsk)return;clipAsk=true;S.seenTips=(S.seenTips||[]).filter(k=>!/^ok\|Von Siri/.test(k));renderAsst()}
+function clipPrompt(){if(window.SHOPM||!featOn('shopclip')||clipAsk)return;clipAsk=true;S.seenTips=(S.seenTips||[]).filter(k=>!/^ok\|Von Siri/.test(k));renderAsst()}
 function clipKind(v){const l=v.toLowerCase().trim();
  if(/(^|\n)\s*apple ?pay\b/.test(l))return 'pay';
  if(/^(buchung|ausgabe|einnahme|umbuchung)\b/.test(l))return 'book';

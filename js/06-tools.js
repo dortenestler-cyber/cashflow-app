@@ -186,8 +186,9 @@ function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),o
      <div class="shmeta"><span class="qty" role="group" aria-label="Menge ${esc(x.n)}"><button data-shq="${x.id}|-1" aria-label="Weniger" ${(x.q||1)<=1?'disabled':''}>−</button><b>${x.q||1}</b><button data-shq="${x.id}|1" aria-label="Mehr">+</button></span>
      <button class="shopt ${x.opt?'kann':'muss'}" data-sho="${x.id}">${x.opt?'Kann':'Muss'}</button></div></div>
     </div></div>`;
-  return `${appbar({title:'Einkaufszettel',back:'shopBack',noGear:true,right:`<label class="ab-sel">${I('wallet',15)}<select id="shAccSel" aria-label="Topf für den Einkauf">${BUDG.map(b=>`<option value="${esc(b)}" ${sh.acct==b?'selected':''}>${esc(SHORT[b]||b)}</option>`).join('')}</select></label>`,stats:`<div class="hc-big"><span>Geschätzt</span><b>${eur(ck.est)}</b></div><div class="hc-line">${esc(sh.acct)} noch frei: ${eur(ck.rest)} · ${eur(ck.c.tag)} pro Tag</div>`})}
-  ${ck.k!='none'?`<div class="bcheck ${ck.k}"><div class="bc-h">${I(ck.k=='bad'?'alert':ck.k=='warn'?'up':'check',18)}<b>${ck.k=='bad'?'Budget-Check: passt nicht':ck.k=='warn'?'Budget-Check: wird knapp':'Budget-Check: passt'}</b></div><div>${ck.txt}</div>
+  const SM=!!window.SHOPM;
+  return `${appbar({title:'Einkaufszettel',back:'shopBack',noGear:true,right:SM?'':`<label class="ab-sel">${I('wallet',15)}<select id="shAccSel" aria-label="Topf für den Einkauf">${BUDG.map(b=>`<option value="${esc(b)}" ${sh.acct==b?'selected':''}>${esc(SHORT[b]||b)}</option>`).join('')}</select></label>`,stats:`<div class="hc-big"><span>Geschätzt</span><b>${eur(ck.est)}</b></div>${SM?'<div class="hc-line">Ohne PIN geöffnet · nur der Einkaufszettel</div>':`<div class="hc-line">${esc(sh.acct)} noch frei: ${eur(ck.rest)} · ${eur(ck.c.tag)} pro Tag</div>`}`})}
+  ${SM?'':ck.k!='none'?`<div class="bcheck ${ck.k}"><div class="bc-h">${I(ck.k=='bad'?'alert':ck.k=='warn'?'up':'check',18)}<b>${ck.k=='bad'?'Budget-Check: passt nicht':ck.k=='warn'?'Budget-Check: wird knapp':'Budget-Check: passt'}</b></div><div>${ck.txt}</div>
    <div class="bar" style="height:8px;margin-top:8px"><i style="width:${Math.min(100,ck.rest?ck.est/ck.rest*100:100).toFixed(0)}%;background:${ck.k=='bad'?'var(--bad)':ck.k=='warn'?'var(--warn)':'var(--ok)'}"></i></div>
    <div class="s" style="font-size:12px;margin-top:4px">${Math.round(ck.rest?ck.est/ck.rest*100:100)} % vom freien ${esc(sh.acct)}-Budget</div></div>`:`<div class="note">${ck.txt}</div>`}
   <div class="mmcard"><div class="shadd"><input id="shN" list="pdbList" placeholder="Artikel, z. B. Milch" aria-label="Artikel"><datalist id="pdbList">${Object.values(PDB).map(x=>`<option value="${esc(x.n)}">${esc(x.u)} · ca. ${eur(dbPrice(x))}</option>`).join('')}</datalist><input id="shP" inputmode="decimal" placeholder="€" aria-label="Preis" style="width:70px;text-align:right"><button class="btn" id="shAdd" style="width:auto;padding:9px 14px">${I('plus',18)}</button></div>
@@ -197,9 +198,9 @@ function viewShop(){try{shopWeekly()}catch(e){}const sh=shopS(),ck=shopCheck(),o
   ${open.length?(()=>{const by={};open.forEach(x=>{const g=shopGrp(x);(by[g]=by[g]||[]).push(x)});return `<div class="note" style="padding:10px 4px 0">Noch zu kaufen · ${open.length}</div>`+SHOPG.filter(g=>by[g]).map(g=>{const su=by[g].reduce((s,x)=>s+(x.p||0)*(x.q||1),0);return `<div class="sec"><div class="sh"><span>${esc(g)} · ${by[g].length}</span><span>${su?'ca. '+eur(su):''}</span></div><div class="mmcard">${by[g].map(row).join('')}</div></div>`}).join('')})():''}
   
   ${done.length?`<div class="sec"><div class="sh">Im Wagen · ${done.length}</div><div class="mmcard">${done.map(row).join('')}</div></div>`:''}
-  ${shopHistHtml()}
+  ${SM?'':shopHistHtml()}
   ${!sh.items.length?'<div class="mmcard"><div class="empty">Dein Zettel ist leer. Tipp oben einen Artikel ein, die App merkt sich Preise für das nächste Mal.</div></div>':''}
-  ${sh.items.length?`<button class="btn" id="shBook">${I('cart',18)} Einkauf buchen</button><button class="btn soft" id="shClear">Zettel leeren</button>`:''}
+  ${SM?`<button class="btn soft" id="shopBack2">${I('lock',18)} Zu CashFlow</button>`:''}${sh.items.length&&!SM?`<button class="btn" id="shBook">${I('cart',18)} Einkauf buchen</button><button class="btn soft" id="shClear">Zettel leeren</button>`:''}
 `}
 const NUMW={ein:1,eine:1,einen:1,zwei:2,drei:3,vier:4,'fünf':5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,zwölf:12};
 const isShopVoice=v=>/einkaufs(liste|zettel)|auf die liste|^\s*(liste|einkauf)\b/i.test(v);
@@ -288,13 +289,13 @@ function bindShop(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};const s
   document.querySelectorAll('.shedit').forEach(b=>{let lp;const id=b.dataset.she,st=()=>{b.__lng=false;clearTimeout(lp);lp=setTimeout(()=>{b.__lng=true;try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}shopMovePop(b,id)},450)},cl=()=>clearTimeout(lp);b.addEventListener('touchstart',st,{passive:true});b.addEventListener('touchend',cl);b.addEventListener('touchmove',cl,{passive:true});b.addEventListener('mousedown',st);b.addEventListener('mouseup',cl);b.oncontextmenu=e=>e.preventDefault();b.addEventListener('click',e=>{if(b.__lng){b.__lng=false;e.stopImmediatePropagation();e.preventDefault()}},true)});
   on('shPOk',()=>{const t=(sh.paste||'').trim();if(!t){tell('Bitte erst eine Liste einfügen.');return}sh.paste=null;shImp(t)});
   document.querySelectorAll('#shLevel button').forEach(b=>b.onclick=()=>{sh.level=b.dataset.f;sh.items.forEach(x=>{if(x.est){const d=dbExact(x.n),a=sh.aiP&&sh.aiP[x.n.toLowerCase().trim()];if(d)x.p=dbPrice(d);else if(a)x.p=dbPrice(a)}});save();render()});
-  on('shopBack',()=>{setView=null;tab=prevTab&&prevTab!='more'?prevTab:'dash';render();scrollTo(0,0)});
+  on('shopBack',()=>{if(window.SHOPM)return shopModeOff();setView=null;tab=prevTab&&prevTab!='more'?prevTab:'dash';render();scrollTo(0,0)});
   const add=()=>{shopAdd($('shN').value,$('shP').value);render();setTimeout(()=>$('shN')&&$('shN').focus(),0)};on('shAdd',add);
   if($('shN'))$('shN').onkeydown=e=>{if(e.key=='Enter')add()};if($('shP'))$('shP').onkeydown=e=>{if(e.key=='Enter')add()};
   document.querySelectorAll('[data-shs]').forEach(b=>b.onclick=()=>{shopAdd(b.dataset.shs,'');render()});
   document.querySelectorAll('[data-shd]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.shd);x.done=!x.done;save();render()});
   document.querySelectorAll('[data-shq]').forEach(b=>b.onclick=()=>{const[id,d]=b.dataset.shq.split('|'),x=sh.items.find(i=>i.id==id);if(!x)return;x.q=Math.max(1,Math.min(99,(x.q||1)+ +d));save();render()});
-  on('shUnk',openShopPrices);
+  on('shUnk',openShopPrices);on('shopBack2',()=>shopModeOff());
   document.querySelectorAll('[data-she]').forEach(b=>b.onclick=()=>openShopEdit(b.dataset.she));
   document.querySelectorAll('[data-sho]').forEach(b=>b.onclick=()=>{const x=sh.items.find(i=>i.id==b.dataset.sho);x.opt=!x.opt;save();render()});
   document.querySelectorAll('[data-sht]').forEach(b=>b.onclick=()=>{const id=b.dataset.sht,ss=JSON.stringify(sh.trips||[]),eb=S.exp.filter(e=>e.shop==id).map(e=>e.id);sh.trips=(sh.trips||[]).filter(t=>t.id!=id);S.exp.forEach(e=>{if(e.shop==id)delete e.shop});save();render();tell('Einkauf aus dem Vergleich entfernt.',()=>{sh.trips=JSON.parse(ss);S.exp.forEach(e=>{if(eb.includes(e.id))e.shop=id});save();render()})});
