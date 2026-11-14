@@ -62,6 +62,7 @@ function ensureFlags(){if(!S.lila){const C={'Flow':'#4F6BED','Gönn dir':'#F0657
   if(!S.flags3)S.accts.forEach(a=>{if((a.n=='Flow'||a.n=='Gönn dir')&&a.roll==null)a.roll=true;if(a.n=='Sinking Funds'&&a.carry==null)a.carry=true;if(a.n=='Gönn dir'&&a.lock==null)a.lock=true;if((a.verm||a.n=='Vermögensaufbau')&&a.tabu==null)a.tabu=true});
   if(!S.flags3&&!S.accts.some(a=>a.puffer)){const c=S.accts.find(a=>a.n=='Comdirect');if(c)c.puffer=true}
   migFlags(S);
+  if(!S.kwhfix1){const fx=(o,a)=>{if(o&&o.kwh>=1000&&a>0&&a/o.kwh<.05)o.kwh=Math.round(o.kwh/10)/100};(S.exp||[]).forEach(e=>{fx(e,e.a);if(e.sam){(e.sam.it||[]).forEach(x=>fx(x,x.a));if(e.sam.inv)fx(e.sam.inv,e.sam.inv.a)}});(S.sam||[]).forEach(p=>(p.hist||[]).forEach(h=>fx(h,h.a)));S.kwhfix1=true}
   if(!S.since)S.since=period(0).s.getTime();S.closed=S.closed||[];if(S.rollTo===undefined)S.rollTo=ALL.includes('Sinking Funds')?'Sinking Funds':null;S.checkins=S.checkins||[]}
 function ensureAccts(){if(S.accts){refreshA();ensureFlags();return}
   S.accts=[{n:"Flow",kind:'budget',col:'#4F6BED',vis:true,tot:true},{n:"Gönn dir",kind:'budget',col:'#F0657A',vis:true,tot:true},{n:"Sinking Funds",kind:'budget',col:'#22A699',vis:true,tot:true},

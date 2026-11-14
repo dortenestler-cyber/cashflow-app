@@ -37,6 +37,8 @@ function parseCSV(t){t=t.replace(/^﻿/,'');const first=t.split(/\r?\n/)[0]||'',
     else if(c=='"')q=true;else if(c==d){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);f='';if(r.some(x=>x.trim()))rows.push(r);r=[]}else f+=c}
   r.push(f);if(r.some(x=>x.trim()))rows.push(r);return{d,rows}}
 const pNum=s=>{s=String(s||'').replace(/[€\s]|EUR/gi,'');if(!s)return NaN;if(/,\d{1,2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(/,/g,'');return parseFloat(s)};
+/* v330: kWh – Komma ist immer Dezimaltrenner (39,696 kWh), Punkt nur als Tausender bei 1.234 */
+const kNum=s=>{s=String(s||'').replace(/\s|kwh/gi,'');if(!s)return NaN;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');return parseFloat(s)};
 function pDate(s){s=String(s||'').trim();let m;
   if(m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:\D+(\d{1,2}):(\d{2}))?/)){const y=+m[3]<100?2000+ +m[3]:+m[3];return new Date(y,m[2]-1,+m[1],m[4]?+m[4]:12,m[5]?+m[5]:0).getTime()}
   if(m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/))return new Date(+m[1],m[2]-1,+m[3],m[4]?+m[4]:12,m[5]?+m[5]:0).getTime();
@@ -1193,13 +1195,13 @@ document.addEventListener('click',ev=>{const g=ev.target.closest&&ev.target.clos
   if(D.samed){SAMED=D.samed;render();return}
   if(D.samnew){const last=S.exp.filter(e=>e.kwh>0&&e.type=='out').sort((a,b)=>b.t-a.t)[0],p={id:uid(),n:'Anbieter '+(samP().length+1),b:last?last.b:(S.lastAcc||ALL[0]),c:last?last.c:'Laden',day:20};samP().push(p);save();render();return}
   if(D.sampdel){const p=samPv(D.sampdel);if(!p)return;if(samL().some(e=>e.sam.pid==p.id&&isPlan(e))){tell('Bei '+p.n+' sind noch Ladungen vorgemerkt. Lösch zuerst den offenen Sammelposten.');return}const o=JSON.stringify(samP());S.sam=samP().filter(x=>x.id!=p.id);save();render();tell(p.n+' entfernt.',()=>{S.sam=JSON.parse(o);save();render()});return}
-  if(D.samhadd){const p=samPv(D.samhadd),ym=($('samHm-'+p.id)||{}).value||'',a=pNum(($('samHa-'+p.id)||{}).value||''),k=pNum(($('samHk-'+p.id)||{}).value||'');if(!/^\d{4}-\d{2}$/.test(ym)||!(a>0)){tell('Bitte Monat und Betrag eintragen.');return}samHistPut(p,ym,a,k);save();render();tell(samMon(ym,true)+': '+eur(a)+' übernommen.');return}
+  if(D.samhadd){const p=samPv(D.samhadd),ym=($('samHm-'+p.id)||{}).value||'',a=pNum(($('samHa-'+p.id)||{}).value||''),k=kNum(($('samHk-'+p.id)||{}).value||'');if(!/^\d{4}-\d{2}$/.test(ym)||!(a>0)){tell('Bitte Monat und Betrag eintragen.');return}samHistPut(p,ym,a,k);save();render();tell(samMon(ym,true)+': '+eur(a)+' übernommen.');return}
   if(D.samhdel){const[pid,ym]=D.samhdel.split('|'),p=samPv(pid);if(!p)return;const o=JSON.stringify(p.hist||[]);p.hist=(p.hist||[]).filter(h=>h.ym!=ym);save();render();tell(samMon(ym,true)+' entfernt.',()=>{p.hist=JSON.parse(o);save();render()});return}
   const sn=snap();
   if(D.samdel){const[eid,iid]=D.samdel.split('|'),e=S.exp.find(x=>x.id==eid);if(!e)return;const x=e.sam.it.find(i=>i.id==iid);e.sam.it=e.sam.it.filter(i=>i.id!=iid);samSync(e);save();render();tell('Ladung '+(x?eur(x.a)+' ':'')+'entfernt.',()=>restore(sn));return}
   if(D.samrm){const e=S.exp.find(x=>x.id==D.samrm);if(!e)return;S.exp=S.exp.filter(x=>x.id!=e.id);setView=setParent||null;setParent=null;save();render();tell('Sammelposten gelöscht.',()=>restore(sn));return}
   if(D.saminvx){const e=S.exp.find(x=>x.id==D.saminvx);if(!e)return;e.sam.inv=null;samSync(e);save();render();tell('Rechnung entfernt. Es gilt wieder die Summe der Ladungen: '+eur(e.a)+'.',()=>restore(sn));return}
-  if(D.saminv){const e=S.exp.find(x=>x.id==D.saminv);if(!e)return;const a=pNum(($('samIA')||{}).value||''),k=pNum(($('samIK')||{}).value||''),dv=($('samID')||{}).value||'';if(!(a>0)){tell('Bitte den Rechnungsbetrag eintragen.');return}
+  if(D.saminv){const e=S.exp.find(x=>x.id==D.saminv);if(!e)return;const a=pNum(($('samIA')||{}).value||''),k=kNum(($('samIK')||{}).value||''),dv=($('samID')||{}).value||'';if(!(a>0)){tell('Bitte den Rechnungsbetrag eintragen.');return}
     e.sam.inv={a:Math.round(a*100)/100,kwh:k>0?Math.round(k*100)/100:0,at:Date.now()};e.a=e.sam.inv.a;e.art='rech';if(/^\d{4}-\d{2}-\d{2}$/.test(dv)){const[y,m,d]=dv.split('-').map(Number);e.t=new Date(y,m-1,d,12).getTime();e.due=dv}SAMED=null;samSync(e);save();render();
     const df=e.a-samEst(e);tell('Rechnung übernommen: '+eur(e.a)+(Math.abs(df)>=.01?' ('+(df>0?'+':'−')+eur(Math.abs(df))+' zu den Ladungen)':'')+', Abbuchung '+samDM(e.t),()=>restore(sn));return}});
 document.addEventListener('change',ev=>{const t=ev.target;if(!t||!t.dataset)return;
@@ -1215,5 +1217,5 @@ function samKeep(){if($('esam')){const was=!!E.sam;E.samT=1;E.sam=$('esam').chec
   if($('esamP')&&E.sam){const v=$('esamP').value;if(v!=E.sam){E.sam=v;setTimeout(drawSheet,0)}}if($('esamN'))E.samN=$('esamN').value}
 /* Speichern: statt einer Buchung die Ladung in den Sammelposten legen. Gibt true zurück, wenn erledigt. */
 function samSave(a,t,close){let pid=E.sam;if(!samPv(pid)){const nm=((E.samN||'').trim()||(E.n||'').trim()).slice(0,40);if(!nm){$('eerr').textContent='Bitte einen Namen für den Anbieter eingeben.';return true}const np={id:uid(),n:nm,b:E.b,c:E.c,day:20};samP().push(np);pid=np.id}
-  S.samLast=pid;S.lastAcc=E.b;const p=samPv(pid);if(!p.c)p.c=E.c;const sn=snap(),ps=samAdd(pid,{t,a,kwh:pNum(E.kwh)>0?Math.round(pNum(E.kwh)*100)/100:0,n:(E.n||'').toLowerCase().includes(p.n.toLowerCase())?'':E.n});
+  S.samLast=pid;S.lastAcc=E.b;const p=samPv(pid);if(!p.c)p.c=E.c;const sn=snap(),ps=samAdd(pid,{t,a,kwh:kNum(E.kwh)>0?Math.round(kNum(E.kwh)*100)/100:0,n:(E.n||'').toLowerCase().includes(p.n.toLowerCase())?'':E.n});
   save();close();render();tell('Vorgemerkt: '+eur(a)+' · '+p.n+' '+samMon(ps.sam.ym)+' jetzt '+eur(samEst(ps))+'. Abbuchung ca. '+samDM(ps.t)+'.',()=>restore(sn));return true}
