@@ -35,7 +35,7 @@
 </head><body>
 
 
-<link rel="stylesheet" href="css/app.css?v=327">
+<link rel="stylesheet" href="css/app.css?v=328">
 
 <div class="bgfx" aria-hidden="true"></div>
 <div id="app"></div>
@@ -48,18 +48,18 @@
 <div id="modalRoot"></div>
 <div id="lockRoot"></div>
 
-<script src="js/01-core-icons.js?v=327"></script>
-<script src="js/02-core-state.js?v=327"></script>
-<script src="js/03-core-ui.js?v=327"></script>
-<script src="js/04-penny.js?v=327"></script>
-<script src="js/05-views.js?v=327"></script>
-<script src="js/06-tools.js?v=327"></script>
-<script src="js/07-more.js?v=327"></script>
-<script src="js/08-render.js?v=327"></script>
-<script src="js/09-sync.js?v=327"></script>
-<script src="js/10-vermoegen.js?v=327"></script>
-<script src="js/11-voice.js?v=327"></script>
-<script src="js/12-boot.js?v=327"></script>
+<script src="js/01-core-icons.js?v=328"></script>
+<script src="js/02-core-state.js?v=328"></script>
+<script src="js/03-core-ui.js?v=328"></script>
+<script src="js/04-penny.js?v=328"></script>
+<script src="js/05-views.js?v=328"></script>
+<script src="js/06-tools.js?v=328"></script>
+<script src="js/07-more.js?v=328"></script>
+<script src="js/08-render.js?v=328"></script>
+<script src="js/09-sync.js?v=328"></script>
+<script src="js/10-vermoegen.js?v=328"></script>
+<script src="js/11-voice.js?v=328"></script>
+<script src="js/12-boot.js?v=328"></script>
 
 <script>if('serviceWorker' in navigator){let rl=false;const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl||!had)return;rl=true;const sr=document.getElementById('sheetRoot');if(sr&&sr.innerHTML){document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')location.reload()});return}location.reload()});
 window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{const up=()=>r.update().catch(()=>{});up();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')up()});setInterval(up,30*60*1000)}).catch(()=>{}))}</script>
