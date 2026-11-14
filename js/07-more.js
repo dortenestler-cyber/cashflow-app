@@ -100,7 +100,7 @@ function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','chec
 function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const back=`<div class="lthead"><button class="back" id="setBack">‹ ${setParent?'Zurück':setFrom&&setFrom!='more'?({wish:'Planen',rep:'Rückblick',list:'Buchungen',dash:'Heute'})[setFrom]||'Zurück':'Mehr'}</button>`;
   if(k=='cfg')return viewCfg();
   if(k=='ru')return viewRu();
-  if(k=='sam')return samView();if(k=='lade')return ladeView();if(String(k).startsWith('samp:'))return samPView(k.slice(5));
+  if(k=='sam')return samView();if(k=='lade')return ladeView();if(k=='icsc')return icscView();if(String(k).startsWith('samp:'))return samPView(k.slice(5));
   if(k=='accts')return back+`<h1 class="lt">Konten</h1></div><div class="sec"><div class="sh">Bankkonten</div><div class="group">${S.accts.map((a,i)=>vaultAccs().includes(a.n)||a.kind!='konto'?'':`<div class="cell" style="flex-wrap:wrap">
     <button class="cell" data-ae="${i}" style="padding:0;flex:1;min-width:0;min-height:0"><div class="ico" style="background:color-mix(in srgb,${a.col} 16%,transparent);color:${a.col}">${I(a.kind=='konto'?'wallet':'gauge')}</div>
      <div class="t"><div>${esc(a.n)}</div><div class="s">${a.kind=='konto'?'Kontostand · '+(WH(a.n)?MASK:eur(calc(a.n).rest))+((p=>p.length?' · davon in Töpfen '+eur0(p.reduce((s,x)=>s+Math.max(calc(x.n).rest,0),0)):'')(S.accts.filter(x=>x.kind=='budget'&&x.bank==a.n))):'Topf · '+eur0(budFor(a.n,period(0)))+' im Monat'+(a.bank?' · liegt auf '+esc(a.bank):'')}${a.vis?'':' · ausgeblendet'}${a.kind=='budget'&&!a.tot?' · nicht im Gesamt':''}</div></div><span class="chev">›</span></button>
