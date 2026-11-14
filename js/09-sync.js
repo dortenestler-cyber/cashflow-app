@@ -1,6 +1,6 @@
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
 /* ---------- push notifications ---------- */
-const PUSH_FN=`// Supabase Edge Function "push" v9: Mitteilungen + Daily Briefing für CashFlow (Web Push)
+const PUSH_FN=`// Supabase Edge Function "push" v10: Mitteilungen + Daily Briefing für CashFlow (Web Push)
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
@@ -81,8 +81,22 @@ async function compose(d, kind) {
 }
 async function siriPush(uid, txt, big) {
   const { data: r } = await sb.from("push_brief").select("data").eq("user_id", uid).maybeSingle(); const d = r && r.data; if (!d || !d.opt || d.opt.s === false) return;
-  const t = big ? "Neuer Beleg in CashFlow" : d.opt.a ? "Siri: " + (txt.length > 80 ? txt.slice(0, 79) + "…" : txt) : "Neue Siri-Eingabe";
-  await sendTo(uid, { title: t, body: "Tippe, um den Eintrag zu bestätigen.", tag: "siri" });
+  if (big) return void await sendTo(uid, { title: "Neuer Beleg in CashFlow", body: "Tippe, um den Eintrag zu bestätigen.", tag: "siri" });
+  const l = txt.toLowerCase(), cut = (s, n) => (s = s.replace(/\\s+/g, " ").replace(/^[\\s:,.\\-–]+|[\\s:,.\\-–]+$/g, "")) && s.length > n ? s.slice(0, n - 1) + "…" : s;
+  const noAmt = (s) => s.replace(/\\d[\\d.,]*\\s*(€|euro\\b|eur\\b|cent\\b)?/gi, " ").replace(/€/g, " ").replace(/\\b(ich habe|habe|hab|ausgegeben|bezahlt|gezahlt|gekauft|für|kostet|euro)\\b/gi, " ");
+  const show = (s) => cut((d.opt.a ? s : noAmt(s)).replace(/^\\s*(bei|beim|im|in)\\s+/i, ""), 80);
+  let k = "", t = "", b = "";
+  if (/^(notbremse|impuls|ich habe (gerade )?(einen )?(kauf)?impuls|hilfe,? ich will)/.test(l)) { k = "urge"; t = "Siri: Kaufimpuls"; b = "Beim Öffnen kurz warten."; }
+  else if (/einkaufs(liste|zettel)|auf die liste|^\\s*(liste|einkauf)\\b/i.test(txt)) { k = "shop"; t = "Siri: Einkaufsliste"; b = cut(txt.replace(/\\b(setze?|schreibe?|packe?|füge|tu|bitte|hinzu|noch)\\b/gi, " ").replace(/\\b(auf|zur|in)\\s+(die|den)?\\s*(einkaufs(liste|zettel)|liste)\\b/gi, " ").replace(/^\\s*(einkaufs(liste|zettel)|liste|einkauf)\\b\\s*:?/i, " "), 80); }
+  else if (/^\\s*(journal|tagebuch|konsum-?journal)\\b|^ich hatte (lust|den drang|einen kaufimpuls)|^kaufimpuls\\b/i.test(txt)) { k = "journal"; t = "Siri: Journal-Eintrag"; b = cut(txt.replace(/^\\s*(journal|tagebuch|konsum-?journal)\\s*:?/i, ""), 60); }
+  else if (/^(wunsch|ich wünsche mir|wunschliste|auf die wunschliste)/.test(l)) { k = "wish"; t = "Siri: Wunsch"; b = show(txt.replace(/^(auf die wunschliste|wunschliste|ich wünsche mir|wunsch)\\s*:?/i, "")); }
+  else if (/\\?$|^(wie ?viel|was|wann|welche|kann ich|darf ich)\\b/.test(l)) { k = "ask"; t = "Siri: Frage"; b = "Bitte in der App stellen."; }
+  else if (/monatlich|jährlich|vierteljährlich|wöchentlich|dauerauftrag/.test(l)) { k = "rec"; t = "Siri: Dauerauftrag"; b = "Bitte prüfen."; }
+  else if (/umbuch|übertrag|\\bvon\\b.+\\b(auf|nach|zu|ins?)\\b.+\\b(konto|sparen|depot|tagesgeld|rücklage)/.test(l)) { k = "tr"; t = "Siri: Umbuchung"; b = show(txt.replace(/\\b(umbuchung|umbuchen|übertrag(en)?)\\b\\s*:?/gi, " ").replace(/\\bvon\\b\\s*/i, "").replace(/\\s+\\b(auf|nach|zu|ins?)\\b\\s+/i, " → ")); }
+  else if (/einnahme|bekommen|erhalten|gehalt|eingang|eingegangen|erstattet|erstattung|zurück ?bekommen|verdient/.test(l)) { k = "in"; t = "Siri: Einnahme"; b = show(txt.replace(/\\b(einnahme|bekommen|erhalten|eingang|eingegangen|verdient)\\b\\s*:?/gi, " ")); }
+  else if (/\\d/.test(l)) { k = "out"; t = "Siri: Ausgabe"; b = show(txt.replace(/^\\s*ausgabe\\s*:?/i, "")); }
+  else { k = "other"; t = "Neue Siri-Eingabe"; b = d.opt.a ? cut(txt, 80) : ""; }
+  await sendTo(uid, { title: t, body: (b ? b + (/[.!?…]$/.test(b) ? " " : ". ") : "") + "Tippe zum Bestätigen.", tag: "siri-" + k });
 }
 async function payPush(uid, txt) {
   const { data: r } = await sb.from("push_brief").select("data").eq("user_id", uid).maybeSingle(); const d = r && r.data; if (!d || !d.opt || d.opt.p === false) return;
@@ -179,31 +193,31 @@ Deno.serve(async (req) => {
         const evs = (d.ev || []).filter((e) => e.d >= B.ymd).slice(0, 4).map((e) => (e.d === B.ymd ? "heute " : "") + e.t); if (evs.length) L.push("Demnächst: " + evs.join(", ") + ".");
         if (d.pos && d.pos.length) { let ws = 0, wp = 0; for (const p of d.pos.slice(0, 10)) { const m = await move(p); if (m == null) continue; ws += p.w || 0; wp += (p.w || 0) * m; } if (ws) L.push("Depot heute " + PC(wp / ws) + "."); }
         if (at) L.push("Stand " + new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(at) + " Uhr.");
-        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 9 });
+        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 10 });
       }
       const txt0 = String(body.txt || "").trim(), big = /^(beleg|mitteilung|mail|sms)\\s*:/i.test(txt0), txt = txt0.slice(0, big ? 4000 : 300); if (!txt) return SAY("Ich habe nichts verstanden.");
       const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su); if ((count || 0) >= 50) return SAY("Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter.");
       const { error } = await sb.from("inbox").insert({ user_id: su, txt }); if (error) return SAY("Konnte nicht speichern.", 500);
       if (/^apple ?pay/i.test(txt)) { try { await payPush(su, txt); } catch (_) {} } else { try { await siriPush(su, txt, big); } catch (_) {} }
-      return SAY(big ? "In CashFlow abgelegt. Beim Öffnen bestätigen." : "Notiert: " + txt, 200, { v: 9 });
+      return SAY(big ? "In CashFlow abgelegt. Beim Öffnen bestätigen." : "Notiert: " + txt, 200, { v: 10 });
     }
-    if (body.op === "ping") return J({ pong: true, v: 9 });
+    if (body.op === "ping") return J({ pong: true, v: 10 });
     const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
     const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
     if (!uid) return J({ error: "not signed in" }, 401);
-    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 9, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
+    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 10, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
     if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
     if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
     if (body.op === "plan") {
       await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
       const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
       if (items.length) await sb.from("push_queue").insert(items);
-      return J({ ok: true, n: items.length, v: 9 });
+      return J({ ok: true, n: items.length, v: 10 });
     }
-    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 9 }); }
+    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 10 }); }
     if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); const n = await sendTo(uid, m); if (body.real && n) await sb.from("push_brief").update(body.kind === "e" ? { sent_e: berlin().ymd } : { sent_m: berlin().ymd }).eq("user_id", uid); return J({ ok: true, sent: n, msg: m }); }
-    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 9 }); }
-    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 9 }); }
+    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 10 }); }
+    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 10 }); }
     if (body.op === "inbox_del") { const ids = (body.ids || []).map(Number).filter(Boolean); if (ids.length) await sb.from("inbox").delete().eq("user_id", uid).in("id", ids); return J({ ok: true }); }
     if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
     return J({ error: "unknown op" }, 400);
