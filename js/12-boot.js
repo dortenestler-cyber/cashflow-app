@@ -40,7 +40,7 @@ const pinActive=()=>!!pinGet()||(!!S.pin&&S.pin!=='set');
 const IOSDEV=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
 /* v338: Einkaufsmodus – Einkaufszettel ohne PIN, sonst nichts erreichbar */
 window.SHOPM=false;
-function shopModeOn(){if(S.shopNoPin===false)return;window.SHOPM=true;document.body.classList.add('shopm');$('lockRoot').innerHTML='';try{tcHide()}catch(e){}prevTab='dash';tab='more';setView='shop';curB=null;render();scrollTo(0,0)}
+function shopModeOn(){if(S.shopNoPin===false)return;window.SHOPM=true;document.body.classList.add('shopm');$('lockRoot').innerHTML='';try{tcHide()}catch(e){}prevTab='dash';tab='more';setView='shop';curB=null;asstOpen=false;document.body.classList.remove('asst-open','swback');render();renderAsst();scrollTo(0,0)}
 function shopModeOff(){window.SHOPM=false;document.body.classList.remove('shopm');setView=null;tab='dash';if(/[?&]einkauf\b/.test(location.search))history.replaceState(history.state,'',location.pathname);render();scrollTo(0,0);lock()}
 function lock(){if(window.SHOPM||!pinActive())return;if($('lockRoot').innerHTML)return;try{tcHide()}catch(e){}let v='';const hasBio=!!bioGet()&&CANFILE&&!!window.PublicKeyCredential,tapMode=IOSDEV();
   /* iOS erlaubt Face ID in Web-Apps nur direkt nach einem Tipp – sonst schiebt es das Passkey-Fenster davor. Daher dort kein Auto-Start; ein Tipp irgendwo startet Face ID. Nie zwei Aufrufe gleichzeitig. */

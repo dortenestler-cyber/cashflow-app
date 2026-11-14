@@ -1388,3 +1388,4 @@ body.mm .tabbar{background:color-mix(in srgb,var(--card) 52%,transparent)!import
 /* v338: Einkaufsmodus ohne PIN */
 .lk-shop{position:absolute;left:50%;transform:translateX(-50%);bottom:max(24px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:1px solid var(--sep);background:var(--card);color:var(--fg);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 body.shopm #tabbar,body.shopm #fab,body.shopm #vfab,body.shopm #asstRoot{display:none!important}
+body.shopm,body.shopm.asst-open{overflow-y:auto!important;touch-action:manipulation!important}
