@@ -367,16 +367,11 @@ const SIRI_GUIDE=[
   'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion (mit der Adresse) antippen.',
   'Alte Apple-Pay-Automation mit „In Zwischenablage kopieren“ löschen.']],
  ['Kurzbefehl 8 · Beleg teilen (optional)',[
-  'Neuer Kurzbefehl *An CashFlow* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: *Bilder* und *PDFs*.',
-  'Aktion *Datei sichern* – Eingabe *Kurzbefehl-Eingabe*. Auf den Pfeil › *Fragen, wo gesichert werden soll* aus › Ziel: iCloud Drive › *Rechnungen*. *Überschreiben* bleibt aus.',
-  'Aktion *Wenn*: *Kurzbefehl-Eingabe* antippen › *Dateierweiterung*, Bedingung *ist*, Wert „pdf“.',
-  'Unter *Wenn*: Aktion *Text aus PDF abrufen* (Kurzbefehl-Eingabe).',
-  'Unter *Sonst*: Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
-  'Nach *Ende*: Aktion *Text*: „Beleg: “ tippen, Variable *Wenn-Ergebnis*.',
-  'Aktion *Inhalte von URL abrufen*: ins Feld die Adresse von Kurzbefehl 8 einfügen. *Mehr anzeigen* › Methode *POST*, Anfragetext *JSON*, *Neues Feld* › *Text*, Schlüssel „txt“, Wert: Variable *Text*. Kein *URL codieren* mehr, sonst werden Mailadressen im Beleg zu einem ungültigen mailto-Link.',
-  'Optional *Mitteilung anzeigen* mit „Inhalte der URL“.',
-  'Benutzen: Bon fotografieren oder PDF öffnen › Teilen › *An CashFlow*. Die Buchung kommt per Text, die Datei liegt in *Rechnungen*.',
-  'Beleg anhängen: in CashFlow unter Belege & Gewährleistung *Aus Ordner* tippen und die Datei markieren. Sie wird an die passende Buchung gehängt.']],
+  'Neuer Kurzbefehl *An CashFlow* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: nur *Bilder*.',
+  'Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
+  'Aktion *Inhalte von URL abrufen*: Adresse von Kurzbefehl 8 einfügen. *Mehr anzeigen* › Methode *POST*, Anfragetext *JSON*, *Neues Feld* › *Text*, Schlüssel „txt“, Wert: „Beleg: “ und direkt dahinter die Variable *Text aus Bild*.',
+  'Benutzen: Bon fotografieren oder Screenshot › Teilen › *An CashFlow*. CashFlow legt dir die Buchung beim Öffnen zum Bestätigen vor.',
+  'PDF-Rechnungen brauchen keinen Kurzbefehl: in CashFlow unter Belege & Gewährleistung *Aus Ordner* tippen und das PDF in Dateien wählen.']],
  ['Kurzbefehl 9 · Mail (optional)',[
   'Tab *Automation* › *+* › *E-Mail* › Absender wählen (z. B. PayPal) › *Sofort ausführen* › Neuer leerer Kurzbefehl.',
   'Aktion *Text*: „Mitteilung: “, dann *Kurzbefehl-Eingabe › Betreff*, Leerzeichen, *Kurzbefehl-Eingabe › Inhalt*.',
@@ -398,7 +393,7 @@ const SIRI_MOCK={1:SG_BASE(1),2:SG_BASE(7),3:SG_BASE(5),
  4:[['t','Text\n{2 bzw. 6}',1],['g','Inhalte von [Text] abrufen',2],['s','[Inhalt der URL] sprechen']],
  5:[['d','Text diktieren'],['u','URL codieren [Diktierter Text]'],['t','Text\n{3}[URL-codierter Text]',1],['o','[Text] öffnen',2]],
  6:[['w','Automation: Wenn ich mit einer Karte bezahle · Sofort ausführen'],['t','Text\nApple Pay [Händler] [Betrag] · Karte: [Karte] · [Aktuelles Datum]'],['u','URL codieren [Text]'],['t','Text\n{4}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]],
- 7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder, PDFs'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen'],['i','Wenn [Dateierweiterung] ist pdf'],['x','Text aus [PDF] abrufen'],['i','Sonst'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['i','Ende'],['t','Text\nBeleg: [Wenn-Ergebnis]'],['g','Inhalte von {8p} abrufen\nMethode: POST · Anfragetext: JSON\ntxt: [Text]',3],['m','[Inhalt der URL] als Mitteilung anzeigen']],
+ 7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['g','Inhalte von {8p} abrufen\nMethode: POST · Anfragetext: JSON\ntxt: Beleg: [Text aus Bild]',3]],
  9:[['w','Im Share-Sheet anzeigen · Eingabe: Dateien, Bilder'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen']],
  8:[['w','Automation: E-Mail von PayPal · Sofort ausführen'],['t','Text\nMitteilung: [Betreff] [Inhalt]'],['g','Inhalte von {9p} abrufen\nMethode: POST · Anfragetext: JSON\ntxt: [Text]',3]]};
 const SG_NOTE={1:'Adresse einmal einsetzen, die blaue Marke direkt dahinter (kein Leerzeichen).',2:'Ins URL-Feld nur die Variable „Text“, keine Adresse.',3:'Ins Feld die Adresse ohne Text dahinter. Den Beleg-Text schickst du als JSON-Feld „txt“ (Methode POST).'};
@@ -464,11 +459,10 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
      ${step(5,'„Text sprechen“','Ins Feld die Variable „Inhalt der URL“, nicht „Text“. Kurzbefehl „CashFlow Einkauf“ nennen.')}${siriMockHtml(SIRI_MOCK[2])}</div>
      <div class="note">Ersetzt den alten Einkaufs-Kurzbefehl über die Zwischenablage. Was du selbst kopierst, landet so nie mehr auf dem Zettel.</div></div>`],
 ['8','receipt','„An CashFlow“','Bon teilen, Buchung vorschlagen',`<div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siBl',u+'?op=siri&k='+encodeURIComponent(sk.k))}</div><div class="mmcard">
-     ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: Bilder und PDFs.')}
-     ${step(2,'Text auslesen','Bei PDF „Text aus PDF abrufen“, sonst „Text aus Bild extrahieren“ (siehe Anleitung).')}
-     ${step(3,'„Text“','Beleg: [Wenn-Ergebnis]')}
-     ${step(4,'„Inhalte von URL abrufen“','Adresse oben einfügen. „Mehr anzeigen“ › Methode POST, Anfragetext JSON, neues Feld „Text“, Schlüssel txt, Wert: Variable „Text“. Kein „URL codieren“ – sonst scheitern Belege mit Mailadresse.')}${siriMockHtml(SIRI_MOCK[7])}</div>
-     <div class="note">Bon fotografieren oder Bestellbestätigung als Screenshot › Teilen › „An CashFlow“. CashFlow sucht Summe, Händler und Datum und legt dir die Buchung beim Öffnen zum Bestätigen vor. Screenshots aus der Lade-App mit kWh erkennt CashFlow als einzelne Ladungen und bietet dir die Sammelabrechnung an. Braucht die Funktion „push“ ab v8 (Einstellungen › Supabase-Einrichtung).</div></div>`],
+     ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: nur Bilder.')}
+     ${step(2,'„Text aus Bild extrahieren“','Aus Kurzbefehl-Eingabe.')}
+     ${step(3,'„Inhalte von URL abrufen“','Adresse oben einfügen. „Mehr anzeigen“ › Methode POST, Anfragetext JSON, neues Feld „Text“, Schlüssel txt, Wert: „Beleg: “ + Variable „Text aus Bild“.')}${siriMockHtml(SIRI_MOCK[7])}</div>
+     <div class="note">Bon fotografieren oder Bestellbestätigung als Screenshot › Teilen › „An CashFlow“. CashFlow sucht Summe, Händler und Datum und legt dir die Buchung beim Öffnen zum Bestätigen vor. Screenshots aus der Lade-App mit kWh erkennt CashFlow als einzelne Ladungen und bietet dir die Sammelabrechnung an. PDF-Rechnungen ohne Kurzbefehl unter Belege &amp; Gewährleistung › „Aus Ordner“. Braucht die Funktion „push“ ab v8 (Einstellungen › Supabase-Einrichtung).</div></div>`],
 ['9','mail','Mail & SMS','Online-Käufe automatisch erfassen',`<div class="sec"><div class="sh">Kurzbefehl 9 · Mail & SMS (Automation)</div><div class="group">${cp('siM',u+'?op=siri&k='+encodeURIComponent(sk.k))}</div><div class="mmcard">
      ${step(1,'Automation › + › „E-Mail“ oder „Nachricht“','Absender z. B. PayPal, Amazon oder deine Bank; bei SMS „Nachricht enthält €“. „Sofort ausführen“ an.')}
      ${step(2,'„Text“','Mitteilung: [Kurzbefehl-Eingabe › Betreff] [Kurzbefehl-Eingabe › Inhalt]')}
