@@ -373,16 +373,14 @@ const SIRI_GUIDE=[
   'Unter *Wenn*: Aktion *Text aus PDF abrufen* (Kurzbefehl-Eingabe).',
   'Unter *Sonst*: Aktion *Text aus Bild extrahieren* (Kurzbefehl-Eingabe).',
   'Nach *Ende*: Aktion *Text*: „Beleg: “ tippen, Variable *Wenn-Ergebnis*.',
-  'Aktion *URL codieren* (ins Feld nur die Variable *Text*, nie die Adresse), dann zweite Aktion *Text* – Adresse von Kurzbefehl 8, *URL-codierter Text* direkt dahinter.',
-  'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion antippen.',
+  'Aktion *Inhalte von URL abrufen*: ins Feld die Adresse von Kurzbefehl 8 einfügen. *Mehr anzeigen* › Methode *POST*, Anfragetext *JSON*, *Neues Feld* › *Text*, Schlüssel „txt“, Wert: Variable *Text*. Kein *URL codieren* mehr, sonst werden Mailadressen im Beleg zu einem ungültigen mailto-Link.',
   'Optional *Mitteilung anzeigen* mit „Inhalte der URL“.',
   'Benutzen: Bon fotografieren oder PDF öffnen › Teilen › *An CashFlow*. Die Buchung kommt per Text, die Datei liegt in *Rechnungen*.',
   'Beleg anhängen: in CashFlow unter Belege & Gewährleistung *Aus Ordner* tippen und die Datei markieren. Sie wird an die passende Buchung gehängt.']],
  ['Kurzbefehl 9 · Mail (optional)',[
   'Tab *Automation* › *+* › *E-Mail* › Absender wählen (z. B. PayPal) › *Sofort ausführen* › Neuer leerer Kurzbefehl.',
   'Aktion *Text*: „Mitteilung: “, dann *Kurzbefehl-Eingabe › Betreff*, Leerzeichen, *Kurzbefehl-Eingabe › Inhalt*.',
-  'Aktion *URL codieren* (ins Feld nur die Variable *Text*, nie die Adresse), dann zweite Aktion *Text* – Adresse von Kurzbefehl 9, *URL-codierter Text* direkt dahinter.',
-  'Aktion *Inhalte von URL abrufen* – Variable auswählen › die zweite Text-Aktion antippen.']],
+  'Aktion *Inhalte von URL abrufen*: Adresse von Kurzbefehl 9 einfügen. *Mehr anzeigen* › Methode *POST*, Anfragetext *JSON*, *Neues Feld* › *Text*, Schlüssel „txt“, Wert: Variable *Text*.']],
  ['Rechnungen in iCloud sichern (optional)',[
   'Braucht keine Adresse. Neuer Kurzbefehl *In Rechnungen sichern* › *ⓘ* › *Im Share-Sheet anzeigen* an, Eingabe: Dateien und Bilder.',
   'Aktion *Datei sichern* – Eingabe *Kurzbefehl-Eingabe*.',
@@ -400,12 +398,12 @@ const SIRI_MOCK={1:SG_BASE(1),2:SG_BASE(7),3:SG_BASE(5),
  4:[['t','Text\n{2 bzw. 6}',1],['g','Inhalte von [Text] abrufen',2],['s','[Inhalt der URL] sprechen']],
  5:[['d','Text diktieren'],['u','URL codieren [Diktierter Text]'],['t','Text\n{3}[URL-codierter Text]',1],['o','[Text] öffnen',2]],
  6:[['w','Automation: Wenn ich mit einer Karte bezahle · Sofort ausführen'],['t','Text\nApple Pay [Händler] [Betrag] · Karte: [Karte] · [Aktuelles Datum]'],['u','URL codieren [Text]'],['t','Text\n{4}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]],
- 7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder, PDFs'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen'],['i','Wenn [Dateierweiterung] ist pdf'],['x','Text aus [PDF] abrufen'],['i','Sonst'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['i','Ende'],['t','Text\nBeleg: [Wenn-Ergebnis]'],['u','URL codieren [Text]'],['t','Text\n{8}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2],['m','[Inhalt der URL] als Mitteilung anzeigen']],
+ 7:[['w','Im Share-Sheet anzeigen · Eingabe: Bilder, PDFs'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen'],['i','Wenn [Dateierweiterung] ist pdf'],['x','Text aus [PDF] abrufen'],['i','Sonst'],['x','Text aus [Kurzbefehl-Eingabe] extrahieren'],['i','Ende'],['t','Text\nBeleg: [Wenn-Ergebnis]'],['g','Inhalte von {8p} abrufen\nMethode: POST · Anfragetext: JSON\ntxt: [Text]',3],['m','[Inhalt der URL] als Mitteilung anzeigen']],
  9:[['w','Im Share-Sheet anzeigen · Eingabe: Dateien, Bilder'],['g','[Kurzbefehl-Eingabe] sichern in iCloud Drive › Rechnungen']],
- 8:[['w','Automation: E-Mail von PayPal · Sofort ausführen'],['t','Text\nMitteilung: [Betreff] [Inhalt]'],['u','URL codieren [Text]'],['t','Text\n{9}[URL-codierter Text]',1],['g','Inhalte von [Text] abrufen',2]]};
-const SG_NOTE={1:'Adresse einmal einsetzen, die blaue Marke direkt dahinter (kein Leerzeichen).',2:'Ins URL-Feld nur die Variable „Text“, keine Adresse.'};
+ 8:[['w','Automation: E-Mail von PayPal · Sofort ausführen'],['t','Text\nMitteilung: [Betreff] [Inhalt]'],['g','Inhalte von {9p} abrufen\nMethode: POST · Anfragetext: JSON\ntxt: [Text]',3]]};
+const SG_NOTE={1:'Adresse einmal einsetzen, die blaue Marke direkt dahinter (kein Leerzeichen).',2:'Ins URL-Feld nur die Variable „Text“, keine Adresse.',3:'Ins Feld die Adresse ohne Text dahinter. Den Beleg-Text schickst du als JSON-Feld „txt“ (Methode POST).'};
 function siriMockHtml(L){const pill=v=>`<span style="display:inline-block;background:color-mix(in srgb,var(--blue) 18%,transparent);color:var(--blue);border-radius:7px;padding:0 7px;margin:1px 0;white-space:nowrap">${esc(v)}</span>`;
-  const fmt=t=>esc(t).replace(/\{([^}]+)\}/g,(m,n)=>`<span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);word-break:break-all">https://…/push?op=siri&amp;k=…&amp;txt=</span><span style="font-size:11px;color:var(--muted)"> (Adresse ${n})</span>`).replace(/\[([^\]]+)\]/g,(m,v)=>pill(v.replace(/&amp;/g,'&'))).replace(/\n/g,'<br>');
+  const fmt=t=>esc(t).replace(/\{(\d+)(p?)\}/g,(m,n,p)=>`<span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);word-break:break-all">https://…/push?op=siri&amp;k=…${p?'':'&amp;txt='}</span><span style="font-size:11px;color:var(--muted)"> (Adresse ${n})</span>`).replace(/\[([^\]]+)\]/g,(m,v)=>pill(v.replace(/&amp;/g,'&'))).replace(/\n/g,'<br>');
   return `<div style="margin-top:10px;padding:12px 10px;border-radius:16px;background:color-mix(in srgb,var(--fg) 6%,transparent)"><div style="font-size:12px;color:var(--muted);margin:0 4px 8px;text-transform:uppercase;letter-spacing:.04em">So sieht es aus</div>${L.map(([k,t,n],i)=>{const[ic,col]=SG_A[k];return `${i?'<div style="width:2px;height:10px;background:var(--muted);opacity:.4;margin:0 auto"></div>':''}<div style="display:flex;gap:10px;align-items:flex-start;background:var(--card);border-radius:14px;padding:9px 11px;font-size:14.5px;line-height:1.55;${n==1?'outline:2px solid #ff9f0a;':''}"><span style="flex:none;width:24px;height:24px;border-radius:6px;background:${col};display:flex;align-items:center;justify-content:center;font-size:13px;color:#000">${ic}</span><span style="flex:1;min-width:0">${fmt(t)}</span></div>${n?`<div style="font-size:12.5px;color:#d98a00;margin:4px 6px 0">⬆ ${SG_NOTE[n]}</div>`:''}`}).join('')}</div>`}
 function openSiriGuide(){const b=x=>esc(x).replace(/\*([^*]+)\*/g,'<b>$1</b>');
   $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Anleitung Kurzbefehle"><div class="sheet-h"><button id="sgX">Schließen</button><b>Anleitung</b><button id="sgSh" style="font-weight:600">Teilen</button></div>
@@ -465,16 +463,16 @@ function siriHtml(){const sk=siriGet(),u=siriFnUrl(),app=location.origin+locatio
      ${step(4,'„Inhalte von URL abrufen“','Feld leeren, „Variable auswählen“ › die Text-Aktion davor antippen. Im Feld steht nur „Text“.')}
      ${step(5,'„Text sprechen“','Ins Feld die Variable „Inhalt der URL“, nicht „Text“. Kurzbefehl „CashFlow Einkauf“ nennen.')}${siriMockHtml(SIRI_MOCK[2])}</div>
      <div class="note">Ersetzt den alten Einkaufs-Kurzbefehl über die Zwischenablage. Was du selbst kopierst, landet so nie mehr auf dem Zettel.</div></div>`],
-['8','receipt','„An CashFlow“','Bon teilen, Buchung vorschlagen',`<div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siBl',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
-     ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: Bilder und Text.')}
-     ${step(2,'„Text aus Bild extrahieren“','Aus Kurzbefehl-Eingabe. Liest Bon-Fotos und Screenshots direkt auf dem iPhone.')}
-     ${step(3,'„Text“','Beleg: [Text aus Bild]')}
-     ${step(4,'„Text URL-codieren“ › „Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}${siriMockHtml(SIRI_MOCK[7])}</div>
+['8','receipt','„An CashFlow“','Bon teilen, Buchung vorschlagen',`<div class="sec"><div class="sh">Kurzbefehl 8 · Beleg teilen</div><div class="group">${cp('siBl',u+'?op=siri&k='+encodeURIComponent(sk.k))}</div><div class="mmcard">
+     ${step(1,'Neuer Kurzbefehl „An CashFlow“ › ⓘ › „Im Share-Sheet anzeigen“','Eingabe: Bilder und PDFs.')}
+     ${step(2,'Text auslesen','Bei PDF „Text aus PDF abrufen“, sonst „Text aus Bild extrahieren“ (siehe Anleitung).')}
+     ${step(3,'„Text“','Beleg: [Wenn-Ergebnis]')}
+     ${step(4,'„Inhalte von URL abrufen“','Adresse oben einfügen. „Mehr anzeigen“ › Methode POST, Anfragetext JSON, neues Feld „Text“, Schlüssel txt, Wert: Variable „Text“. Kein „URL codieren“ – sonst scheitern Belege mit Mailadresse.')}${siriMockHtml(SIRI_MOCK[7])}</div>
      <div class="note">Bon fotografieren oder Bestellbestätigung als Screenshot › Teilen › „An CashFlow“. CashFlow sucht Summe, Händler und Datum und legt dir die Buchung beim Öffnen zum Bestätigen vor. Screenshots aus der Lade-App mit kWh erkennt CashFlow als einzelne Ladungen und bietet dir die Sammelabrechnung an. Braucht die Funktion „push“ ab v8 (Einstellungen › Supabase-Einrichtung).</div></div>`],
-['9','mail','Mail & SMS','Online-Käufe automatisch erfassen',`<div class="sec"><div class="sh">Kurzbefehl 9 · Mail & SMS (Automation)</div><div class="group">${cp('siM',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&txt=')}</div><div class="mmcard">
+['9','mail','Mail & SMS','Online-Käufe automatisch erfassen',`<div class="sec"><div class="sh">Kurzbefehl 9 · Mail & SMS (Automation)</div><div class="group">${cp('siM',u+'?op=siri&k='+encodeURIComponent(sk.k))}</div><div class="mmcard">
      ${step(1,'Automation › + › „E-Mail“ oder „Nachricht“','Absender z. B. PayPal, Amazon oder deine Bank; bei SMS „Nachricht enthält €“. „Sofort ausführen“ an.')}
      ${step(2,'„Text“','Mitteilung: [Kurzbefehl-Eingabe › Betreff] [Kurzbefehl-Eingabe › Inhalt]')}
-     ${step(3,'„Text URL-codieren“ › „Inhalte von URL abrufen“','In eine Aktion „Text“: Adresse oben, direkt dahinter „URL-codierter Text“. Hier dann nur die Variable „Text“ einsetzen.')}${siriMockHtml(SIRI_MOCK[8])}</div>
+     ${step(3,'„Inhalte von URL abrufen“','Adresse oben einfügen. „Mehr anzeigen“ › Methode POST, Anfragetext JSON, neues Feld „Text“, Schlüssel txt, Wert: Variable „Text“.')}${siriMockHtml(SIRI_MOCK[8])}</div>
      <div class="note">Erfasst Online-Käufe, Lastschriften und Gutschriften, die nicht über Apple Pay laufen. Nichts wird ohne deine Bestätigung gebucht. Beim Kontoauszug-Import gleicht CashFlow diese Buchungen ab.</div></div>`],
 ['cal','calendar','Kalender-Abo','Abbuchungen im iPhone-Kalender',`<div class="sec"><div class="sh">Kalender-Abo</div><div class="group">${cp('siC',u+'?op=siri&k='+encodeURIComponent(sk.k)+'&m=ics')}</div><div class="mmcard">
      ${step(1,'iPhone-Einstellungen › Apps › Kalender › Kalenderaccounts','„Account hinzufügen“ › „Andere“ › „Kalenderabo hinzufügen“.')}
