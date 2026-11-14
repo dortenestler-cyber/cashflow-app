@@ -18,7 +18,8 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
   ['siri','mic','Siri & Kurzbefehle',siriGet()?'Eingerichtet'+((S.siriPend||[]).length?' · '+S.siriPend.length+' prüfen':''):'Ohne App öffnen eintragen und fragen']]],
  'g:look':['Aussehen','palette',c5,[
   ['theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[themeGet()]+' · Schrift im Kalender · Erfolge feiern'],
-  ['cfg','grid','Funktionen & Ansicht','Profile, Ein- und Ausblenden']]],
+  ['cfg','grid','Funktionen & Ansicht','Profile, Ein- und Ausblenden'],
+  ['usage','chart','Nutzung & Baustopp',(()=>{const n=Object.keys(useGet().v).length;return 'Baustopp bis '+new Date(BAU_END+'T12:00').toLocaleDateString('de-DE')+' · '+n+' Bereiche genutzt'})()]]],
  'g:data':['Daten & Sync','repeat',c6,[
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten'],
   ['setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})()],
@@ -187,6 +188,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
   if(k=='catrules')return back+`<h1 class="lt">Kategorie-Regeln</h1></div>`+catRulesHtml();
   if(k=='salplan')return back+`<h1 class="lt">Gehalt verteilen</h1></div>`+salHtml();
   if(k=='brands')return back+`<h1 class="lt">Marken-Logos</h1></div>`+brandsHtml();
+  if(k=='usage')return back+`<h1 class="lt">Nutzung & Baustopp</h1></div>`+useHtml();
   if(k=='siri')return back+`<h1 class="lt">Siri & Kurzbefehle</h1></div>`+siriHtml();
   if(k=='setup')return back+`<h1 class="lt">Supabase-Einrichtung</h1></div>`+setupHtml();
   if(k=='ai')return back+`<h1 class="lt">Penny (KI)</h1></div>`+aiHtml();
@@ -256,3 +258,21 @@ function bindCfg(){document.querySelectorAll('[data-fp]').forEach(b=>b.onclick=(
  if($('fReset'))$('fReset').onclick=()=>{S.featO={};save();render()}}
 
 
+
+/* v335: Baustopp – Auswertung der tatsächlich genutzten Funktionen auf diesem Gerät */
+function useAll(){const L=['Heute','Buchungen','Kalender','Geld','Rückblick › Analyse','Rückblick › Monat','Rückblick › Verlauf','Planen › Ziele','Planen › Ziele › Zeitachse','Planen › Wünsche › Offen','Planen › Wünsche › Verzicht','Planen › Wünsche › Journal','Planen › Fixkosten','Planen › Zukunft › Prognose','Planen › Zukunft › Was wäre, wenn','Planen › Monat','Penny geöffnet','Buchungsmaske geöffnet','Spracheingabe'];
+  try{moreTools().forEach(t=>{if(!t[0].startsWith('g:'))L.push('Werkzeug › '+useLab(t[0]))});Object.values(moreItems()).forEach(g=>g[3].forEach(t=>{if(!t[0].startsWith('@')&&!t[0].startsWith('g:')&&!useTool(t[0])&&t[0]!='usage')L.push('Einstellungen › '+useLab(t[0]))}))}catch(e){}return [...new Set(L)]}
+function useSrc(since){const c={'Manuell':0,'Siri':0,'Apple Pay':0,'Einkaufszettel':0,'Fixkosten (automatisch)':0};
+  (S.exp||[]).forEach(e=>{if(e.t<since||isPlan(e))return;const g=e.tg||[];const k=g.includes('applepay')?'Apple Pay':g.includes('einkaufszettel')?'Einkaufszettel':g.includes('siri')?'Siri':e.rid?'Fixkosten (automatisch)':'Manuell';c[k]++});return c}
+function useText(){const o=useGet(),R=Object.entries(o.v).sort((a,b)=>b[1].n-a[1].n),nie=useAll().filter(k=>!o.v[k]);
+  return 'CashFlow-Nutzung seit '+new Date(o.since).toLocaleDateString('de-DE')+' (dieses Gerät, '+(matchMedia('(pointer:coarse)').matches?'Touch':'Desktop')+')\n\n'+R.map(([k,x])=>x.n+'× '+k).join('\n')+'\n\nNie geöffnet:\n'+nie.join('\n')+'\n\nBuchungen nach Herkunft:\n'+Object.entries(useSrc(o.since)).map(([k,v])=>v+'× '+k).join('\n')}
+function useHtml(){const o=useGet(),R=Object.entries(o.v).sort((a,b)=>b[1].n-a[1].n),max=R.length?R[0][1].n:1,nie=useAll().filter(k=>!o.v[k]),d=t=>new Date(t).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'}),src=useSrc(o.since),
+  left=Math.max(0,Math.ceil((new Date(BAU_END+'T23:59')-Date.now())/864e5));
+  return `<div class="note">${left?`Baustopp bis ${new Date(BAU_END+'T12:00').toLocaleDateString('de-DE')} · noch ${left} ${left==1?'Tag':'Tage'}`:'Baustopp vorbei – Zeit für die Auswertung'}. Bis dahin nur Fehlerbehebungen, keine neuen Funktionen. Gezählt wird nur auf diesem Gerät, seit ${new Date(o.since).toLocaleDateString('de-DE')}. Nichts verlässt das Gerät.</div>
+  <div class="sec"><div class="sh">Genutzt (${R.length})</div><div class="group">${R.map(([k,x])=>`<div class="cell plain"><div class="t"><div>${esc(k)}</div><div class="s">zuletzt ${d(x.last)}</div></div><b>${x.n}×</b></div>`).join('')||'<div class="cell plain"><div class="t">Noch nichts gezählt.</div></div>'}</div></div>
+  <div class="sec"><div class="sh">Buchungen nach Herkunft</div><div class="group">${Object.entries(src).map(([k,v])=>`<div class="cell plain"><div class="t">${k}</div><b>${v}</b></div>`).join('')}</div></div>
+  <div class="sec"><div class="sh">Nie geöffnet (${nie.length})</div><div class="group">${nie.map(k=>`<div class="cell plain"><div class="t s">${esc(k)}</div></div>`).join('')||'<div class="cell plain"><div class="t">Alles mindestens einmal genutzt.</div></div>'}</div></div>
+  <button class="btn soft" id="useCopy">${I('copy',16)} Als Text kopieren</button><button class="btn soft" id="useReset" style="margin-top:8px">Zähler zurücksetzen</button>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#useCopy,#useReset');if(!t)return;
+  if(t.id=='useCopy'){try{navigator.clipboard.writeText(useText()).then(()=>toast('Nutzung kopiert'),()=>toast('Kopieren nicht möglich'))}catch(_){toast('Kopieren nicht möglich')}return}
+  if(confirm('Zähler auf diesem Gerät zurücksetzen?')){try{localStorage.removeItem(USEK)}catch(_){}useView.last=null;render()}});

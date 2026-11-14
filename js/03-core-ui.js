@@ -193,3 +193,19 @@ function txList(list,showB){if(!list.length)return '<div class="group"><div clas
     const sum=es.reduce((s,e)=>s+(e.type=='out'?e.a+ruA(e):e.type=='in'?-e.a:0),0);
     return `<div class="sec"><div class="sh"><span>${lab}</span><span>${sum>0?'−'+eur(sum):sum<0?'+'+eur(-sum):''}</span></div><div class="group">${es.map(e=>rowOf(e,showB)).join('')}</div></div>`}).join('')}
 
+
+/* v335: Baustopp – Nutzungszähler, nur lokal auf diesem Gerät (nicht im Sync) */
+const USEK='cf_use',BAU_START='2026-11-14',BAU_END='2026-11-28';
+const useGet=()=>{let o=null;try{o=JSON.parse(localStorage.getItem(USEK)||'null')}catch(e){}if(!o||!o.v)o={since:Date.now(),v:{}};return o};
+function useHit(k,n){if(!k)return;try{const o=useGet(),x=o.v[k]||(o.v[k]={n:0,last:0});x.n+=n||1;x.last=Date.now();localStorage.setItem(USEK,JSON.stringify(o))}catch(e){}}
+const useLab=k=>{try{const L={};Object.values(moreItems()).forEach(g=>g[3].forEach(t=>{L[t[0]]=t[2]}));moreTools().forEach(t=>{L[t[0]]=t[2]});return String(L[k]||k).replace(/­/g,'')}catch(e){return k}};
+const useTool=k=>{try{return moreTools().some(t=>t[0]==k)}catch(e){return false}};
+function useKey(){const T={dash:'Heute',list:'Buchungen',cal:'Kalender',wish:'Planen',geld:'Geld',rep:'Rückblick',more:'Einstellungen'};
+  if(setView=='usage')return null;
+  if(setView)return (useTool(setView)?'Werkzeug › ':'Einstellungen › ')+useLab(setView);
+  if(curB)return 'Konto-Detail';
+  if(tab=='wish'){let s=wishV;if(wishV=='Wünsche')s+=' › '+wishS;else if(wishV=='Zukunft')s+=' › '+(zukV=='Sim'?'Was wäre, wenn':'Prognose');else if(wishV=='Ziele'&&zielV=='Zeit')s+=' › Zeitachse';return 'Planen › '+s}
+  if(tab=='rep')return 'Rückblick › '+(drill?(drill.k=='year'?'Jahr':'Kategorie im Jahr'):repV);
+  if(tab=='geld'&&posView)return 'Geld › Depot-Position';
+  return T[tab]||tab}
+function useView(){const k=useKey();if(k&&k!=useView.last){useView.last=k;useHit(k)}}

@@ -286,3 +286,35 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Wohin: Tresor-Konten, Sparziele (Buchung aufs Zielkonto plus Vermerk beim Ziel), Depot-Positionen mit Konto (optional „Gleich als Kauf erfassen“, ohne Doppelbuchung).
 - Über die Fixkosten-Grenze hinaus: keine Sperre, rote Warnung und Knopf „Trotzdem einzahlen“.
 - Zukunftsdatum = geplante Einzahlung, erscheint in der Prognose. Toast mit Rückgängig, Penny reagiert.
+
+## 15. Vereinfachung nach dem Produkt-Audit (14.11.) – erst nach dem Baustopp (ab 29.11.) entscheiden
+
+Grundlage: Audit vom 14.11. und Auswertung unter Einstellungen › Nutzung & Baustopp.
+Leitlinie: Das Datenmodell (Eingang · Ausgeben · Sparen · Vermögen) stimmt, die Oberfläche zeigt vieles doppelt.
+
+**Sofort danach (klein)**
+- Puffer nur einmal zeigen (heute 4×: Kopfkarte Heute, Sicherheit, Kopf Geld, Eingang & Puffer).
+- „Übrig diesen Monat“ nur einmal zeigen (heute Kopfkarte, Tanks, Geld › Ausgeben, Geld › Töpfe übrig).
+- Hauptzahl auf Heute festlegen: „Heute noch frei“ aus Flow und Gönn dir. Puffer als eine Statuszeile mit Ziel.
+- Ein Knopf zum Buchen (lang drücken = Sprache): Plus in der Leiste, schwebendes Plus, Mikro-Knopf, Mikro auf Heute zusammenlegen.
+- Toter Code: ungenutzte Segmentliste im Rückblick (Prognose/Vermögen/Verträge), leerer Filter im Karussell, dreifache `.fab`-Regel, alter Wert `S.puffer`.
+- Kalender-Schalter in Funktionen entfernen (Kalender ist Ansicht von Buchungen).
+
+**Mittelfristig**
+- Navigation je Gerät: iPhone = Heute · Buchungen · Plus/Penny. iPad/PC zusätzlich Planen · Rückblick · Vermögen.
+- Geld-Reiter auflösen: Konten auf Heute, Vermögen (Sparkonten, Depot, Altersvorsorge, Wechselgeld) als ruhige Ansicht ohne Monatskennzahlen.
+- Ziele und Wünsche als ein Objekt mit Status (wartet → spart → gekauft/verworfen), alles in Sinking Funds. Puffer bleibt getrennt.
+- Impulse: Wartezeit und Kaufcheck vorne; Journal, Verzicht und Muster als ein Monatsblick im Rückblick.
+- Ein Monatsritual: Restgeld verteilen → Gehalt verteilen → fertig (heute Monatswechsel, Restgeld-Vorschlag, Gehalt verteilen getrennt).
+- „Plan ändern“ als ein Dialog: nur diesen Monat / ab Monat X, Simulation als Vorschau (heute Simulator, Jahresplaner, Planung ab nächstem Monat, Monats-Ausnahmen).
+- Fixkosten und Verträge als ein Objekt.
+- Meine Regeln nur noch in den Einstellungen.
+- Penny nach eigener Vorgabe „nie kindisch“: Accessoires, Reaktionen und Animationen reduzieren.
+
+**Streichen oder einfrieren (nach Zählerstand prüfen)**
+- Projekte, Rückzahlungen, Steuer, Wochen-Check-in.
+- Finanzbericht oder Dein Jahr (eins davon).
+- Archiv MoneyControl nach abgeschlossener Zuordnung.
+- Kurzbefehle auf möglichst einen reduzieren.
+
+**Bleibt ausdrücklich:** Wechselgeld, Einkaufszettel, Belege, Penny, Puffer ≠ Sinking Funds, Vermögen mit getrennten Konten.

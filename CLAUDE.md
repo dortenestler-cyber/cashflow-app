@@ -19,6 +19,10 @@
 - Sinking Funds ist ein Bestand, kein Monatsbudget (`isStock`), und steht nicht in `BUDG`.
 
 ## Arbeitsweise
+- **Baustopp 14.11.–28.11.2026:** keine neuen Funktionen, keine Umbauten, kein Design. Nur Bugs beheben.
+  Neue Wünsche nur in `BACKLOG.md` sammeln. Nach dem Baustopp entscheidet die Nutzerin anhand von
+  Einstellungen › Nutzung & Baustopp (Zähler je Gerät, „Als Text kopieren“), was bleibt.
+- Nach dem Baustopp gilt: Eins rein, eins raus – jede neue Funktion ersetzt oder streicht eine bestehende.
 - Änderungswünsche erst sammeln (Liste führen), umsetzen erst nach Freigabe des Nutzers.
 - Bugs immer sofort beheben und pushen.
 

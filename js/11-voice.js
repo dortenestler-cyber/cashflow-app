@@ -95,7 +95,7 @@ function siriApplyOne(txt){const v=String(txt||'').trim(),l=v.toLowerCase();if(!
 /* Von Siri & Apple Pay übernommene Buchungen: 48 h als Hinweis zum Nachbearbeiten */
 function qkGet(){const q=S.qk;if(!q||!q.ids)return null;if(Date.now()-(q.t||0)>48*3600e3){delete S.qk;return null}q.ids=q.ids.filter(id=>S.exp.some(e=>e.id==id));if(!q.ids.length){delete S.qk;return null}q.ed=(q.ed||[]).filter(id=>q.ids.includes(id));return q}
 function qkAdd(ids){ids=(ids||[]).filter(Boolean);if(!ids.length)return;const q=qkGet()||{ids:[],ed:[]};q.ids=[...new Set([...q.ids,...ids])];q.t=Date.now();S.qk=q}
-function siriApplyAll(items){const before=JSON.stringify(S),done=[],pend=[],had=new Set(S.exp.map(e=>e.id));const _t=toast,_tl=tell,_r=render,_ra=renderAsst;toast=()=>{};tell=()=>{};render=()=>{};renderAsst=()=>{};
+function siriApplyAll(items){useHit('Siri/Apple Pay übernommen',(items||[]).length);const before=JSON.stringify(S),done=[],pend=[],had=new Set(S.exp.map(e=>e.id));const _t=toast,_tl=tell,_r=render,_ra=renderAsst;toast=()=>{};tell=()=>{};render=()=>{};renderAsst=()=>{};
   try{items.forEach(it=>{let r;try{r=siriApplyOne(it.txt)}catch(e){r={ok:false,why:'Fehler: '+(e.message||e)}}if(r.ok){done.push(r.lab);if(r.part)pend.push({id:uid(),txt:it.txt,t:Date.parse(it.created_at)||Date.now(),why:r.part})}else pend.push({id:uid(),txt:it.txt,t:Date.parse(it.created_at)||Date.now(),why:r.why})})}
   finally{toast=_t;tell=_tl;render=_r;renderAsst=_ra}
   qkAdd(S.exp.filter(e=>!had.has(e.id)&&!e.ruOf&&!(e.tg||[]).includes('wechselgeld')).map(e=>e.id));
