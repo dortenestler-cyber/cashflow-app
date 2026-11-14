@@ -87,13 +87,14 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   if(pufAcc()){const P0=period(0),ko=S.exp.filter(e=>inP(e,P0)&&!isPlan(e)&&e.b==pufAcc().n&&e.type=='out'&&!isRecE(e)&&KONSUM.some(k=>(e.c||'').includes(k)));if(ko.length)t.push({sev:'warn',ttl:`Konsum aus ${pufAcc().n}`,txt:`${ko.length} einmalige Konsum-Ausgabe${ko.length>1?'n':''} (${eur(ko.reduce((s,e)=>s+e.a,0))}) liefen übers Eingangskonto statt über Gönn dir. Das schmälert deinen Puffer.`})}
   if(syOn()&&!S.rkAt)t.push({sev:'warn',act:'rk',ttl:'Notfall-Schlüssel fehlt',txt:'Vergisst du das Sync-Passwort, sind deine Online-Daten nicht mehr lesbar. Ein Notfall-Schlüssel und eine automatische Monats-Sicherung verhindern das.'});
   if(abgleichAccs().length&&S.exp.length&&Date.now()-(S.lastAbg||0)>14*864e5)t.push({sev:'info',act:'abg',ttl:'Kontostand abgleichen',txt:'Seit zwei Wochen nicht mit der Bank verglichen. Dauert 30 Sekunden und hält Puffer und Prognosen genau.'});
+  {const d=new Date(),wd=d.getDay();if((wd==6||wd==0)&&depot().length){const sa=new Date(d);sa.setDate(d.getDate()-(wd==0?1:0));sa.setHours(0,0,0,0);if((S.lastDepAbg||0)<sa.getTime())t.push({sev:'info',ttl:'Depots abgleichen?',txt:'Wochenende, die Kurse stehen. Vergleich Stückzahlen und Werte mit deinem Depot, dann stimmt dein Vermögen.',btns:[{l:'Jetzt abgleichen',fn:'depAbg'}]})}}
   rgDue().forEach(e=>t.push({sev:'info',act:'rg',eid:e.id,ttl:`Reue-Check: ${e.n||e.c}`,txt:`Gestern ${eur(e.a)} aus ${esc(e.b)}. Hat sich der Kauf gelohnt?`}));
   if(S.urge&&Date.now()>=S.urge.until){const j=(S.journal||[]).find(x=>x.id==S.urge.jid);if(j&&j.out=='note')t.push({sev:'warn',act:'urge',ttl:'Wie ging dein Kaufimpuls aus?',txt:`${esc(j.txt||'Kaufimpuls')}: Die 10 Minuten sind um. Hast du widerstanden?`});else S.urge=null}
   catOutliers().forEach(x=>t.push({sev:'info',ttl:`Ungewöhnlich viel: ${x.k}`,txt:`Diesen Monat schon ${eur(x.v)} für ${esc(x.k)}, sonst im Schnitt ${eur(x.a)} im ganzen Monat. Ist das geplant oder schleicht sich da etwas ein?`}));
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='342 (14.11.)';
+const APP_VER='343 (14.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
