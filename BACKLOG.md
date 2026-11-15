@@ -318,3 +318,10 @@ Leitlinie: Das Datenmodell (Eingang · Ausgeben · Sparen · Vermögen) stimmt, 
 - Kurzbefehle auf möglichst einen reduzieren.
 
 **Bleibt ausdrücklich:** Wechselgeld, Einkaufszettel, Belege, Penny, Puffer ≠ Sinking Funds, Vermögen mit getrennten Konten.
+
+## 16. Penny schlauer – Rest nach dem Baustopp (Konzept: claude/konzept-penny-antworten.md)
+Bugfix-Teil umgesetzt in v346 (Werkzeug `auffaelligkeiten`, Fixkosten-Erkennung `fixLike`, Prompt-Regeln). Freigegeben am 15.11., umsetzen ab 29.11.:
+- Schalter „Fixkosten“ je Kategorie, automatisch vorbelegt (Miete, Versicherungen …), änderbar.
+- Chip „Ist normal“ an KI-Auffälligkeiten → gilt für Hinweise und KI.
+- „Penny weiß“: selbst gepflegte Kurznotizen unter Einstellungen › Penny-KI, gehen als Kontext mit.
+- Testset mit 10 Fragen über penny-pruefprompt.md.
