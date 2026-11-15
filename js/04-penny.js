@@ -40,8 +40,11 @@ function fixGuard(){const pa=pufAcc();if(!pa)return null;const n=pa.n,ev=[],now0
   S.exp.forEach(e=>{if(!isPlan(e)||e.t>hor)return;if((e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n))ev.push({d:new Date(e.t),a:e.a,n:e.n||e.c});else if(e.b==n&&(e.type=='out'||e.type=='tr'))ev.push({d:new Date(e.t),a:-e.a,n:e.n||e.c})});
   ev.sort((x,y)=>dayStart(x.d)-dayStart(y.d)||y.a-x.a);const bal0=calc(n).rest;let bal=bal0,min=bal,at=null;const run=[];ev.forEach(x=>{bal+=x.a;run.push([x,bal]);if(bal<min){min=bal;at=x}});
   return at&&min<50?{n,min,at,bal0,run:run.filter(([x])=>x.d<=at.d),big:ev.filter(x=>x.a<0&&dayStart(x.d)==dayStart(at.d))}:null}
+/* v346: wiederkehrend wirkende Buchung (Dauerauftrag/Vorlage oder gleicher Name, ähnlicher Betrag in ≥3 der letzten 4 Monate) – z. B. Miete ohne Dauerauftrag */
+function fixLike(e){if(isRecE(e))return true;const k=subKey(e.n||'');if(!k||k.length<2)return false;const c=fixLike.c&&fixLike.k===DV?fixLike.c:(fixLike.k=DV,fixLike.c={});const ck=k+'|'+Math.round(e.a)+'|'+Math.floor(e.t/(28*864e5));if(ck in c)return c[ck];
+  let hit=0;const ps=[-1,-2,-3,-4].map(o=>period(o));const cur=ps.findIndex(p=>inP(e,p));ps.forEach((p,i)=>{if(i===cur)return;if(S.exp.some(x=>x.id!==e.id&&x.type=='out'&&!x.corr&&!isPlan(x)&&inP(x,p)&&subKey(x.n||'')==k&&Math.abs(x.a-e.a)<=Math.max(5,e.a*.1)))hit++});return c[ck]=hit>=3}
 function catOutliers(){const P=period(0);if(P.idx<5)return[];const cur={},avg={};
-  S.exp.forEach(e=>{if(e.type!='out'||e.corr||isPlan(e)||isRecE(e)||isTabu(e.b))return;const k=e.c||'Sonstiges';if(inP(e,P))cur[k]=(cur[k]||0)+e.a;else for(let o=-1;o>=-3;o--){if(inP(e,period(o))){avg[k]=(avg[k]||0)+e.a;break}}});
+  S.exp.forEach(e=>{if(e.type!='out'||e.corr||isPlan(e)||isRecE(e)||isTabu(e.b)||fixLike(e))return;const k=e.c||'Sonstiges';if(inP(e,P))cur[k]=(cur[k]||0)+e.a;else for(let o=-1;o>=-3;o--){if(inP(e,period(o))){avg[k]=(avg[k]||0)+e.a;break}}});
   let n=0;for(let o=-1;o>=-3;o--)if(period(o).e.getTime()>(S.since||0))n++;if(!n)return[];
   return Object.entries(cur).map(([k,v])=>({k,v,a:(avg[k]||0)/n})).filter(x=>x.a>5&&x.v>2*x.a&&x.v-x.a>30).sort((x,y)=>(y.v-y.a)-(x.v-x.a)).slice(0,2)}
 const subKey=t=>String(t||'').toLowerCase().replace(/\d+/g,'').replace(/[^a-zäöüß]+/g,' ').trim();
@@ -94,7 +97,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='345 (15.11.)';
+const APP_VER='346 (15.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -402,8 +405,8 @@ const aiTools={
     puffer:pufAcc()?aiR2(pufVal()):undefined,warnung:fg?fg.n+' wird am '+ymd(fg.at.d.getTime())+' auf '+aiR2(fg.min)+' € fallen ('+fg.big.map(x=>x.n).join(', ')+')':undefined}},
   spend_summary(a){const r=aiRange(a),L=aiFilter(a,r),g=a.gruppe||'kategorie',by={};
     if(g=='haendler'&&aiCfg().lvl<2)return{fehler:'Händler-Auswertung ist in den Datenschutz-Einstellungen aus.'};
-    L.forEach(e=>{const k=g=='kategorie'?(e.c||'Sonstiges'):g=='konto'?(SHORT[e.b]||e.b):g=='haendler'?(e.n||e.c||'?'):g=='monat'?new Date(e.t).toLocaleDateString('de-DE',{month:'short',year:'numeric'}):'gesamt';(by[k]=by[k]||{summe:0,anzahl:0});by[k].summe+=e.a;by[k].anzahl++});
-    return{zeitraum:r.lab,summe:aiR2(L.reduce((s,e)=>s+e.a,0)),anzahl:L.length,gruppen:Object.entries(by).sort((x,y)=>y[1].summe-x[1].summe).slice(0,25).map(([k,v])=>({name:k,summe:aiR2(v.summe),anzahl:v.anzahl}))}},
+    L.forEach(e=>{const k=g=='kategorie'?(e.c||'Sonstiges'):g=='konto'?(SHORT[e.b]||e.b):g=='haendler'?(e.n||e.c||'?'):g=='monat'?new Date(e.t).toLocaleDateString('de-DE',{month:'short',year:'numeric'}):'gesamt';(by[k]=by[k]||{summe:0,anzahl:0,fix:0});by[k].summe+=e.a;by[k].anzahl++;if(e.type=='out'&&fixLike(e))by[k].fix+=e.a});
+    return{zeitraum:r.lab,summe:aiR2(L.reduce((s,e)=>s+e.a,0)),anzahl:L.length,hinweis:'davon_fix = Daueraufträge und regelmäßig gleiche Beträge (z. B. Miete). Nicht als auffällig oder Sparpotenzial werten.',gruppen:Object.entries(by).sort((x,y)=>y[1].summe-x[1].summe).slice(0,25).map(([k,v])=>({name:k,summe:aiR2(v.summe),anzahl:v.anzahl,davon_fix:v.fix?aiR2(v.fix):undefined}))}},
   list_bookings(a){if(aiCfg().lvl<2)return{fehler:'Einzelbuchungen sind in den Datenschutz-Einstellungen aus.'};const r=aiRange(a),L=aiFilter(a,r);
     return{zeitraum:r.lab,anzahl:L.length,buchungen:L.slice(0,20).map(e=>({datum:ymd(e.t),name:e.n||e.c||'Buchung',betrag:aiR2(e.a),kategorie:e.c||undefined,konto:SHORT[e.b]||e.b}))}},
   upcoming(a){const now0=Date.now(),end=now0+Math.min(90,Math.max(1,+a.tage||14))*864e5,L=[];
@@ -416,6 +419,13 @@ const aiTools={
   /* v248: Penny kennt den Einkaufszettel */
   shopping_list(){const sh=shopS(),ck=shopCheck(),it=x=>({name:x.n,menge:x.q||1,preis_je:x.p?aiR2(x.p):undefined,geschaetzt:x.est||undefined,pflicht:x.opt?'kann':'muss',bereich:(()=>{try{return shopGrp(x)}catch(e){return undefined}})()});
     return{topf:SHORT[sh.acct]||sh.acct,noch_zu_kaufen:sh.items.filter(x=>!x.done).map(it),im_wagen:sh.items.filter(x=>x.done).map(it),summe_geschaetzt:aiR2(ck.est),topf_frei:aiR2(ck.rest),haeufig_gekauft:Object.entries(sh.hist||{}).sort((a,b)=>b[1]-a[1]).slice(0,15).map(([n])=>n)}},
+  /* v346: Auffälligkeiten = Abweichung vom eigenen Normal, nie absolute Höhe */
+  auffaelligkeiten(){const L=[],ui=S.unIgn||[],pi=S.pwIgn||{};
+    catOutliers().forEach(x=>L.push({art:'Kategorie ungewöhnlich hoch',was:x.k,betrag:aiR2(x.v),vergleich:'sonst Ø '+aiR2(x.a)+' € im ganzen Monat (3 Monate)'}));
+    try{catPace().forEach(x=>{if(!L.some(y=>y.was==x.c))L.push({art:'Kategorie schneller als sonst',was:x.c,betrag:aiR2(x.now),vergleich:'bis heute üblich '+aiR2(x.exp)+' € (Ø Monat '+aiR2(x.avg)+' €)'})})}catch(e){}
+    S.exp.filter(e=>realOut(e)&&e.t>Date.now()-30*864e5&&!ui.includes(e.id)&&!fixLike(e)).forEach(e=>{const u=unusualOf(e);if(u)L.push({art:'Einzelbuchung ungewöhnlich hoch',was:e.n,datum:ymd(e.t),betrag:aiR2(e.a),vergleich:'dort sonst meist '+aiR2(u.med)+' € ('+u.n+' Käufe)'})});
+    try{priceWatch().forEach(x=>{if(pi[x.r.id+'|'+x.e.a])return;L.push({art:'Fixkosten-Betrag geändert',was:x.r.n||x.r.c,datum:ymd(x.e.t),betrag:aiR2(x.e.a),vergleich:'geplant '+aiR2(x.plan)+' € ('+(x.d>0?'+':'')+aiR2(x.d)+' €)'})})}catch(e){}
+    return L.length?{finanzmonat:period(0).label,treffer:L.slice(0,8),hinweis:'Fixkosten, Daueraufträge, Umbuchungen, geplante und als „Passt so“ markierte Buchungen sind bereits herausgefiltert.'}:{nichts:true,hinweis:'Keine Abweichung vom üblichen Ausgabeverhalten gefunden.'}},
   wishes(){return{wuensche:(S.wish||[]).filter(w=>w.s=='offen').map(w=>({name:w.n,preis:aiR2(w.p),frei_ab:ymd(w.t+wait(w.p))}))}},
   journal(){const J=(S.journal||[]).filter(j=>j.t>=Date.now()-90*864e5);return{eintraege_90_tage:J.length,widerstanden:J.filter(j=>j.out=='resist').length,gekauft:J.filter(j=>j.out=='bought').length,eintraege:J.slice(-40).map(j=>({datum:ymd(j.t),text:j.txt,ausgang:(JOUT[j.out]||JOUT.note)[0],gefuehl:j.g||null,ausloeser:j.tr||null,betrag:j.a?aiR2(j.a):null,drang:j.u}))}}};
 function aiRun(name,a,acts){
@@ -439,6 +449,9 @@ So antwortest du:
 - Nenne nur Zahlen, die zur Frage gehören. Keine Monatssummen als Füllstoff.
 - Bei Fragen zu Impulsen oder Impulskontrolle rufe zuerst journal auf und antworte mit ihren eigenen Zahlen (widerstanden/gekauft, häufigstes Gefühl, häufigster Auslöser). Keine Allgemeinplätze wie „viele Menschen …“. Ist das Journal leer, sag das in einem Satz und biete an, den nächsten Impuls festzuhalten.
 - Geplante Buchungen klar von bereits gebuchten unterscheiden.
+- „Auffällig“ heißt: anders als bei ihr sonst, nie einfach hoch. Rufe dafür immer zuerst auffaelligkeiten auf und nenne nur diese Treffer, jeweils mit Vergleichswert. Liefert es nichts, sag „Diesen Monat nichts Auffälliges“ und such keinen Ersatz.
+- Fixkosten (Miete, Versicherungen, Kredite, Daueraufträge, davon_fix in spend_summary) sind nie auffällig und nie Sparpotenzial. Sparideen nur bei variablen Ausgaben und bei Abos/Verträgen mit Kündigungsmöglichkeit.
+- Jede Zahl braucht einen Bezug: Vergleich (Vormonat, Ø 3 Monate) oder Folge (z. B. „reicht bis 28.11.“). Zahlen ohne Bezug lässt du weg.
 - Ein Nerd-Fakt oder Wortwitz ist erlaubt, höchstens einer pro Antwort.
 - Formatierung: einfacher Text, **fett** nur für die wichtigste Zahl, Listen mit "- ". Keine Tabellen, keine Überschriften.
 
@@ -467,6 +480,7 @@ function aiToolDefs(lvl){const per={von:{type:'string',description:'Startdatum Y
     {name:'journal',description:'Konsum-Journal der letzten 90 Tage: Kaufimpulse, Gefühl, Auslöser, ob widerstanden oder gekauft. Für Fragen zu Impulsen und Impulskontrolle.',input_schema:o({})},
     {name:'shopping_list',description:'Einkaufszettel: Artikel mit Menge, Preis und Muss/Kann, was schon im Wagen ist, geschätzte Summe, freies Budget des gewählten Topfs und häufig gekaufte Artikel. Für Fragen zum Einkauf, Rezepten, Budget beim Einkaufen.',input_schema:o({})},
     {name:'propose_shopping',description:'Schlägt Artikel für den Einkaufszettel vor (z. B. Zutaten für ein Rezept). Erscheint als Knopf, die Nutzerin bestätigt. Mengen als "2 Brot".',input_schema:o({artikel:{type:'array',items:{type:'string'}},grund:{type:'string'}},['artikel','grund'])},
+    {name:'auffaelligkeiten',description:'Echte Auffälligkeiten im laufenden Finanzmonat: Abweichungen vom eigenen Normal (Kategorie über Ø, schneller als sonst, Einzelbuchung über üblichem Betrag beim Händler, geänderte Fixkosten) jeweils mit Vergleichswert. Fixkosten wie Miete, Daueraufträge und Quittiertes sind herausgefiltert. Immer bei Fragen nach Auffälligem, Ungewöhnlichem oder warum es eng wird.',input_schema:o({})},
     {name:'wishes',description:'Offene Wünsche auf der Wunschliste mit Preis und Ende der Wartezeit.',input_schema:o({})},
     {name:'propose_transfer',description:'Schlägt eine Umbuchung zwischen zwei Konten oder Budgets vor. Erscheint als Knopf, der Nutzer bestätigt.',input_schema:o({betrag:{type:'number'},von:{type:'string'},nach:{type:'string'},grund:{type:'string'}},['betrag','von','nach','grund'])},
     {name:'propose_booking',description:'Schlägt eine neue Buchung vor, die der Nutzer prüft und sichert. text wie gesprochen, z. B. "Rewe 25 Euro Lebensmittel von Flow".',input_schema:o({text:{type:'string'},grund:{type:'string'}},['text','grund'])},
