@@ -167,7 +167,7 @@ function ruPick(v){const R=ruS();if(!v)return {};if(v.startsWith('pos:')){const 
 const ruSel=(to,dep)=>dep?'pos:'+dep:'acc:'+to;
 const ruA=e=>{if(!e||e.type!='out'||!e.ru)return 0;const t=S.exp.find(x=>x.id==e.ru);return t?t.a:0};
 const ruHide=e=>!!(e&&e.ruOf&&S.exp.some(x=>x.id==e.ruOf&&x.ru==e.id));
-function exDel(id){const e=S.exp.find(x=>x.id==id);if(!e)return;if(e.ru)ruDepDel(e.ru);if(e.ruOf){ruDepDel(e.id);const p=S.exp.find(x=>x.id==e.ruOf);if(p)delete p.ru}S.exp=S.exp.filter(x=>x.id!=id&&x.ruOf!=id)}
+function exDel(id){const e=S.exp.find(x=>x.id==id);if(!e)return;/* v373: gelöschte Vorlagen-Buchung merken, sonst legt applyRec sie neu an */if(e.rid&&e.pk){const r=(S.rec||[]).find(x=>x.id==e.rid);if(r&&!(r.skip||[]).includes(e.pk))(r.skip=r.skip||[]).push(e.pk)}if(e.ru)ruDepDel(e.ru);if(e.ruOf){ruDepDel(e.id);const p=S.exp.find(x=>x.id==e.ruOf);if(p)delete p.ru}S.exp=S.exp.filter(x=>x.id!=id&&x.ruOf!=id)}
 const ruList=()=>S.exp.filter(e=>e.type=='tr'&&(e.tg||[]).includes('wechselgeld'));
 function ruStats(o){const P=period(o||0),L=ruList().filter(e=>inP(e,P));return{n:L.length,a:Math.round(L.reduce((s,e)=>s+e.a,0)*100)/100}}
 function ruMonthly(){const L=ruList();if(!L.length)return 0;const t0=Math.min(...L.map(e=>e.t)),mon=Math.max(1,(Date.now()-t0)/(30.44*864e5));return L.reduce((s,e)=>s+e.a,0)/mon}

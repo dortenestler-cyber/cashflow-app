@@ -98,7 +98,7 @@ function adjReset(rid,v){if(!v)return;const r=(S.rec||[]).find(x=>x.id==rid);con
   else if(v.kind=='next'&&S.planNext){const pn=S.planNext;if(v.src&&v.src.startsWith('b:'))delete (pn.b||{})[v.src.slice(2)];else delete (pn.r||{})[rid];if(!Object.keys(pn.r||{}).length&&!Object.keys(pn.b||{}).length)delete S.planNext}
   save();render();tell('Anpassung entfernt – es gilt wieder '+eur(v.base)+'.',()=>{const o=JSON.parse(snap);S.monthOv=o.ov;if(o.pn)S.planNext=o.pn;else delete S.planNext;save();render()})}
 function applyRec(){const p=period(0),k=pkey(p);S.rec.forEach(r=>{if(r.paused)return;const d=recDue(r,p);
-  if(d&&d<=now&&!S.exp.some(e=>e.rid==r.id&&e.pk==k)){const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;S.exp.push(x)}});save()}
+  if(d&&d<=now&&!(r.skip||[]).includes(k)&&!S.exp.some(e=>e.rid==r.id&&e.pk==k)){const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;S.exp.push(x)}});save()}
 applyRec();
 
 /* month close: leftovers of roll-accounts move to the roll target on the last minute of the month */
@@ -112,7 +112,7 @@ function restPropDo(i,take){const x=(S.restProp||[])[i];if(!x)return;if(take){co
   S.restProp.splice(i,1);save();render();tell(eur(x.items.reduce((s,y)=>s+y[1],0))+' nach '+(SHORT[x.to]||x.to)+' umgebucht.',()=>{restore(sn);render()})}else{S.restProp.splice(i,1);save();render();tell('Vorschlag verworfen. Das Restgeld bleibt, wo es ist.')}}
 const pufAcc=()=>S.accts.find(a=>a.rolle=='eingang');
 function pufOpen(){const a=pufAcc();if(!a)return{list:[],sum:0};const P=period(0),k=pkey(P),L=[];
-  (S.rec||[]).forEach(r=>{if(r.paused||r.b!=a.n||r.type=='in')return;const d=recDue(r,P);if(!d)return;if(S.exp.some(e=>e.rid==r.id&&e.pk==k))return;L.push({n:r.n,a:r.a,d})});
+  (S.rec||[]).forEach(r=>{if(r.paused||r.b!=a.n||r.type=='in')return;const d=recDue(r,P);if(!d||(r.skip||[]).includes(k))return;if(S.exp.some(e=>e.rid==r.id&&e.pk==k))return;L.push({n:r.n,a:r.a,d})});
   S.exp.forEach(e=>{if(e.b==a.n&&isPlan(e)&&inP(e,P)&&(e.type=='out'||e.type=='tr')&&!L.some(x=>x.n==e.n&&Math.abs(x.a-e.a)<.01))L.push({n:e.n||e.c,a:e.a,d:new Date(e.t)})});
   L.sort((x,y)=>x.d-y.d);return{list:L,sum:L.reduce((s,x)=>s+x.a,0)}}
 const pufBal=()=>{const a=pufAcc();return a?calc(a.n).rest:0};
