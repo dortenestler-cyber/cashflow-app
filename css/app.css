@@ -1399,3 +1399,7 @@ body[data-tab="dash"] .view>.quick{grid-template-columns:repeat(2,minmax(0,1fr))
 /* v363: Plus-Knopf – lang drücken startet die Spracheingabe */
 .tb-plus,.tb-new{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 body.mm .tabbar .tb-plus.rec,.tb-new.rec{background:var(--bad)!important;animation:pulse 1.4s ease-in-out infinite}
+/* v371: Ablauf Ziele & Wünsche */
+.zwflow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 12px;font-size:13px;color:var(--muted)}
+.zwflow span{display:flex;align-items:baseline;gap:4px;background:var(--card,var(--fill));border-radius:999px;padding:5px 11px}
+.zwflow b{font-size:15px;color:var(--text,inherit)}.zwflow i{font-style:normal;opacity:.6}
