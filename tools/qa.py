@@ -10,7 +10,7 @@ PROFILES={'iphone':(390,844,True),'iphone-se':(375,667,True),'ipad-hoch':(820,11
  'web-s':(1000,700,False),'web-m':(1100,800,False),'web-l':(1280,720,False),'web-xl':(1440,900,False),'web-xxl':(1920,1080,False)}
 STATES=[("dash",None,None),("list",None,None),("list","listV='Summe'",None),("cal",None,None),("geld",None,None),("more",None,None)]
 STATES+=[("wish",f"wishV='{w}'",None) for w in ['Wünsche','Ziele','Zukunft','Fixkosten','Monat','Journal','Verzicht']]
-STATES+=[("rep",f"repV='{r}'",None) for r in ['Monat','Jahr','Analyse','Bericht','Budget','Verlauf','Entwicklung','Prognose','Simulator','Vermögen','Verträge']]
+STATES+=[("rep",f"repV='{r}'",None) for r in ['Impulse','Monat','Jahr','Analyse','Bericht','Budget','Verlauf','Entwicklung','Prognose','Simulator','Vermögen','Verträge']]
 STATES+=[("more",None,s) for s in "cfg ru sam accts budgets cats rec fav month lohn shop bgs theme debts rules catrules salplan brands usage siri setup ai push".split()]
 CHECK=open(os.path.join(ROOT,'tools','qa-check.js')).read()
 SAFARI='--safari' in sys.argv;SHOTS='--shots' in sys.argv
