@@ -74,7 +74,10 @@ function ensureAccts(){if(S.accts){refreshA();ensureFlags();return}
       {id:uid(),type:'out',b:'Comdirect',c:'Budgets & Sparen',a:1075,n:'Monatsverteilung auf Konten',t:t(1,9)},{id:uid(),type:'out',b:'Comdirect',c:'Abos',a:47.97,n:'Handy, Streaming, Cloud',t:t(2,10)},
       {id:uid(),type:'out',b:'Comdirect',c:'Versicherung',a:96.4,n:'Haftpflicht & Hausrat',t:t(3,9)})}
   refreshA();ensureFlags()}
-let saveWarn=0,DV=0;const save=()=>{DV++;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){if(Date.now()-saveWarn>6e4){saveWarn=Date.now();setTimeout(()=>{try{toast('Speicher voll: Änderungen konnten auf diesem Gerät nicht gesichert werden. Belegfotos entfernen oder Online-Sync nutzen.')}catch(_){}},0)}}try{syDirty()}catch(e){}try{pushSoon()}catch(e){}};
+/* v379: Speichern gebündelt (250 ms), beim Verlassen sofort. SVOFF sperrt das Nachschreiben vor einem Neuladen mit fremdem Stand. */
+let saveWarn=0,DV=0,svT=0,SVOFF=false;const saveNow=()=>{clearTimeout(svT);svT=0;if(SVOFF)return;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){if(Date.now()-saveWarn>6e4){saveWarn=Date.now();setTimeout(()=>{try{toast('Speicher voll: Änderungen konnten auf diesem Gerät nicht gesichert werden. Belegfotos entfernen oder Online-Sync nutzen.')}catch(_){}},0)}}try{syDirty()}catch(e){}};
+const save=()=>{DV++;clearTimeout(svT);svT=setTimeout(saveNow,250);try{pushSoon()}catch(e){}};
+addEventListener('pagehide',()=>{if(svT)saveNow()});document.addEventListener('visibilitychange',()=>{if(document.hidden&&svT)saveNow()});
 
 /* recurring entries become real bookings once due */
 function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}

@@ -430,7 +430,7 @@ async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,'')
 const confirmMerge=false;
 function syLogout(wipe){if(SY.access)fetch(SY.url+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:SY.key,Authorization:'Bearer '+SY.access}}).catch(()=>{});
   const keep={url:SY.url,key:SY.key,email:SY.email};SY=keep;syKey=null;sySave();
-  if(wipe){try{localStorage.removeItem('dodo4')}catch(e){}location.reload();return}render();toast('Abgemeldet.')}
+  if(wipe){SVOFF=true;try{localStorage.removeItem('dodo4')}catch(e){}location.reload();return}render();toast('Abgemeldet.')}
 function viewSync(){const on=syOn(),need=on&&!SY.k&&!syKey;
   return `${appbar({title:'Online-Sync',back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${on?'Verbunden als':'Status'}</span><b style="font-size:22px">${on?esc(SY.email||''):'Nicht verbunden'}</b></div><div class="hc-line">${on?esc(syMsg||'Bereit'):'iPhone, PC und Browser mit denselben Daten'}</div>`})}
   ${on&&!need?`<div class="group"><div class="cell plain"><div class="t"><div>Automatisch synchronisieren</div><div class="s">Nach jeder Änderung und beim Öffnen</div></div>${I('check',18)}</div></div>
