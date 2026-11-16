@@ -1129,10 +1129,10 @@ function samCardH(e){const p=samPv(e.sam.pid),est=samEst(e),miss=!e.sam.inv&&Dat
   return `<button class="samc" data-samp="${e.id}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('bolt',15)} ${esc(p?p.n:'Laden')} · ${samMon(e.sam.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
    <div class="samc-v">${eur(e.a)}</div><div class="samc-s">${c} Ladung${c==1?'':'en'}${k?' · '+samKF(k)+' kWh':''} · Abbuchung ${isPlan(e)?'ca. ':''}${samDM(e.t)}${ref?' · Ø '+eur0(ref):''}${e.sam.inv&&Math.abs(e.a-est)>=.01?' · Differenz '+(e.a>est?'+':'−')+eur(Math.abs(e.a-est)):''}</div></button>`}
 /* Reiter Planen › Fixkosten: offene Sammelposten */
-function samCards(){const V=vmItems(),SL=samP().length?samL().filter(e=>isPlan(e)||!e.sam.inv):[],lade=samP().length||RX().some(x=>x.kwh>0);
-  const hd=`<div class="sh"><span>Vorgemerkt</span><span style="display:flex;gap:14px">${lade?'<button class="link" data-set="lade">Ladeübersicht</button>':''}${samP().length?'<button class="link" data-set="sam">Sammelabrechnungen</button>':''}</span></div>`;
-  if(!SL.length&&!V.length)return samP().length?`<div class="sec">${hd}<div class="note">Gerade nichts vorgemerkt.</div></div>`:lade?`<div class="sec">${hd}</div>`:'';
-  const L=[...SL.map(e=>({t:e.t,h:samCardH(e)})),...V.map(x=>({t:x.t,h:vmCardH(x)}))].sort((a,b)=>a.t-b.t);
+function samCards(){const V=vmItems(),K=kkItems(),SL=samP().length?samL().filter(e=>isPlan(e)||!e.sam.inv):[],lade=samP().length||RX().some(x=>x.kwh>0);
+  const hd=`<div class="sh"><span>Vorgemerkt</span><span style="display:flex;gap:14px">${lade?'<button class="link" data-set="lade">Ladeübersicht</button>':''}${samP().length||kkP().length?'<button class="link" data-set="sam">Sammelabrechnungen</button>':''}</span></div>`;
+  if(!SL.length&&!V.length&&!K.length)return samP().length||kkP().length?`<div class="sec">${hd}<div class="note">Gerade nichts vorgemerkt.</div></div>`:lade?`<div class="sec">${hd}</div>`:'';
+  const L=[...SL.map(e=>({t:e.t,h:samCardH(e)})),...V.map(x=>({t:x.t,h:vmCardH(x)})),...K.map(x=>({t:x.t,h:kkCardH(x)}))].sort((a,b)=>a.t-b.t);
   return `<div class="sec">${hd}<div class="vmgrid">${L.map(x=>x.h).join('')}</div></div>`}
 /* v357: Vorgemerkte Buchungen als Karten – einmalig geplante Buchungen und seltene Fixkosten (alle 2+ Monate) der nächsten 60 Tage. Füllbalken = Countdown. */
 const VM_D=60;
@@ -1158,6 +1158,38 @@ function vmTips(t){const n=Date.now();
   (S.exp||[]).forEach(e=>{if(!e.est||e.sam||isPlan(e)||n-e.t>21*864e5)return;t.push({sev:'warn',btns:[{l:'Betrag eintragen',fn:'vmOpen',arg:e.id}],ttl:'Betrag prüfen: '+(e.n||e.c||'Buchung'),txt:`Am ${samDM(e.t)} mit ca. ${eur(e.a)} gebucht. Stimmt der Betrag? Trag den echten ein, dann passt dein Stand.`})});
   const seen={};vmItems().forEach(x=>{if(x.type=='in'||vmDays(x.t)>7||seen[x.b]||!isK(x.b))return;try{let v=balAt(x.b,n);expV(n,x.t+1).forEach(e=>{if(e.t<=n||e.t>x.t)return;if((e.type=='in'&&e.b==x.b)||(e.type=='tr'&&e.to==x.b))v+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==x.b)v-=e.a});
     if(v<0){seen[x.b]=1;t.push({sev:'warn',btns:[{l:'Ansehen',fn:'vmOpen',arg:x.id}],ttl:`${SHORT[x.b]||x.b}: ${eur(-v)} fehlen bis ${samDM(x.t)}`,txt:`${esc(x.n||x.c||'Buchung')} ${eur(x.a)} am ${samDM(x.t)}. Mit allen Buchungen bis dahin fehlen auf ${esc(SHORT[x.b]||x.b)} ${eur(-v)}. Plane eine Umbuchung.`})}}catch(e){}})}
+/* v358: Kreditkarten-Sammelposten – Käufe sind normale Buchungen (Budget sofort, eigene Kategorie) mit e.kk=Karten-ID; die Karte zeigt die Monatssumme bis zur Abbuchung im Folgemonat. S.kk=[{id,n,day}] */
+const kkP=()=>S.kk=S.kk||[];
+const kkPv=id=>kkP().find(p=>p.id==id);
+const kkL=(pid,ym)=>(S.exp||[]).filter(e=>e.kk==pid&&e.type=='out'&&samYm(e.t)==ym);
+const kkSum=(pid,ym)=>Math.round(kkL(pid,ym).reduce((s,e)=>s+(+e.a||0),0)*100)/100;
+function kkRef(pid,ym){const[y,m]=ym.split('-').map(Number),V=[];for(let i=1;i<=6&&V.length<3;i++){const v=kkSum(pid,samYm(new Date(y,m-1-i,15).getTime()));if(v>0)V.push(v)}return V.length?V.reduce((s,v)=>s+v,0)/V.length:0}
+function kkItems(){const n=Date.now(),cur=samYm(n),[y,m]=cur.split('-').map(Number),prev=samYm(new Date(y,m-2,15).getTime()),L=[];
+  kkP().forEach(p=>[prev,cur].forEach(ym=>{const t=samDue(p,ym),c=kkL(p.id,ym).length;if(!c||vmDays(t)<0)return;L.push({p,ym,t,a:kkSum(p.id,ym),c})}));return L}
+function kkCardH(x){const ref=kkRef(x.p.id,x.ym),run=x.ym==samYm(Date.now()),d=vmDays(x.t);let f;if(ref)f=Math.min(1,x.a/ref);else{const s=samYmT(x.ym),[y,m]=x.ym.split('-').map(Number),en=new Date(y,m,1).getTime();f=Math.max(.08,Math.min(1,(Date.now()-s)/(en-s)))}
+  const st=run?['sammelt','']:d<=0?['Abbuchung heute','soon']:d<=7?['Abbuchung in '+(d==1?'1 Tag':d+' Tagen'),'soon']:['abgerechnet',''];
+  return `<button class="samc" data-kkp="${x.p.id}|${x.ym}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('card',15)} ${esc(x.p.n)} · ${samMon(x.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
+   <div class="samc-v">${eur(x.a)}</div><div class="samc-s">${x.c} ${x.c==1?'Kauf':'Käufe'} · Abbuchung ca. ${samDM(x.t)}${ref?' · Ø '+eur0(ref):''}</div></button>`}
+function kkPView(k){const[pid,ym]=String(k).split('|'),p=kkPv(pid);if(!p||!/^\d{4}-\d{2}$/.test(ym||'')){setView=setParent||null;setParent=null;return setView?viewSet(setView):''}
+  const L=kkL(pid,ym).sort((a,b)=>b.t-a.t),a=kkSum(pid,ym);
+  return `${appbar({title:p.n+' · '+samMon(ym,true),back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${L.length} ${L.length==1?'Kauf':'Käufe'}</span><b>${eur(a)}</b></div><div class="hc-line">Abbuchung ca. ${samDM(samDue(p,ym))} · Käufe zählen schon im Budget</div>`})}
+   <div class="sec"><div class="sh">Käufe</div><div class="group">${L.map(e=>`<button class="cell" data-id="${e.id}"><div class="ico" style="background:color-mix(in srgb,${COL[e.b]} 16%,transparent);color:${COL[e.b]}">${icoOf(e.b,e.c)}</div><div class="t"><div>${esc(e.n||e.c||'Kauf')}</div><div class="s">${samDM(e.t)} · ${esc(e.c||'')} · ${esc(SHORT[e.b]||e.b)}</div></div><div class="v">−${eur(e.a)}</div><span class="chev">›</span></button>`).join('')||'<div class="cell plain" style="color:var(--muted)">Keine Käufe.</div>'}</div></div>
+   <div class="note">Die Käufe belasten dein Budget sofort in ihrer Kategorie. Die Karte zeigt, was mit der Abbuchung vom Konto geht.</div>`}
+function kkSetH(){return `<div class="sec" style="margin-top:18px"><div class="sh">Kreditkarten</div>${kkP().map(p=>`<div class="group" style="margin-bottom:8px"><div class="cell plain"><label>Name</label><input data-kkf="n:${p.id}" value="${esc(p.n)}" style="margin-left:auto;max-width:55%;text-align:right"></div>
+   <div class="cell plain"><label>Abbuchung im Folgemonat am</label><input data-kkf="day:${p.id}" type="number" inputmode="numeric" min="1" max="31" value="${+p.day||20}" style="margin-left:auto;max-width:64px;text-align:right"><span>.</span></div>
+   <div class="cell plain"><button class="link" data-kkdel="${p.id}" style="color:var(--bad);padding:0">Karte entfernen</button></div></div>`).join('')}
+   <button class="btn soft" data-kknew="1">Kreditkarte hinzufügen</button>
+   <div class="note">Käufe mit der Karte buchst du wie immer über das Plus und schaltest „Mit Kreditkarte“ ein. Sie zählen sofort in ihrer Kategorie, unter Planen siehst du die Monatssumme bis zur Abbuchung.</div></div>`}
+/* Buchungsmaske: Schalter „Mit Kreditkarte“ (nur Ausgaben, sobald eine Karte angelegt ist) */
+function kkSheetH(){if(E.type!='out'||E.sam||!kkP().length)return '';const L=kkP(),on=!!E.kk,p=kkPv(E.kk)||L[0];
+  return `<div class="group"><div class="cell plain"><label for="ekk">Mit Kreditkarte</label><span style="flex:1"></span><input id="ekk" type="checkbox" class="switch" ${on?'checked':''}></div>${on&&L.length>1?`<div class="cell plain"><label for="ekkP">Karte</label><select id="ekkP" style="margin-left:auto;max-width:60%">${L.map(x=>`<option value="${x.id}" ${x.id==E.kk?'selected':''}>${esc(x.n)}</option>`).join('')}</select></div>`:''}${on?`<div class="cell plain" style="padding-top:0"><span class="s" style="font-size:12px;color:var(--muted)">Zählt sofort im Budget. Abbuchung ca. ${samDM(samDue(p,samYm(E.dt?new Date(E.dt+'T12:00').getTime():Date.now())))}</span></div>`:''}</div>`}
+function kkKeep(){if($('ekk')){const w=!!E.kk;E.kk=$('ekk').checked?(kkPv(E.kk)?E.kk:(kkPv(S.kkLast)?S.kkLast:kkP()[0].id)):null;if(w!==!!E.kk)setTimeout(drawSheet,0)}if($('ekkP')&&E.kk&&kkPv($('ekkP').value))E.kk=$('ekkP').value}
+document.addEventListener('click',ev=>{const g=ev.target.closest&&ev.target.closest('[data-kkp],[data-kknew],[data-kkdel]');if(!g)return;const D=g.dataset;
+  if(D.kkp){samGo('kkp:'+D.kkp);return}
+  if(D.kknew){kkP().push({id:uid(),n:'Kreditkarte'+(kkP().length?' '+(kkP().length+1):''),day:20});save();render();return}
+  if(D.kkdel){const p=kkPv(D.kkdel);if(!p)return;const sn=snap();S.kk=kkP().filter(x=>x.id!=p.id);S.exp.forEach(e=>{if(e.kk==p.id)delete e.kk});save();render();tell(p.n+' entfernt. Die Käufe bleiben als normale Buchungen.',()=>restore(sn))}});
+document.addEventListener('change',ev=>{const t=ev.target;if(!t||!t.dataset||!t.dataset.kkf)return;const[k,pid]=t.dataset.kkf.split(':'),p=kkPv(pid);if(!p)return;
+  if(k=='n'){const v=t.value.trim().slice(0,40);if(!v)return;p.n=v}else if(k=='day')p.day=Math.max(1,Math.min(31,Math.round(+t.value)||20));save();render()});
 /* v329: Ladeübersicht – Kosten, kWh und Preis pro kWh je Monat (letzte 12 Monate) */
 function ladeView(){const n=new Date(),ms=[];for(let i=11;i>=0;i--){const d=new Date(n.getFullYear(),n.getMonth()-i,1);ms.push({s:d.getTime(),e:new Date(d.getFullYear(),d.getMonth()+1,1).getTime(),l:d.toLocaleDateString('de-DE',{month:'short'}),ll:d.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}
   const lab=ms.map((m,i)=>({i,t:m.l})).filter((x,i)=>i%2==0||i==ms.length-1),U=ladeUnits(ms[0].s,ms[11].e),f3=v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3});
@@ -1175,10 +1207,10 @@ function samView(){const P=samP();
     <label class="btn soft" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px">${I('camera',16)} Rechnungen einlesen<input type="file" accept="image/*,application/pdf" multiple data-samfile="${p.id}" hidden></label>
     <button class="link" data-sampdel="${p.id}" style="color:var(--bad);padding:8px 0 0 4px">Anbieter entfernen</button></div>`}).join('')}
    <button class="btn soft" data-samnew="1">Anbieter hinzufügen</button>
-   <div class="note">Ladungen merkst du über das Plus vor: Kategorie Laden, dann „Zur Sammelabrechnung“. Sie belasten dein Budget erst mit der Abbuchung. Alte Rechnungen fließen nur in den Rückblick (Kosten und Preis pro kWh), nie in Kontostände.</div>`}
+   <div class="note">Ladungen merkst du über das Plus vor: Kategorie Laden, dann „Zur Sammelabrechnung“. Sie belasten dein Budget erst mit der Abbuchung. Alte Rechnungen fließen nur in den Rückblick (Kosten und Preis pro kWh), nie in Kontostände.</div>${kkSetH()}`}
 function samPView(id){const e=S.exp.find(x=>x.id==id&&x.sam);if(!e){setView=setParent||null;setParent=null;return setView?viewSet(setView):''}
   const p=samPv(e.sam.pid),est=samEst(e),inv=e.sam.inv,ed=!inv||SAMED==e.id,k=samKwh(e),d=inv?e.a-est:0;
-  return `${appbar({title:(p?p.n:'Laden')+' · '+samMon(e.sam.ym,true),back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${eur(e.a)}</span><b>${inv?'laut Rechnung':'vorgemerkt'}</b></div><div class="hc-line">${isPlan(e)?'Abbuchung ca. ':'Abgebucht am '}${samDM(e.t)} · ${esc(e.b)}${k?' · '+samKF(k)+' kWh · '+samPK(e.a,k):''}</div>`})}
+  return `${appbar({title:(p?p.n:'Laden')+' · '+samMon(e.sam.ym,true),back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${inv?'laut Rechnung':'vorgemerkt'}</span><b>${eur(e.a)}</b></div><div class="hc-line">${isPlan(e)?'Abbuchung ca. ':'Abgebucht am '}${samDM(e.t)} · ${esc(e.b)}${k?' · '+samKF(k)+' kWh · '+samPK(e.a,k):''}</div>`})}
    <div class="sec"><div class="sh">Rechnung</div>${inv&&!ed?`<div class="group"><div class="cell plain"><span>Summe der Ladungen</span><span style="flex:1"></span><b>${eur(est)}</b></div><div class="cell plain"><span>Rechnung</span><span style="flex:1"></span><b>${eur(inv.a)}</b></div>
      ${Math.abs(d)>=.01?`<div class="cell plain"><span>${d>0?'Grundgebühr, Aufschläge':'Gutschrift, Rundung'}</span><span style="flex:1"></span><b class="${d>0?'out':'in'}">${d>0?'+':'−'}${eur(Math.abs(d))}</b></div>`:''}</div>
      <div class="choices" style="margin-top:8px"><button class="chip" data-samed="${e.id}">Rechnung ändern</button><button class="chip" data-saminvx="${e.id}">Rechnung entfernen</button></div>`
