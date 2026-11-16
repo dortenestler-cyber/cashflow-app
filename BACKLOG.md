@@ -337,7 +337,7 @@ Wunsch vom 16.11. Der Tab heißt seit v360 „Anstehend“ (vorher „Fixkosten�
 Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absicherungen und Aufräumarbeiten; neue Knöpfe ersetzen bestehende Wege (siehe je Punkt).
 1. Vorlage mit Unterdeckung bucht nicht still ins Minus, sondern wird vorgemerkt („nicht gedeckt“). (v374; Hinweis bei Penny mit „Trotzdem buchen“ / „Diesmal aussetzen“, Schalter „Auch ohne Deckung buchen“ in v376)
 2. Verpasste Zeiträume nachholen (bis 3 zurück, nicht vor `S.since`). (v374; nur Vorlagen, die beim letzten Lauf schon da waren – nichts Gelöschtes kommt rückwirkend zurück)
-3. Ausgabe in Spar-/Budget-Kategorie: Hinweis „Als Umbuchung buchen“ (ersetzt die Beispielbuchung „Monatsverteilung“ als Ausgabe). (v375)
+3. Ausgabe in Spar-/Budget-Kategorie: Hinweis „Als Umbuchung buchen“. (v375)
 4. Vorlage: „Diesen Monat aussetzen“ (nutzt `r.skip`, ersetzt den Umweg Buchung löschen). (v376, je Termin „Aussetzen“ in der Vorschau)
 5. Zoom-Sperre im Viewport entfernen, Eingaben mind. 16 px. (v377; nur `user-scalable=no` entfernt, `maximum-scale=1` bleibt gegen das Auto-Zoomen von iOS)
 6. Einheitliches Löschmuster (zweimal tippen + Rückgängig), Konto löschen mit Rückgängig. (v377; Archiv-Zuordnungen löschen ebenfalls zweimal tippen + Rückgängig)
