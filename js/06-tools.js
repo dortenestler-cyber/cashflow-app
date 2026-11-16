@@ -1057,7 +1057,7 @@ function bindArch(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f},ch=(id,
   on('arDel',async()=>{if(!ARDEL){ARDEL=1;render();setTimeout(()=>{ARDEL=0},4000);return}ARDEL=0;await archRemove();render();toast('Archiv entfernt.')});
   on('arMore',()=>{ARF.lim+=150;render()});on('arMapGo',()=>{ARF.map=1;render();scrollTo(0,0)});on('arMapX',()=>{ARF.map=0;render();scrollTo(0,0)});
   on('arMapSug',()=>{const m=Object.assign({},S.archMap||{});let n=0;archOld().forEach(([c])=>{if(!m[c]){const g=archSug(c);if(g){m[c]=g;n++}}});S.archMap=m;save();archApplyMap();render();toast(n?n+' Vorschläge übernommen.':'Keine weiteren Vorschläge gefunden.')});
-  on('arMapClr',()=>{if(!confirm('Alle Zuordnungen löschen? Die Archivbuchungen tragen dann wieder ihre alten Namen.'))return;S.archMap={};save();archApplyMap();render()});
+  on('arMapClr',()=>{const b=$('arMapClr');if(b&&!b.dataset.arm){b.dataset.arm=1;b.textContent='Nochmal tippen: alle Zuordnungen löschen';setTimeout(()=>{if(b)delete b.dataset.arm},5000);return}const sn=JSON.stringify(S.archMap||{});S.archMap={};save();archApplyMap();render();tell('Zuordnungen gelöscht. Archivbuchungen tragen wieder ihre alten Namen.',()=>{S.archMap=JSON.parse(sn);save();archApplyMap();render()})});
   document.querySelectorAll('[data-arm]').forEach(el=>el.onchange=()=>{const m=Object.assign({},S.archMap||{});if(el.value)m[el.dataset.arm]=el.value;else delete m[el.dataset.arm];S.archMap=m;save();archApplyMap();render()});ch('arY','y');ch('arB','b');ch('arC','c');
   document.querySelectorAll('[data-arc]').forEach(b=>b.onclick=()=>{ARF.c=b.dataset.arc;ARF.lim=150;render()});
   document.querySelectorAll('.arcy[data-yy]').forEach(b=>b.onclick=()=>{yrY=+b.dataset.yy;setView='yearrev';render();scrollTo(0,0)});

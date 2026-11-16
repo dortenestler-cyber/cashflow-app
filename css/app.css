@@ -205,7 +205,7 @@ body.mm .mmrow+.mmrow{border-top:.5px solid var(--sep)}body.mm .mmrow:active{bac
 body.mm .mmcat{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);min-width:0}body.mm .mmcat>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.mm .mmcat .ico{width:28px;height:28px}body.mm .mmcat .ico .i{width:15px;height:15px}
 body.mm .mmnote{display:flex;flex-direction:column;min-width:0}body.mm .mmnote>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;gap:4px;align-items:center}body.mm .mmnote small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-body.mm .amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}body.mm .amt.trc{color:var(--muted)}
+body.mm .amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}body.mm .amt.trc{color:var(--tr)}
 body.mm .cal{padding:6px}body.mm .calh,body.mm .calg{display:grid;grid-template-columns:repeat(7,1fr)}
 body.mm .calh span{text-align:center;font-size:12px;font-weight:600;color:var(--muted);padding:6px 0}body.mm .calh .sun{color:var(--out)}body.mm .calh .sat{color:var(--in)}
 body.mm .cc{min-height:62px;border:0;border-top:.5px solid var(--sep);background:none;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:4px 3px;cursor:pointer;min-width:0;overflow:hidden}
@@ -1403,3 +1403,9 @@ body.mm .tabbar .tb-plus.rec,.tb-new.rec{background:var(--bad)!important;animati
 .zwflow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 12px;font-size:13px;color:var(--muted)}
 .zwflow span{display:flex;align-items:baseline;gap:4px;background:var(--card,var(--fill));border-radius:999px;padding:5px 11px}
 .zwflow b{font-size:15px;color:var(--text,inherit)}.zwflow i{font-style:normal;opacity:.6}
+/* v377: eigene, neutrale Farbe für Umbuchungen – weder Einnahme (grün) noch Ausgabe (rot) */
+:root{--tr:#5B6690}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tr:#A9B3DA}}
+:root[data-theme="dark"]{--tr:#A9B3DA}
+.trc{color:var(--tr)}
+.amt.trc::before,.v.trc::before,b.trc::before{content:"⇄\00a0";opacity:.75;font-weight:500}

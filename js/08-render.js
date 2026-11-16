@@ -132,9 +132,9 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
     if($('avis'))$('avis').onchange=()=>{a.vis=$('avis').checked;refreshA();save();render()};
     if($('atot'))$('atot').onchange=()=>{a.tot=$('atot').checked;refreshA();save();render()};
     document.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>{a.col=b.dataset.ac;refreshA();save();render()});
-    on('aDel',()=>{if(!delArm){delArm=true;const n=S.exp.filter(e=>e.b==a.n||e.to==a.n).length;$('aDelMsg').textContent=`Nochmal tippen zum Löschen. ${n} Buchungen dieses Kontos werden mit gelöscht.`;return}
-      delArm=false;const n=a.n;S.accts=S.accts.filter(x=>x!==a);S.exp=S.exp.filter(e=>e.b!=n&&e.to!=n);S.rec=S.rec.filter(e=>e.b!=n&&e.to!=n);S.fav=S.fav.filter(e=>e.b!=n);
-      delete S.cats[n];delete S.budgets[n];delete S.bg[n];if(catB==n)catB=S.accts[0].n;refreshA();save();setView='accts';render()})}
+    on('aDel',()=>{if(!delArm){delArm=true;const n=S.exp.filter(e=>e.b==a.n||e.to==a.n).length;$('aDelMsg').textContent=`Nochmal tippen zum Löschen. ${n} Buchungen dieses Kontos werden mit gelöscht.`;setTimeout(()=>{delArm=false;if($('aDelMsg'))$('aDelMsg').textContent=''},5000);return}
+      delArm=false;const n=a.n,sn=JSON.stringify({accts:S.accts,exp:S.exp,rec:S.rec,fav:S.fav,cats:S.cats,budgets:S.budgets,bg:S.bg});S.accts=S.accts.filter(x=>x!==a);S.exp=S.exp.filter(e=>e.b!=n&&e.to!=n);S.rec=S.rec.filter(e=>e.b!=n&&e.to!=n);S.fav=S.fav.filter(e=>e.b!=n);
+      delete S.cats[n];delete S.budgets[n];delete S.bg[n];if(catB==n)catB=S.accts[0].n;refreshA();save();setView='accts';render();/* v377: Konto löschen lässt sich rückgängig machen */tell('Konto „'+n+'“ gelöscht.',()=>{Object.assign(S,JSON.parse(sn));refreshA();save();render()})})}
   document.querySelectorAll('.budin').forEach(i=>i.onchange=()=>{S.budgets[i.dataset.b]=parseFloat(i.value)||0;save()});
   document.querySelectorAll('#catSeg button').forEach(b=>b.onclick=()=>{catB=b.dataset.f;pickI=-1;render()});
   document.querySelectorAll('[data-fixcat]').forEach(b=>b.onchange=()=>{S.fixCat=S.fixCat||{};S.fixCat[b.dataset.fixcat]=b.checked;save();render()});document.querySelectorAll('[data-normx]').forEach(b=>b.onclick=()=>{delete (S.normCat||{})[b.dataset.normx];save();render()});
