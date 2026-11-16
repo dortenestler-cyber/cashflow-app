@@ -1409,3 +1409,5 @@ body.mm .tabbar .tb-plus.rec,.tb-new.rec{background:var(--bad)!important;animati
 :root[data-theme="dark"]{--tr:#A9B3DA}
 .trc{color:var(--tr)}
 .amt.trc::before,.v.trc::before,b.trc::before{content:"⇄\00a0";opacity:.75;font-weight:500}
+/* v381: iPhone SE – Penny kleiner, damit sie die Beschriftung der Schnellknöpfe nicht verdeckt */
+@media (max-width:340px) and (max-height:600px){#asstRoot .abar{zoom:.66}}

@@ -135,7 +135,7 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
     on('aDel',()=>{if(!delArm){delArm=true;const n=S.exp.filter(e=>e.b==a.n||e.to==a.n).length;$('aDelMsg').textContent=`Nochmal tippen zum Löschen. ${n} Buchungen dieses Kontos werden mit gelöscht.`;setTimeout(()=>{delArm=false;if($('aDelMsg'))$('aDelMsg').textContent=''},5000);return}
       delArm=false;const n=a.n,sn=JSON.stringify({accts:S.accts,exp:S.exp,rec:S.rec,fav:S.fav,cats:S.cats,budgets:S.budgets,bg:S.bg});S.accts=S.accts.filter(x=>x!==a);S.exp=S.exp.filter(e=>e.b!=n&&e.to!=n);S.rec=S.rec.filter(e=>e.b!=n&&e.to!=n);S.fav=S.fav.filter(e=>e.b!=n);
       delete S.cats[n];delete S.budgets[n];delete S.bg[n];if(catB==n)catB=S.accts[0].n;refreshA();save();setView='accts';render();/* v377: Konto löschen lässt sich rückgängig machen */tell('Konto „'+n+'“ gelöscht.',()=>{Object.assign(S,JSON.parse(sn));refreshA();save();render()})})}
-  document.querySelectorAll('.budin').forEach(i=>i.onchange=()=>{S.budgets[i.dataset.b]=parseFloat(i.value)||0;save()});
+  document.querySelectorAll('.budin').forEach(i=>i.onchange=()=>{const v=Math.max(0,parseFloat(i.value)||0);if(v!==parseFloat(i.value))i.value=v;S.budgets[i.dataset.b]=v;save()});
   document.querySelectorAll('#catSeg button').forEach(b=>b.onclick=()=>{catB=b.dataset.f;pickI=-1;render()});
   document.querySelectorAll('[data-fixcat]').forEach(b=>b.onchange=()=>{S.fixCat=S.fixCat||{};S.fixCat[b.dataset.fixcat]=b.checked;save();render()});document.querySelectorAll('[data-normx]').forEach(b=>b.onclick=()=>{delete (S.normCat||{})[b.dataset.normx];save();render()});
   document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{pickI=pickI==+b.dataset.pick?-1:+b.dataset.pick;icq='';render()});
@@ -238,8 +238,8 @@ function openOverride(a,done){S.brakeAtt=[...(S.brakeAtt||[]),Date.now()].slice(
    document.querySelectorAll('[data-oq]').forEach(b=>b.onclick=()=>{const[i,v]=b.dataset.oq.split('|');ans[i]=v=='1';draw()});
    if($('ovWish'))$('ovWish').onclick=()=>{$('modalRoot').innerHTML='';$('sheetRoot').innerHTML='';openWish()};
    $('ovGo').onclick=()=>{if(!ok)return;E.ovr={reason:reason.trim(),ans:ans.slice(),t:Date.now()};$('modalRoot').innerHTML='';done()}};draw()}
-function evalAmt(s){s=(s||'').replace(/[+−×÷]+$/,'');if(!s)return 0;let tot=0,term=null,sign=1,op=null;
-  (s.match(/[+−×÷]|[^+−×÷]+/g)||[]).forEach(x=>{if(x=='+'||x=='−'){if(term!==null)tot+=sign*term;term=null;op=null;sign=x=='−'?-1:1}else if(x=='×'||x=='÷')op=x;else{const v=parseFloat(x)||0;term=term===null?v:op=='÷'?(v?term/v:term):term*v;op=null}});
+function evalAmt(s){evalAmt.z=false;s=(s||'').replace(/[+−×÷]+$/,'');if(!s)return 0;let tot=0,term=null,sign=1,op=null;
+  (s.match(/[+−×÷]|[^+−×÷]+/g)||[]).forEach(x=>{if(x=='+'||x=='−'){if(term!==null)tot+=sign*term;term=null;op=null;sign=x=='−'?-1:1}else if(x=='×'||x=='÷')op=x;else{const v=parseFloat(x)||0;term=term===null?v:op=='÷'?(v?term/v:(evalAmt.z=true,term)):term*v;op=null}});
   if(term!==null)tot+=sign*term;return tot}
 IC.none='<circle cx="12" cy="12" r="9"/><path d="M5.7 18.3L18.3 5.7"/>';
 function openSheet(ex,pre){useHit(ex?'Buchung bearbeiten':'Buchungsmaske geöffnet');E=ex?{kwh:ex.kwh?String(ex.kwh).replace('.',','):'',id:ex.id,type:ex.type,b:ex.b,to:ex.to||ALL.find(x=>x!=ex.b),c:ex.c,amt:String(ex.a),n:ex.n||'',p:ex.p||'',sc:ex.sc||'',tg:(ex.tg||[]).map(t=>'#'+t).join(' '),dt:ymd(ex.t),t:ex.t,img:ex.img||'',doc:ex.doc?Object.assign({},ex.doc):null,rid:ex.rid,pk:ex.pk,adj:ex.adj||null,proj:ex.proj||'',sh:ex.sh?{by:ex.sh.by,for:ex.sh.for.slice()}:null,rf:ex.rf?Object.assign({},ex.rf):null,est:!!ex.est,kk:ex.kk||null,warr:ex.warr||'',ab:ex.ab||'',tax:ex.tax||'',rep:false,fav:false,accManual:true,orig:{b:ex.b,a:ex.a,type:ex.type}}
@@ -436,6 +436,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
   $('ok').onclick=()=>{keep();if(!E.id&&!evalAmt(E.amt)&&/\d/.test(E.n||'')){qpSafe(E.n);if(evalAmt(E.amt)){drawSheet();$('ok').click();return}}const a=Math.round(evalAmt(E.amt)*100)/100;
     if(E.type!='in'&&isTabu(E.b)){$('eerr').textContent=E.b+' ist tabu. Wähle ein anderes Konto.';return}
     if(E.type=='tr'&&isLock(E.to)&&!E.id&&!E.ovr){if(!a){$('eerr').textContent='Bitte zuerst den Betrag eingeben.';return}openOverride(a,()=>{drawSheet();$('ok').click()});return}
+    /* v381: Teilen durch 0 melden statt still übergehen */evalAmt(E.amt);if(evalAmt.z){$('eerr').textContent='Teilen durch 0 geht nicht. Bitte die Rechnung prüfen.';setKb(true);return}
     if(!a){$('eerr').textContent='Bitte einen Betrag über das Tastenfeld eingeben.';setKb(true);return}if(a<0){$('eerr').textContent='Der Betrag ist negativ. Bitte die Rechnung prüfen.';setKb(true);return}
     if(E.type!='tr'&&!E.c){$('eerr').textContent='Bitte eine Kategorie antippen.';return}
     const[yy,mm,dd]=E.dt.split('-').map(Number),t=E.dt==today()?(E.id&&ymd(E.t)==today()?E.t:Date.now()):new Date(yy,mm-1,dd,12).getTime();
