@@ -102,7 +102,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='362 (16.11.)';
+const APP_VER='363 (16.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -263,8 +263,7 @@ function aList(L,max=25){return `<div class="alist">${L.slice(0,max).map(aRow).j
 function asstExtra(l){const P=period(0),PP=period(-1),D=864e5,td=new Date();td.setHours(0,0,0,0);const T=td.getTime();
   const outE=(p,f)=>S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&inP(e,p)&&(!f||f(e)));const sum=L=>L.reduce((s,e)=>s+e.a,0);
   const row=(a,b,c)=>`<div class="srow"><div class="srow-h"><span>${a}</span><span></span><b>${b}</b></div>${c?`<div class="a-s" style="font-size:12px">${c}</div>`:''}</div>`;
-  if(/^(was|wie ?viel) (darf|kann) ich (heute )?(noch )?ausgeben|heute noch ausgeben|tagesbudget/.test(l)){const B=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)).map(b=>{const c=calc(b),day=Math.max(0,c.rest)/Math.max(P.left||1,1),today=sum(outE(P,e=>e.b==b&&e.t>=T));return{b,c,day,today}});
-    const tot=B.reduce((s,x)=>s+Math.max(0,x.day-x.today),0);
+  if(/^(was|wie ?viel) (darf|kann) ich (heute )?(noch )?ausgeben|heute noch ausgeben|tagesbudget/.test(l)){const{B,tot}=todayFree();
     return{h:`<div class="a-big">${eur(tot)}</div><p class="a-s">Heute noch frei über alle Budgets (Tagesbudget minus heute Ausgegebenes) · noch ${P.left} Tage im ${P.label} · Stand ${dmy(new Date())}</p><div class="mmcard">${B.map(x=>row(esc(SHORT[x.b]||x.b),eur(Math.max(0,x.day-x.today)),`${x.today?'Tagesbudget '+eur(x.day)+' · heute schon '+eur(x.today)+' · ':''}Rest ${eur(x.c.rest)}`)).join('')}</div>`,a:[['Buchungen von heute',()=>{tab='list';render()}]]}}
   if(/wo kann ich (sparen|kürzen|einsparen)|sparpotenzial|wo (spare|kürze) ich|was kann ich (einsparen|kürzen|streichen)/.test(l)){const by={},n=3;for(let o=-n;o<0;o++)outE(period(o),e=>BUDG.includes(e.b)&&!isK(e.b)&&!isTabu(e.b)&&!isRecE(e)).forEach(e=>{const k=e.c||'Sonstiges';by[k]=(by[k]||[0,0]);by[k][0]+=e.a/n});outE(P,e=>BUDG.includes(e.b)&&!isK(e.b)&&!isTabu(e.b)&&!isRecE(e)).forEach(e=>{const k=e.c||'Sonstiges';by[k]=(by[k]||[0,0]);by[k][1]+=e.a});
     const L=Object.entries(by).filter(x=>x[1][0]>=5).sort((a,b)=>b[1][0]-a[1][0]).slice(0,5),A=aboList(),ay=A.reduce((s,x)=>s+x.mon,0),pot=L.reduce((s,x)=>s+x[1][0]*.2,0);

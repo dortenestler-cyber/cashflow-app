@@ -115,10 +115,10 @@ function pufOpen(){const a=pufAcc();if(!a)return{list:[],sum:0};const P=period(0
   (S.rec||[]).forEach(r=>{if(r.paused||r.b!=a.n||r.type=='in')return;const d=recDue(r,P);if(!d)return;if(S.exp.some(e=>e.rid==r.id&&e.pk==k))return;L.push({n:r.n,a:r.a,d})});
   S.exp.forEach(e=>{if(e.b==a.n&&isPlan(e)&&inP(e,P)&&(e.type=='out'||e.type=='tr')&&!L.some(x=>x.n==e.n&&Math.abs(x.a-e.a)<.01))L.push({n:e.n||e.c,a:e.a,d:new Date(e.t)})});
   L.sort((x,y)=>x.d-y.d);return{list:L,sum:L.reduce((s,x)=>s+x.a,0)}}
-const pufBal=()=>{const a=pufAcc();return a?calc(a.n).rest:(S.puffer||0)};
+const pufBal=()=>{const a=pufAcc();return a?calc(a.n).rest:0};
 /* v258: Puffer-Ziel einstellbar, Standard 1.000 € */
 const pufZiel=()=>(+S.pufZiel>0?+S.pufZiel:1000);
-const pufVal=()=>pufAcc()?pufBal()-pufOpen().sum:(S.puffer||0);
+const pufVal=()=>pufAcc()?pufBal()-pufOpen().sum:0;
 function vermAcc(){let a=S.vermZiel&&S.accts.find(x=>x.n==S.vermZiel);if(!a){a=S.accts.find(x=>x.n=='Vermögensaufbau');if(!a){a={n:'Vermögensaufbau',kind:'konto',col:'#2fb36b',vis:false,tot:false,start:0};S.accts.push(a);S.cats[a.n]=[["Sparen","target"],["Sonstiges","dot"]];S.bg=S.bg||{};S.bg[a.n]={g:5}}S.vermZiel=a.n;a.rolle='vermoegen';a.sperre={art:'tabu'};refreshA();save()}return a.n}
 function streak(){const bs=TOTM;if(!bs.length)return 0;let n=0;
   for(let i=1;i<=90;i++){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),t=d.getTime();if(t<S.since&&!S.ex)break;
