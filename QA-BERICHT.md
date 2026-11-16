@@ -19,6 +19,5 @@ Getestet per Playwright mit iPhone SE (320 px), iPhone 13 (390 px), iPhone 15 Pr
 ## Hinweise (kein Bug, nur zur Entscheidung nach dem Baustopp)
 - `÷ 0` wird stillschweigend übergangen (9,5 ÷ 0 = 9,5) statt einer Meldung.
 - PIN ist nur eine Bildschirmsperre: Daten in `localStorage` sind unverschlüsselt; PIN-Hash ist ein einfacher SHA-256 (bei 4 Stellen schnell durchprobierbar), keine Sperre nach Fehlversuchen gefunden.
-- Viewport sperrt Zoom (`user-scalable=no`) – schlecht für Barrierefreiheit.
 - Budget-Felder (`type=number`) nehmen negative Werte an.
 - iPhone SE: schwebender Penny-Knopf verdeckt beim Start die Beschriftung des ersten Schnellknopfs.
