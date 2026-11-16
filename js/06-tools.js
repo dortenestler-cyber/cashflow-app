@@ -935,7 +935,7 @@ function reviewBody(o){const R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]
      <span>Teuerster Wochentag</span><b>${A.O1?WD[A.wmax]+' · '+eur0(A.wd[A.wmax]):'–'}</b>
      <span>Neue Wünsche</span><b>${A.nw}</b><span>Losgelassen / gekauft</span><b>${A.gone.length} / ${A.bought.length}</b>
      <span>Notfallbremse gelöst</span><b class="${R.ov.length?'out':''}">${R.ov.length}×</b></div>
-     <div class="ana-wd">${A.wd.map((v,i)=>({v,i})).slice(1).concat([{v:A.wd[0],i:0}]).map(({v,i})=>`<div><i style="height:${(Math.max(...A.wd)?v/Math.max(...A.wd)*100:0).toFixed(0)}%"></i><span>${WD[i]}</span></div>`).join('')}</div></div></div>`})()}
+     <div class="ana-wd">${A.wd.map((v,i)=>({v,i})).slice(1).concat([{v:A.wd[0],i:0}]).map(({v,i})=>`<div data-tip="${esc(tcHead(WD[i])+tcRow('',v,''))}"><i style="height:${(Math.max(...A.wd)?v/Math.max(...A.wd)*100:0).toFixed(0)}%"></i><span>${WD[i]}</span></div>`).join('')}</div></div></div>`})()}
   ${(()=>{const P=R.p,s0=P.s.getTime(),e0=P.e.getTime(),Pp=period(o-1),inR=(t,a,b)=>t>=a&&t<b,J=(S.journal||[]).filter(j=>inR(j.t,s0,e0)),Jp=(S.journal||[]).filter(j=>inR(j.t,Pp.s.getTime(),Pp.e.getTime()));if(!J.length&&!Jp.length)return '';
     const q=L=>{const d=L.filter(j=>j.out!='note');return d.length?Math.round(d.filter(j=>j.out!='bought').length/d.length*100):null},top=(L,k)=>{const c={};L.forEach(j=>{if(j[k]&&j[k]!='neutral')c[j[k]]=(c[j[k]]||0)+1});const x=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];return x?x[0]+' ('+x[1]+'×)':'–'};
     const qa=q(J),qb=q(Jp),RG=S.exp.filter(e=>e.rg!=null&&inR(e.t,s0,e0));

@@ -325,7 +325,8 @@ function barTip(bar){if(bar.dataset.tip)return bar.dataset.tip;const row=bar.clo
   const i=bar.querySelector('i');const pc=i?parseFloat(i.style.width||i.dataset.to||'0'):0;
   return tcHead(esc(lt))+(am?`<span class="tr"><b>${esc(am)}</b></span>`:'')+`<span class="tr">${Math.round(pc)} %</span>`}
 function tcInit(){if(window.__tc)return;window.__tc=1;
-  const hit=(x,y)=>{for(const dy of [0,-7,7,-13,13]){const e=document.elementFromPoint(x,y+dy);const b=e&&e.closest&&e.closest('.bar,.sbar');if(b)return b}return null};
+  const act=h=>{for(let n=h;n&&n!==document.body;n=n.parentElement){if(n.matches('button,a,input,select,textarea,label,[role=button],[onclick]')||n.onclick)return true;if([...n.attributes].some(x=>x.name.startsWith('data-')&&!['data-fx','data-tip'].includes(x.name)))return true;if(n.matches('.mmcard,.group,.sec'))break}return false};
+  const hit=(x,y)=>{for(const dy of [0,-7,7,-13,13]){const e=document.elementFromPoint(x,y+dy);const b=e&&e.closest&&e.closest('.bar,.sbar');if(b)return b}const e=document.elementFromPoint(x,y),h=e&&e.closest&&e.closest('.fillrow,.fillcard');if(h&&!act(e)){const b=h.querySelector(':scope>.bar,:scope .bar');if(b)return b}return null};
   document.addEventListener('pointerdown',e=>{const t=e.target.closest&&e.target.closest('.tc');if(t){tcDrag=true;tcShow(t,e.clientX,e.clientY);return}
     const gg=e.target.closest&&e.target.closest('svg.gg');if(gg){const g=JSON.parse(gg.dataset.g),m=gg.getScreenCTM().inverse(),pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m),dx=pt.x-100,dy=92-pt.y,rr=Math.hypot(dx,dy);
       const again=window.__gOpen===gg&&document.getElementById('tcPill')&&document.getElementById('tcPill').style.display!='none';
@@ -333,7 +334,7 @@ function tcInit(){if(window.__tc)return;window.__tc=1;
       if(again&&f==null){window.__gOpen=null;window.__tcBar=null;tcHide();return}
       tcHide();const k=gg.querySelector('.gmk');if(k){const a=Math.PI*(d-.5)/g.len,r1=60,r2=96;k.setAttribute('x1',(100+r1*Math.cos(a)).toFixed(1));k.setAttribute('y1',(92-r1*Math.sin(a)).toFixed(1));k.setAttribute('x2',(100+r2*Math.cos(a)).toFixed(1));k.setAttribute('y2',(92-r2*Math.sin(a)).toFixed(1));k.style.display=''}
       const br=gg.getBoundingClientRect();tcPlace(gTip(g,d),br.left+br.width/2,br.top+4,br.bottom);tcCur=gg;window.__gOpen=gg;window.__tcBar=gg;return}
-    const d=e.target.closest&&e.target.closest('[data-tip]:not(.bar)');if(d&&d.closest('svg')){tcHide();tcPlace(d.dataset.tip,e.clientX,e.clientY);tcCur=d;return}
+    const d=e.target.closest&&e.target.closest('[data-tip]:not(.bar)');if(d&&d.closest('svg,.ana-wd')){tcHide();tcPlace(d.dataset.tip,e.clientX,e.clientY);tcCur=d;return}
     const b=hit(e.clientX,e.clientY);if(b){const r=b.getBoundingClientRect();tcHide();tcPlace(barTip(b),Math.max(r.left,Math.min(r.right,e.clientX)),r.top);tcCur=b;window.__tcBar=b;return}tcHide()},true);
   document.addEventListener('click',e=>{if(window.__tcBar&&(window.__tcBar.classList.contains('gg')?e.target.closest&&e.target.closest('svg.gg'):hit(e.clientX,e.clientY))){e.stopPropagation();e.preventDefault()}window.__tcBar=null},true);
   document.addEventListener('pointermove',e=>{const t=e.target.closest&&e.target.closest('.tc');if(t&&(tcDrag||e.pointerType=='mouse'))tcShow(t,e.clientX,e.clientY);else if(e.pointerType=='mouse'&&tcCur&&tcCur.classList&&tcCur.classList.contains('tc')&&!tcDrag)tcHide()},{passive:true});
