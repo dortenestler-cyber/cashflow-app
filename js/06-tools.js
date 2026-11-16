@@ -604,7 +604,7 @@ function viewYear(){const cy=new Date().getFullYear(),ys=[...new Set([...archYea
   const lm=D.ms.filter(x=>!(y==cy&&x.m==now0.getMonth())).slice(-1)[0],cmp=lm&&D.ms.length>1;
   const arr=(k,goodUp)=>{if(!cmp)return'';const d=lm[k]-avg(k);if(Math.abs(d)<1)return'';const up=d>0;return `<small class="yr-d ${up==goodUp?'in':'out'}">${up?'↑':'↓'} ${eur0(Math.abs(d))}</small>`};
   const kp=(t,v,sub,ar)=>`<div class="yr-k"><span>${t}</span><b>${v}</b><small>${sub}</small>${ar||''}</div>`,q=D.inc?Math.round((D.inc-D.out)/D.inc*100):null;
-  const arn=D.arch?`<div class="tip arhd"><b>${D.arch==D.n?'Archivjahr':'Teilweise Archiv'} · MoneyControl</b><div>${D.arch==D.n?'Alle':D.arch.toLocaleString('de-DE')+' von '+D.n.toLocaleString('de-DE')} Buchungen stammen aus dem Archiv${D.arch<D.n?' (bis '+new Date(histT()-864e5).toLocaleDateString('de-DE')+'), der Rest aus CashFlow':''}. Nur zur Ansicht, ohne Einfluss auf deine Salden.</div></div>`:'';
+  const arn='';
   const bil=arn+`<div class="sec"><div class="sh">Bilanz${part?`<span>Daten ab ${MN3[new Date(ds).getMonth()]}</span>`:''}</div><div class="mmcard yr-bil">
    ${kp('Einnahmen',eur0(D.inc),'Ø '+eur0(avg('i'))+'/Monat',arr('i',true))}${kp('Ausgaben',eur0(D.out),'Ø '+eur0(avg('o'))+'/Monat',arr('o',false))}
    ${kp('Überschuss',eur0(D.inc-D.out),'Ø '+eur0(avg('v'))+'/Monat',arr('v',true))}${kp('Sparquote',q==null?'–':q+' %','vom Einkommen behalten')}</div>
