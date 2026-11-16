@@ -137,6 +137,7 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
       delete S.cats[n];delete S.budgets[n];delete S.bg[n];if(catB==n)catB=S.accts[0].n;refreshA();save();setView='accts';render()})}
   document.querySelectorAll('.budin').forEach(i=>i.onchange=()=>{S.budgets[i.dataset.b]=parseFloat(i.value)||0;save()});
   document.querySelectorAll('#catSeg button').forEach(b=>b.onclick=()=>{catB=b.dataset.f;pickI=-1;render()});
+  document.querySelectorAll('[data-fixcat]').forEach(b=>b.onchange=()=>{S.fixCat=S.fixCat||{};S.fixCat[b.dataset.fixcat]=b.checked;save();render()});document.querySelectorAll('[data-normx]').forEach(b=>b.onclick=()=>{delete (S.normCat||{})[b.dataset.normx];save();render()});
   document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{pickI=pickI==+b.dataset.pick?-1:+b.dataset.pick;icq='';render()});
   {const iq=$('icq');if(iq)iq.oninput=()=>{icq=iq.value;const pos=iq.selectionStart;render();const n=$('icq');if(n){n.focus();n.setSelectionRange(pos,pos)}}}
   document.querySelectorAll('[data-ik]').forEach(b=>b.onclick=()=>{cats(catB)[pickI][1]=b.dataset.ik;pickI=-1;save();render()});
