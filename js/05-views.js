@@ -886,13 +886,13 @@ function viewGeld(){if(posView)return posHtml();
    +depotHtml()+toolBar(['ng','ru','pension'])}
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */
-  const big=wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Anstehend':wishV=='Monat'?'Monatswechsel':'Nächste 6 Monate';
-  const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Ziele','Ziele',act],['Wünsche','Wünsche',open.length],['Fixkosten','Anstehend'],['Zukunft','Zukunft'],['Monat','Monat',(S.closeDone||{})[pkey(period(closeTarget()))]?'':'!']]}});
+  const big=wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Fixkosten':wishV=='Monat'?'Monatswechsel':'Nächste 6 Monate';
+  const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Ziele','Ziele',act],['Wünsche','Wünsche',open.length],['Fixkosten','Fixkosten'],['Zukunft','Zukunft'],['Monat','Monat',(S.closeDone||{})[pkey(period(closeTarget()))]?'':'!']]}});
   if(wishV=='Ziele'){/* v234: Schuldenfrei als eigener Abschnitt in Ziele – Tilgen ist ein Ziel mit Enddatum */const D=(S.debts||[]).filter(d=>!d.done);
    const zseg=`<div class="seg" id="zielV">${[['Liste','Liste'],['Zeit','Zeitachse']].map(([v,l])=>`<button class="${zielV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;if(zielV=='Zeit')return head+zseg+viewYplan(true)+toolBar(['proj']);
    return head+zseg+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
-  if(wishV=='Monat')return head+viewClose(true);
-  if(wishV=='Fixkosten')return head+samCards()+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
+  if(wishV=='Monat')return head+samCards()+viewClose(true);/* v361: Vorgemerktes steht unter Monat, nicht unter Fixkosten */
+  if(wishV=='Fixkosten')return head+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
   if(wishV=='Zukunft')return head+`<div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
 `;
   const wseg=`<div class="seg" id="wishS">${[['Offen','Offen'],['Verzicht','Verzicht'],['Journal','Journal']].map(([v,l])=>`<button class="${wishS==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;

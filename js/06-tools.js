@@ -1128,7 +1128,7 @@ function samCardH(e){const p=samPv(e.sam.pid),est=samEst(e),miss=!e.sam.inv&&Dat
   const st=e.sam.inv?['Rechnung da','']:miss?['Rechnung fehlt','warn']:['sammelt',''];
   return `<button class="samc" data-samp="${e.id}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('bolt',15)} ${esc(p?p.n:'Laden')} · ${samMon(e.sam.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
    <div class="samc-v">${eur(e.a)}</div><div class="samc-s">${c} Ladung${c==1?'':'en'}${k?' · '+samKF(k)+' kWh':''} · Abbuchung ${isPlan(e)?'ca. ':''}${samDM(e.t)}${ref?' · Ø '+eur0(ref):''}${e.sam.inv&&Math.abs(e.a-est)>=.01?' · Differenz '+(e.a>est?'+':'−')+eur(Math.abs(e.a-est)):''}</div></button>`}
-/* Reiter Planen › Fixkosten: offene Sammelposten */
+/* Reiter Planen › Monat: offene Sammelposten und Vorgemerktes */
 function samCards(){const V=vmItems(),K=kkItems(),SL=samP().length?samL().filter(e=>isPlan(e)||!e.sam.inv):[],lade=samP().length||RX().some(x=>x.kwh>0);
   const hd=`<div class="sh"><span>Vorgemerkt</span><span style="display:flex;gap:14px">${lade?'<button class="link" data-set="lade">Ladeübersicht</button>':''}${samP().length||kkP().length?'<button class="link" data-set="sam">Sammelabrechnungen</button>':''}</span></div>`;
   if(!SL.length&&!V.length&&!K.length)return samP().length||kkP().length?`<div class="sec">${hd}<div class="note">Gerade nichts vorgemerkt.</div></div>`:lade?`<div class="sec">${hd}</div>`:'';
