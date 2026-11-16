@@ -287,7 +287,8 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Über die Fixkosten-Grenze hinaus: keine Sperre, rote Warnung und Knopf „Trotzdem einzahlen“.
 - Zukunftsdatum = geplante Einzahlung, erscheint in der Prognose. Toast mit Rückgängig, Penny reagiert.
 
-## 15. Vereinfachung nach dem Produkt-Audit (14.11.) – erst nach dem Baustopp (ab 29.11.) entscheiden
+## 15. Vereinfachung nach dem Produkt-Audit (14.11.) – Baustopp am 16.11. aufgehoben, in Arbeit
+Umgesetzt: „Sofort danach“ komplett (v363), Geld-Reiter → Vermögen + Konten auf Heute (v364/v365). iPhone-Leiste bleibt wie sie ist (Entscheidung 16.11.). Streichliste: vorerst nicht anfassen. Ziele+Wünsche: Daten umbauen mit Sicherung. „Plan ändern“: neu bauen, alte Ansichten bleiben vorerst.
 
 Grundlage: Audit vom 14.11. und Auswertung unter Einstellungen › Nutzung & Baustopp.
 Leitlinie: Das Datenmodell (Eingang · Ausgeben · Sparen · Vermögen) stimmt, die Oberfläche zeigt vieles doppelt.
@@ -319,14 +320,14 @@ Leitlinie: Das Datenmodell (Eingang · Ausgeben · Sparen · Vermögen) stimmt, 
 
 **Bleibt ausdrücklich:** Wechselgeld, Einkaufszettel, Belege, Penny, Puffer ≠ Sinking Funds, Vermögen mit getrennten Konten.
 
-## 16. Penny schlauer – Rest nach dem Baustopp (Konzept: claude/konzept-penny-antworten.md)
+## 16. Penny schlauer (umgesetzt in v362, Testset in claude/penny-pruefprompt.md)
 Bugfix-Teil umgesetzt in v346 (Werkzeug `auffaelligkeiten`, Fixkosten-Erkennung `fixLike`, Prompt-Regeln). Freigegeben am 15.11., umsetzen ab 29.11.:
 - Schalter „Fixkosten“ je Kategorie, automatisch vorbelegt (Miete, Versicherungen …), änderbar.
 - Chip „Ist normal“ an KI-Auffälligkeiten → gilt für Hinweise und KI.
 - „Penny weiß“: selbst gepflegte Kurznotizen unter Einstellungen › Penny-KI, gehen als Kontext mit.
 - Testset mit 10 Fragen über penny-pruefprompt.md.
 
-## 17. Planen › Anstehend: Vorgemerktes von Fixkosten trennen – erst nach dem Baustopp (ab 29.11.)
+## 17. Planen › Anstehend: Vorgemerktes von Fixkosten trennen (umgesetzt in v361)
 Wunsch vom 16.11. Der Tab heißt seit v360 „Anstehend“ (vorher „Fixkosten“), sonst ist alles gleich geblieben.
 - Problem: Oben im Tab stehen vorgemerkte Einmalbuchungen (Pizza, Amazon, Wechselgeld), darunter die wiederkehrenden Fixkosten. Das sind zwei verschiedene Dinge.
 - Entschieden (16.11.): „Vorgemerkt“ (`samCards()`) kommt in den Tab „Monat“, unter Fixkosten stehen nur wiederkehrende Posten. Dann kann der Tab auch wieder „Fixkosten“ heißen.
