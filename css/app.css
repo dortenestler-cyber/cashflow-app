@@ -489,7 +489,7 @@ body.vf #asstRoot{bottom:calc(env(safe-area-inset-bottom,0px) + 134px)}
 @media (min-width:700px){
  .lsplit{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px 24px;align-items:start}
  .lside{position:sticky;top:calc(var(--shh,120px) + 12px);max-height:calc(100vh - var(--shh,120px) - 24px);overflow-y:auto;display:flex;flex-direction:column;gap:16px;overscroll-behavior:contain}
- .lside>*{margin:0!important}
+ .lside>*{margin:0!important;flex-shrink:0}
  body.mm .lside>.mmsum.strip{margin:0!important;width:auto!important;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
  .lsplit .days{columns:auto!important;min-width:0}
  .lsplit .days>*{margin-bottom:16px}
