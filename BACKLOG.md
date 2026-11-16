@@ -333,17 +333,17 @@ Wunsch vom 16.11. Der Tab heißt seit v360 „Anstehend“ (vorher „Fixkosten�
 - Entschieden (16.11.): „Vorgemerkt“ (`samCards()`) kommt in den Tab „Monat“, unter Fixkosten stehen nur wiederkehrende Posten. Dann kann der Tab auch wieder „Fixkosten“ heißen.
 - Zu klären: Was passiert mit den Links Ladeübersicht und Sammelabrechnungen (ziehen mit nach „Monat“?).
 
-## 18. Review 16.11.: Umbuchungen, Vorlagen, Fehlertoleranz (freigegeben 16.11.)
+## 18. Review 16.11.: Umbuchungen, Vorlagen, Fehlertoleranz (umgesetzt in v373–v380)
 Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absicherungen und Aufräumarbeiten; neue Knöpfe ersetzen bestehende Wege (siehe je Punkt).
-1. Vorlage mit Unterdeckung bucht nicht still ins Minus, sondern wird vorgemerkt („nicht gedeckt“).
-2. Verpasste Zeiträume nachholen (bis 3 zurück, nicht vor `S.since`).
-3. Ausgabe in Spar-/Budget-Kategorie: Hinweis „Als Umbuchung buchen“ (ersetzt die Beispielbuchung „Monatsverteilung“ als Ausgabe).
-4. Vorlage: „Diesen Monat aussetzen“ (nutzt `r.skip`, ersetzt den Umweg Buchung löschen).
-5. Zoom-Sperre im Viewport entfernen, Eingaben mind. 16 px.
-6. Einheitliches Löschmuster (zweimal tippen + Rückgängig), Konto löschen mit Rückgängig.
-7. Rückblick: Ausgaben getrennt von „Gespart/verschoben“.
-8. Eigene neutrale Farbe für Umbuchungen (`--tr`, ⇄).
-9. Vorlage: Vorschau der nächsten 3 Termine mit Kontostand danach.
-10. Belegfotos aus localStorage nach IndexedDB.
-11. Speichern bündeln (250 ms, beim Verlassen sofort); große Module später laden.
-12. PIN: PBKDF2 + Wartezeit nach 5 Fehlversuchen.
+1. Vorlage mit Unterdeckung bucht nicht still ins Minus, sondern wird vorgemerkt („nicht gedeckt“). (v374; Hinweis bei Penny mit „Trotzdem buchen“ / „Diesmal aussetzen“, Schalter „Auch ohne Deckung buchen“ in v376)
+2. Verpasste Zeiträume nachholen (bis 3 zurück, nicht vor `S.since`). (v374; nur Vorlagen, die beim letzten Lauf schon da waren – nichts Gelöschtes kommt rückwirkend zurück)
+3. Ausgabe in Spar-/Budget-Kategorie: Hinweis „Als Umbuchung buchen“ (ersetzt die Beispielbuchung „Monatsverteilung“ als Ausgabe). (v375)
+4. Vorlage: „Diesen Monat aussetzen“ (nutzt `r.skip`, ersetzt den Umweg Buchung löschen). (v376, je Termin „Aussetzen“ in der Vorschau)
+5. Zoom-Sperre im Viewport entfernen, Eingaben mind. 16 px. (v377; nur `user-scalable=no` entfernt, `maximum-scale=1` bleibt gegen das Auto-Zoomen von iOS)
+6. Einheitliches Löschmuster (zweimal tippen + Rückgängig), Konto löschen mit Rückgängig. (v377; Archiv-Zuordnungen löschen ebenfalls zweimal tippen + Rückgängig)
+7. Rückblick: Ausgaben getrennt von „Gespart/verschoben“. (v378, Zeile „Umgebucht, keine Ausgabe“, auch im Textbericht)
+8. Eigene neutrale Farbe für Umbuchungen (`--tr`, ⇄). (v377)
+9. Vorlage: Vorschau der nächsten 3 Termine mit Kontostand danach. (v376)
+10. Belegfotos aus localStorage nach IndexedDB. – war schon so: Belege liegen in IndexedDB (`cf-docs`), in der Buchung nur ein kleines Vorschaubild. Nichts geändert.
+11. Speichern bündeln (250 ms, beim Verlassen sofort); große Module später laden. – Bündeln umgesetzt (v379). Später laden der großen Module bewusst nicht umgesetzt: die Dateien teilen sich einen Namensraum, das Risiko ist größer als der Gewinn (Ladezeit lokal 0,55 s).
+12. PIN: PBKDF2 + Wartezeit nach 5 Fehlversuchen. (v380; alte PINs werden beim nächsten Entsperren umgestellt)
