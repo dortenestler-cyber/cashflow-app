@@ -654,6 +654,7 @@ body.navving #asstRoot .abub{transform:none!important}
 #asstRoot .aq-pill .aq-mic{background:none!important;width:36px;height:36px}
 #asstRoot .apop-f{padding:0 0 8px}
 @media (min-width:900px){#asstRoot{left:96px!important;right:auto!important;width:420px;bottom:24px!important}#asstRoot .apop{left:96px!important;right:auto!important;width:480px!important;bottom:16px!important;border-radius:24px!important}.adim{display:none}}
+/* v349: Penny rechts neben der Seitenleiste (76px + Innenabstand = 101px), sonst verdeckt */@media (min-width:1000px) and (max-width:1279.98px){#asstRoot{left:124px!important}}
 
 /* v115: geschlossen wieder kleine Bubble in Größe des Plus-Knopfs */
 #asstRoot{right:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 66px)!important}
