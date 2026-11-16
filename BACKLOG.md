@@ -287,8 +287,8 @@ Supabase bleibt im kostenlosen Kontingent. Anthropic-Guthaben wird vorab aufgela
 - Über die Fixkosten-Grenze hinaus: keine Sperre, rote Warnung und Knopf „Trotzdem einzahlen“.
 - Zukunftsdatum = geplante Einzahlung, erscheint in der Prognose. Toast mit Rückgängig, Penny reagiert.
 
-## 15. Vereinfachung nach dem Produkt-Audit (14.11.) – Baustopp am 16.11. aufgehoben, in Arbeit
-Umgesetzt: „Sofort danach“ komplett (v363), Geld-Reiter → Vermögen + Konten auf Heute (v364/v365). iPhone-Leiste bleibt wie sie ist (Entscheidung 16.11.). Streichliste: vorerst nicht anfassen. Ziele+Wünsche: Daten umbauen mit Sicherung. „Plan ändern“: neu bauen, alte Ansichten bleiben vorerst.
+## 15. Vereinfachung nach dem Produkt-Audit (14.11.) – umgesetzt in v363–v372 (16.11.)
+Umgesetzt: „Sofort danach“ (v363), Geld → Vermögen + Konten auf Heute (v365), Penny schlichter (v366), Monatsritual (v367), Impulse (v368), Fixkosten + Verträge (v369), Ziele & Wünsche (v371, Sicherung `dodo4_vor_v371`), „Plan ändern“ (v372). „Meine Regeln“ waren schon nur in den Einstellungen. Offen: alte Ansichten Simulator/Jahresplaner/Monats-Ausnahmen entfernen, wenn „Plan ändern“ sich bewährt; Streichliste nach Zählerstand. iPhone-Leiste bleibt wie sie ist (Entscheidung 16.11.). Streichliste: vorerst nicht anfassen. Ziele+Wünsche: Daten umbauen mit Sicherung. „Plan ändern“: neu bauen, alte Ansichten bleiben vorerst.
 
 Grundlage: Audit vom 14.11. und Auswertung unter Einstellungen › Nutzung & Baustopp.
 Leitlinie: Das Datenmodell (Eingang · Ausgeben · Sparen · Vermögen) stimmt, die Oberfläche zeigt vieles doppelt.
