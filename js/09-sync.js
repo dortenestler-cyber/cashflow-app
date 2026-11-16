@@ -375,14 +375,16 @@ async function syRefresh(){const r=await fetch(SY.url.replace(/\/$/,'')+'/auth/v
   const j=await r.json().catch(()=>({}));if(!r.ok){if(r.status==400||r.status==401){SY.refresh=null;SY.access=null;sySave();throw new Error('Sitzung abgelaufen. Bitte neu anmelden.')}throw new Error('Keine Verbindung zu Supabase ('+r.status+'). Später erneut versuchen.')}await syAuthSet(j)}
 async function syGet(){const r=await syFetch('/rest/v1/cashflow?select=*&user_id=eq.'+SY.uid);if(!r.ok)throw new Error('Laden fehlgeschlagen ('+r.status+'). Ist die Tabelle angelegt?');const a=await r.json();return a[0]||null}
 setTimeout(()=>{try{syMarkKeys()}catch(e){}},0);
-function syBase(st){syIds(st);const b={};COLS.forEach(c=>b[c]=cGet(st,c).map(x=>x&&x.id).filter(Boolean));return b}
+/* v348: Basis merkt sich je Eintrag und je Schlüssel einen Prüfwert – beim Zusammenführen gewinnt die Seite, die seit dem letzten gemeinsamen Stand wirklich geändert hat */
+const syH=v=>{let j;try{j=JSON.stringify(v)}catch(e){j=''}return sh32(j||'')},syTH=(st,k)=>syH(k=='shop'?Object.assign({},st.shop,{items:0}):st[k]);
+function syBase(st){syIds(st);const b={},ih={},th={};COLS.forEach(c=>{b[c]=[];ih[c]={};cGet(st,c).forEach(x=>{if(x&&x.id){b[c].push(x.id);ih[c][x.id]=syH(x)}})});SYTOP(st).forEach(k=>th[k]=syTH(st,k));b._ih=ih;b._th=th;return b}
 function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.stringify((loc._m||0)>=(rem._m||0)?loc:rem)),locNew=(loc._m||0)>=(rem._m||0);
   const lk=loc._km||{},rk=rem._km||{},km={};new Set([...SYTOP(loc),...SYTOP(rem)]).forEach(k=>{const lt=lk[k]||0,rt=rk[k]||0;
     if(!(k in rem)){out[k]=JSON.parse(JSON.stringify(loc[k]));km[k]=lt;return}if(!(k in loc)){out[k]=JSON.parse(JSON.stringify(rem[k]));km[k]=rt;return}
-    const useL=lt!=rt?lt>rt:locNew;out[k]=JSON.parse(JSON.stringify(useL?loc[k]:rem[k]));km[k]=Math.max(lt,rt)});out._km=km;
-  COLS.forEach(c=>{const L=cGet(loc,c),Rm=cGet(rem,c),B=new Set((base&&base[c])||[]),lm=new Map(L.filter(x=>x&&x.id).map(x=>[x.id,x])),rm=new Map(Rm.filter(x=>x&&x.id).map(x=>[x.id,x])),res=[];
+    const bh=base&&base._th?base._th[k]:undefined;const useL=bh!==undefined&&syTH(loc,k)===bh?false:bh!==undefined&&syTH(rem,k)===bh?true:lt!=rt?lt>rt:locNew;out[k]=JSON.parse(JSON.stringify(useL?loc[k]:rem[k]));km[k]=Math.max(lt,rt)});out._km=km;
+  COLS.forEach(c=>{const L=cGet(loc,c),Rm=cGet(rem,c),B=new Set((base&&base[c])||[]),IH=(base&&base._ih&&base._ih[c])||{},lm=new Map(L.filter(x=>x&&x.id).map(x=>[x.id,x])),rm=new Map(Rm.filter(x=>x&&x.id).map(x=>[x.id,x])),res=[];
     const ids=[...new Set([...L.map(x=>x&&x.id),...Rm.map(x=>x&&x.id)])].filter(Boolean);
-    ids.forEach(id=>{const a=lm.get(id),r=rm.get(id);if(a&&r)res.push(locNew?a:r);else if(a){if(!B.has(id))res.push(a)}else if(r){if(!B.has(id))res.push(r)}});
+    ids.forEach(id=>{const a=lm.get(id),r=rm.get(id);if(a&&r){const bh=IH[id];res.push(bh===undefined?(locNew?a:r):syH(a)===bh?r:syH(r)===bh?a:(locNew?a:r))}else if(a){if(!B.has(id))res.push(a)}else if(r){if(!B.has(id))res.push(r)}});
     [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));cSet(out,c,res)});
   try{syDepRu(out,locNew?rem:loc)}catch(e){}
   try{syAccBase(out,loc,rem)}catch(e){}
