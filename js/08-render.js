@@ -453,6 +453,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
     try{localStorage.setItem('dodo4',JSON.stringify(S));syDirty()}catch(e){if(rec.img){delete rec.img;save();}}
     close();render();if(!E.id&&rec.type=='out'&&isGro(rec))setTimeout(()=>shopRecon([rec]),500);{const d=new Date(rec.t),td=d.toDateString()==new Date().toDateString(),fu=d>new Date();tell((E.id?'Geändert: ':fu?'Geplant: ':rec.type=='tr'?'Umgebucht: ':'Gebucht: ')+eur(a)+(rec.c?' · '+rec.c:'')+' · '+(td?'heute':d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+'.'),()=>restore(sn))}}}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#bkUrge')){$('sheetRoot').innerHTML='';openUrge()}});
+document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('#pcOpen,[data-pc]');if(g)openPlanChange(g.dataset.pc)});
 document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-gosetup]');if(g){e.preventDefault();$('sheetRoot').innerHTML='';prevTab=tab;tab='more';setView='setup';curB=null;render()}});
 /* v363: ein Knopf zum Buchen – tippen = Buchung, lang drücken = Sprache (ersetzt schwebendes Plus und Mikro-Knopf) */
 {let lpT=null,lpDone=false;const lpEnd=()=>{clearTimeout(lpT);lpT=null};

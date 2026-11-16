@@ -537,6 +537,36 @@ function bindSim(){if(!$('simTop'))return;
   document.querySelectorAll('[data-sl]').forEach(b=>b.onclick=()=>{const x=S.simScen[+b.dataset.sl];simInit();Object.assign(SIM.b,x.b||{});Object.keys(x.r||{}).forEach(k=>{if(k in SIM.r)SIM.r[k]=x.r[k]});SIM.inc=x.inc||null;render();tell('Szenario „'+x.n+'“ geladen – noch nicht übernommen.')});
   document.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{S.simScen.splice(+b.dataset.sx,1);save();render()})}
 
+/* v372: „Plan ändern“ – ein Dialog für Budget oder Sparrate: nur in einem Monat oder ab einem Monat, Vorschau aus dem Simulator. Simulator, Jahresplaner und Monats-Ausnahmen bleiben vorerst. */
+function openPlanChange(pre){const pa=pufAcc();if(!pa){tell('Lege zuerst unter Einstellungen › Konten ein Eingangskonto fest.');return}
+  const B=simBud(),R=simSav(pa),opts=[...B.map(b=>['b:'+b,'Budget '+(SHORT[b]||b)]),...R.map(r=>['r:'+r.id,'Sparrate '+(r.n||'')+' → '+(SHORT[r.to]||r.to)])];if(!opts.length){tell('Keine Budgets oder Sparraten gefunden.');return}
+  const st={k:pre&&opts.some(o=>o[0]==pre)?pre:opts[0][0],how:'ab',mo:1,v:null};
+  const base=(k,mo)=>{const P=period(mo),[t,id]=[k.slice(0,1),k.slice(2)];if(t=='b')return budFor(id,P);const x=(S.rec||[]).find(q=>q.id==id);return x?recA(x,P):0};
+  const prev=()=>{if(st.v==null||st.mo<1)return '';const sv=SIM;try{simInit(st.mo);const[t,id]=[st.k.slice(0,1),st.k.slice(2)];if(t=='b')SIM.b[id]=st.v;else SIM.r[id]=st.v;if(st.how=='ab'){/* ab Monat X: Vorschau zeigt den ersten betroffenen Monat */}const c=simCalc(SIM),e1=c.sm.L[c.mi].E,lab=period(st.mo).label,n0=c.m1c.inn-c.m1c.out,n1=c.m1.inn-c.m1.out,sg=v=>(v<0?'−':'+')+eur0(Math.abs(v));
+      return `<div class="note">Vorschau ${esc(lab)}: Plus im Monat <b style="color:${n1<0?'var(--bad)':'var(--ok)'}">${sg(n1)}</b> statt ${sg(n0)} · Puffer am Monatsende ${eur0(e1)}${e1<0?' · <b style="color:var(--bad)">ins Minus</b>':e1<1000?' · unter 1.000 €':''}</div>`}catch(e){return ''}finally{SIM=sv}};
+  const draw=()=>{const cur=base(st.k,Math.max(st.mo,0)),mos=[...Array(13).keys()];
+    $('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Plan ändern"><div class="sheet-h"><button id="pcX">Abbrechen</button><b>Plan ändern</b><button id="pcOk" style="font-weight:600">Übernehmen</button></div><div class="sheet-b">
+     <div class="group"><div class="cell plain"><label for="pcK">Was</label><select id="pcK" style="margin-left:auto;max-width:60%">${opts.map(([k,l])=>`<option value="${esc(k)}" ${st.k==k?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+      <div class="cell plain"><label for="pcV">Neuer Betrag</label><input id="pcV" inputmode="decimal" placeholder="${String(Math.round(cur*100)/100).replace('.',',')}" value="${st.v!=null?String(st.v).replace('.',','):''}" style="max-width:110px;text-align:right;margin-left:auto"><span>€</span></div></div>
+     <div class="seg" id="pcHow" style="margin-top:10px"><button class="${st.how=='ab'?'on':''}" data-v="ab">Ab Monat</button><button class="${st.how=='nur'?'on':''}" data-v="nur">Nur in einem Monat</button></div>
+     <div class="group" style="margin-top:8px"><div class="cell plain"><label for="pcMo">${st.how=='ab'?'Gilt ab':'Gilt nur im'}</label><select id="pcMo" style="margin-left:auto">${mos.map(o=>`<option value="${o}" ${st.mo==o?'selected':''}>${o==0?(st.how=='ab'?'sofort':'laufenden Monat'):period(o).label}</option>`).join('')}</select></div></div>
+     <div class="note">Bisher: ${eur(cur)}${st.how=='ab'?' · danach gilt der neue Betrag dauerhaft':' · danach gilt automatisch wieder der normale Betrag'}.</div>${prev()}
+     ${S.planNext&&st.how=='ab'&&st.mo>=1&&S.planNext.pk!=pkey(period(st.mo))?`<div class="tip">${I('alert',14)} Schon vorgemerkt ab ${esc(S.planNext.label||'')}. Übernehmen ersetzt diese Vormerkung.</div>`:''}
+     <div class="choices" style="margin-top:10px"><button id="pcSim">Im Simulator weiterrechnen</button></div></div></div>`;
+    $('scrim').onclick=$('pcX').onclick=()=>{$('sheetRoot').innerHTML=''};
+    $('pcK').onchange=()=>{st.k=$('pcK').value;st.v=null;draw()};$('pcMo').onchange=()=>{st.mo=+$('pcMo').value;draw()};
+    $('pcV').onchange=()=>{const v=$('pcV').value.trim();st.v=v?Math.max(0,Math.round((pNum(v)||0)*100)/100):null;draw()};
+    document.querySelectorAll('#pcHow button').forEach(b=>b.onclick=()=>{st.how=b.dataset.v;draw()});
+    $('pcSim').onclick=()=>{$('sheetRoot').innerHTML='';SIM=null;setView=null;curB=null;tab='wish';wishV='Zukunft';zukV='Sim';render();scrollTo(0,0)};
+    $('pcOk').onclick=()=>{if(st.v==null){tell('Bitte einen neuen Betrag eingeben.');return}const[t,id]=[st.k.slice(0,1),st.k.slice(2)],ch={b:{},r:{}};(t=='b'?ch.b:ch.r)[id]=st.v;
+      const snap0=JSON.stringify({b:S.budgets,rec:S.rec,pn:S.planNext||null,ov:S.monthOv||null}),undo=()=>{const o=JSON.parse(snap0);S.budgets=o.b;S.rec=o.rec;if(o.pn)S.planNext=o.pn;else delete S.planNext;if(o.ov)S.monthOv=o.ov;else delete S.monthOv;save();render()};
+      const lab=period(st.mo).label,nm=opts.find(o=>o[0]==st.k)[1];
+      if(st.how=='ab'&&st.mo==0){simApplyNow(ch.b,ch.r,null);tell(nm+': ab sofort '+eur(st.v)+'.',undo)}
+      else if(st.how=='ab'){const pk=pkey(period(st.mo)),o=S.planNext&&S.planNext.pk==pk?S.planNext:{pk,label:lab,b:{},r:{}};Object.assign(o.b,ch.b);Object.assign(o.r,ch.r);S.planNext=o;tell(nm+': ab '+lab+' '+eur(st.v)+'.',undo)}
+      else{if(t=='b')simAlloc(pa,id).forEach(x=>{ch.r[x.id]=st.v});const pk=pkey(period(st.mo));S.monthOv=S.monthOv||{};const p0=S.monthOv[pk]||{label:lab,b:{},r:{}};S.monthOv[pk]={label:lab,b:Object.assign({},p0.b,ch.b),r:Object.assign({},p0.r,ch.r)};tell(nm+': nur im '+lab+' '+eur(st.v)+'.',undo)}
+      save();$('sheetRoot').innerHTML='';SIM=null;render()}};
+  draw()}
+
 /* ---------- Prognose: alle Konten, Budgets und Vermögen im Verlauf (eine Quelle: fcRec/recA, budFor, fcOne, posVal) ---------- */
 let fcOff={},fcVault=false,fcMo=6;
 function fcAccModel({N,M,E0,x0,avg3,pa}){const lab=['jetzt',...Array.from({length:N},(_,k)=>period(k+1).s.toLocaleDateString('de-DE',{month:'short'}).replace('.',''))];
@@ -885,7 +915,7 @@ function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offe
    return head+flow+wait0+zseg+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
   if(wishV=='Monat')return head+samCards()+viewClose(true);/* v361: Vorgemerktes steht unter Monat, nicht unter Fixkosten */
   if(wishV=='Fixkosten')return head+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
-  if(wishV=='Zukunft')return head+`<div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
+  if(wishV=='Zukunft')return head+`<button class="btn soft" id="pcOpen" style="display:flex;justify-content:center;gap:6px;align-items:center;margin-bottom:10px">${I('pen',16)} Plan ändern</button><div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
 `;
   /* v368: Wünsche = Wartezeit und Kaufcheck vorne; Journal, Verzicht, Muster stehen unter Rückblick › Impulse */
   return head+`<div class="jbtns"><button class="btn" id="jUrge" style="display:flex;justify-content:center;gap:6px;align-items:center;background:var(--bad)">${I('alert',18)}Kaufcheck: Ich habe gerade einen Kaufimpuls</button></div><div class="anchor">${I('lock',16)}<span>${ANCHOR}</span></div><div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine offenen Wünsche. Neue Wünsche kommen zuerst für 14 Tage hierher.</div>'}</div>
