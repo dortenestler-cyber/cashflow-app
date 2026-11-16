@@ -332,3 +332,18 @@ Wunsch vom 16.11. Der Tab heißt seit v360 „Anstehend“ (vorher „Fixkosten�
 - Problem: Oben im Tab stehen vorgemerkte Einmalbuchungen (Pizza, Amazon, Wechselgeld), darunter die wiederkehrenden Fixkosten. Das sind zwei verschiedene Dinge.
 - Entschieden (16.11.): „Vorgemerkt“ (`samCards()`) kommt in den Tab „Monat“, unter Fixkosten stehen nur wiederkehrende Posten. Dann kann der Tab auch wieder „Fixkosten“ heißen.
 - Zu klären: Was passiert mit den Links Ladeübersicht und Sammelabrechnungen (ziehen mit nach „Monat“?).
+
+## 18. Review 16.11.: Umbuchungen, Vorlagen, Fehlertoleranz (freigegeben 16.11.)
+Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absicherungen und Aufräumarbeiten; neue Knöpfe ersetzen bestehende Wege (siehe je Punkt).
+1. Vorlage mit Unterdeckung bucht nicht still ins Minus, sondern wird vorgemerkt („nicht gedeckt“).
+2. Verpasste Zeiträume nachholen (bis 3 zurück, nicht vor `S.since`).
+3. Ausgabe in Spar-/Budget-Kategorie: Hinweis „Als Umbuchung buchen“ (ersetzt die Beispielbuchung „Monatsverteilung“ als Ausgabe).
+4. Vorlage: „Diesen Monat aussetzen“ (nutzt `r.skip`, ersetzt den Umweg Buchung löschen).
+5. Zoom-Sperre im Viewport entfernen, Eingaben mind. 16 px.
+6. Einheitliches Löschmuster (zweimal tippen + Rückgängig), Konto löschen mit Rückgängig.
+7. Rückblick: Ausgaben getrennt von „Gespart/verschoben“.
+8. Eigene neutrale Farbe für Umbuchungen (`--tr`, ⇄).
+9. Vorlage: Vorschau der nächsten 3 Termine mit Kontostand danach.
+10. Belegfotos aus localStorage nach IndexedDB.
+11. Speichern bündeln (250 ms, beim Verlassen sofort); große Module später laden.
+12. PIN: PBKDF2 + Wartezeit nach 5 Fehlversuchen.
