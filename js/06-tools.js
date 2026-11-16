@@ -1129,8 +1129,35 @@ function samCardH(e){const p=samPv(e.sam.pid),est=samEst(e),miss=!e.sam.inv&&Dat
   return `<button class="samc" data-samp="${e.id}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('bolt',15)} ${esc(p?p.n:'Laden')} · ${samMon(e.sam.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
    <div class="samc-v">${eur(e.a)}</div><div class="samc-s">${c} Ladung${c==1?'':'en'}${k?' · '+samKF(k)+' kWh':''} · Abbuchung ${isPlan(e)?'ca. ':''}${samDM(e.t)}${ref?' · Ø '+eur0(ref):''}${e.sam.inv&&Math.abs(e.a-est)>=.01?' · Differenz '+(e.a>est?'+':'−')+eur(Math.abs(e.a-est)):''}</div></button>`}
 /* Reiter Planen › Fixkosten: offene Sammelposten */
-function samCards(){if(!samP().length)return RX().some(x=>x.kwh>0)?`<div class="sec"><div class="sh"><span>Laden</span><button class="link" data-set="lade">Ladeübersicht</button></div></div>`:'';const L=samL().filter(e=>isPlan(e)||!e.sam.inv).sort((a,b)=>a.t-b.t);
-  return `<div class="sec"><div class="sh"><span>Sammelabrechnungen</span><span style="display:flex;gap:14px"><button class="link" data-set="lade">Ladeübersicht</button><button class="link" data-set="sam">Alle</button></span></div>${L.length?L.map(samCardH).join(''):`<div class="note">Gerade nichts vorgemerkt.</div>`}</div>`}
+function samCards(){const V=vmItems(),SL=samP().length?samL().filter(e=>isPlan(e)||!e.sam.inv):[],lade=samP().length||RX().some(x=>x.kwh>0);
+  const hd=`<div class="sh"><span>Vorgemerkt</span><span style="display:flex;gap:14px">${lade?'<button class="link" data-set="lade">Ladeübersicht</button>':''}${samP().length?'<button class="link" data-set="sam">Sammelabrechnungen</button>':''}</span></div>`;
+  if(!SL.length&&!V.length)return samP().length?`<div class="sec">${hd}<div class="note">Gerade nichts vorgemerkt.</div></div>`:lade?`<div class="sec">${hd}</div>`:'';
+  const L=[...SL.map(e=>({t:e.t,h:samCardH(e)})),...V.map(x=>({t:x.t,h:vmCardH(x)}))].sort((a,b)=>a.t-b.t);
+  return `<div class="sec">${hd}<div class="vmgrid">${L.map(x=>x.h).join('')}</div></div>`}
+/* v357: Vorgemerkte Buchungen als Karten – einmalig geplante Buchungen und seltene Fixkosten (alle 2+ Monate) der nächsten 60 Tage. Füllbalken = Countdown. */
+const VM_D=60;
+const vmDays=t=>{const a=new Date(t),b=new Date();a.setHours(12,0,0,0);b.setHours(12,0,0,0);return Math.round((a-b)/864e5)};
+const VM_R={2:'alle 2 Monate',3:'vierteljährlich',6:'halbjährlich',12:'jährlich'};
+function vmItems(){const n=Date.now(),to=n+VM_D*864e5;
+  const A=(S.exp||[]).filter(e=>isPlan(e)&&!e.sam&&!e.rid&&!e.tpl&&e.t<=to&&!WH(e.b)).map(e=>Object.assign({},e,{k:'one'}));
+  const R=recVirt(n,to).map(v=>{const r=(S.rec||[]).find(x=>x.id==v.rid);return r&&(r.every||1)>1&&!WH(v.b)?Object.assign({},v,{k:'rec',ev:r.every}):null}).filter(Boolean);
+  return A.concat(R).sort((a,b)=>a.t-b.t)}
+const vmIsCard=(r,pl)=>pl?!r.rid&&!r.sam:(r.every||1)>1;
+function vmSt(t,est){const d=vmDays(t);if(est&&d<=7)return['Betrag prüfen','warn'];return[d<=0?'heute':d==1?'morgen':d<=7?'in '+d+' Tagen':'geplant',d<=7?'soon':'']}
+function vmCardH(x){const d=vmDays(x.t),f=Math.max(.08,Math.min(1,1-d/VM_D)),st=vmSt(x.t,x.est),tr=x.type=='tr';
+  const sub=[tr?esc(SHORT[x.b]||x.b)+' → '+esc(SHORT[x.to]||x.to):esc(SHORT[x.b]||x.b),'fällig '+samDM(x.t),x.k=='rec'?VM_R[x.ev]||'':'',x.est?'Betrag geschätzt':''].filter(Boolean).join(' · ');
+  return `<button class="samc" data-vm="${esc(x.id)}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span><span class="vm-ic">${tr?I('swap',15):icoOf(x.b,x.c)}</span> ${esc(x.n||x.c||'Umbuchung')} · ${samMon(samYm(x.t))}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
+   <div class="samc-v">${x.est?'ca. ':''}${x.type=='in'?'+':tr?'':'−'}${eur(x.a)}</div><div class="samc-s">${sub}</div></button>`}
+const vmChip=(r,pl,t)=>{if(!vmIsCard(r,pl))return '';const st=vmSt(t,pl&&r.est);return ` <span class="samc-t ${st[1]}" style="margin-left:4px">${st[0]}</span>`};
+document.addEventListener('click',ev=>{const g=ev.target.closest&&ev.target.closest('[data-vm]');if(!g)return;const id=g.dataset.vm;if(id.startsWith('v_'))openVirt(id);else{const e=S.exp.find(x=>x.id==id);if(e)openSheet(e)}});
+TIPFN.vmOpen=id=>{if(String(id).startsWith('v_'))return openVirt(id);const e=S.exp.find(x=>x.id==id);if(e)openSheet(e)};
+/* Buchungsmaske: Schalter „Betrag geschätzt“ bei Zukunftsdatum */
+function vmEstH(){if(E.rep||E.rid||E.sam||!((E.dt&&E.dt>today())||E.est))return '';return `<div class="group"><div class="cell plain"><label for="eest">Betrag geschätzt</label><span style="flex:1"></span><input id="eest" type="checkbox" class="switch" ${E.est?'checked':''}></div>${E.est?`<div class="cell plain" style="padding-top:0"><span class="s" style="font-size:12px;color:var(--muted)">Zählt am Fälligkeitstag wie eingetragen. Danach erinnert dich Penny, den echten Betrag einzutragen.</span></div>`:''}</div>`}
+/* Penny: geschätzten Betrag nach Fälligkeit prüfen · Fehlbetrag auf dem Bankkonto 7 Tage vorher */
+function vmTips(t){const n=Date.now();
+  (S.exp||[]).forEach(e=>{if(!e.est||e.sam||isPlan(e)||n-e.t>21*864e5)return;t.push({sev:'warn',btns:[{l:'Betrag eintragen',fn:'vmOpen',arg:e.id}],ttl:'Betrag prüfen: '+(e.n||e.c||'Buchung'),txt:`Am ${samDM(e.t)} mit ca. ${eur(e.a)} gebucht. Stimmt der Betrag? Trag den echten ein, dann passt dein Stand.`})});
+  const seen={};vmItems().forEach(x=>{if(x.type=='in'||vmDays(x.t)>7||seen[x.b]||!isK(x.b))return;try{let v=balAt(x.b,n);expV(n,x.t+1).forEach(e=>{if(e.t<=n||e.t>x.t)return;if((e.type=='in'&&e.b==x.b)||(e.type=='tr'&&e.to==x.b))v+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==x.b)v-=e.a});
+    if(v<0){seen[x.b]=1;t.push({sev:'warn',btns:[{l:'Ansehen',fn:'vmOpen',arg:x.id}],ttl:`${SHORT[x.b]||x.b}: ${eur(-v)} fehlen bis ${samDM(x.t)}`,txt:`${esc(x.n||x.c||'Buchung')} ${eur(x.a)} am ${samDM(x.t)}. Mit allen Buchungen bis dahin fehlen auf ${esc(SHORT[x.b]||x.b)} ${eur(-v)}. Plane eine Umbuchung.`})}}catch(e){}})}
 /* v329: Ladeübersicht – Kosten, kWh und Preis pro kWh je Monat (letzte 12 Monate) */
 function ladeView(){const n=new Date(),ms=[];for(let i=11;i>=0;i--){const d=new Date(n.getFullYear(),n.getMonth()-i,1);ms.push({s:d.getTime(),e:new Date(d.getFullYear(),d.getMonth()+1,1).getTime(),l:d.toLocaleDateString('de-DE',{month:'short'}),ll:d.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}
   const lab=ms.map((m,i)=>({i,t:m.l})).filter((x,i)=>i%2==0||i==ms.length-1),U=ladeUnits(ms[0].s,ms[11].e),f3=v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:3});
