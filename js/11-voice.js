@@ -136,7 +136,7 @@ function ladeToSam(L,pid){const sn=JSON.stringify({exp:S.exp,sam:S.sam||[]});let
   if(!p){const last=S.exp.filter(e=>e.kwh>0&&e.type=='out').sort((a,b)=>b.t-a.t)[0];p={id:uid(),n:(L.brand?L.brand.replace(/\b\w/g,c=>c.toUpperCase()):'Laden').slice(0,40),b:last?last.b:(S.lastAcc||ALL[0]),c:last?last.c:'Laden',day:20};samP().push(p)}
   let n=0,dup=0;L.it.forEach(x=>{const ex=samL().some(e=>e.sam.pid==p.id&&e.sam.it.some(z=>Math.abs(z.t-x.t)<864e5&&Math.abs(z.a-x.a)<.01&&Math.abs((z.kwh||0)-x.kwh)<.01));if(ex){dup++;return}samAdd(p.id,x);n++});
   S.samLast=p.id;save();render();
-  tell(n?`${n} Ladung${n==1?'':'en'} bei ${esc(p.n)} vorgemerkt, zusammen <b>${eur(L.it.reduce((s,x)=>s+x.a,0))}</b>.${dup?' '+dup+' waren schon drin.':''}`:'Diese Ladungen sind schon vorgemerkt.',n?()=>{const o=JSON.parse(sn);S.exp=o.exp;S.sam=o.sam;save();render()}:null)}
+  tell(n?`${n} Ladung${n==1?'':'en'} bei ${esc(p.n)} vorgemerkt, zusammen ${eur(L.it.reduce((s,x)=>s+x.a,0))}.${dup?' '+dup+' waren schon drin.':''}`:'Diese Ladungen sind schon vorgemerkt.',n?()=>{const o=JSON.parse(sn);S.exp=o.exp;S.sam=o.sam;save();render()}:null)}
 function ladeAsk(L,orig){const k=L.it.reduce((s,x)=>s+x.kwh,0),a=L.it.reduce((s,x)=>s+x.a,0),P=samP(),A=[];
   if(L.pid)A.push(['Zur Sammelabrechnung '+samPv(L.pid).n,()=>ladeToSam(L,L.pid)]);
   P.filter(p=>p.id!=L.pid).forEach(p=>A.push([(L.pid?'Lieber zu ':'Zur Sammelabrechnung ')+p.n,()=>ladeToSam(L,p.id)]));
