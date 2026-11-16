@@ -853,7 +853,7 @@ function notBoughtHtml(){const nb=[...S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s
    <div class="gsub" style="color:inherit;opacity:.85">Das sind ${std(gespartV())}${bought.length?` · ${bought.length} bewusst gekauft`:''}</div></div>
   <div class="group">${nb.map(x=>`<div class="cell plain"><div class="t"><div>${esc(x.n)}</div><div class="s">${fd(x.t)} · ${x.k}${x.g?' · '+esc(x.g):''}</div>${x.w?`<div class="s">„${esc(x.w)}“</div>`:''}</div><div class="v" style="color:var(--ok)">${eur(x.p)}</div><button class="ed-ic" data-nbx="${x.key}" aria-label="Eintrag löschen" style="color:var(--bad)">${I('trash',16)}</button></div>`).join('')||'<div class="empty">Noch nichts verworfen.</div>'}</div>
   ${Object.keys(bySt).length?`<div class="note">Verzichtet nach Gefühl: ${Object.entries(bySt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>esc(k)+' '+eur0(v)).join(' · ')}</div>`:''}</div>`}
-let wishV='Ziele',zukV='Prog',zielV='Liste',wishS='Offen';
+let wishV='Monat',zukV='Prog',zielV='Liste',wishS='Offen';
 const GEF=['neutral','gestresst','gelangweilt','Belohnung','traurig','euphorisch'],TRIG=['Instagram','TikTok','Newsletter','Werbung','Freunde','Im Laden','Scrollen','Bedarf','Sonstiges'];
 const tod=t=>{const h=new Date(t).getHours();return h<11?'Morgens':h<15?'Mittags':h<19?'Nachmittags':h<23?'Abends':'Nachts'};
 function wishRow(w,i){const left=w.t+wait(w.p)-Date.now(),d=Math.ceil(left/864e5),pc=Math.min(1,1-left/wait(w.p));
@@ -875,7 +875,7 @@ function viewGeld(){if(posView)return posHtml();
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */
   const big=wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Fixkosten':wishV=='Monat'?'Monatswechsel':'Nächste 6 Monate';
-  const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Ziele','Ziele',act],['Wünsche','Wünsche',open.length],['Fixkosten','Fixkosten'],['Zukunft','Zukunft'],['Monat','Monat',(S.closeDone||{})[pkey(period(closeTarget()))]?'':'!']]}});
+  const head=appbar({title:'Planen',big,left:wishV=='Wünsche'?`<button class="ab-ic" id="wishNew" aria-label="Neuer Wunsch">${I('plus',22)}</button>`:'',tabs:{id:'wishV',cur:wishV,items:[['Monat','Monat',(S.closeDone||{})[pkey(period(closeTarget()))]?'':'!'],['Fixkosten','Fixkosten'],['Zukunft','Zukunft'],['Ziele','Ziele',act],['Wünsche','Wünsche',open.length]]/* v365: nach Wichtigkeit, links das Wichtigste */}});
   if(wishV=='Ziele'){/* v234: Schuldenfrei als eigener Abschnitt in Ziele – Tilgen ist ein Ziel mit Enddatum */const D=(S.debts||[]).filter(d=>!d.done);
    const zseg=`<div class="seg" id="zielV">${[['Liste','Liste'],['Zeit','Zeitachse']].map(([v,l])=>`<button class="${zielV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`;if(zielV=='Zeit')return head+zseg+viewYplan(true)+toolBar(['proj']);
    return head+zseg+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
