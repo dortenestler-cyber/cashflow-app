@@ -1,0 +1,14 @@
+()=>{const o=[];const tb=document.querySelector('.tabbar');const tr=tb.getBoundingClientRect();const vis=e=>{const s=getComputedStyle(e);if(s.visibility=='hidden'||s.display=='none'||+s.opacity==0)return false;const r=e.getBoundingClientRect();return r.width>2&&r.height>2&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth};
+const de=document.documentElement;if(de.scrollWidth>innerWidth+1||document.body.scrollWidth>document.body.clientWidth+1)o.push('H-OVERFLOW doc '+de.scrollWidth+' body '+document.body.scrollWidth+'/'+innerWidth);
+const v=document.querySelector('#app .view')||document.querySelector('.view');if(!v){o.push('NO VIEW');return o}
+if(/Fehler beim|is not defined|undefined|NaN/.test(v.innerText.slice(0,20000))){const m=v.innerText.match(/.{0,40}(Fehler beim|is not defined|undefined|NaN).{0,40}/);o.push('TEXT '+(m&&m[0]))}
+// covered by sidebar / clipped left
+const sideRight=tr.width<innerWidth*0.5&&tr.height>innerHeight*0.8?tr.right:0;
+const cand=[...v.querySelectorAll('button,a,input,select,textarea,h1,h2,.mmcard,.card,.kpi')].filter(vis);
+for(const e of cand){const r=e.getBoundingClientRect();if(sideRight&&r.left<sideRight-1){o.push('UNDER-SIDEBAR '+(e.className||e.tagName)+' L'+Math.round(r.left));break}if(r.right>innerWidth+1){o.push('OFF-RIGHT '+(e.className||e.tagName).toString().slice(0,40)+' R'+Math.round(r.right));break}}
+// interactive elements covered by something else at their center
+let cov=0;for(const e of cand.filter(e=>/BUTTON|A|INPUT|SELECT/.test(e.tagName)).slice(0,300)){const r=e.getBoundingClientRect();const x=r.left+r.width/2,y=r.top+r.height/2;if(y<0||y>innerHeight||x<0||x>innerWidth)continue;const h=document.elementFromPoint(x,y);if(h&&!e.contains(h)&&!h.contains(e)){const hb=h.closest('#asstRoot,.tabbar,.stickhead,.lthead,#fab,#vfab,.sheet');if(hb&&!hb.contains(e)){cov++;if(cov<=2)o.push('COVERED '+(e.textContent||e.getAttribute('aria-label')||e.className).trim().slice(0,30)+' by '+(hb.id||hb.className).toString().slice(0,30))}}}
+// clipped content in scroll containers / flex children
+for(const e of v.querySelectorAll('*')){const s=getComputedStyle(e);if(!vis(e))continue;if(/auto|scroll/.test(s.overflowY)&&s.maxHeight!='none'){for(const c of e.children){const cs=getComputedStyle(c);if(cs.overflow!='visible'&&c.scrollHeight>c.clientHeight+3&&!/auto|scroll/.test(cs.overflowY)){o.push('SQUASHED '+c.className+' in '+e.className+' '+c.clientHeight+'/'+c.scrollHeight);break}}}
+ if(s.position=='sticky'&&s.overflowY=='visible'){const r=e.getBoundingClientRect();if(r.height>innerHeight-40&&!e.matches('.stickhead,.lthead'))o.push('STICKY-TALLER-THAN-VIEW '+e.className+' h'+Math.round(r.height))}}
+return o}
