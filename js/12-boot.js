@@ -32,9 +32,14 @@ async function bioCheck(){const b=bioGet();if(!b)return false;const r=await navi
   if(!r||!r.response||!r.response.authenticatorData)return false;const f=new Uint8Array(r.response.authenticatorData)[32];return !!(f&4)}
 let hidAt=0;document.addEventListener('visibilitychange',()=>{const bioQuiet=window.__bioRun||Date.now()-(window.__bioOkAt||0)<5000;if(document.visibilityState==='hidden'){hidAt=bioQuiet?0:Date.now()}else if(hidAt&&!bioQuiet&&pinActive()&&!$('lockRoot').innerHTML){const m=S.lockAfter==null?5:S.lockAfter;if(m>=0&&Date.now()-hidAt>=m*6e4)lock()}});
 const PINK='cf_pin';function pinGet(){try{return JSON.parse(localStorage.getItem(PINK)||'null')}catch(e){return null}}
+/* v380: PIN mit PBKDF2 (150.000 Runden) statt einfachem SHA-256; alte Hashes werden beim nächsten richtigen Entsperren umgestellt. Nach 5 Fehlversuchen Wartezeit (30 s, dann doppelt). */
+async function pinHash2(v,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(v),'PBKDF2',false,['deriveBits']);const b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:150000,hash:'SHA-256'},km,256);return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+const PINF='cf_pinfail',pinFail=()=>{try{return JSON.parse(localStorage.getItem(PINF))||{n:0,u:0}}catch(e){return{n:0,u:0}}},pinWait=()=>Math.max(0,Math.ceil((pinFail().u-Date.now())/1000));
+function pinFailed(){const f=pinFail();f.n++;if(f.n>=5)f.u=Date.now()+30000*Math.pow(2,Math.min(f.n-5,6));try{localStorage.setItem(PINF,JSON.stringify(f))}catch(e){}}
 async function pinHash(v,salt){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'|'+v));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function pinSet(v){if(!v){try{localStorage.removeItem(PINK)}catch(e){}S.pin='';save();return}const salt=Array.from(crypto.getRandomValues(new Uint8Array(12))).map(x=>x.toString(16).padStart(2,'0')).join('');try{localStorage.setItem(PINK,JSON.stringify({s:salt,h:await pinHash(v,salt)}))}catch(e){}S.pin='';save()}
-async function pinOk(v){const p=pinGet();if(p)return (await pinHash(v,p.s))===p.h;return !!S.pin&&S.pin!=='set'&&v===S.pin}
+async function pinSet(v){if(!v){try{localStorage.removeItem(PINK)}catch(e){}S.pin='';save();return}const salt=Array.from(crypto.getRandomValues(new Uint8Array(12))).map(x=>x.toString(16).padStart(2,'0')).join('');try{localStorage.setItem(PINK,JSON.stringify({s:salt,h:await pinHash2(v,salt),k:2}))}catch(e){}S.pin='';save()}
+async function pinOk(v){const p=pinGet();let ok;if(p){ok=p.k==2?(await pinHash2(v,p.s))===p.h:(await pinHash(v,p.s))===p.h;if(ok&&p.k!=2)await pinSet(v)}else ok=!!S.pin&&S.pin!=='set'&&v===S.pin;
+  if(ok){try{localStorage.removeItem(PINF)}catch(e){}}else pinFailed();return ok}
 const pinActive=()=>!!pinGet()||(!!S.pin&&S.pin!=='set');
 (async()=>{if(S.pin&&S.pin!=='set'&&!pinGet()){await pinSet(S.pin)}})();
 const IOSDEV=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
@@ -51,7 +56,7 @@ function lock(){if(window.SHOPM||!pinActive())return;if($('lockRoot').innerHTML)
     pad=()=>`<div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>k?`<button data-k="${k}">${k=='⌫'?I('backspace',24):k}</button>`:'<span></span>').join('')}</div>`,
     dots=()=>`<div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div>`;
   const press=k=>{v=k=='⌫'?v.slice(0,-1):(v+k).slice(0,4);
-    if(v.length==4){const tryV=v;pinOk(tryV).then(ok=>{if(ok){$('lockRoot').innerHTML='';notifFlush();return}v='';draw('Falsche PIN')});return}draw()};window.__lockKey=press;
+    if(v.length==4){const w=pinWait();if(w){v='';draw('Zu viele Versuche. Bitte '+w+' s warten.');return}const tryV=v;pinOk(tryV).then(ok=>{if(ok){$('lockRoot').innerHTML='';notifFlush();return}v='';const w2=pinWait();draw(w2?'Falsche PIN. Bitte '+w2+' s warten.':'Falsche PIN')});return}draw()};window.__lockKey=press;
   const draw=(msg)=>{$('lockRoot').innerHTML=win?`<div class="lock lk-win lk-dep">${lockHi()}${pn()}<div class="lk-name">CashFlow</div>
   <div class="lk-pin${msg?' err':''}" role="textbox" aria-label="PIN">${v.length?dots():'<span>PIN</span>'}</div><div class="note" style="min-height:18px;margin-top:-14px;color:var(--bad)">${msg||''}</div>
   ${showPad?pad():''}<div class="lk-opt"><span>Anmeldeoptionen</span><div>${hasBio?`<button id="bioGo" title="Mit ${bioName()} entsperren" aria-label="Mit ${bioName()} entsperren">${I('face',22)}</button>`:''}<button id="padGo" class="${showPad?'on':''}" title="Ziffernblock" aria-label="Ziffernblock">${I('grid',20)}</button></div></div></div>`
