@@ -329,5 +329,5 @@ Bugfix-Teil umgesetzt in v346 (Werkzeug `auffaelligkeiten`, Fixkosten-Erkennung 
 ## 17. Planen › Anstehend: Vorgemerktes von Fixkosten trennen – erst nach dem Baustopp (ab 29.11.)
 Wunsch vom 16.11. Der Tab heißt seit v360 „Anstehend“ (vorher „Fixkosten“), sonst ist alles gleich geblieben.
 - Problem: Oben im Tab stehen vorgemerkte Einmalbuchungen (Pizza, Amazon, Wechselgeld), darunter die wiederkehrenden Fixkosten. Das sind zwei verschiedene Dinge.
-- Idee: „Vorgemerkt“ (`samCards()`) kommt nach „Zukunft“ oder „Monat“, unter Fixkosten stehen nur wiederkehrende Posten. Dann kann der Tab auch wieder „Fixkosten“ heißen.
-- Zu klären: wohin mit „Vorgemerkt“, und was passiert mit den Links Ladeübersicht und Sammelabrechnungen.
+- Entschieden (16.11.): „Vorgemerkt“ (`samCards()`) kommt in den Tab „Monat“, unter Fixkosten stehen nur wiederkehrende Posten. Dann kann der Tab auch wieder „Fixkosten“ heißen.
+- Zu klären: Was passiert mit den Links Ladeübersicht und Sammelabrechnungen (ziehen mit nach „Monat“?).
