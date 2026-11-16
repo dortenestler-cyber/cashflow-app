@@ -36,7 +36,7 @@ function parseCSV(t){t=t.replace(/^﻿/,'');const first=t.split(/\r?\n/)[0]||'',
     if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
     else if(c=='"')q=true;else if(c==d){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);f='';if(r.some(x=>x.trim()))rows.push(r);r=[]}else f+=c}
   r.push(f);if(r.some(x=>x.trim()))rows.push(r);return{d,rows}}
-const pNum=s=>{s=String(s||'').replace(/[€\s]|EUR/gi,'');if(!s)return NaN;if(/,\d{1,2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(/,/g,'');return parseFloat(s)};
+const pNum=s=>{s=String(s||'').replace(/[€\s]|EUR/gi,'');if(!s)return NaN;if(/,\d{1,2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');else s=s.replace(/,/g,'');return parseFloat(s)};
 /* v330: kWh – Komma ist immer Dezimaltrenner (39,696 kWh), Punkt nur als Tausender bei 1.234 */
 const kNum=s=>{s=String(s||'').replace(/\s|kwh/gi,'');if(!s)return NaN;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');return parseFloat(s)};
 function pDate(s){s=String(s||'').trim();let m;

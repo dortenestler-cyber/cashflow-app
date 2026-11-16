@@ -435,7 +435,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
   $('ok').onclick=()=>{keep();if(!E.id&&!evalAmt(E.amt)&&/\d/.test(E.n||'')){qpSafe(E.n);if(evalAmt(E.amt)){drawSheet();$('ok').click();return}}const a=Math.round(evalAmt(E.amt)*100)/100;
     if(E.type!='in'&&isTabu(E.b)){$('eerr').textContent=E.b+' ist tabu. Wähle ein anderes Konto.';return}
     if(E.type=='tr'&&isLock(E.to)&&!E.id&&!E.ovr){if(!a){$('eerr').textContent='Bitte zuerst den Betrag eingeben.';return}openOverride(a,()=>{drawSheet();$('ok').click()});return}
-    if(!a){$('eerr').textContent='Bitte einen Betrag über das Tastenfeld eingeben.';setKb(true);return}
+    if(!a){$('eerr').textContent='Bitte einen Betrag über das Tastenfeld eingeben.';setKb(true);return}if(a<0){$('eerr').textContent='Der Betrag ist negativ. Bitte die Rechnung prüfen.';setKb(true);return}
     if(E.type!='tr'&&!E.c){$('eerr').textContent='Bitte eine Kategorie antippen.';return}
     const[yy,mm,dd]=E.dt.split('-').map(Number),t=E.dt==today()?(E.id&&ymd(E.t)==today()?E.t:Date.now()):new Date(yy,mm-1,dd,12).getTime();
     if(E.sam&&E.type=='out'&&!E.id&&(isCharge(E)||E.kwh)&&samSave(a,t,close))return;
