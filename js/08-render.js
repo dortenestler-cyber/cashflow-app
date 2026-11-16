@@ -450,11 +450,12 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
 $('fab').onclick=()=>openSheet();document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#bkUrge')){$('sheetRoot').innerHTML='';openUrge()}});
 document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-gosetup]');if(g){e.preventDefault();$('sheetRoot').innerHTML='';prevTab=tab;tab='more';setView='setup';curB=null;render()}});
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tbNew,#tbPlus'))openSheet()});
-function kbHelp(){showAnswer('Tastatur',`<div class="vhelp kbh">${[['N','Neue Buchung'],['1 – 6','Übersicht, Buchungen, Kalender, Auswertung, Impulse, Einstellungen'],['← →','Monat zurück / vor'],['/','Suchen in Buchungen'],['Esc','Fenster schließen, zurück'],['[ ]','Budget-Karte wechseln (Übersicht)'],['?','Diese Hilfe']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}
+function kbHelp(){showAnswer('Tastatur',`<div class="vhelp kbh">${[['N','Neue Buchung'],['1 – 9','Reiter der Seitenleiste von oben nach unten'],['← →','Monat zurück / vor'],['/','Suchen in Buchungen'],['Esc','Fenster schließen, zurück'],['[ ]','Budget-Karte wechseln (Übersicht)'],['?','Diese Hilfe']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}
   <b>In der Buchung</b>${[['0–9 , ⌫','Betrag tippen'],['+ − × ÷ =','Rechnen'],['Buchstaben','springt ins Notizfeld (z. B. „rewe 25“)'],['Tab','durch Kategorien und Felder'],['Enter','Sichern'],['A / E / U','Ausgabe, Einnahme, Umbuchung (mit Alt)']].map(([k,v])=>`<span><kbd>${k}</kbd> ${v}</span>`).join('')}</div>`)}
 document.addEventListener('keydown',e=>{if($('lockRoot')&&$('lockRoot').innerHTML){const k=/^[0-9]$/.test(e.key)?e.key:e.key=='Backspace'?'⌫':null;if(k){e.preventDefault();if(window.__lockKey)window.__lockKey(k)}return}
   const tgt=e.target,inField=tgt.matches&&tgt.matches('input,textarea,select,[contenteditable]'),sheet=$('sheetRoot').innerHTML,entry=!!document.querySelector('#sheetRoot .sheet[aria-label="Buchung"]');
   if(e.key=='Escape'&&inField&&sheet&&tgt.value){tgt.blur();return}
+  if(e.key=='Escape'&&inField&&!sheet&&!asstOpen){tgt.blur();return}
   if(e.key=='Escape'){if(asstOpen){asstOpen=false;renderAsst();return}if(sheet){$('sheetRoot').innerHTML='';renderAsst();return}if(setView&&$('setBack')){$('setBack').click();return}if(curB&&$('back')){$('back').click();return}if(drill&&$('drBack')){$('drBack').click();return}return}
   if(entry){if(e.key=='Enter'&&tgt.tagName=='BUTTON'&&!(e.metaKey||e.ctrlKey))return;if(e.key=='Enter'&&(e.metaKey||e.ctrlKey||!inField||!['enote','epNew','ecq'].includes(tgt.id))){if(tgt.tagName=='TEXTAREA'&&!(e.metaKey||e.ctrlKey))return;if(['enote','epNew','ecq'].includes(tgt.id))return;e.preventDefault();$('ok')&&$('ok').click();return}
     if(e.altKey&&!inField){const m={a:'out',e:'in',u:'tr'}[e.key.toLowerCase()];if(m){e.preventDefault();E.type=m;E.pick=null;drawSheet();return}}
@@ -467,7 +468,7 @@ document.addEventListener('keydown',e=>{if($('lockRoot')&&$('lockRoot').innerHTM
   if(!matchMedia('(min-width:1000px)').matches&&!/^[?]$/.test(e.key))return;
   if(e.key=='n'||e.key=='N'){e.preventDefault();openSheet();return}
   if(e.key=='?'){e.preventDefault();kbHelp();return}
-  const T=['dash','list','cal','rep','wish','more'];if(/^[1-6]$/.test(e.key)){e.preventDefault();tab=T[+e.key-1];setView=null;curB=null;drill=null;if(off>0)off=0;render();scrollTo(0,0);return}
+  /* v352: Zifferntasten folgen den sichtbaren Reitern der Seitenleiste */const T=[...document.querySelectorAll('#tabbar button[data-t]')].filter(b=>b.offsetParent).map(b=>b.dataset.t);if(!T.includes('more'))T.push('more');if(/^[1-9]$/.test(e.key)&&+e.key<=T.length){e.preventDefault();tab=T[+e.key-1];setView=null;curB=null;drill=null;if(off>0)off=0;render();scrollTo(0,0);return}
   if(e.key=='ArrowLeft'&&$('prevM')){e.preventDefault();$('prevM').click();return}if(e.key=='ArrowRight'&&$('nextM')&&!$('nextM').disabled){e.preventDefault();$('nextM').click();return}
   if((e.key=='['||e.key==']')&&$('car')){e.preventDefault();$(e.key=='['?'carP':'carN').click();return}
   if(e.key=='/'){e.preventDefault();tab='list';setView=null;showF=true;render();setTimeout(()=>$('q')&&$('q').focus(),30);return}});
