@@ -26,10 +26,10 @@ const EXTRA=`(()=>{const k=S.accts.find(a=>a.kind=='konto'),bs=S.accts.filter(a=
 const DASH=`(()=>{tab='dash';render();const v=(document.querySelector('#app .view')||document.body).innerText,R=[],B='Konten & Budgets · Heute',P=period(0),T=new Date().setHours(0,0,0,0),left=Math.max(P.left||1,1);
   const after=l=>{const m=v.match(new RegExp(l+'\\\\s*\\\\n\\\\s*([^\\\\n]+)'));return m?m[1].trim():null};
   const sp=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)),tot=sp.reduce((s,b)=>s+calc(b).rest,0);
-  const frei=sp.reduce((s,b)=>{const c=calc(b),td=S.exp.filter(e=>e.type=='out'&&e.b==b&&!e.corr&&e.t>=T&&e.t<=Date.now()&&inP(e,P)).reduce((x,e)=>x+e.a,0),d=Math.max(0,c.rest+td)/left;return s+Math.max(0,d-td)},0);
+  const frei=sp.reduce((s,b)=>{const c=calc(b),td=S.exp.filter(e=>e.type=='out'&&e.b==b&&!e.corr&&e.t>=T&&e.t<=Date.now()&&inP(e,P)).reduce((x,e)=>x+e.a,0),d=Math.max(0,c.rest+td)/left;return s+d-td},0);
   const chk=(regel,ist,soll)=>R.push({bereich:B,regel,ok:ist==soll,msg:ist==soll?'':'angezeigt '+ist+', berechnet '+soll});
-  if(v.includes('Übrig im Monat'))chk('„Übrig im Monat“ = Summe der Budget-Reste',after('Übrig im Monat'),eur0(tot));
-  if(v.includes('Heute noch frei'))chk('„Heute noch frei“ = Summe der Tagesbeträge',(v.match(/Heute noch frei[^\\n]*\\n(?:[^\\n]*Tage?\\n)?\\s*([^\\n]*€)/)||[])[1],eur(frei));
+  if(v.includes('Übrig im Monat'))chk('„Übrig im Monat“ = Summe der Budget-Reste',(v.match(/Übrig im Monat[^\\n]*\\n(?:[^\\n]*Tage?\\n)?\\s*([^\\n]*€)/)||[])[1],eur(tot));
+  if(v.includes('Heute noch frei'))chk('„Heute noch frei“ = Summe der Tagesbeträge',after('Heute noch frei'),eur(frei));
   const miss=sp.filter(b=>!WH(b)&&!v.includes(eur(calc(b).rest))).map(b=>b+' '+eur(calc(b).rest));
   R.push({bereich:B,regel:'Budget-Reste wie berechnet angezeigt',ok:!miss.length,msg:miss.join(' | ')});return R})()`;
 (async()=>{const br=await pw.chromium.launch();let fail=0,warn=0,runs=0;const seen={};

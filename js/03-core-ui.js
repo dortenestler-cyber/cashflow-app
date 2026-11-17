@@ -9,15 +9,16 @@ let carIdx=0;
 /* v363: „Heute noch frei“ = Tagesbudget (Rest zu Tagesbeginn / Resttage) minus heute Ausgegebenes, über alle Ausgabe-Budgets */
 function todayFree(){const P=period(0),T=new Date().setHours(0,0,0,0),left=Math.max(P.left||1,1);
   const B=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)).map(b=>{const c=calc(b),today=S.exp.reduce((s,e)=>s+(e.type=='out'&&e.b==b&&!isPlan(e)&&!e.corr&&e.t>=T&&inP(e,P)?e.a:0),0),day=Math.max(0,c.rest+today)/left;return{b,c,day,today,free:Math.max(0,day-today)}});
-  return{tot:B.reduce((s,x)=>s+x.free,0),B,left}}
+  /* v425: Tagesrest darf negativ werden (rot), damit Überziehen sichtbar ist */
+  return{tot:B.reduce((s,x)=>s+x.day-x.today,0),B,left}}
 function kontoSlide(b,c){return `<div class="slide" data-k="${b}" style="${bgStyle(b)}" role="button" tabindex="0" aria-label="${esc(b)} öffnen">
    <div class="lbl">${esc(b)} <span style="opacity:.7">›</span></div><div class="bal">${WH(b)?MASK:eur(c.rest)}</div><div style="font-size:13px;opacity:.9">Kontostand${acc(b).tot?'':' · nicht im Gesamtbudget'}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">+${eur0(c.inc+c.trI)} rein</span><span class="pill" style="background:rgba(255,255,255,.22)">−${eur0(c.out+c.trO)} raus</span></div>
    <div style="font-size:12px;opacity:.85;margin-top:auto">Diesen Monat</div></div>`}
-function carousel(tot,P){const days=Math.max(P.left||1,1),fm=`${P.s.getDate()}.–${new Date(P.e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
-  /* v299: Anker-Karte = Monatsverlauf + Übrig (eine dunkle Karte statt zwei) */const sl=[`<div class="slide hero2" data-k="Gesamt" role="button" tabindex="0" aria-label="Heute noch frei – Konten öffnen">
-   <div class="lbl">Heute noch frei <span class="lbl-m">noch ${days} ${days==1?'Tag':'Tage'}</span></div><div class="bal">${eurD(todayFree().tot)}</div><div class="mcw" style="color:#fff">${miniCum()}</div>
-   <div class="h2-ft"><div><span>Finanzmonat</span><b>${fm}</b></div><div><span>Übrig im Monat</span><b class="${tot<0?'neg':''}">${eur0(tot)}</b></div></div></div>`,
+function carousel(tot,P){const days=Math.max(P.left||1,1),tf=todayFree().tot,fm=`${P.s.getDate()}.–${new Date(P.e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+  /* v299: Anker-Karte = Monatsverlauf + Übrig (eine dunkle Karte statt zwei) */const sl=[`<div class="slide hero2" data-k="Gesamt" role="button" tabindex="0" aria-label="Übrig im Monat – Konten öffnen">
+   <div class="lbl">Übrig im Monat <span class="lbl-m">noch ${days} ${days==1?'Tag':'Tage'}</span></div><div class="bal ${tot<0?'neg':''}">${eurD(tot)}</div><div class="mcw" style="color:#fff">${miniCum()}</div>
+   <div class="h2-ft"><div><span>Heute noch frei</span><b class="${tf<0?'neg':''}">${eur(tf)}</b></div><div><span>Finanzmonat</span><b>${fm}</b></div></div></div>`,
 ];
   return `<div class="stickhead"><div class="carw"><div class="car" id="car">${sl.join('')}</div><button class="d2-mic d2-shop" id="d2Shop" aria-label="Einkaufszettel" title="Einkaufszettel">${I('cart',24)}${(S.shop&&S.shop.items.length)?`<span class="d2-cnt">${S.shop.items.length}</span>`:''}</button>${sl.length>1?`<button class="carbtn prev" id="carP" aria-label="Vorherige Karte">${I('back',20)}</button><button class="carbtn next" id="carN" aria-label="Nächste Karte">${I('fwd',20)}</button>`:''}</div>${sl.length>1?`<div class="cdots" id="cdots">${sl.map((_,i)=>`<i class="${i==carIdx?'on':''}" data-ci="${i}" title="Karte ${i+1}"></i>`).join('')}</div>`:''}</div>`}
 function openBg(k){const draw=()=>{const x=S.bg[k]||{g:0};$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Hintergrund">
