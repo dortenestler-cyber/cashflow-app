@@ -61,7 +61,7 @@ function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class
   /* v299: eine Designsprache – Titel groß links, runde Knöpfe rechts, Monat als Pille, keine farbigen Kopfkästen mehr */
   const lead=!o.month&&!o.stats&&!o.back&&!o.slim&&o.big&&o.big!=o.title?o.big:'';
   return `<div class="stickhead"><header class="hcard${o.month?' hcm':''}${o.back?' hcb':''}"><div class="hc-row">${o.back?`<button class="hc-ic" id="${o.back}" aria-label="Zurück">${I('back',20)}</button>`:''}<h1 class="hc-t">${o.title}</h1>
-   <div class="hc-r">${o.left||''}${o.right||''}${!o.back&&tab!='more'&&!setView?gearBtn():''}</div></div>
+   <div class="hc-r">${o.left||''}${o.right||''}${(()=>{const k=!o.back&&typeof pnKind=='function'&&pnKind();return k?`<button class="hc-ic hc-pn" data-ptalk="${k}" aria-label="Penny fragen" title="Penny fragen">${I('sparkle',19)}</button>`:''})()}${!o.back&&tab!='more'&&!setView?gearBtn():''}</div></div>
    ${o.sub?`<div class="hc-sub">${o.sub}</div>`:''}${lead?`<div class="hc-lead">${lead}</div>`:''}
    ${o.month?`<div class="hc-month"><button class="hc-ic" id="prevM" aria-label="Voriger Monat">${I('back',18)}</button><b>${period(off).label}</b><button class="hc-ic" id="nextM" aria-label="Nächster Monat" ${off>=((tab=='list'||tab=='cal')?12:0)?'disabled':''}>${I('fwd',18)}</button></div>${off?'<button class="hc-today" id="todayM">Zurück zu heute</button>':''}`:''}
    ${o.stats||''}</header>

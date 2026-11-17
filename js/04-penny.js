@@ -103,7 +103,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='397 (17.11.)';
+const APP_VER='398 (17.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -206,7 +206,7 @@ function pnOpenFx(open){if(!open)return pnReact('bye');const d=new Date().toDate
 document.addEventListener('pointerdown',()=>{pnLast=Date.now();const b=document.body;if(b.dataset.pz){delete b.dataset.pz;pnReact('startle');pnIdle()}},true);document.addEventListener('keydown',()=>{pnLast=Date.now()},true);
 function pnPage(){try{const bv=curB&&BUDG.includes(curB)?['b',curB,0]:tab=='rep'&&!setView&&!curB&&repV!='Vermögen'&&BUDG.includes(repB)?['rep',repB,off]:null,k=curB?null:setView?(setView=='shop'?'shop':setFrom&&setFrom!='more'?null:'more'):isVermV()?'verm':tab=='wish'?'wish:'+wishV:tab,R={dash:'wave',list:'read',cal:'scan',rep:'shine',verm:'tongue','wish:Ziele':'progress','wish:Wünsche':'brow','wish:Fixkosten':'scan','wish:Zukunft':'star',more:'tie',shop:'read'};
   const m=pMood();if(bv){if(m!='gruebelt')pnMood=m;pnBudget(...bv);return}if(m!='gruebelt'){if(pnMood&&m!=pnMood&&(m=='plus'||m=='minus')){pnMood=m;pnReact(m=='plus'?'yay':'sweat');return}pnMood=m}
-  /* v253: Penny begrüßt nur einmal pro Sitzung (erste Seite), danach spricht sie nur bei Ereignissen */if(k&&R[k]&&!PNSEEN.size){PNSEEN.add(k);setTimeout(()=>pnReact(R[k]),350)}}catch(e){}}
+  /* v398: keine inhaltslose Begrüßung mehr – Penny fragen steht oben auf jeder Seite */}catch(e){}}
 /* Penny reagiert auf ein einzelnes Budget: Budgetseite (laufender Monat) und Auswertung je Budget (angezeigter Monat + Trend) */
 const PNBA={ok:'salute',fast:'brow',over:'sweat',far:'facepalm',empty:'shrug',again:'bear',back:'yay',t3o:'bear',t3k:'trophy'};
 function pnBudLv(b,o){const c=calc(b,o),P=c.p;if(!(c.total>0)&&!c.used)return null;const ov=c.used-c.total,isOv=x=>x.total>0&&x.used-x.total>.5;
