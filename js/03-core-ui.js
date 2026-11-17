@@ -206,7 +206,7 @@ function useKey(){const T={dash:'Heute',list:'Buchungen',cal:'Kalender',wish:'Pl
   if(setView=='usage')return null;
   if(setView)return (useTool(setView)?'Werkzeug › ':'Einstellungen › ')+useLab(setView);
   if(curB)return 'Konto-Detail';
-  if(tab=='wish'){let s=wishV;if(wishV=='Wünsche')s+=' › '+wishS;else if(wishV=='Zukunft')s+=' › '+(zukV=='Sim'?'Was wäre, wenn':'Prognose');else if(wishV=='Ziele'&&zielV=='Zeit')s+=' › Zeitachse';return 'Planen › '+s}
+  if(tab=='wish'){let s=wishV;if(wishV=='Wünsche')s+=' › '+wishS;else if(wishV=='Zukunft')s+=' › '+(zukV=='Sim'?'Was wäre, wenn':zukV=='Jahr'?'Jahresplaner':'Prognose');return 'Planen › '+s}
   if(tab=='rep')return 'Rückblick › '+(drill?(drill.k=='year'?'Jahr':'Kategorie im Jahr'):repV);
   if(tab=='geld'&&posView)return 'Geld › Depot-Position';
   return T[tab]||tab}

@@ -1,7 +1,7 @@
 /* ---------- Mehr: Werkzeug-Raster + Einstellungsgruppen ---------- */
 var setParent=null,recF='Alle',setFrom=null;
 const MC={c1:'#6E4BD8',c2:'#22A699',c3:'#F0657A',c4:'#4F6BED',c5:'#D4A23A',c6:'#7A7390'};
-function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
+function moreItems(){const{c1,c2,c3,c4,c5,c6}=MC;return {
  'g:buchen':['Buchen & Kategorien','wallet',c1,[
   ['accts','wallet','Konten',ALL.length+' Konten · '+S.accts.filter(a=>!a.vis).length+' ausgeblendet'],
   ['budgets','gauge','Monatsbudgets',BUDG.map(b=>eur0(S.budgets[b]||0)).join(' · ')],
@@ -21,9 +21,12 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
   ['usage','chart','Nutzung',(()=>{const n=Object.keys(useGet().v).length;return n+' Bereiche genutzt · nur auf diesem Gerät'})()]/* v395: Baustopp am 16.11. aufgehoben */]],
  'g:data':['Daten & Sync','repeat',c6,[
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten'],
-  ['setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})()],
+  ['setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})()]]],
+ /* v408: Papierkram – Belege, Steuer, Export und Archiv an einem Ort; Import steht unter Buchungen */
+ 'g:paper':['Papierkram','receipt',c2,[
+  ['docs','shield','Belege & Gewährleistung','Kassenbons, Rechnungen, Garantien'],
+  ['tax','receipt','Steuer','Steuerrelevantes fürs Jahr sammeln'],
   ['export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel'],
-  ['import','export','Import aus MoneyControl','Backup oder CSV übernehmen'],
   ['archiv','book','Archiv MoneyControl',ARCH?ARCH.rows.length.toLocaleString('de-DE')+' alte Buchungen · nur zur Ansicht':'Alte Buchungen ansehen, ohne Konten zu ändern']]],
  'g:rep':['Berichte','book',c4,[
   ['report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen'],
@@ -39,7 +42,7 @@ function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(closeTarge
  ['close','check','Monats­wechsel',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
  ['docs','shield','Belege & Gewährleistung',c2],['tax','receipt','Steuer',c2],['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||'']]/* v392: Sparkonten nur unter Vermögen, Berichte nur im Rückblick */.filter(t=>featOn(t[0].replace(/^[~]/,'')))}
 /* v232: Werkzeuge stehen in ihrem Reiter statt in Mehr */
-function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.salplan=['salplan','coins','Gehalt verteilen'];M.yearrev=['yearrev','sparkle','Dein Jahr'];
+function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.salplan=['salplan','coins','Gehalt verteilen'];M.import=['import','export','Import'];M.yearrev=['yearrev','sparkle','Dein Jahr'];
   const L=keys.filter(k=>M[k]&&featOn(k));if(!L.length)return '';return `<div class="toolbar">${L.map(k=>{const[,ico,l,,b]=M[k];return `<button class="chip" data-setgo="${k}">${I(ico,14)} ${String(l).replace(/­/g,'')}${b?` <span class="cnt">${b}</span>`:''}</button>`}).join('')}</div>`}
 const moreCell=(k,ico,l,s,c)=>{const act=k[0]=='@',attr=act?`data-act="${k.slice(1)}"`:`data-set="${k}"`;
   if(!act&&!featOn(k))return '';
@@ -47,7 +50,7 @@ const moreCell=(k,ico,l,s,c)=>{const act=k[0]=='@',attr=act?`data-act="${k.slice
 function viewMoreGroup(k){const g=moreItems()[k];if(!g){setView=null;return viewMore()}
   return `${appbar({title:g[0],back:'setBack',noGear:true,slim:true})}<div class="sec"><div class="group">${g[3].map(([kk,ico,l,s])=>moreCell(kk,ico,l,s,g[2])).join('')}</div></div>`}
 function viewMore(){const G=moreItems(),T=moreTools();/* v396: Werkzeug-Raster samt Anpinnen entfernt – Werkzeuge stehen in ihren Reitern */
-  const groups=['g:buchen','g:schutz','g:asst','g:look','g:data'].map(k=>{const g=G[k];return `<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${g[2]} 14%,transparent);color:${g[2]}">${I(g[1])}</div><div class="t"><div>${g[0]}</div><div class="s">${g[3].map(x=>x[2]).slice(0,3).join(', ')}${g[3].length>3?' …':''}</div></div><span class="chev">›</span></button>`}).join('');
+  const groups=['g:buchen','g:paper','g:schutz','g:asst','g:look','g:data'].map(k=>{const g=G[k];return `<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${g[2]} 14%,transparent);color:${g[2]}">${I(g[1])}</div><div class="t"><div>${g[0]}</div><div class="s">${g[3].map(x=>x[2]).slice(0,3).join(', ')}${g[3].length>3?' …':''}</div></div><span class="chev">›</span></button>`}).join('');
   const all=Object.values(G).flatMap(g=>g[3].map(([k,ico,l,s])=>moreCell(k,ico,l,s,g[2]))).join('')+T.map(([k,ico,l,c])=>k=='g:rep'?'':k[0]=='~'?`<button class="cell" data-tabgo="${k.slice(1)}"><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><div class="t"><div>${l}</div></div><span class="chev">›</span></button>`:moreCell(k,ico,l.replace(/­/g,''),'',c)).join('');
   return `${appbar({title:'Einstellungen',noGear:true,slim:true})}<div class="morelist">
   <div class="mhome"><div class="sec"><div class="sh">Einstellungen</div><div class="group">${groups}${moreCell('g:help','book','Hilfe','Sprachbefehle, Tastaturkürzel, Hinweise',MC.c6)}</div></div></div>
