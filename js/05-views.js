@@ -575,7 +575,7 @@ let fcOff={},fcVault=false,fcMo=6;
 function fcAccModel({N,M,E0,x0,avg3,pa}){const lab=['jetzt',...Array.from({length:N},(_,k)=>period(k+1).s.toLocaleDateString('de-DE',{month:'short'}).replace('.',''))];
   const VA=[...new Set(vaultAccs().concat(depAccs()))],rows=[],col=(n,k)=>(acc(n).col||COL[n]||PCOL[k%PCOL.length]),rate=S.fcRate==null?7:S.fcRate,g=r=>Math.pow(1+r/100,1/12);
   // Konten (ohne Vermögen)
-  S.accts.filter(a=>!VA.includes(a.n)).forEach((a,k)=>{const n=a.n;
+  S.accts.filter(a=>!VA.includes(a.n)&&a.rolle!='ruecklage'/* v409: Rücklagen nur Planung */).forEach((a,k)=>{const n=a.n;
     if(pa&&n==pa.n){rows.push({n,kind:'puf',col:col(n,k),vals:[E0,...M.map(m=>m.end)],sub:'Puffer, Überschuss über 1.000 € → Vermögensaufbau'});return}
     if(isK(n)){const o0=fcRec(n,0,true),one=fcOne(a).one||0;let v=calc(n).rest+o0.inn-o0.out;const vals=[v];for(let o=1;o<=N;o++){const r=fcRec(n,o);v+=r.inn-r.out-one;vals.push(v)}
       if(vals.some(x=>Math.abs(x)>0.5)||fcRec(n,1).inn)rows.push({n,kind:'konto',col:col(n,k),vals,sub:one?'inkl. Ø '+eur0(one)+' einmalig/Monat':'geplante Ein- und Ausgänge'});return}
