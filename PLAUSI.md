@@ -3,23 +3,23 @@
 Kurzform für den Chat: **„Führe PLAUSI.md aus.“**
 
 ## Festlegungen (Nutzerin, 17.11.2026)
-- Prüfskript im Repo **und** später Selbsttest in der App (nach „Eins rein, eins raus“, Ersatz noch offen).
-- Testdaten: Musterdaten + Zusatzbuchungen; zusätzlich echter Export, der **nur lokal** bleibt (`.gitignore`).
+- Prüfskript im Repo **und** Selbsttest in der App als Penny-Hinweis (seit v419, nur lesend, einmal pro Datenstand und Tag).
+- Testdaten: Musterdaten + Zusatzbuchungen; echter Export vorerst ausgesetzt (bliebe nur lokal, `.gitignore`).
 - Rechenfehler sofort beheben und pushen, Eintrag in `BUGS.md`.
 - Maßstab: Kontostand laut Bank. Toleranz 1 Cent.
-- Monatsbeginn: Gehaltstag = letzter Werktag des Monats (App kennt nur feste Tage 1–28 → geprüft mit 1, 25, 28).
+- Monatsbeginn: Gehaltstag = letzter Werktag des Monats (Einstellung seit v419; geprüft mit 1, 25, 28 und letztem Werktag).
 - Depot- und Krypto-Live-Kurse ausgeklammert.
 - Läuft bei jedem `./bump.sh` automatisch mit (Kurzlauf).
 - Reihenfolge: 1 Konten & Budgets · 2 Rückblick & Prognose · 3 Vermögen & Depot · 4 Penny.
 
 ## Aufruf
-- `node tools/plausi.js` – alle Szenarien (7 Stichtage × 3 Monatsbeginne)
+- `node tools/plausi.js` – alle Szenarien (7 Stichtage × 4 Monatsbeginne)
 - `node tools/plausi.js --quick` – Kurzlauf (in `bump.sh`)
 - `node tools/plausi.js --data CashFlow-Sicherung-JJJJ-MM-TT.json` – zusätzlich mit echtem Export. Datei nie committen.
 
 Stichtage: Monatsmitte, Monatsende 23:30, Monatsanfang 00:30, 29.02.2028, Zeitumstellung Okt./März, Silvester 23:59 (Europe/Berlin).
 
-## Regeln (`tools/plausi-rules.js`, im Seitenkontext, später auch als Selbsttest nutzbar)
+## Regeln (`plausiRun in js/06-tools.js`, im Seitenkontext, später auch als Selbsttest nutzbar)
 ### 1 Konten & Budgets – umgesetzt
 - Buchungen vollständig: eindeutige ID, Typ, Betrag ≥ 0, Datum, bekanntes Konto/Ziel, Ziel ≠ Quelle
 - Beträge auf Cent genau (Warnung)

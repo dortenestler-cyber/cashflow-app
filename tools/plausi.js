@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /* Plausibilitätsprüfung: lädt die App mit Testdaten unter verschiedenen Stichtagen und Monatsbeginnen
-   und prüft die Regeln aus tools/plausi-rules.js (Toleranz 1 Cent).
+   und prüft die Regeln aus plausiRun in js/06-tools.js (Toleranz 1 Cent).
    node tools/plausi.js            alle Szenarien
    node tools/plausi.js --quick    Kurzlauf (läuft in bump.sh mit)
    node tools/plausi.js --data CashFlow-Sicherung.json   zusätzlich mit echtem Export (bleibt lokal, nie ins Repo!)
    Exit 1 bei Fehlern, Warnungen brechen nicht ab. */
 const fs=require('fs'),path=require('path');
 let pw;try{pw=require('playwright')}catch(e){console.log('Plausi: Playwright fehlt – Prüfung übersprungen.');process.exit(0)}
-const ROOT=path.resolve(__dirname,'..'),URL='file://'+ROOT+'/index.html',RULES=fs.readFileSync(__dirname+'/plausi-rules.js','utf8');
+const ROOT=path.resolve(__dirname,'..'),URL='file://'+ROOT+'/index.html',RULES='';/* Regeln liegen in js/06-tools.js (plausiRun) */
 const A=process.argv.slice(2),quick=A.includes('--quick'),di=A.indexOf('--data'),dataFile=di>=0?A[di+1]:null;
 /* Stichtage: heute, Monatsende/-anfang, Schaltjahr, Zeitumstellung (Europe/Berlin) */
 const DAYS=quick?['2026-11-17T12:00','2026-11-30T23:30']:['2026-11-17T12:00','2026-11-30T23:30','2026-12-01T00:30','2028-02-29T12:00','2026-10-25T02:30','2027-03-28T03:30','2026-12-31T23:59'];
-/* Monatsbeginn: Kalendermonat und Gehaltstag (die App kennt feste Tage 1–28; 25/28 kommen dem letzten Werktag am nächsten) */
-const STARTS=quick?[1,28]:[1,25,28];
+/* Monatsbeginn: Kalendermonat und Gehaltstag und letzter Werktag ('lw', Gehaltstag) */
+const STARTS=quick?[1,'lw']:[1,25,28,'lw'];
 /* zusätzliche Buchungen: Umbuchungen, Centbeträge, Geplantes */
 const EXTRA=`(()=>{const k=S.accts.find(a=>a.kind=='konto'),bs=S.accts.filter(a=>a.kind!='konto'),sf=S.accts.find(a=>isStock(a.n)),T=Date.now(),D=864e5,P=period(0);
   const t=d=>Math.max(P.s.getTime()+36e5,Math.min(T-6e4,T-d*D));
@@ -38,7 +38,7 @@ const DASH=`(()=>{tab='dash';render();const v=(document.querySelector('#app .vie
     await pg.route(/^https?:/,r=>r.abort());
     if(raw)await pg.addInitScript(s=>{if(!sessionStorage.getItem('pl')){sessionStorage.setItem('pl',1);localStorage.setItem('dodo4',s)}},raw);
     await pg.goto(URL);await pg.waitForFunction(()=>typeof S=='object'&&typeof calc=='function');
-    if(!raw){await pg.evaluate(`S.start=${start};S.since=period(-12).s.getTime();S.closed=[];${EXTRA};applyRec();saveNow()`);await pg.reload();await pg.waitForFunction(()=>typeof calc=='function')}
+    if(!raw){await pg.evaluate(`${start=='lw'?'S.startLW=true':'S.start='+start};S.since=period(-12).s.getTime();S.closed=[];${EXTRA};applyRec();saveNow()`);await pg.reload();await pg.waitForFunction(()=>typeof calc=='function')}
     let res;try{res=await pg.evaluate(RULES+'\nplausiRun()')}catch(e){res=[{bereich:'Ablauf',regel:'Prüfung lief durch',ok:false,msg:e.message.split('\n')[0]}]}
     try{res.push(...await pg.evaluate(DASH))}catch(e){res.push({bereich:'Ansichten',regel:'Heute lesbar',ok:false,msg:e.message.split('\n')[0]})}
     if(errs.length)res.push({bereich:'Ablauf',regel:'Keine JS-Fehler',ok:false,msg:errs.slice(0,3).join(' | ')});

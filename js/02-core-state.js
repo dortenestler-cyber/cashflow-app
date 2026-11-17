@@ -40,10 +40,12 @@ function preBakGet(){return bakDB().then(db=>new Promise(res=>{const q=db.transa
 if(S&&RAW0)baseBakEnsure(RAW0);if(S&&RAW0&&(S.schema||0)<SCHEMA){preBakPut(RAW0,S.schema||0);S.schema=SCHEMA;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}
 if(S&&(S.fut||S.futPlan||S.futOff1||(S.featO&&'fut' in S.featO))){delete S.fut;delete S.futPlan;delete S.futOff1;if(S.featO)delete S.featO.fut;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v231: Future-Reiter entfernt, Altdaten aufgeräumt */
 if(S&&S.exp&&S.exp.some(e=>e.sh&&e.sh.by!='me'&&e.a)){S.exp.forEach(e=>{if(e.sh&&e.sh.by!='me')e.a=0});try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v229: Zahlungen anderer belasten kein eigenes Konto */
-function period(off,start){const P=start||S.start;let s=new Date(now.getFullYear(),now.getMonth(),P);if(now.getDate()<P)s=new Date(now.getFullYear(),now.getMonth()-1,P);
-  s=new Date(s.getFullYear(),s.getMonth()+off,P);const e=new Date(s.getFullYear(),s.getMonth()+1,P);
+/* v419: Monatsbeginn – fester Tag (1–28) oder letzter Werktag (Mo–Fr) des Monats, Feiertage zählen als Werktag */
+function mStart(y,m,start){if(!start&&S.startLW){const d=new Date(y,m+1,0);while(d.getDay()==0||d.getDay()==6)d.setDate(d.getDate()-1);return d}return new Date(y,m,start||S.start)}
+function period(off,start){const P=start||S.start,LW=!start&&S.startLW;let s=mStart(now.getFullYear(),now.getMonth(),start);if(now<s)s=mStart(now.getFullYear(),now.getMonth()-1,start);
+  s=mStart(s.getFullYear(),s.getMonth()+off,start);const e=mStart(s.getFullYear(),s.getMonth()+1,start);
   const len=Math.round((e-s)/864e5),idx=off==0?Math.floor((new Date(now.getFullYear(),now.getMonth(),now.getDate())-s)/864e5)+1:off<0?len:0;
-  const label=P==1?s.toLocaleDateString('de-DE',{month:'long',year:'numeric'}):s.toLocaleDateString('de-DE',{day:'numeric',month:'short'})+' – '+new Date(e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+  const label=P==1&&!LW?s.toLocaleDateString('de-DE',{month:'long',year:'numeric'}):s.toLocaleDateString('de-DE',{day:'numeric',month:'short'})+' – '+new Date(e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'});
   return{s,e,len,idx,left:Math.max(len-idx+1,0),label}}
 const pkey=p=>p.s.toISOString().slice(0,10);
 if(!S){S=DEF();S.exp=sample()}

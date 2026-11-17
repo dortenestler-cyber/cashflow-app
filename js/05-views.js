@@ -396,8 +396,8 @@ function cumChart(bs,o,col,kf){const{p,v}=dayVals(bs,o,kf),pr=dayVals(bs,o-1,kf)
 let rpP='Monat',rpFrom='',rpTo='',rpList=true,rpOpen=null;
 function rpDet(R,c){if(rpOpen!=c.type+'|'+c.c)return'';const L=R.L.filter(x=>x.type==c.type&&x.c==c.c).reverse();return L.map(x=>`<tr class="sub"><td>${new Date(x.t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} · ${esc(x.n||x.sc||x.c)}</td><td></td><td class="${c.type=='in'?'in':''}">${eur(x.a)}</td><td></td></tr>`).join('')}
 function rpRange(){const p=period(off);if(rpP=='Monat')return[p.s.getTime(),p.e.getTime(),p.label];
-  if(rpP=='Quartal'){const q=Math.floor(p.s.getMonth()/3),s=new Date(p.s.getFullYear(),q*3,S.start),e=new Date(p.s.getFullYear(),q*3+3,S.start);return[s.getTime(),e.getTime(),`${q+1}. Quartal ${s.getFullYear()}`]}
-  if(rpP=='Jahr'){const s=new Date(p.s.getFullYear(),0,S.start),e=new Date(p.s.getFullYear()+1,0,S.start);return[s.getTime(),e.getTime(),'Jahr '+s.getFullYear()]}
+  if(rpP=='Quartal'){const q=Math.floor(p.s.getMonth()/3),s=mStart(p.s.getFullYear(),q*3),e=mStart(p.s.getFullYear(),q*3+3);return[s.getTime(),e.getTime(),`${q+1}. Quartal ${s.getFullYear()}`]}
+  if(rpP=='Jahr'){const s=mStart(p.s.getFullYear(),0),e=mStart(p.s.getFullYear()+1,0);return[s.getTime(),e.getTime(),'Jahr '+s.getFullYear()]}
   const s=rpFrom?new Date(rpFrom+'T00:00').getTime():p.s.getTime(),e=rpTo?new Date(rpTo+'T00:00').getTime()+864e5:p.e.getTime();return[s,e,new Date(s).toLocaleDateString('de-DE')+' – '+new Date(e-864e5).toLocaleDateString('de-DE')]}
 function reportData(bs){const[s,e,label]=rpRange(),L=RX().filter(x=>x.t>=s&&x.t<e&&(bs.includes(x.b)||bs.includes(x.to))).sort((a,b)=>a.t-b.t);
   const inc=L.filter(x=>x.type=='in').reduce((q,x)=>q+x.a,0),out=L.filter(x=>x.type=='out').reduce((q,x)=>q+x.a,0),cat={};
@@ -430,7 +430,7 @@ let drill=null,yOff=0;
 const MN=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 function monthOff(Y,m){const c=period(0).s;return (Y*12+m)-(c.getFullYear()*12+c.getMonth())}
 function yearHead(Y,title,sub){return `<div><button class="back" id="drBack">‹ Auswertung</button><h1 class="lt" style="font-size:28px">${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div>
-  <div class="ynav"><button id="yPrev" aria-label="Voriges Jahr">‹</button><span><b>${Y}</b> <small>${new Date(Y,0,S.start).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})} – ${new Date(Y+1,0,S.start-1).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</small></span><button id="yNext" aria-label="Nächstes Jahr" ${yOff>=0?'disabled':''}>›</button></div>`}
+  <div class="ynav"><button id="yPrev" aria-label="Voriges Jahr">‹</button><span><b>${Y}</b> <small>${mStart(Y,0).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})} – ${new Date(mStart(Y+1,0)-864e5).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</small></span><button id="yNext" aria-label="Nächstes Jahr" ${yOff>=0?'disabled':''}>›</button></div>`}
 function viewYear(bs){const Y=period(0).s.getFullYear()+yOff,ms=[];
   for(let m=0;m<12;m++){const o=monthOff(Y,m),pp=period(o),fut=o>0,L=fut?[]:RX().filter(e=>inP(e,pp)&&!e.corr&&bs.includes(e.b));
     ms.push({m,o,fut,i:L.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),x:L.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0)})}
