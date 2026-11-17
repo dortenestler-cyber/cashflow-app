@@ -460,7 +460,7 @@ function fcRec(an,o,open){const p=period(o),k=pkey(p);let inn=0,out=0;const item
   (S.rec||[]).forEach(r=>{if(r.paused)return;const d=recDue(r,p);if(!d)return;if(open&&S.exp.some(e=>e.rid==r.id&&e.pk==k))return;
     const ra=recA(r,p);if((r.type=='in'&&r.b==an)||(r.type=='tr'&&r.to==an))inn+=ra;else if((r.type=='out'||r.type=='tr')&&r.b==an){out+=ra;items.push({n:r.n||r.c,a:ra,d,b:an,every:r.every||1,k:recKind(r)})}});
   S.exp.forEach(e=>{if(!isPlan(e)||!inP(e,p)||e.rid)return;if((e.type=='in'&&e.b==an)||(e.type=='tr'&&e.to==an))inn+=e.a;else if(e.b==an&&(e.type=='out'||e.type=='tr')){out+=e.a;items.push({n:e.n||e.c,a:e.a,d:new Date(e.t),b:an,plan:1,k:'plan'})}});
-  if(!open){const rf=refundIn(an,p);if(rf)inn+=rf}
+  if(!open){const rf=refundIn(an,p,o);if(rf)inn+=rf;const pj=projIn(an,p,o);if(pj>0)inn+=pj;else if(pj<0){out+=-pj;items.push({n:'Projekte ausgleichen',a:-pj,d:p.s,b:an,k:'plan'})}}
   return{inn,out,items}}
 /* ---------- Budget-Simulator ---------- */
 /* v242: Ø einmalig nur aus Buchungen ab Stichtag (Standard 01.10.2026, nie vor „Aktiv ab“); angebrochene Monate werden hochgerechnet */
