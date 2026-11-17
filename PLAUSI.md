@@ -3,7 +3,7 @@
 Kurzform für den Chat: **„Führe PLAUSI.md aus.“**
 
 ## Festlegungen (Nutzerin, 17.11.2026)
-- Prüfskript im Repo **und** Selbsttest in der App als Penny-Hinweis (seit v419, nur lesend, einmal pro Datenstand und Tag).
+- Prüfskript im Repo **und** Selbsttest in der App als Penny-Hinweis (seit v419, nur lesend, einmal pro Datenstand und Tag, nur Daten ab 01.10.2026 – Archiv bleibt außen vor).
 - Testdaten: Musterdaten + Zusatzbuchungen; echter Export vorerst ausgesetzt (bliebe nur lokal, `.gitignore`).
 - Rechenfehler sofort beheben und pushen, Eintrag in `BUGS.md`.
 - Maßstab: Kontostand laut Bank. Toleranz 1 Cent.

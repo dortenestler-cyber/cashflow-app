@@ -1422,7 +1422,7 @@ function samSave(a,t,close){let pid=E.sam;if(!samPv(pid)){const nm=((E.samN||'')
   S.samLast=pid;S.lastAcc=E.b;const p=samPv(pid);if(!p.c)p.c=E.c;const sn=snap(),ps=samAdd(pid,{t,a,kwh:kNum(E.kwh)>0?Math.round(kNum(E.kwh)*100)/100:0,n:(E.n||'').toLowerCase().includes(p.n.toLowerCase())?'':E.n});
   save();close();render();tell('Vorgemerkt: '+eur(a)+' · '+p.n+' '+samMon(ps.sam.ym)+' jetzt '+eur(samEst(ps))+'. Abbuchung ca. '+samDM(ps.t)+'.',()=>restore(sn));return true}
 /* v419: Plausibilitätsregeln (Selbsttest). Prüfskript tools/plausi.js ruft plausiRun() auf;
-   in der App läuft plausiRun({readonly:true}) über plausiTip() als Penny-Hinweis (ändert keine Daten).
+   in der App läuft plausiRun({readonly:true,ab}) (nur Daten ab 01.10.2026) über plausiTip() als Penny-Hinweis (ändert keine Daten).
    Ergebnis: [{bereich, regel, ok, warn, msg}]  · Toleranz 1 Cent.
    Bereiche in Prüfreihenfolge: 1 Konten & Budgets · 2 Rückblick & Prognose · 3 Vermögen · 4 Penny.
    Depot- und Krypto-Live-Kurse sind ausgeklammert. */
@@ -1434,15 +1434,15 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
   const accN=new Set(S.accts.map(a=>a.n)),konten=S.accts.filter(a=>a.kind=='konto').map(a=>a.n),
     budgets=S.accts.filter(a=>a.kind!='konto').map(a=>a.n),
     first=(()=>{let o=0;while(o>-36&&period(o-1).s.getTime()>=(S.since||0))o--;return o})(),
-    offs=[];for(let o=Math.max(first,-12);o<=0;o++)offs.push(o);
+    offs=[],AB=opt.ab||0,EX=AB?S.exp.filter(e=>e.t>=AB):S.exp;for(let o=Math.max(first,-12);o<=0;o++)if(period(o).e.getTime()>AB)offs.push(o);
 
   /* --- 1 Konten & Budgets --- */
-  {const ids=new Set(),b=[];S.exp.forEach(e=>{const w=[];if(!e.id)w.push('ohne ID');else if(ids.has(e.id))w.push('ID doppelt');ids.add(e.id);
+  {const ids=new Set(),b=[];EX.forEach(e=>{const w=[];if(!e.id)w.push('ohne ID');else if(ids.has(e.id))w.push('ID doppelt');ids.add(e.id);
     if(!['in','out','tr'].includes(e.type))w.push('Typ '+e.type);if(!num(e.a))w.push('Betrag '+e.a);else if(e.a<0)w.push('Betrag negativ');
     if(!num(e.t))w.push('Datum fehlt');if(!accN.has(e.b))w.push('Konto unbekannt: '+e.b);
     if(e.type=='tr'){if(!accN.has(e.to))w.push('Ziel unbekannt: '+e.to);else if(e.to==e.b)w.push('Ziel = Quelle')}
     if(w.length)b.push((e.n||e.c||'Buchung')+' '+dt(e.t)+': '+w.join(', '))});add(KB,'Buchungen vollständig und gültig',b)}
-  add(KB,'Beträge auf Cent genau',S.exp.filter(e=>num(e.a)&&Math.abs(e.a*100-Math.round(e.a*100))>1e-6).map(e=>(e.n||e.c)+' '+dt(e.t)+': '+e.a),true);
+  add(KB,'Beträge auf Cent genau',EX.filter(e=>num(e.a)&&Math.abs(e.a*100-Math.round(e.a*100))>1e-6).map(e=>(e.n||e.c)+' '+dt(e.t)+': '+e.a),true);
   {const b=[];for(let o=-36;o<=24;o++){const p=period(o),q=period(o+1);if(q.s.getTime()!=p.e.getTime())b.push('Lücke/Überlappung nach '+p.label);
     if(p.len<(S.startLW?26:28)||p.len>(S.startLW?33:31))b.push(p.label+': '+p.len+' Tage');
     if(S.startLW){const d=p.s,l=new Date(d.getFullYear(),d.getMonth()+1,0),wd=d.getDay();let rest=0;for(let x=new Date(d.getTime()+864e5);x<=l;x.setDate(x.getDate()+1))if(x.getDay()%6)rest++;if(!(wd%6)||rest)b.push(p.label+' beginnt nicht am letzten Werktag')}
@@ -1473,7 +1473,7 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
     if(Math.abs(calc(n).rest-soll)>E)b.push(n+': '+f2(calc(n).rest)+' statt '+f2(soll))});add(KB,'Kontostand = Start + alle Buchungen',b)}
   {const b=[];S.exp.filter(e=>e.t>NOW).forEach(e=>{const P=period(0);if(e.t<P.e.getTime()&&calc(e.b).list.includes(e))b.push((e.n||e.c)+' '+dt(e.t)+' zählt schon im Ist')});
     add(KB,'Geplante Buchungen zählen nicht im Ist',b)}
-  {const b=[],seen={};S.exp.filter(e=>e.rid&&e.pk).forEach(e=>{const k=e.rid+'|'+e.pk;if(seen[k])b.push('Fixkosten doppelt: '+(e.n||e.c)+' '+e.pk);seen[k]=1});
+  {const b=[],seen={};EX.filter(e=>e.rid&&e.pk).forEach(e=>{const k=e.rid+'|'+e.pk;if(seen[k])b.push('Fixkosten doppelt: '+(e.n||e.c)+' '+e.pk);seen[k]=1});
     if(!opt.readonly){const n0=S.exp.length,h0=(S.recHold||[]).length;applyRec();applyRec();if(S.exp.length!=n0)b.push('erneuter Lauf erzeugt '+(S.exp.length-n0)+' Buchungen');
       if((S.recHold||[]).length!=h0)b.push('erneuter Lauf ändert zurückgehaltene Fixkosten')}
     add(KB,'Fixkosten nicht doppelt (auch bei erneutem Lauf)',b)}
@@ -1483,4 +1483,4 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
     add(KB,'Kontoabgleich trifft den Bankstand',b)}
   return R}
 /* Selbsttest für Penny: höchstens einmal pro Datenstand und Tag, nur Fehler (keine Warnungen) */
-let plausiC=null;function plausiTip(){const k=DV+'|'+new Date().toDateString();if(plausiC&&plausiC.k==k)return plausiC.r;let r=[];try{r=plausiRun({readonly:true}).filter(x=>!x.ok&&!x.warn)}catch(e){r=[{regel:'Selbsttest',msg:String(e&&e.message||e)}]}plausiC={k,r};return r}
+/* v420: Archivdaten vor dem 01.10.2026 bleiben im Selbsttest außen vor */const PLAUSI_AB=new Date(2026,9,1).getTime();let plausiC=null;function plausiTip(){const k=DV+'|'+new Date().toDateString();if(plausiC&&plausiC.k==k)return plausiC.r;let r=[];try{r=plausiRun({readonly:true,ab:PLAUSI_AB}).filter(x=>!x.ok&&!x.warn)}catch(e){r=[{regel:'Selbsttest',msg:String(e&&e.message||e)}]}plausiC={k,r};return r}
