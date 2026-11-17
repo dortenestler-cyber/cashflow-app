@@ -1019,8 +1019,6 @@ function openDeposit(gid,amt0){const g=S.goals.find(x=>x.id==gid);if(!g)return;c
      tell(same?`${eur(a)} für ${g.n} reserviert.`:`${eur(a)} von ${src} nach ${tgt} gebucht.`,()=>{restore(sn);S.goals=JSON.parse(gs);save();render()});
      const after=before+a;if(S.cele!==false){if(before<g.ziel&&after>=g.ziel)celebrate('Sparziel erreicht: '+g.n,true);else celebrate(eur(a)+' zurückgelegt · noch '+eur(Math.max(g.ziel-after,0)))}}};draw();renderAsst()}
 const PU={d:'Tage',w:'Wochen',m:'Monate',y:'Jahre'},pTxt=p=>p?p.n+' '+(p.n==1?{d:'Tag',w:'Woche',m:'Monat',y:'Jahr'}[p.u]:PU[p.u]):'–';
-function ctrCost(c){if(c.cost)return{mon:c.cost/(c.every||1),src:'eigen'};const k=(c.n||'').toLowerCase().split(/\s+/)[0],r=(S.rec||[]).find(r=>r.type=='out'&&k.length>3&&(r.n||'').toLowerCase().includes(k));return r?{mon:r.a/(r.every||1),src:'dauerauftrag'}:null}
-function contractsHtml(){const C=(S.contracts||[]).map((c,i)=>({c,i,x:contractNext(c),k:ctrCost(c)})).sort((a,b)=>(a.c.state=='cancelled')-(b.c.state=='cancelled')||((a.x.kd||a.x.d)-(b.x.kd||b.x.d)));
   const act=C.filter(o=>o.c.state!='cancelled'),mon=act.reduce((s,o)=>s+(o.k?o.k.mon:0),0),soon=act.filter(o=>o.x.kd&&(o.x.kd-now)/864e5<=60&&o.x.kd>now).length;
   return `<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi">Verträge<b>${act.length}</b></div><div class="kpi">Kosten/Monat<b>${eur0(mon)}</b></div><div class="kpi">Fristen in 60 T.<b class="${soon?'out':''}">${soon}</b></div></div>
   <div class="mmcard">${C.map(({c,i,x,k})=>{const dl=x.kd?Math.ceil((x.kd-now)/864e5):null,pc=x.kd?Math.max(0,Math.min(1,1-dl/90)):0,cn=c.state=='cancelled';
