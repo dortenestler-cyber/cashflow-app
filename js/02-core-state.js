@@ -107,9 +107,9 @@ function applyRec(){try{rlTick()}catch(e){}const cur=pkey(period(0)),run=S.recRu
     R.forEach(r=>{if(r.paused||(o<0&&!ids.includes(r.id)))return;const d=recDue(r,p);
       if(!d||d>now||(r.skip||[]).includes(k)||S.exp.some(e=>e.rid==r.id&&e.pk==k)||S.recHold.some(h=>h.rid==r.id&&h.pk==k))return;
       const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;
-      const rf=typeof rlOn=='function'&&rlOn(r)?rlFrom(r,v.a):0;
-      if(r.type!='in'&&!r.neg&&ALL.includes(r.b)&&calc(r.b).rest+rf-v.a<-0.005){S.recHold.push({rid:r.id,pk:k,x,d:d.getTime(),rf});return}
-      S.exp.push(x);if(rf)rlPay(r,rf,k,x.t)})}
+      const rf=typeof rlOn=='function'&&rlOn(r)&&S.exp.some(e=>e.rlp==r.id&&e.pk==k)?1:0;
+      if(r.type!='in'&&!r.neg&&!rf&&ALL.includes(r.b)&&calc(r.b).rest-v.a<-0.005){S.recHold.push({rid:r.id,pk:k,x,d:d.getTime()});return}
+      S.exp.push(x)})}
   S.recRun={pk:cur,ids:S.rec.map(r=>r.id)};save()}
 
 /* month close: leftovers of roll-accounts move to the roll target on the last minute of the month */
