@@ -277,6 +277,12 @@ const clipMark=keys=>{S.clipSeen=[...(S.clipSeen||[]),...keys].slice(-400);save(
 /* Offene Kartenzahlungen: bleiben gespeichert (und synchronisiert), bis Buchen, Bearbeiten oder Verwerfen gewählt wurde */
 const payQK=l=>String(l).trim().toLowerCase();
 function payQAdd(L){const Q=S.payQ=S.payQ||[],K=new Set(Q.map(x=>payQK(x.l)));L.forEach(l=>{if(!K.has(payQK(l))){Q.push({l:String(l).trim(),t:Date.now()});K.add(payQK(l))}});S.payQ=Q.slice(-100);save()}
+/* v414: Kartenzahlungen retten, die vor v413 nur in einem Penny-Chat dieses Geräts lagen und nie gebucht wurden (einmal je Gerät, letzte 14 Tage) */
+function payQRescue(){try{if(localStorage.getItem('cfPqRes'))return;const seen=new Set([...(S.clipSeen||[]),...(S.paySeen||[])]),lim=Date.now()-14*864e5,K=new Set(),L=[];
+ chatsGet().forEach(c=>(c.msgs||[]).forEach(m=>{const d=m.ad;if(!d||d.k!='clip')return;const mt=m.t||c.t||Date.now();
+  (d.recs||[]).forEach(r=>{if(r.tag!='applepay'||!r.key||seen.has(r.key)||K.has(r.key))return;const t=r.t||mt;if(t<lim)return;if(S.exp.some(e=>e.type=='out'&&Math.abs(e.a-r.a)<0.005&&Math.abs(e.t-t)<36*3600e3))return;K.add(r.key);L.push('Apple Pay '+(r.n||'Apple Pay')+' '+String(r.a.toFixed(2)).replace('.',',')+(r.card?' Karte: '+r.card:'')+' · '+new Date(t).toLocaleString('de-DE'))});
+  (d.open||[]).forEach(o=>{if(!o.key||seen.has(o.key)||K.has(o.key)||!o.pre||o.pre.src!='applepay'||mt<lim)return;K.add(o.key);L.push('Apple Pay '+(o.pre.n||'Apple Pay')+' · '+new Date(mt).toLocaleString('de-DE'))})}));
+ localStorage.setItem('cfPqRes','1');if(L.length){payQAdd(L);try{render()}catch(e){}}}catch(e){}}
 function payQOpen(){const seen=new Set([...(S.clipSeen||[]),...(S.paySeen||[])]),Q=(S.payQ||[]).filter(x=>!seen.has(payQK(x.l)));if(Q.length!=(S.payQ||[]).length){S.payQ=Q;save()}return Q.map(x=>x.l)}
 function clipActs(d){const recs=d.recs||[],dups=d.dups||[],open=d.open||[],acts=[];
  if(recs.length)acts.push([recs.length==1?'Buchen':'Alle '+recs.length+' buchen',()=>{clipMark([...recs.map(r=>r.key),...dups.map(r=>r.key)]);clipCommit(recs)},1]);

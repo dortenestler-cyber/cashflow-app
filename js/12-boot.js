@@ -116,3 +116,5 @@ if(syOn())sync();document.addEventListener('visibilitychange',()=>{if(document.v
 /* v230: Penny weicht beim Runterscrollen aus, damit sie keine Zeilen verdeckt */(()=>{let y0=0;addEventListener('scroll',()=>{const y=scrollY||document.documentElement.scrollTop||0,d=y-y0;if(Math.abs(d)<6)return;document.body.classList.toggle('pn-hide',d>0&&y>40);y0=y},{passive:true})})();
 /* Belege: alte Fotos aus der Buchung nach IndexedDB umziehen, offene Uploads nachholen */setTimeout(()=>{docMigrate().catch(()=>{}).then(()=>docFlush())},3000);
 /* v289: Desktop-Breakpoint 1280 px – Heute neu zeichnen (großes Diagramm) */(()=>{let w0=innerWidth>=1280,t=null;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const w=innerWidth>=1280;if(w===w0)return;w0=w;if(tab=='dash'&&!setView&&!curB&&!$('sheetRoot').innerHTML)render()},150)})})();
+
+/* v414: liegengebliebene Kartenzahlungen aus alten Penny-Chats retten (nach dem ersten Sync) */setTimeout(()=>{try{payQRescue()}catch(e){}},8000);
