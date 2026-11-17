@@ -1175,7 +1175,7 @@ function vmTips(t){const n=Date.now();
    r.fund={got,k,rt}: angespart inkl. Rate des laufenden Monats. Rate = (Betrag − angespart) ÷ Monate bis Fälligkeit (aufholen eingebaut).
    Monatsbeginn: Umbuchung Eingangskonto → Rücklagen (rlm, echter Dauerauftrag). Vor Fälligkeit erinnert Penny an die Rücküberweisung, „Erledigt“ bucht sie (rlp). */
 function rlAccN(){const a=(S.accts||[]).find(x=>x.rolle=='ruecklage');return a?a.n:null}
-function rlAcc(){let n=rlAccN();if(n)return n;n='Rücklagen';let k=2;while(S.accts.some(x=>x.n==n))n='Rücklagen '+k++;S.accts.push({n,kind:'konto',col:'#3FA7A0',vis:true,tot:false,start:0,rolle:'ruecklage'});S.cats[n]=[["Sparen","target"],["Sonstiges","dot"]];S.bg=S.bg||{};S.bg[n]={g:7};refreshA();return n}
+function rlAcc(){let n=rlAccN();if(n)return n;n='Rücklagen';let k=2;while(S.accts.some(x=>x.n==n))n='Rücklagen '+k++;S.accts.push({n,kind:'konto',col:'#3FA7A0',vis:false,tot:false,start:0,rolle:'ruecklage'});S.cats[n]=[["Sparen","target"],["Sonstiges","dot"]];S.bg=S.bg||{};S.bg[n]={g:7};refreshA();return n}
 function rlOn(r){return !!(r&&r.spread&&r.type=='out'&&!r.paused&&(r.every||1)>=3&&rlAccN()&&r.b!=rlAccN())}
 function rlRecs(){return (S.rec||[]).filter(rlOn)}
 function rl2(v){return Math.round(v*100)/100}
@@ -1186,6 +1186,7 @@ function rlMove(){const sa=sinkAcc(),ra=rlAcc();let inn=0;S.exp.forEach(e=>{if(e
 function rlTick(){let ch=0;
   if(!S.rlMig2){const any=(S.rec||[]).some(r=>r.type=='out'&&(r.every||1)>=3);if(any){if(S.rlMig)rlMove();else rlAcc();(S.rec||[]).forEach(r=>{if(r.type=='out'&&(r.every||1)>=3&&r.spread==null)r.spread=true});S.rlMig=S.rlMig||Date.now();S.rlMig2=Date.now();ch=1}}
   const ra=rlAccN();if(!ra){if(ch)save();return}
+  /* v406: Rücklagen dienen nur der Planung – Konto ausgeblendet (keine Übersicht, keine Kontoauswahl) */const ac=S.accts.find(x=>x.n==ra);if(ac&&ac.vis&&!S.rlHid){ac.vis=false;S.rlHid=1;refreshA();ch=1}
   const P=period(0),k=pkey(P),D=rlRate();
   const pa=pufAcc();if(D>0&&pa&&pa.n!=ra&&!S.exp.some(e=>e.rlm==k)){S.exp.push({id:uid(),type:'tr',b:pa.n,to:ra,a:D,n:'Rücklagen',c:'',t:Math.min(Date.now(),P.s.getTime()+12*36e5),rlm:k});ch=1}
   if(ch)save();rlSync()}
