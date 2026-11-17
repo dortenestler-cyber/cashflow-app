@@ -1312,6 +1312,23 @@ function kkCardH(x){const ref=kkRef(x.p.id,x.ym),run=x.ym==samYm(Date.now()),d=v
   const st=run?['sammelt','']:d<=0?['Abbuchung heute','soon']:d<=7?['Abbuchung in '+(d==1?'1 Tag':d+' Tagen'),'soon']:['abgerechnet',''];
   return `<button class="samc" data-kkp="${x.p.id}|${x.ym}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('card',15)} ${esc(x.p.n)} · ${samMon(x.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
    <div class="samc-v">${eur(x.a)}</div><div class="samc-s">${x.c} ${x.c==1?'Kauf':'Käufe'} · Abbuchung ca. ${samDM(x.t)}${ref?' · Ø '+eur0(ref):''}</div></button>`}
+/* v428: Planen › Was kommt – Vorgemerktes, seltene Fixkosten, Sammelabrechnungen und Kreditkarten in einer Liste nach Fälligkeit */
+function wkItems(){const to=Date.now()+VM_D*864e5,L=[];
+  try{vmItems().forEach(x=>L.push({t:x.t,k:'vm',x}))}catch(e){}
+  try{samL().filter(e=>isPlan(e)&&e.t<=to).forEach(e=>L.push({t:e.t,k:'sam',x:e}))}catch(e){}
+  try{kkItems().forEach(x=>L.push({t:x.t,k:'kk',x}))}catch(e){}
+  return L.sort((a,b)=>a.t-b.t)}
+function wkRow(it){const x=it.x,d=new Date(it.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'});let at,n,sub,a;
+  if(it.k=='vm'){at=`data-vm="${esc(x.id)}"`;n=esc(x.n||x.c||'Umbuchung');sub=x.k=='rec'?VM_R[x.ev]||'Fixkosten':x.type=='tr'?'Umbuchung':'einmalig geplant';a=(x.est?'ca. ':'')+(x.type=='in'?'+':x.type=='tr'?'':'−')+eur(x.a)}
+  else if(it.k=='sam'){const p=samPv(x.sam.pid);at=`data-samp="${esc(x.id)}"`;n=esc(p?p.n:'Laden')+' · '+samMon(x.sam.ym);sub='Sammelabrechnung';a='−'+eur(x.a)}
+  else{at=`data-kkp="${esc(x.p.id)}|${x.ym}"`;n=esc(x.p.n)+' · '+samMon(x.ym);sub='Kreditkarte · '+x.c+(x.c==1?' Kauf':' Käufe');a='−'+eur(x.a)}
+  return `<button class="cell" ${at}><div class="t"><div>${n}</div><div class="s">${d} · ${sub}</div></div><div class="v">${a}</div><span class="chev">›</span></button>`}
+function wasKommtH(){const L=wkItems(),f=L[0];
+  const card=f?(f.k=='vm'?vmCardH(f.x):f.k=='sam'?samCardH(f.x):kkCardH(f.x)):'';const rows=L.slice(1).map(wkRow).join('');
+  return (f?`<div class="wk-first">${card}</div>`:`<div class="mmcard"><div class="empty">In den nächsten 60 Tagen ist nichts Besonderes vorgemerkt. Monatliche Fixkosten stehen unter Fixkosten.</div></div>`)
+   +(rows?`<div class="sec"><div class="sh">Danach</div><div class="group">${rows}</div></div>`:'')+rlCardH()
+   +`<div class="sh" style="justify-content:flex-end"><span style="display:flex;gap:14px"><button class="link" data-wgo="Fixkosten">Monatliche Fixkosten</button><button class="link" data-set="sam">Sammelabrechnungen verwalten</button></span></div>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-wk]');if(!t)return;setView=null;curB=null;tab='wish';wishV='Kommt';render();scrollTo(0,0)});
 function kkPView(k){const[pid,ym]=String(k).split('|'),p=kkPv(pid);if(!p||!/^\d{4}-\d{2}$/.test(ym||'')){setView=setParent||null;setParent=null;return setView?viewSet(setView):''}
   const L=kkL(pid,ym).sort((a,b)=>b.t-a.t),a=kkSum(pid,ym);
   return `${appbar({title:p.n+' · '+samMon(ym,true),back:'setBack',noGear:true,stats:`<div class="hc-big"><span>${L.length} ${L.length==1?'Kauf':'Käufe'}</span><b>${eur(a)}</b></div><div class="hc-line">Abbuchung ca. ${samDM(samDue(p,ym))} · Käufe zählen schon im Budget</div>`})}

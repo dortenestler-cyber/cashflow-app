@@ -1,9 +1,26 @@
 /* ---------- Mehr: Werkzeug-Raster + Einstellungsgruppen ---------- */
 var setParent=null,recF='Alle',setFrom=null;
-const MC={c1:'#6E4BD8',c2:'#22A699',c3:'#F0657A',c4:'#4F6BED',c5:'#D4A23A',c6:'#7A7390'};
+const MC={c1:'#5E9A7C',c2:'#5B8FA0',c3:'#B87575',c4:'#7F9550',c5:'#B0913F',c6:'#7E8882'};/* v428: ruhige Palette */
+/* v428: Funktionsverzeichnis – jede Funktion hat genau einen Platz. Grundlage für die Suche in den Einstellungen und Pennys „Wo finde ich …?“ */
+const FIDX=[['Tagesbudget','heute ausgeben tagesrest','Heute','t:dash'],['Töpfe','monatsbudget flow gönn rest','Heute','t:dash'],['Einkaufszettel','einkauf liste','Heute › Einkaufswagen oben','s:shop:dash'],
+ ['Buchungen','liste summe suchen filter','Buchungen','t:list'],['Kalender','tage','Buchungen › Kalender','t:cal'],['Belege & Gewährleistung','beleg rechnung kassenbon garantie quittung','Buchungen › Belege','s:docs:list'],['Rückzahlungen','erstattung zurück','Buchungen › Rückzahlungen','s:refund:list'],['Import','csv kontoauszug ordner','Buchungen › Import','s:import:list'],
+ ['Monatswechsel','monatsabschluss abschluss','Planen › Monat','w:Monat'],['Gehalt verteilen','gehalt lohn','Planen › Monat','s:salplan:wish'],['Was kommt','vorgemerkt geplant kreditkarte laden sammelabrechnung abbuchung fällig','Planen › Was kommt','w:Kommt'],['Rücklagen','dauerauftrag periodisch jährlich quartal','Planen › Was kommt','w:Kommt'],['Sammelabrechnungen verwalten','laden anbieter kreditkarte anlegen','Planen › Was kommt','s:sam:wish'],
+ ['Fixkosten & Abos','abo vertrag wiederkehrend','Planen › Fixkosten','w:Fixkosten'],['Prognose','zukunft','Planen › Zukunft','z:Prog'],['Was wäre, wenn','simulation simulator','Planen › Zukunft','z:Sim'],['Jahresplaner','jahr','Planen › Zukunft','z:Jahr'],
+ ['Ziele & Wünsche','sparziel wunsch kaufcheck sinking','Planen › Ziele & Wünsche','w:Ziele'],['Impulse','journal verzicht muster kaufimpuls','Planen › Ziele & Wünsche › Impulse','wz:Impulse'],['Schuldenfrei','kredit schulden tilgen','Planen › Ziele & Wünsche','s:debts:wish'],['Projekte','projekt','Planen › Ziele & Wünsche','s:proj:wish'],
+ ['Vermögen & Depot','depot aktien etf tresor','Vermögen','t:geld'],['Konten verwalten','konto anlegen ausblenden','Vermögen › Konten verwalten','s:accts:geld'],['Puffer & Sinking Funds','puffer sinking','Vermögen','t:geld'],['Sparkonten','tagesgeld','Vermögen › Sparkonten','s:ng:geld'],['Wechselgeld','aufrunden','Vermögen › Wechselgeld','s:ru:geld'],['Altersvorsorge','rente','Vermögen › Altersvorsorge','s:pension:geld'],
+ ['Monatsrückblick','analyse review auswertung','Rückblick','r:Analyse'],['Ausgaben nach Kategorie','kategorien ausgaben','Rückblick › Ausgaben','r:Monat'],['Verlauf','trend entwicklung','Rückblick › Verlauf','r:Verlauf'],['Ladeübersicht','laden kwh strom auto','Rückblick › Ladeübersicht','s:lade:rep'],['Steuer','steuererklärung','Rückblick › Steuer','s:tax:rep'],['Archiv Money Control','money control alt historisch','Rückblick › Archiv','s:archiv:rep'],['Finanzbericht','bericht teilen','Rückblick › Finanzbericht','s:report:rep'],['Dein Jahr','jahresrückblick story','Rückblick › Dein Jahr','s:yearrev:rep'],
+ ['Kategorien','kategorie bereiche','Einstellungen › Buchen & Kategorien','s:cats:more'],['Monatsbudgets einstellen','budget höhe','Einstellungen › Buchen & Kategorien','s:budgets:more'],['Favoriten','schnellbuchung','Einstellungen › Buchen & Kategorien','s:fav:more'],['Finanzmonat','monatsbeginn','Einstellungen › Buchen & Kategorien','s:month:more'],
+ ['Meine Regeln','regeln notfallbremse tabu','Einstellungen › Schutz','s:rules:more'],['PIN & Face ID','pin sperre','Einstellungen › Schutz','s:pin:more'],['Penny (KI)','ki assistent','Einstellungen › Assistent','s:ai:more'],['Mitteilungen','push benachrichtigung','Einstellungen › Assistent','s:push:more'],['Siri & Kurzbefehle','siri kurzbefehl','Einstellungen › Assistent','s:siri:more'],
+ ['Darstellung','dunkel hell theme','Einstellungen › Aussehen','s:theme:more'],['Funktionen & Ansicht','profil ausblenden einblenden','Einstellungen › Aussehen','s:cfg:more'],['Export & Backup','sicherung backup csv','Einstellungen › Daten & Sync','s:export:more'],['Online-Sync','sync geräte','Einstellungen › Daten & Sync','s:sync:more'],['Supabase-Einrichtung','supabase sql','Einstellungen › Daten & Sync','s:setup:more']];
+function fgo(g){const[k,a,b]=String(g).split(':');asstOpen=false;curB=null;drill=null;setParent=null;setFrom=null;setView=null;
+  if(k=='t')tab=a;else if(k=='w'){tab='wish';wishV=a}else if(k=='wz'){tab='wish';wishV='Ziele';zielV=a}else if(k=='z'){tab='wish';wishV='Zukunft';zukV=a}else if(k=='r'){tab='rep';repV=a}
+  else if(k=='s'){tab=b||'more';if(b&&b!='more')setFrom=b;setView=a}
+  try{asstHide&&asstHide()}catch(e){}render();scrollTo(0,0)}
+const fFind=q=>{const w=String(q||'').toLowerCase().split(/\s+/).filter(x=>x.length>1);if(!w.length)return[];return FIDX.map(f=>{const h=(f[0]+' '+f[1]).toLowerCase();return[f,w.filter(x=>h.includes(x)||h.includes(x.replace(/(en|e|n|s)$/,''))).length]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).map(x=>x[0])};
+const fCell=f=>`<button class="cell" data-fgo="${f[3]}"><div class="t"><div>${esc(f[0])}</div><div class="s">${esc(f[2])}</div><span hidden>${esc(f[1])}</span></div><span class="chev">›</span></button>`;
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-fgo]');if(!t)return;e.preventDefault();fgo(t.dataset.fgo)});
 function moreItems(){const{c1,c2,c3,c4,c5,c6}=MC;return {
  'g:buchen':['Buchen & Kategorien','wallet',c1,[
-  ['accts','wallet','Konten',ALL.length+' Konten · '+S.accts.filter(a=>!a.vis).length+' ausgeblendet'],
   ['budgets','gauge','Monatsbudgets',BUDG.map(b=>eur0(S.budgets[b]||0)).join(' · ')],
   ['cats','grid','Kategorien','Anlegen, umbenennen, Bereiche, aufräumen'],
   ['fav','star','Favoriten',S.fav.length+' Schnellbuchungen'],
@@ -20,14 +37,10 @@ function moreItems(){const{c1,c2,c3,c4,c5,c6}=MC;return {
   ['cfg','grid','Funktionen & Ansicht','Profile, Ein- und Ausblenden'],
   ['usage','chart','Nutzung',(()=>{const n=Object.keys(useGet().v).length;return n+' Bereiche genutzt · nur auf diesem Gerät'})()]/* v395: Baustopp am 16.11. aufgehoben */]],
  'g:data':['Daten & Sync','repeat',c6,[
+  ['export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel'],
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten'],
   ['setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})()]]],
  /* v408: Papierkram – Belege, Steuer, Export und Archiv an einem Ort; Import steht unter Buchungen */
- 'g:paper':['Papierkram','receipt',c2,[
-  ['docs','shield','Belege & Gewährleistung','Kassenbons, Rechnungen, Garantien'],
-  ['tax','receipt','Steuer','Steuerrelevantes fürs Jahr sammeln'],
-  ['export','export','Export & Backup','Sichern, wiederherstellen, CSV für Excel'],
-  ['archiv','book','Archiv MoneyControl',ARCH?ARCH.rows.length.toLocaleString('de-DE')+' alte Buchungen · nur zur Ansicht':'Alte Buchungen ansehen, ohne Konten zu ändern']]],
  'g:rep':['Berichte','book',c4,[
   ['report','book','Finanzbericht','Monat, Quartal, Jahr oder frei · zum Teilen'],
   ['yearrev','sparkle','Dein Jahr','Rückblick als Story']]],
@@ -42,7 +55,7 @@ function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(yeTarget()
  ['close','check','Monats­wechsel',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
  ['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||'']]/* v392: Sparkonten nur unter Vermögen, Berichte nur im Rückblick */.filter(t=>featOn(t[0].replace(/^[~]/,'')))}
 /* v232: Werkzeuge stehen in ihrem Reiter statt in Mehr */
-function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.salplan=['salplan','coins','Gehalt verteilen'];M.import=['import','export','Import'];M.yearrev=['yearrev','sparkle','Dein Jahr'];
+function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.salplan=['salplan','coins','Gehalt verteilen'];M.import=['import','export','Import'];M.yearrev=['yearrev','sparkle','Dein Jahr'];M.lade=['lade','bolt','Ladeübersicht'];M.tax=['tax','receipt','Steuer'];M.archiv=['archiv','book','Archiv Money Control'];M.docs=['docs','shield','Belege'];/* v428 */
   const L=keys.filter(k=>M[k]&&featOn(k));if(!L.length)return '';return `<div class="toolbar">${L.map(k=>{const[,ico,l,,b]=M[k];return `<button class="chip" data-setgo="${k}">${I(ico,14)} ${String(l).replace(/­/g,'')}${b?` <span class="cnt">${b}</span>`:''}</button>`}).join('')}</div>`}
 const moreCell=(k,ico,l,s,c)=>{const act=k[0]=='@',attr=act?`data-act="${k.slice(1)}"`:`data-set="${k}"`;
   if(!act&&!featOn(k))return '';
@@ -50,11 +63,11 @@ const moreCell=(k,ico,l,s,c)=>{const act=k[0]=='@',attr=act?`data-act="${k.slice
 function viewMoreGroup(k){const g=moreItems()[k];if(!g){setView=null;return viewMore()}
   return `${appbar({title:g[0],back:'setBack',noGear:true,slim:true})}<div class="sec"><div class="group">${g[3].map(([kk,ico,l,s])=>moreCell(kk,ico,l,s,g[2])).join('')}</div></div>`}
 function viewMore(){const G=moreItems(),T=moreTools();/* v396: Werkzeug-Raster samt Anpinnen entfernt – Werkzeuge stehen in ihren Reitern */
-  const groups=['g:buchen','g:paper','g:schutz','g:asst','g:look','g:data'].map(k=>{const g=G[k];return `<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${g[2]} 14%,transparent);color:${g[2]}">${I(g[1])}</div><div class="t"><div>${g[0]}</div><div class="s">${g[3].map(x=>x[2]).slice(0,3).join(', ')}${g[3].length>3?' …':''}</div></div><span class="chev">›</span></button>`}).join('');
+  const groups=['g:buchen','g:schutz','g:asst','g:look','g:data']/* v428: Papierkram aufgelöst – Belege unter Buchungen, Steuer und Archiv unter Rückblick, Export unter Daten */.map(k=>{const g=G[k];return `<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${g[2]} 14%,transparent);color:${g[2]}">${I(g[1])}</div><div class="t"><div>${g[0]}</div><div class="s">${g[3].map(x=>x[2]).slice(0,3).join(', ')}${g[3].length>3?' …':''}</div></div><span class="chev">›</span></button>`}).join('');
   const all=Object.values(G).flatMap(g=>g[3].map(([k,ico,l,s])=>moreCell(k,ico,l,s,g[2]))).join('')+T.map(([k,ico,l,c])=>k=='g:rep'?'':k[0]=='~'?`<button class="cell" data-tabgo="${k.slice(1)}"><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><div class="t"><div>${l}</div></div><span class="chev">›</span></button>`:moreCell(k,ico,l.replace(/­/g,''),'',c)).join('');
-  return `${appbar({title:'Einstellungen',noGear:true,slim:true})}<div class="morelist">
+  return `${appbar({title:'Einstellungen',noGear:true,slim:true})}<div class="morelist"><div class="search mq"><input id="moreQ" type="search" placeholder="Funktion suchen …" aria-label="Funktion suchen" autocomplete="off"></div>
   <div class="mhome"><div class="sec"><div class="sh">Einstellungen</div><div class="group">${groups}${moreCell('g:help','book','Hilfe','Sprachbefehle, Tastaturkürzel, Hinweise',MC.c6)}</div></div></div>
-  <div class="sec msearch" hidden><div class="group">${all}</div></div>
+  <div class="sec msearch" hidden><div class="group">${FIDX.map(fCell).join('')}</div></div>
   </div><div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
 function bindMore(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   document.querySelectorAll('[data-act=vHelp2]').forEach(b=>b.onclick=()=>voiceHelp());
@@ -89,7 +102,7 @@ function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','chec
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
    <div class="note">Supabase findest du unter supabase.com › dein Projekt. Den Secret Key brauchst du nirgends, nur den Publishable Key in der App.</div>`}
-function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const back=`<div class="lthead"><button class="back" id="setBack">‹ ${setParent?'Zurück':setFrom&&setFrom!='more'?({wish:'Planen',rep:'Rückblick',list:'Buchungen',dash:'Heute'})[setFrom]||'Zurück':'Mehr'}</button>`;
+function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const back=`<div class="lthead"><button class="back" id="setBack">‹ ${setParent?'Zurück':setFrom&&setFrom!='more'?({wish:'Planen',rep:'Rückblick',list:'Buchungen',dash:'Heute',geld:'Vermögen'})[setFrom]||'Zurück':'Mehr'}</button>`;
   if(k=='cfg')return viewCfg();
   if(k=='ru')return viewRu();
   if(k=='sam')return samView();if(k=='lade')return ladeView();if(String(k).startsWith('samp:'))return samPView(k.slice(5));if(String(k).startsWith('kkp:'))return kkPView(k.slice(4));
@@ -241,7 +254,7 @@ const FEATS=[['Tabs',[['wish','Planen',[0,1,1]],['rep','Rückblick',[0,1,1]]]],[
 /* v231: Wer Wechselgeld schon nutzt, behält es sichtbar */if(S.ru&&S.ru.on&&!(S.featO&&'ru' in S.featO)){S.featO=S.featO||{};S.featO.ru=true}
 const FEATP=['Einfach','Standard','Alles'];
 const FEATK=Object.fromEntries(FEATS.flatMap(([,l])=>l.map(([k,n,p])=>[k,{n,p}])));
-function featOn(k){if(k=='cal')return true;/* v363: Kalender ist eine Ansicht von Buchungen, kein Schalter mehr */const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?1:S.featP]:true}
+function featOn(k){if(k=='cal')return true;/* v363: Kalender ist eine Ansicht von Buchungen, kein Schalter mehr */const o=S.featO||{};if(k in o)return !!o[k];const d=FEATK[k];return d?!!d.p[S.featP==null?2:S.featP]:true}
 function viewCfg(){const P=S.featP==null?1:S.featP,hasO=Object.keys(S.featO||{}).length;
  return appbar({title:'Funktionen',back:'setBack',noGear:true,sub:'Was in der App sichtbar ist'})+
  `<div class="sec"><div class="sh">Profil</div><div class="seg" id="fProf">${FEATP.map((n,i)=>`<button class="${P==i&&!hasO?'on':''}" data-fp="${i}">${n}</button>`).join('')}</div><div class="note">Ein Profil setzt alles auf einen Stand. Die Schalter darunter ändern das danach.</div></div>`+
