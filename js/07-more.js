@@ -35,10 +35,10 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
 function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(closeTarget()))];return [
  ['yplan','calendar','Jahresplaner',c2],['ng','lock','Sparkonten',c2],['ru','coins','Wechselgeld',c2],['debts','target',(S.debts||[]).some(d=>!d.done)?'Schuldenfrei':'Kredit eintragen',c2],
  ['proj','people','Projekte',c2,projActive().length||''],['refund','swap','Rück­zahlungen',c2,refunds().length||''],
- ['salplan','coins','Gehalt verteilen',c2],['close','check','Monats­wechsel',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
+ ['close','check','Monats­wechsel',c2,cl?'':'!'],['pension','umbrella','Alters­vorsorge',c2],
  ['docs','shield','Belege & Gewährleistung',c2],['tax','receipt','Steuer',c2],['shop','cart','Einkaufs­zettel',c2,(S.shop&&S.shop.items.length)||'']]/* v392: Sparkonten nur unter Vermögen, Berichte nur im Rückblick */.filter(t=>featOn(t[0].replace(/^[~]/,'')))}
 /* v232: Werkzeuge stehen in ihrem Reiter statt in Mehr */
-function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.yearrev=['yearrev','sparkle','Dein Jahr'];
+function toolBar(keys){const M=Object.fromEntries(moreTools().map(t=>[t[0],t]));M.report=['report','book','Finanzbericht'];M.salplan=['salplan','coins','Gehalt verteilen'];M.yearrev=['yearrev','sparkle','Dein Jahr'];
   const L=keys.filter(k=>M[k]&&featOn(k));if(!L.length)return '';return `<div class="toolbar">${L.map(k=>{const[,ico,l,,b]=M[k];return `<button class="chip" data-setgo="${k}">${I(ico,14)} ${String(l).replace(/­/g,'')}${b?` <span class="cnt">${b}</span>`:''}</button>`}).join('')}</div>`}
 const moreCell=(k,ico,l,s,c)=>{const act=k[0]=='@',attr=act?`data-act="${k.slice(1)}"`:`data-set="${k}"`;
   if(!act&&!featOn(k))return '';
