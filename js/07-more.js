@@ -31,6 +31,7 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
  'g:help':['Hilfe','book',c6,[
   ['@asstShow','sparkle','Hinweise des Assistenten','Auch bereits gesehene Hinweise anzeigen'],
   ['@vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst'],
+  ['@glossBtn','book','Begriffe','Monatsbudget, Puffer, Sinking Funds, Rücklagen, Sparkonten'],
   ['@kbHelpBtn','grid','Tastaturkürzel','N für neue Buchung, 1–6 für Bereiche, ? für alle']]]}}
 function moreTools(){const{c2,c4}=MC,cl=(S.closeDone||{})[pkey(period(closeTarget()))];return [
  ['yplan','calendar','Jahresplaner',c2],['ng','lock','Sparkonten',c2],['ru','coins','Wechselgeld',c2],['debts','target',(S.debts||[]).some(d=>!d.done)?'Schuldenfrei':'Kredit eintragen',c2],
@@ -55,6 +56,7 @@ function viewMore(){const G=moreItems(),T=moreTools();/* v396: Werkzeug-Raster s
 function bindMore(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   document.querySelectorAll('[data-act=vHelp2]').forEach(b=>b.onclick=()=>voiceHelp());
   document.querySelectorAll('[data-act=kbHelpBtn]').forEach(b=>b.onclick=()=>kbHelp());
+  document.querySelectorAll('[data-act=glossBtn]').forEach(b=>b.onclick=()=>glossHelp());
   document.querySelectorAll('[data-act=asstShow]').forEach(b=>b.onclick=e=>{e.stopPropagation();asstOpen=true;renderAsst();if(!$('abub'))tell('Gerade gibt es keine Hinweise.')})}
 /* ---------- Supabase-Einrichtung: alle Codes an einem Ort ---------- */
 const SETUP={st:(()=>{try{return JSON.parse(localStorage.getItem('cf_setup')||'{}')}catch(e){return{}}})(),busy:false};
