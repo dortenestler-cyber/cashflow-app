@@ -18,7 +18,7 @@ function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
  'g:look':['Aussehen','palette',c5,[
   ['theme','sparkle','Darstellung',({system:'Automatisch',light:'Hell',dark:'Dunkel'})[themeGet()]+' · Schrift im Kalender · Erfolge feiern'],
   ['cfg','grid','Funktionen & Ansicht','Profile, Ein- und Ausblenden'],
-  ['usage','chart','Nutzung & Baustopp',(()=>{const n=Object.keys(useGet().v).length;return 'Baustopp bis '+new Date(BAU_END+'T12:00').toLocaleDateString('de-DE')+' · '+n+' Bereiche genutzt'})()]]],
+  ['usage','chart','Nutzung',(()=>{const n=Object.keys(useGet().v).length;return n+' Bereiche genutzt · nur auf diesem Gerät'})()]/* v395: Baustopp am 16.11. aufgehoben */]],
  'g:data':['Daten & Sync','repeat',c6,[
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten'],
   ['setup','code','Supabase-Einrichtung',(()=>{const st=SETUP.st||{};const n=['db','bak','kurse','push','pushsql','aisql','ai'].filter(k=>st[k]===true).length;return st.at?n+' von 7 Bausteinen aktuell':'Alle Codes und SQL an einem Ort'})()],
@@ -188,7 +188,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
   if(k=='catrules')return back+`<h1 class="lt">Kategorie-Regeln</h1></div>`+catRulesHtml();
   if(k=='salplan')return back+`<h1 class="lt">Gehalt verteilen</h1></div>`+salHtml();
   if(k=='brands')return back+`<h1 class="lt">Marken-Logos</h1></div>`+brandsHtml();
-  if(k=='usage')return back+`<h1 class="lt">Nutzung & Baustopp</h1></div>`+useHtml();
+  if(k=='usage')return back+`<h1 class="lt">Nutzung</h1></div>`+useHtml();
   if(k=='siri')return back+`<h1 class="lt">Siri & Kurzbefehle</h1></div>`+siriHtml();
   if(k=='setup')return back+`<h1 class="lt">Supabase-Einrichtung</h1></div>`+setupHtml();
   if(k=='ai')return back+`<h1 class="lt">Penny (KI)</h1></div>`+aiHtml();
@@ -269,7 +269,7 @@ function useText(){const o=useGet(),R=Object.entries(o.v).sort((a,b)=>b[1].n-a[1
   return 'CashFlow-Nutzung seit '+new Date(o.since).toLocaleDateString('de-DE')+' (dieses Gerät, '+(matchMedia('(pointer:coarse)').matches?'Touch':'Desktop')+')\n\n'+R.map(([k,x])=>x.n+'× '+k).join('\n')+'\n\nNie geöffnet:\n'+nie.join('\n')+'\n\nBuchungen nach Herkunft:\n'+Object.entries(useSrc(o.since)).map(([k,v])=>v+'× '+k).join('\n')}
 function useHtml(){const o=useGet(),R=Object.entries(o.v).sort((a,b)=>b[1].n-a[1].n),max=R.length?R[0][1].n:1,nie=useAll().filter(k=>!o.v[k]),d=t=>new Date(t).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'}),src=useSrc(o.since),
   left=Math.max(0,Math.ceil((new Date(BAU_END+'T23:59')-Date.now())/864e5));
-  return `<div class="note">${left?`Baustopp bis ${new Date(BAU_END+'T12:00').toLocaleDateString('de-DE')} · noch ${left} ${left==1?'Tag':'Tage'}`:'Baustopp vorbei – Zeit für die Auswertung'}. Bis dahin nur Fehlerbehebungen, keine neuen Funktionen. Gezählt wird nur auf diesem Gerät, seit ${new Date(o.since).toLocaleDateString('de-DE')}. Nichts verlässt das Gerät.</div>
+  return `<div class="note">Selten genutzte Bereiche sind Kandidaten für „Eins rein, eins raus“. Gezählt wird nur auf diesem Gerät, seit ${new Date(o.since).toLocaleDateString('de-DE')}. Nichts verlässt das Gerät.</div>
   <div class="sec"><div class="sh">Genutzt (${R.length})</div><div class="group">${R.map(([k,x])=>`<div class="cell plain"><div class="t"><div>${esc(k)}</div><div class="s">zuletzt ${d(x.last)}</div></div><b>${x.n}×</b></div>`).join('')||'<div class="cell plain"><div class="t">Noch nichts gezählt.</div></div>'}</div></div>
   <div class="sec"><div class="sh">Buchungen nach Herkunft</div><div class="group">${Object.entries(src).map(([k,v])=>`<div class="cell plain"><div class="t">${k}</div><b>${v}</b></div>`).join('')}</div></div>
   <div class="sec"><div class="sh">Nie geöffnet (${nie.length})</div><div class="group">${nie.map(k=>`<div class="cell plain"><div class="t s">${esc(k)}</div></div>`).join('')||'<div class="cell plain"><div class="t">Alles mindestens einmal genutzt.</div></div>'}</div></div>
