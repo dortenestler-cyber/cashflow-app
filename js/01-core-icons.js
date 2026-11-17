@@ -1,11 +1,13 @@
 const STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true,CANFILE=(()=>{try{return window.self===window.top}catch(e){return false}})();
+/* v427: Kontofarben gedämpft (Richtung Grüngrau), damit sie zur ruhigen Palette passen */
+function softC(h){const m=/^#?([0-9a-f]{6})$/i.exec(String(h||''));if(!m)return h;const n=parseInt(m[1],16),t=[0xA9,0xB3,0xAE],c=[n>>16&255,n>>8&255,n&255].map((v,i)=>Math.round(v*.62+t[i]*.38));return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')}
 let BN=[],ALL=[],BUDG=[],TOT=[],TOTM=[];const COL={},HEX={},SHORT={};
 const ACOL=['#1a8fd6','#ff8a2a','#9466f7','#2fb36b','#e8506a','#13a8a8','#c99a2e','#6b7280'];
 const acc=n=>S.accts.find(a=>a.n==n)||{n,kind:'budget',col:'#6b7280',vis:true,tot:false};
 const isK=n=>acc(n).kind=='konto';
 const safeAcct=n=>String(n??'').replace(/[<>"'`&\\]/g,'').trim().slice(0,40)||'Konto';
 function refreshA(){if(!refreshA.busy&&S.accts.some(a=>safeAcct(a.n)!==a.n)){refreshA.busy=1;try{S.accts.forEach(a=>{const s0=safeAcct(a.n);if(s0===a.n)return;let t=s0,k=2;while(S.accts.some(x=>x!==a&&x.n==t))t=s0+' '+k++;renameAcct(a.n,t)})}catch(e){}refreshA.busy=0}ALL=S.accts.map(a=>a.n);BN=S.accts.filter(a=>a.vis).map(a=>a.n);/* v253: Sinking Funds ist ein Bestand, kein Monatsbudget, und gehört nicht in BUDG */BUDG=S.accts.filter(a=>a.vis&&a.kind=='budget'&&!isStock(a.n)).map(a=>a.n);/* v391: Bestand nach Stufe, nicht nur nach Name */TOT=S.accts.filter(a=>a.kind=='budget'&&a.tot).map(a=>a.n);TOTM=TOT.filter(b=>!isStock(b));
-  Object.keys(COL).forEach(k=>{delete COL[k];delete HEX[k];delete SHORT[k]});S.accts.forEach(a=>{COL[a.n]=HEX[a.n]=a.col;SHORT[a.n]=a.n.length>9?a.n.split(' ')[0].slice(0,9):a.n})}
+  Object.keys(COL).forEach(k=>{delete COL[k];delete HEX[k];delete SHORT[k]});S.accts.forEach(a=>{HEX[a.n]=a.col;COL[a.n]=softC(a.col);SHORT[a.n]=a.n.length>9?a.n.split(' ')[0].slice(0,9):a.n})}
 const swL=()=>BN.includes(curB)?BN:ALL;
 const DEFCATS={"Flow":[["Lebensmittel","cart"],["Drogerie","bottle"],["Friseur","scissors"],["Haushalt","home"],["Gesundheit","pill"],["Mobilität","bus"],["Kleidung","shirt"],["Sonstiges","dot"]],
  "Gönn dir":[["Restaurant","fork"],["Café","cup"],["Freizeit","ticket"],["Shopping","bag"],["Beauty","sparkle"],["Hobby","palette"],["Geschenke","gift"],["Sonstiges","dot"]],
