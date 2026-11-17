@@ -1187,50 +1187,79 @@ function rlTick(){let ch=0;
   const P=period(0),k=pkey(P),D=rlRate();
   const pa=pufAcc();if(D>0&&pa&&pa.n!=ra&&!S.exp.some(e=>e.rlm==k)){S.exp.push({id:uid(),type:'tr',b:pa.n,to:ra,a:D,n:'Rücklagen',c:'',t:Math.min(Date.now(),P.s.getTime()+12*36e5),rlm:k});ch=1}
   if(ch)save();rlSync()}
-/* v388: fester Dauerauftrag – gleichbleibende Rate, die alle Fälligkeiten der nächsten 24 Monate deckt (Überschuss erlaubt, nie Fehlbetrag) */
+/* v389: Zeitleiste – Regelrate R (Jahresbeträge ÷ 12), Lücke G = Soll-Stand − Kontostand, Aufholphase S.rlPlan={a,n,from,to} mit fester Rate, danach R */
 function rlDues(H){const D=[];rlRecs().forEach(r=>{for(let o=0;o<H;o++){const P=period(o),k=pkey(P);if(!recDue(r,P)||(r.skip||[]).includes(k))continue;if(o==0&&S.exp.some(e=>(e.rid==r.id||e.rlp==r.id)&&e.pk==k))continue;D.push({o,a:recA(r,P),r})}});return D}
-function rlNeed(){const ra=rlAccN();if(!ra)return 0;const B=calc(ra).rest,booked=S.exp.some(e=>e.rlm==pkey(period(0))),D=rlDues(24);let F=rlMonthly(),cum=0;
-  for(let o=0;o<24;o++){D.filter(x=>x.o==o).forEach(x=>cum+=x.a);const m=o+(booked?0:1);if(m>0&&cum>B)F=Math.max(F,Math.ceil((cum-B)/m-0.001))}return F}
-function rlRate(){const k=pkey(period(0)),e=S.exp.find(x=>x.rlm==k);return e?e.a:(S.rlDA||rlNeed())}
-function rlMonthly(){return rlRecs().reduce((s,r)=>s+Math.ceil(r.a/(r.every||1)-0.001),0)}
+function rlMonthly(){return Math.ceil(rlRecs().reduce((s,r)=>s+r.a/(r.every||1),0)-0.001)}
+const rlBooked=()=>S.exp.some(e=>e.rlm==pkey(period(0)));
+function rlPlanOn(){const p=S.rlPlan;if(p&&p.to<pkey(period(0))){delete S.rlPlan;save();return null}return p||null}
+/* Rate für Monat o (0 = laufender Monat); pl = Plan (Standard: gespeicherter) */
+function rlRateAt(o,pl){const k=pkey(period(o));if(o==0){const e=S.exp.find(x=>x.rlm==k);if(e)return e.a}pl=pl===undefined?rlPlanOn():pl;return pl&&k>=pl.from&&k<=pl.to?pl.a:rlMonthly()}
+function rlRate(){return rlRateAt(0)}
+/* Kontostand Monatsende über H Monate bei Plan pl und Einmalbetrag x0 */
+function rlSim(pl,x0,H){const ra=rlAccN(),D=rlDues(H||24),bk=rlBooked();let b=calc(ra).rest+(x0||0),low=Infinity;const PJ=[];for(let o=0;o<(H||24);o++){if(o>0||!bk)b+=rlRateAt(o,pl);D.forEach(x=>{if(x.o==o)b-=x.a});PJ.push(b);low=Math.min(low,b)}return{PJ,low,ok:low>=-0.5}}
+function rlGapNow(){const R=rlMonthly(),D=rlDues(24),bk=rlBooked();let cum=0,need=0;for(let o=0;o<24;o++){D.forEach(x=>{if(x.o==o)cum+=x.a});need=Math.max(need,cum-R*(o+(bk?0:1)))}return Math.max(0,Math.ceil(need-calc(rlAccN()).rest-0.001))}
+function rlIdx(k){for(let o=0;o<=36;o++)if(pkey(period(o))==k)return o;return 0}
+function rlMkPlan(n,a){const s=rlBooked()?1:0;return{n,a,from:pkey(period(s)),to:pkey(period(s+n-1))}}
+/* kleinste feste Aufholrate für n Monate, bei der nie Geld fehlt (null = schon im laufenden Monat fehlt Geld, nur Einmalbetrag hilft) */
+/* Fehlbetrag noch im laufenden Monat (vor der nächsten Rate) – nur per Sofortüberweisung zu decken */
+function rlNow(){if(!rlBooked())return 0;const D=rlDues(1),c=D.reduce((s,x)=>s+x.a,0);return Math.max(0,Math.ceil(c-calc(rlAccN()).rest-0.001))}
+function rlMinA(n,G,x0){const R=rlMonthly(),D=rlDues(24),sk=rlBooked()?1:0,bal=calc(rlAccN()).rest+(x0||0);let a=R+Math.ceil((G||0)/n-0.001),cum=0;
+  for(let o=0;o<24;o++){D.forEach(x=>{if(x.o==o)cum+=x.a});const m=o-sk+1;if(m<=0){if(cum-bal>0.5)return null;continue}a=Math.max(a,m<=n?Math.ceil((cum-bal)/m-0.001):Math.ceil((cum-bal-R*(m-n))/n-0.001))}return a}
+function rlOpts(G){const O=[],x0=rlNow();[3,6,12].forEach(n=>{const a=rlMinA(n,Math.max(0,G-x0),x0);if(a==null)return;const pl=rlMkPlan(n,a);if(!O.some(o=>o.pl.a==pl.a))O.push({n,pl,x0,sw:period((rlBooked()?1:0)+n)})});return O}
 function rlGot(){return rlRecs().reduce((s,r)=>s+Math.max(0,(r.fund&&r.fund.got)||0),0)}
 function rlPay(r,from,pk,t){if(!(from>=0.01))return;r.fund.got=rl2(r.fund.got-from);S.exp.push({id:uid(),type:'tr',b:rlAccN(),to:r.b,a:from,n:'Rücklagen: '+(r.n||r.c||''),c:'',t,rlp:r.id,pk})}
 /* offene Rücküberweisungen: 7 Tage vor bis 14 Tage nach Fälligkeit, solange nicht als erledigt gebucht */
 function rlPend(){const L=[],nT=Date.now();rlRecs().forEach(r=>{for(let o=-1;o<=1;o++){const P=period(o),d=recDue(r,P);if(!d)continue;const k=pkey(P),dt=d.getTime();if((r.skip||[]).includes(k)||dt-nT>7*864e5||nT-dt>14*864e5||S.exp.some(e=>e.rlp==r.id&&e.pk==k))continue;const bk=S.exp.find(e=>e.rid==r.id&&e.pk==k),a=bk?bk.a:recA(r,P),from=rl2(Math.min(a,Math.max(0,(r.fund&&r.fund.got)||0)));if(from>=1)L.push({r,k,d,a,from})}});return L}
 TIPFN.rlDone=arg=>{const[rid,k]=String(arg).split('|'),x=rlPend().find(p=>p.r.id==rid&&p.k==k);if(!x)return;const sn=JSON.stringify({exp:S.exp,rec:S.rec});rlPay(x.r,x.from,k,Math.min(Date.now(),x.d.getTime()));save();render();renderAsst();tell(`${eur0(x.from)} von ${SHORT[rlAccN()]||rlAccN()} gebucht.`,()=>{const o=JSON.parse(sn);S.exp=o.exp;S.rec=o.rec;save();render()})};
-TIPFN.rlDA=arg=>{S.rlDA=+arg;save();renderAsst()};
 TIPFN.rlGo=()=>{asstOpen=false;renderAsst();tab='wish';wishV='Monat';render();scrollTo(0,0)};
-TIPFN.rlDA=arg=>{S.rlDA=+arg;delete S.rlLow;save();render();renderAsst()};
-TIPFN.rlLow=arg=>{S.rlLow=+arg;save();renderAsst()};
+TIPFN.rlDA=arg=>{S.rlDA=+arg;save();render();renderAsst()};
+/* Lücke schließen: n=0 einmalig, n=3/6/12 Aufholphase, 'mix' Teilbetrag sofort + Rest über Aufholphase */
+function rlOnce(x){const pa=pufAcc(),ra=rlAccN();if(!pa||!(x>=1))return false;S.exp.push({id:uid(),type:'tr',b:pa.n,to:ra,a:x,n:'Rücklagen: Lücke',c:'',t:Date.now(),rlf:1});return true}
+function rlPick(arg){const G=rlGapNow(),sn=JSON.stringify({exp:S.exp,pl:S.rlPlan||null}),undo=()=>{const o=JSON.parse(sn);S.exp=o.exp;if(o.pl)S.rlPlan=o.pl;else delete S.rlPlan;save();render()};
+  if(arg==0){if(!rlOnce(G))return;delete S.rlPlan;save();render();tell(`${eur0(G)} einmalig in die Rücklagen. Ab jetzt reicht die Regelrate.`,undo);return}
+  if(arg=='mix'){const v=prompt(`Lücke ${eur0(G)}. Wie viel überweist du jetzt sofort aufs Tagesgeld?`,String(Math.round(G/2)));if(v==null)return;const x=Math.min(G-1,pNum(v));if(!(x>=1)){tell('Bitte einen Betrag eingeben.');return}if(x<rlNow()){tell(`Damit diesen Monat nichts fehlt, mindestens ${eur0(rlNow())} sofort.`);return}
+    const w=prompt('Über wie viele Monate holst du den Rest auf? (3, 6 oder 12)','6');if(w==null)return;const n=[3,6,12].includes(+w)?+w:6;rlOnce(x);const G2=rlGapNow(),a2=G2>=1?rlMinA(n,G2):null;if(a2==null)delete S.rlPlan;else S.rlPlan=rlMkPlan(n,a2);save();render();tell(`${eur0(x)} sofort, Rest über ${n} Monate.`,undo);return}
+  const n=+arg,o=rlOpts(G).find(x=>x.n==n)||(()=>{const x0=rlNow(),a=rlMinA(n,Math.max(0,G-x0),x0);return a==null?null:{pl:rlMkPlan(n,a),x0}})();if(!o)return;if(o.x0)rlOnce(o.x0);S.rlPlan=o.pl;save();render();tell(`${o.x0?eur0(o.x0)+' sofort, dann ':'Aufholphase: '}${n} Monate ${eur0(o.pl.a)} im Monat.`,undo)}
+TIPFN.rlPick=arg=>rlPick(arg);
+/* Plan reicht nicht mehr (neue/teurere Zahlung): verlängern (gleiche Rate) oder erhöhen (gleicher Wechseltermin) */
+function rlFix(){const p=rlPlanOn();if(!p||rlSim(p,0).ok)return null;const s=rlBooked()?1:0,cur=Math.max(1,rlIdx(p.to)-s+1);
+  let ext=null;for(let n=cur+1;n<=24;n++){const q=rlMkPlan(n,p.a);if(rlSim(q,0).ok){ext=q;break}}const a=rlMinA(cur,0);return{ext,raise:a==null?null:rlMkPlan(cur,Math.max(a,p.a))}}
+TIPFN.rlExt=()=>{const f=rlFix();if(f&&f.ext){S.rlPlan=f.ext;save();render();renderAsst()}};
+TIPFN.rlRaise=()=>{const f=rlFix();if(f&&f.raise){S.rlPlan=f.raise;save();render();renderAsst()}};
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.rlbar');if(t)tell(t.dataset.t)});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-rlpick],#rlDAset');if(!b)return;if(b.id=='rlDAset')TIPFN.rlDA(b.dataset.a);else rlPick(b.dataset.rlpick=='mix'?'mix':+b.dataset.rlpick)});
 /* v387: Angespart folgt dem echten Kontostand (z. B. nach Abgleich): Mehr füllt die nächsten Fälligkeiten auf, Weniger kürzt die spätesten zuerst */
 function rlSync(){const ra=rlAccN(),L=rlRecs();if(!ra||!L.length)return;const bal=Math.max(0,calc(ra).rest);let d=rl2(bal-rlGot());if(Math.abs(d)<1)return;
   const it=L.map(r=>({r,n:rlNext(r),f:r.fund||(r.fund={got:0})})).sort((a,b)=>(a.n?a.n.d:9e15)-(b.n?b.n.d:9e15));
   if(d>0)it.forEach(x=>{if(d<0.01)return;const cap=Math.max(0,(x.n?x.n.a:x.r.a)-x.f.got),a=Math.min(cap,d);x.f.got=rl2(x.f.got+a);d-=a});
   else it.reverse().forEach(x=>{if(d>-0.01)return;const a=Math.min(x.f.got,-d);x.f.got=rl2(x.f.got-a);d+=a});save()}
-/* Kontostand Rücklagen am Monatsende der nächsten 12 Monate bei fester Rate F */
-function rlProj(F){const ra=rlAccN(),D=rlDues(12),booked=S.exp.some(e=>e.rlm==pkey(period(0)));let b=calc(ra).rest;const out=[];for(let o=0;o<12;o++){if(o>0||!booked)b+=F;D.filter(x=>x.o==o).forEach(x=>b-=x.a);out.push(b)}return out}
+const rlMon=o=>esc(period(o).s.toLocaleDateString('de-DE',{month:'short'}).replace('.',''));
+/* Zeitleiste als Abschnitte gleicher Rate */
+function rlSegs(H){const S0=[];for(let o=0;o<H;o++){const v=rlRateAt(o);const l=S0[S0.length-1];if(l&&l.v==v)l.to=o;else S0.push({v,from:o,to:o})}return S0}
 function rlCardH(){const ra=rlAccN(),L=rlRecs();if(!ra||!L.length)return '';rlSync();
   const it=L.map(r=>{const n=rlNext(r),got=(r.fund&&r.fund.got)||0;return{r,n,got}}).sort((a,b)=>(a.n?a.n.d:9e15)-(b.n?b.n.d:9e15));
-  const M=[];for(let o=0;o<12;o++){const P=period(o),k=pkey(P);let v=0;L.forEach(r=>{if(recDue(r,P)&&!(r.skip||[]).includes(k))v+=recA(r,P)});M.push({P,v})}
-  const need=rlNeed(),F=S.rlDA||need,avg=rlMonthly(),PJ=rlProj(F),mx=Math.max(...M.map(m=>m.v),1),got=rlGot(),bal=calc(ra).rest,low=Math.min(...PJ);
-  const bars=`<div style="position:relative;display:flex;align-items:flex-end;gap:3px;height:70px;margin:10px 0 2px">${M.map(m=>`<div title="${esc(monS(m.P))}: ${eur0(m.v)}" style="flex:1;height:${Math.max(m.v?6:1,m.v/mx*100).toFixed(0)}%;background:${m.v?'var(--warn)':'var(--fill)'};border-radius:3px 3px 0 0;opacity:.8"></div>`).join('')}</div><div style="display:flex;gap:3px;font-size:10px;color:var(--muted)">${M.map(m=>`<span style="flex:1;text-align:center">${esc(monS(m.P).slice(0,1))}</span>`).join('')}</div>
+  const M=[];for(let o=0;o<12;o++){const P=period(o),k=pkey(P);let v=0;const N=[];L.forEach(r=>{if(recDue(r,P)&&!(r.skip||[]).includes(k)){const a=recA(r,P);v+=a;N.push((r.n||r.c)+' '+eur0(a))}});M.push({P,v,N})}
+  const R=rlMonthly(),pl=rlPlanOn(),G=pl?0:rlGapNow(),sim=rlSim(undefined,0,12),PJ=sim.PJ,mx=Math.max(...M.map(m=>m.v),1),bal=calc(ra).rest,fx=pl&&rlFix();
+  const bars=`<div style="position:relative;display:flex;align-items:flex-end;gap:3px;height:70px;margin:10px 0 2px">${M.map(m=>`<div class="rlbar" data-t="${esc(monS(m.P)+': '+(m.N.length?m.N.join(' · '):'keine Abbuchung'))}" title="${esc(m.N.join('\n')||'keine Abbuchung')}" style="cursor:pointer;flex:1;height:${Math.max(m.v?6:1,m.v/mx*100).toFixed(0)}%;background:${m.v?'var(--warn)':'var(--fill)'};border-radius:3px 3px 0 0;opacity:.8"></div>`).join('')}</div><div style="display:flex;gap:3px;font-size:10px;color:var(--muted)">${M.map(m=>`<span style="flex:1;text-align:center">${esc(monS(m.P).slice(0,1))}</span>`).join('')}</div>
    <div style="display:flex;gap:3px;font-size:10px;font-weight:600;margin-top:3px">${PJ.map(v=>`<span style="flex:1;text-align:center;color:${v<-0.5?'var(--bad)':'var(--fg)'}">${Math.round(v)}</span>`).join('')}</div>
    <div class="ns-f" style="font-size:12px;margin-top:4px"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--warn);opacity:.8"></span> fällig</span><span><b>Zahlen</b> = Stand Monatsende (€)</span></div>`;
-  const msg=S.rlDA&&S.rlDA<need?`<b class="out">Dein Dauerauftrag über ${eur0(S.rlDA)} reicht nicht.</b> Erhöhe ihn auf ${eur0(need)}, sonst fehlt Geld bei einer Fälligkeit.`
-   :`${S.rlDA?'Dein Dauerauftrag':'Ein Dauerauftrag'} über <b>${eur0(F)}</b> im Monat deckt alle Fälligkeiten der nächsten 24 Monate${low>=0.5?`, der niedrigste Stand liegt bei ${eur0(low)}`:''}.${F>avg+2?` Langfristig genügen ${eur0(avg)}. Penny sagt Bescheid, wenn du senken kannst.`:''}`;
-  const rows=it.map(x=>{const a=x.n?x.n.a:x.r.a,pc=Math.min(100,x.got/a*100);return `<div class="srow"><div class="srow-h"><span><b>${esc(x.r.n||x.r.c)}</b> <span class="s" style="font-size:12px;color:var(--muted)">${VM_R[x.r.every]||''}${x.n?' · fällig '+samDM(x.n.d.getTime()):''}</span></span><span></span><b>${eur0(a)}</b></div>
-    <div class="nsbar" style="margin:6px 0 4px"><i style="width:${pc.toFixed(0)}%;background:var(--ok)"></i></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=a-0.5?'<b class="in">voll angespart</b>':`${eur0(x.got)} angespart`}</span><span></span></div></div>`}).join('');
-  return `<div class="sec"><div class="sh"><span>Rücklagen</span><span style="text-transform:none">Dauerauftrag ${eur0(F)}/Monat</span></div><div class="mmcard"><div class="pot-r"><span>Kontostand ${esc(SHORT[ra]||ra)}</span><b>${eur0(bal)}</b></div>${bars}
-   <div class="note" style="padding:8px 0 0">${msg}</div>${!S.rlDA||S.rlDA<need?`<button class="btn soft" id="rlDAset" data-a="${need}" style="margin:8px 0 0">Dauerauftrag über ${eur0(need)} ist eingerichtet</button>`:''}</div><div class="mmcard">${rows}</div>
+  const segs=rlSegs(24),tl=segs.map((s,i)=>{const last=i==segs.length-1,lab=last?`ab ${rlMon(s.from)}${s.from>0?'':' (jetzt)'}`:(s.from==s.to?rlMon(s.from):`${rlMon(s.from)} – ${rlMon(s.to)}`);return `<div class="srow-h" style="padding:5px 0;font-size:15px"><span>${lab}<span class="s" style="font-size:12px;color:var(--muted)"> · ${last&&s.v==R?'Regelrate':s.v>R?'Aufholphase':'diesen Monat'}</span></span><span></span><b>${eur0(s.v)}/Monat</b></div>`}).join('');
+  const nextA=rlRateAt(rlBooked()?1:0),daOk=S.rlDA==nextA;
+  const opts=G>=1?`<div class="note" style="padding:8px 0 4px"><b>Lücke ${eur0(G)}:</b> Mit der Regelrate von ${eur0(R)} würde bei einer der nächsten Fälligkeiten Geld fehlen. Wie willst du sie schließen?</div>
+    <div style="display:flex;flex-direction:column;gap:6px">${[{k:0,l:`Einmalig ${eur0(G)} überweisen`,s:`danach ${eur0(R)}/Monat`},...rlOpts(G).map(o=>({k:o.n,l:`${o.x0?eur0(o.x0)+' sofort + ':''}${o.n} Monate ${eur0(o.pl.a)}/Monat`,s:`ab ${esc(o.sw.s.toLocaleDateString('de-DE',{month:'long'}))} ${eur0(R)}`})),{k:'mix',l:'Teilbetrag sofort, Rest aufholen',s:''}].map(o=>`<button class="btn soft" data-rlpick="${o.k}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0;font-size:14px;padding:10px 14px;text-align:left"><span>${o.l}</span><span class="s" style="font-size:12px;color:var(--muted);font-weight:400;white-space:nowrap">${o.s}</span></button>`).join('')}</div>`:'';
+  const fixH=fx?`<div class="note" style="padding:8px 0 4px"><b class="out">Der Plan reicht nicht mehr</b> (neue oder teurere Zahlung).</div><div style="display:flex;gap:6px">${fx.ext?`<button class="btn soft" onclick="TIPFN.rlExt()" style="margin:0;flex:1">Verlängern bis ${rlMon(rlIdx(fx.ext.to))}</button>`:''}${fx.raise?`<button class="btn soft" onclick="TIPFN.rlRaise()" style="margin:0;flex:1">Auf ${eur0(fx.raise.a)} erhöhen</button>`:''}</div>`:'';
+  const rows=it.map(x=>{const a=x.n?x.n.a:x.r.a;return `<div class="srow"><div class="srow-h"><span><b>${esc(x.r.n||x.r.c)}</b> <span class="s" style="font-size:12px;color:var(--muted)">${VM_R[x.r.every]||''}${x.n?' · fällig '+samDM(x.n.d.getTime()):''}</span></span><span></span><b>${eur0(a)}</b></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=a-0.5?'<b class="in">voll angespart</b>':`${eur0(x.got)} angespart`}</span><span></span></div></div>`}).join('');
+  return `<div class="sec"><div class="sh"><span>Rücklagen</span><span style="text-transform:none">Kontostand ${eur0(bal)}</span></div><div class="mmcard"><div class="s" style="font-size:12px;color:var(--muted);margin-bottom:4px">Zeitleiste Dauerauftrag</div>${tl}${opts}${fixH}
+   ${!daOk&&!G?`<div class="note" style="padding:8px 0 0">Stell den Dauerauftrag ${rlBooked()?`ab 1. ${esc(period(1).s.toLocaleDateString('de-DE',{month:'long'}))}`:'jetzt'} auf <b>${eur0(nextA)}</b>.</div><button class="btn soft" id="rlDAset" data-a="${nextA}" style="margin:8px 0 0">Erledigt</button>`:''}</div>
+   <div class="mmcard">${bars}</div><div class="mmcard">${rows}</div>
    <div class="note">Der Dauerauftrag läuft zum Monatsanfang vom Girokonto aufs Tagesgeld (${esc(SHORT[ra]||ra)}). Vor jeder Fälligkeit erinnert Penny dich an die Rücküberweisung. An- und abschalten in der wiederkehrenden Buchung.</div></div>`}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#rlDAset');if(b)TIPFN.rlDA(b.dataset.a)});
-/* Penny: Rücküberweisung vor Fälligkeit · Dauerauftrag einrichten, erhöhen oder senken */
+/* Penny: Rücküberweisung · Lücke · Plan reicht nicht · Dauerauftrag einrichten/umstellen */
 function rlTips(t){const ra=rlAccN();if(!ra||!rlRecs().length)return;const R=SHORT[ra]||ra;
   rlSync();rlPend().forEach(x=>{const past=x.d.getTime()<Date.now();t.push({sev:past?'warn':'info',btns:[{l:'Erledigt',fn:'rlDone',arg:x.r.id+'|'+x.k},{l:'Ansehen',fn:'rlGo'}],ttl:`${eur0(x.from)} von ${esc(R)} aufs Girokonto`,txt:`${esc(x.r.n||x.r.c)} ${past?'wurde am':'wird am'} ${samDM(x.d.getTime())} abgebucht (${eur0(x.a)}). Überweise ${eur0(x.from)} vom Tagesgeld zurück${x.from<x.a-0.5?', der Rest kommt vom Konto':''}.`})});
-  const need=rlNeed();
-  if(!S.rlDA)t.push({sev:'info',btns:[{l:'Ist eingerichtet',fn:'rlDA',arg:need},{l:'Ansehen',fn:'rlGo'}],ttl:`Dauerauftrag Rücklagen: ${eur0(need)}/Monat`,txt:`Richte einen gleichbleibenden Dauerauftrag zum Monatsanfang vom Girokonto aufs Tagesgeld (${esc(R)}) ein. Er deckt alle Fälligkeiten der nächsten 24 Monate.`});
-  else if(S.rlDA<need)t.push({sev:'warn',btns:[{l:'Erhöht',fn:'rlDA',arg:need},{l:'Ansehen',fn:'rlGo'}],ttl:`Dauerauftrag Rücklagen auf ${eur0(need)} erhöhen`,txt:`Mit ${eur0(S.rlDA)} fehlt bei einer der nächsten Fälligkeiten Geld (z. B. durch eine neue oder teurere Zahlung).`});
-  else if(S.rlDA-need>=5&&S.rlLow!=need)t.push({sev:'info',btns:[{l:'Gesenkt',fn:'rlDA',arg:need},{l:'So lassen',fn:'rlLow',arg:need}],ttl:`Dauerauftrag Rücklagen: ${eur0(need)} reichen`,txt:`Du legst ${eur0(S.rlDA)} im Monat zurück, ${eur0(need)} decken alle Fälligkeiten der nächsten 24 Monate. Der Rest bleibt als Puffer liegen.`})}
+  const pl=rlPlanOn(),G=pl?0:rlGapNow(),fx=pl&&rlFix();
+  if(G>=1){t.push({sev:'warn',btns:[{l:'Ansehen',fn:'rlGo'}],ttl:`Rücklagen: Lücke ${eur0(G)}`,txt:`Mit der Regelrate von ${eur0(rlMonthly())} würde bei einer der nächsten Fälligkeiten Geld fehlen. Wähle, wie du die Lücke schließt: einmalig, über 3, 6 oder 12 Monate oder gemischt.`});return}
+  if(fx){t.push({sev:'warn',btns:[...(fx.ext?[{l:'Verlängern',fn:'rlExt'}]:[]),...(fx.raise?[{l:`Auf ${eur0(fx.raise.a)} erhöhen`,fn:'rlRaise'}]:[]),{l:'Ansehen',fn:'rlGo'}],ttl:'Rücklagen: Plan reicht nicht mehr',txt:`Eine neue oder teurere Zahlung passt nicht mehr in die Aufholphase. ${fx.ext?`Verlängern: ${eur0(pl.a)} bis ${rlMon(rlIdx(fx.ext.to))}. `:''}${fx.raise?`Erhöhen: ${eur0(fx.raise.a)} bis ${rlMon(rlIdx(pl.to))}.`:''}`});return}
+  const o1=rlBooked()?1:0,a=rlRateAt(o1);if(S.rlDA!=a){const when=o1?`ab 1. ${period(1).s.toLocaleDateString('de-DE',{month:'long'})}`:'jetzt',dn=S.rlDA&&a<S.rlDA;t.push({sev:'info',btns:[{l:'Erledigt',fn:'rlDA',arg:a},{l:'Ansehen',fn:'rlGo'}],ttl:`Dauerauftrag Rücklagen ${when}: ${eur0(a)}`,txt:S.rlDA?`${dn?'Senke':'Ändere'} deinen Dauerauftrag vom Girokonto aufs Tagesgeld ${when} von ${eur0(S.rlDA)} auf ${eur0(a)}${dn&&a==rlMonthly()?' – die Aufholphase ist vorbei, ab dann gilt die Regelrate':''}.`:`Richte einen Dauerauftrag zum Monatsanfang vom Girokonto aufs Tagesgeld (${esc(R)}) über ${eur0(a)} ein.`})}}
 /* v358: Kreditkarten-Sammelposten – Käufe sind normale Buchungen (Budget sofort, eigene Kategorie) mit e.kk=Karten-ID; die Karte zeigt die Monatssumme bis zur Abbuchung im Folgemonat. S.kk=[{id,n,day}] */
 const kkP=()=>S.kk=S.kk||[];
 const kkPv=id=>kkP().find(p=>p.id==id);
