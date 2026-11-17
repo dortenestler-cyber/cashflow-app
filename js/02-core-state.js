@@ -101,14 +101,15 @@ function adjReset(rid,v){if(!v)return;const r=(S.rec||[]).find(x=>x.id==rid);con
   else if(v.kind=='next'&&S.planNext){const pn=S.planNext;if(v.src&&v.src.startsWith('b:'))delete (pn.b||{})[v.src.slice(2)];else delete (pn.r||{})[rid];if(!Object.keys(pn.r||{}).length&&!Object.keys(pn.b||{}).length)delete S.planNext}
   save();render();tell('Anpassung entfernt – es gilt wieder '+eur(v.base)+'.',()=>{const o=JSON.parse(snap);S.monthOv=o.ov;if(o.pn)S.planNext=o.pn;else delete S.planNext;save();render()})}
 /* v374: verpasste Zeiträume nachholen (nur Vorlagen, die beim letzten Lauf schon da waren) · Vorlage ohne Deckung wird zurückgehalten statt ins Minus gebucht */
-function applyRec(){const cur=pkey(period(0)),run=S.recRun,ids=(run&&run.ids)||[];S.recHold=(S.recHold||[]).filter(h=>(S.rec||[]).some(r=>r.id==h.rid));
+function applyRec(){try{rlTick()}catch(e){}const cur=pkey(period(0)),run=S.recRun,ids=(run&&run.ids)||[];S.recHold=(S.recHold||[]).filter(h=>(S.rec||[]).some(r=>r.id==h.rid));
   const R=[...S.rec].sort((a,b)=>(a.type=='in'?0:1)-(b.type=='in'?0:1));
   for(let o=-3;o<=0;o++){const p=period(o),k=pkey(p);if(o<0&&(!run||k<=run.pk||p.e.getTime()<=S.since))continue;
     R.forEach(r=>{if(r.paused||(o<0&&!ids.includes(r.id)))return;const d=recDue(r,p);
       if(!d||d>now||(r.skip||[]).includes(k)||S.exp.some(e=>e.rid==r.id&&e.pk==k)||S.recHold.some(h=>h.rid==r.id&&h.pk==k))return;
       const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;
-      if(r.type!='in'&&!r.neg&&ALL.includes(r.b)&&calc(r.b).rest-v.a<-0.005){S.recHold.push({rid:r.id,pk:k,x,d:d.getTime()});return}
-      S.exp.push(x)})}
+      const rf=typeof rlOn=='function'&&rlOn(r)?rlFrom(r,v.a):0;
+      if(r.type!='in'&&!r.neg&&ALL.includes(r.b)&&calc(r.b).rest+rf-v.a<-0.005){S.recHold.push({rid:r.id,pk:k,x,d:d.getTime(),rf});return}
+      S.exp.push(x);if(rf)rlPay(r,rf,k,x.t)})}
   S.recRun={pk:cur,ids:S.rec.map(r=>r.id)};save()}
 
 /* month close: leftovers of roll-accounts move to the roll target on the last minute of the month */

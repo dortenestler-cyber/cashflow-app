@@ -370,10 +370,10 @@ const gSaved=g=>(g.dep||[]).reduce((s,d)=>s+d.a,0);
 const goalsAct=()=>(S.goals||[]).filter(g=>!g.done&&!g.dropped);
 /* v237: Sinking Funds = Summe der Zielraten. Ziele mit Termin rechnen ihre Rate selbst (Jahresplan), Ziele ohne Termin haben eine eigene Monatsrate (g.rate). */
 function sinkRates(){const Y={};try{yplanStatus().forEach(x=>{if(x.g)Y[x.g.id]=x})}catch(e){}return goalsAct().map(g=>{const y=Y[g.id];const r=y?(y.skipNext?0:y.need):Math.min(+g.rate||0,Math.max(g.ziel-gSaved(g),0));return{g,rate:Math.round(r*100)/100,dated:!!y}})}
-function sinkSum(){return Math.round(sinkRates().reduce((s,x)=>s+x.rate,0))}
+function sinkSum(){return Math.round(sinkRates().reduce((s,x)=>s+x.rate,0)+(typeof rlRate=='function'?rlRate():0))}
 function migSink(){if(S.sink3&&!S.sinkIn&&sinkAcc()){S.sinkIn={};for(let o=-1;o>-60;o--){const P=period(o);if(P.s.getTime()<S.sink3)break;S.sinkIn[pkey(P)]=sinkSum()}}if(S.sink3&&S.sinkExtra==null&&sinkAcc()){S.sinkExtra=Math.max(Math.round((S.sinkOld||0)-sinkSum()),0);setTimeout(()=>{try{save()}catch(e){}},0)}if(S.sink3||!sinkAcc())return;const sn=sinkAcc(),B=S.budgets[sn]||0,R=sinkRates(),N=R.filter(x=>x.dated).reduce((s,x)=>s+x.rate,0),U=R.filter(x=>!x.dated&&!(x.g.rate>0));
   const L=Math.max(B-N,0);U.forEach(x=>{x.g.rate=Math.round(L/U.length)});S.sink3=period(1).s.getTime();S.sinkOld=B;if(S.sinkExtra==null)S.sinkExtra=Math.max(Math.round(B-sinkSum()),0);setTimeout(()=>{try{save()}catch(e){}},0)}
-function sinkPot(){const sa=sinkAcc(),bal=sa?calc(sa).rest:0,alloc=goalsAct().reduce((s,g)=>s+gSaved(g),0);return{sa,bal,alloc,free:bal-alloc}}
+function sinkPot(){const sa=sinkAcc(),bal=sa?calc(sa).rest:0,alloc=goalsAct().reduce((s,g)=>s+gSaved(g),0)+(typeof rlGot=='function'?rlGot():0);return{sa,bal,alloc,free:bal-alloc}}
 /* v371: Ziele und Wünsche als ein Objekt (wartet → spart → gekauft/verworfen). Einmalige Sicherung, dann jeder Wunsch mit id und jedes Wunsch-Ziel fest mit seinem Wunsch verknüpft (g.wid). */
 function migZW(){if(S.zwMig)return;try{localStorage.setItem('dodo4_vor_v371',JSON.stringify(S))}catch(e){}
   (S.wish||[]).forEach(w=>{if(!w.id)w.id=uid()});(S.goals||[]).forEach(g=>{if(g.wid||g.from!='Wunsch')return;const w=(S.wish||[]).find(x=>x.s=='Sparziel'&&x.n==g.n&&!(S.goals||[]).some(y=>y.wid==x.id));if(w)g.wid=w.id});
@@ -393,7 +393,7 @@ function projLinkGoal(x){const m=x.from?new Date(x.from+'T12:00').getMonth()+1:n
 function goalNew(o){S.goals=S.goals||[];const g=Object.assign({id:uid(),t:Date.now(),dep:[],from:'selbst'},o);S.goals.push(g);return g}
 const goalOf=x=>x&&x.goal?(S.goals||[]).find(g=>g.id==x.goal&&!g.dropped):null;
 const projBud=x=>{const g=goalOf(x);return g?g.ziel:(x.bud||0)};
-function yplanItems(){const it=goalsAct().filter(g=>g.m).map(g=>({id:g.id,n:g.n,a:g.ziel,m:g.m,src:'eigen',g,skip:g.skip,yearly:g.yearly,proj:g.proj}));(S.rec||[]).filter(r=>r.type=='out'&&(r.every||1)>=6).forEach(r=>{const s=new Date((r.start||ymd(Date.now()))+'T12:00');it.push({id:'r'+r.id,n:r.n,a:r.a,m:s.getMonth()+1,src:'dauerauftrag',every:r.every})});return it}
+function yplanItems(){const it=goalsAct().filter(g=>g.m).map(g=>({id:g.id,n:g.n,a:g.ziel,m:g.m,src:'eigen',g,skip:g.skip,yearly:g.yearly,proj:g.proj}));(S.rec||[]).filter(r=>r.type=='out'&&(r.every||1)>=6&&!rlOn(r)).forEach(r=>{const s=new Date((r.start||ymd(Date.now()))+'T12:00');it.push({id:'r'+r.id,n:r.n,a:r.a,m:s.getMonth()+1,src:'dauerauftrag',every:r.every})});return it}
 function yplanNext(x){let d=new Date(now.getFullYear(),x.m-1,15);if(d<now)d=new Date(now.getFullYear()+1,x.m-1,15);return d}
 /* ================= Ideen-Pool (v127): Preis-Wächter, Auffälliges, No-Spend, Projekte, Rückzahlungen, Belege/Garantien, Sinking-Ziele, Dein Jahr, Monatsabschluss, Steuer ================= */
 const TAXK={wk:'Werbungskosten',sa:'Spenden',hw:'Handwerker & Haushaltsnahes',ag:'Krankheit & Außergewöhnliches',so:'Sonstiges'};
@@ -651,7 +651,7 @@ function ideaTips(t){/* v262: Projekte und Rückzahlungen als Penny-Hinweise sta
 }catch(e){console.warn('ideaTips',e)}}
 /* v374: zurückgehaltene Vorlagen-Buchungen */
 function holdDo(arg,book){const[rid,pk]=String(arg).split('|'),L=S.recHold||[],i=L.findIndex(h=>h.rid==rid&&h.pk==pk);if(i<0)return;const h=L[i],sn=JSON.stringify({exp:S.exp,rec:S.rec,hold:L});L.splice(i,1);
-  if(book)S.exp.push(h.x);else{const r=S.rec.find(x=>x.id==rid);if(r&&!(r.skip||[]).includes(pk))(r.skip=r.skip||[]).push(pk)}
+  if(book){S.exp.push(h.x);const r0=S.rec.find(x=>x.id==rid);if(h.rf&&rlOn(r0))rlPay(r0,rlFrom(r0,h.x.a),pk,h.x.t)}else{const r=S.rec.find(x=>x.id==rid);if(r&&!(r.skip||[]).includes(pk))(r.skip=r.skip||[]).push(pk)}
   save();render();tell(book?eur(h.x.a)+' gebucht.':(h.x.n||'Vorlage')+' setzt diesmal aus.',()=>{const o=JSON.parse(sn);S.exp=o.exp;S.rec=o.rec;S.recHold=o.hold;save();render()})}
 const TIPFN={holdBook:a=>holdDo(a,true),holdSkip:a=>holdDo(a,false),restGo:()=>{asstOpen=false;renderAsst();prevTab=tab;setFrom=tab;tab='more';setView='close';render();scrollTo(0,0)},qkOk:()=>{delete S.qk;save();render();renderAsst()},salGo:()=>{asstOpen=false;renderAsst();setView=null;curB=null;tab='wish';wishV='Monat';render();scrollTo(0,0)},/* v367: Gehalt verteilen läuft über das Monatsritual */salEdit:()=>{tab='more';setView='salplan';render()},why:x=>{const h=typeof x=='string'?x:x.h,tt=(h.match(/<b>([^<]+)<\/b>/)||[])[1],d=document.createElement('div');if(tt)d.innerHTML=tt;AQ.msgs.push({q:tt?d.textContent+' – warum?':'Warum?',h,a:typeof x=='string'?null:x.a,t:Date.now()});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll()},askQ:q=>asstAsk(q),fillQ:t=>{openSheet();qp(t);drawSheet();tell('Kurz prüfen, Quelle wählen und sichern.')},pwTake:a=>{const[id,v]=a.split('|'),r=(S.rec||[]).find(x=>x.id==id);if(r){recSetA(r,+v);save();render();tell('Neuer Betrag '+eur(+v)+' gilt ab jetzt.')}},
   pwIgn:a=>{S.pwIgn=S.pwIgn||{};S.pwIgn[a]=1;save();render()},unIgn:a=>{S.unIgn=(S.unIgn||[]).concat(a).slice(-200);save();render()},normCat:a=>normMark('k',a),
@@ -1151,12 +1151,12 @@ const vmDays=t=>{const a=new Date(t),b=new Date();a.setHours(12,0,0,0);b.setHour
 const VM_R={2:'alle 2 Monate',3:'vierteljährlich',6:'halbjährlich',12:'jährlich'};
 function vmItems(){const n=Date.now(),to=n+VM_D*864e5;
   const A=(S.exp||[]).filter(e=>isPlan(e)&&!e.sam&&!e.rid&&!e.tpl&&e.t<=to&&!WH(e.b)).map(e=>Object.assign({},e,{k:'one'}));
-  const R=recVirt(n,to).map(v=>{const r=(S.rec||[]).find(x=>x.id==v.rid);return r&&(r.every||1)>1&&!WH(v.b)?Object.assign({},v,{k:'rec',ev:r.every}):null}).filter(Boolean);
+  const R=recVirt(n,to).filter(v=>!v.rlc).map(v=>{const r=(S.rec||[]).find(x=>x.id==v.rid);return r&&(r.every||1)>1&&!WH(v.b)?Object.assign({},v,{k:'rec',ev:r.every}):null}).filter(Boolean);
   return A.concat(R).sort((a,b)=>a.t-b.t)}
 const vmIsCard=(r,pl)=>pl?!r.rid&&!r.sam:(r.every||1)>1;
 function vmSt(t,est){const d=vmDays(t);if(est&&d<=7)return['Betrag prüfen','warn'];return[d<=0?'heute':d==1?'morgen':d<=7?'in '+d+' Tagen':'geplant',d<=7?'soon':'']}
-function vmCardH(x){const d=vmDays(x.t),f=Math.max(.08,Math.min(1,1-d/VM_D)),st=vmSt(x.t,x.est),tr=x.type=='tr';
-  const sub=[tr?esc(SHORT[x.b]||x.b)+' → '+esc(SHORT[x.to]||x.to):esc(SHORT[x.b]||x.b),'fällig '+samDM(x.t),x.k=='rec'?VM_R[x.ev]||'':'',x.est?'Betrag geschätzt':''].filter(Boolean).join(' · ');
+function vmCardH(x){const d=vmDays(x.t),rr=x.k=='rec'&&(S.rec||[]).find(q=>q.id==x.rid),rl=rlOn(rr)&&rr.fund?rr.fund.got||0:null,f=rl!=null?Math.max(.04,Math.min(1,rl/(x.a||1))):Math.max(.08,Math.min(1,1-d/VM_D)),st=vmSt(x.t,x.est),tr=x.type=='tr';
+  const sub=[tr?esc(SHORT[x.b]||x.b)+' → '+esc(SHORT[x.to]||x.to):esc(SHORT[x.b]||x.b),'fällig '+samDM(x.t),x.k=='rec'?VM_R[x.ev]||'':'',rl!=null?eur0(rl)+' in Rücklagen':'',x.est?'Betrag geschätzt':''].filter(Boolean).join(' · ');
   return `<button class="samc" data-vm="${esc(x.id)}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span><span class="vm-ic">${tr?I('swap',15):icoOf(x.b,x.c)}</span> ${esc(x.n||x.c||'Umbuchung')} · ${samMon(samYm(x.t))}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
    <div class="samc-v">${x.est?'ca. ':''}${x.type=='in'?'+':tr?'':'−'}${eur(x.a)}</div><div class="samc-s">${sub}</div></button>`}
 const vmChip=(r,pl,t)=>{if(!vmIsCard(r,pl))return '';const st=vmSt(t,pl&&r.est);return ` <span class="samc-t ${st[1]}" style="margin-left:4px">${st[0]}</span>`};
@@ -1169,6 +1169,51 @@ function vmTips(t){const n=Date.now();
   (S.exp||[]).forEach(e=>{if(!e.est||e.sam||isPlan(e)||n-e.t>21*864e5)return;t.push({sev:'warn',btns:[{l:'Betrag eintragen',fn:'vmOpen',arg:e.id}],ttl:'Betrag prüfen: '+(e.n||e.c||'Buchung'),txt:`Am ${samDM(e.t)} mit ca. ${eur(e.a)} gebucht. Stimmt der Betrag? Trag den echten ein, dann passt dein Stand.`})});
   const seen={};vmItems().forEach(x=>{if(x.type=='in'||vmDays(x.t)>7||seen[x.b]||!isK(x.b))return;try{let v=balAt(x.b,n);expV(n,x.t+1).forEach(e=>{if(e.t<=n||e.t>x.t)return;if((e.type=='in'&&e.b==x.b)||(e.type=='tr'&&e.to==x.b))v+=e.a;else if((e.type=='out'||e.type=='tr')&&e.b==x.b)v-=e.a});
     if(v<0){seen[x.b]=1;t.push({sev:'warn',btns:[{l:'Ansehen',fn:'vmOpen',arg:x.id}],ttl:`${SHORT[x.b]||x.b}: ${eur(-v)} fehlen bis ${samDM(x.t)}`,txt:`${esc(x.n||x.c||'Buchung')} ${eur(x.a)} am ${samDM(x.t)}. Mit allen Buchungen bis dahin fehlen auf ${esc(SHORT[x.b]||x.b)} ${eur(-v)}. Plane eine Umbuchung.`})}}catch(e){}})}
+/* v385: Rücklagen – Fixkosten ab vierteljährlich (r.spread) werden in Sinking Funds monatlich angespart und bei Fälligkeit daraus bezahlt.
+   r.fund={got,k,rt}: angespart inkl. Rate des laufenden Monats. Monatsrate = (Betrag − angespart) ÷ Monate bis Fälligkeit (aufholen eingebaut).
+   Zum Monatsbeginn: Umbuchung Eingang → Sinking (rlm). Bei Fälligkeit: Ausgabe wie bisher vom Konto + Umbuchung Sinking → Konto (rlp). */
+function rlOn(r){return !!(r&&r.spread&&r.type=='out'&&!r.paused&&(r.every||1)>=3&&sinkAcc()&&r.b!=sinkAcc())}
+function rlRecs(){return (S.rec||[]).filter(rlOn)}
+function rl2(v){return Math.round(v*100)/100}
+function rlNext(r){for(let o=0;o<=24;o++){const P=period(o),d=recDue(r,P);if(!d)continue;const k=pkey(P);if((r.skip||[]).includes(k)||S.exp.some(e=>e.rid==r.id&&e.pk==k))continue;return{o,d,k,a:recA(r,P)}}return null}
+function rlSoll(r,n){return n?Math.min(n.a,n.a*Math.max(0,(r.every||1)-n.o)/(r.every||1)):0}
+function rlTick(){const sa=sinkAcc();if(!sa)return;let ch=0;
+  if(!S.rlMig){(S.rec||[]).forEach(r=>{if(r.type=='out'&&(r.every||1)>=3&&r.spread==null&&r.b!=sa)r.spread=true});S.rlMig=Date.now();ch=1}
+  const P=period(0),k=pkey(P);let sum=0;
+  rlRecs().forEach(r=>{const f=r.fund||(r.fund={got:0});if(f.k===k)return;const n=rlNext(r),rt=n?Math.max(0,Math.ceil((n.a-f.got)/(n.o+1)-0.001)):0;f.got=rl2(f.got+rt);f.k=k;f.rt=rt;sum+=rt;ch=1});
+  const pa=pufAcc();if(sum>0&&pa&&pa.n!=sa&&!S.exp.some(e=>e.rlm==k))S.exp.push({id:uid(),type:'tr',b:pa.n,to:sa,alloc:!!(S.sink3&&P.s.getTime()>=S.sink3),a:rl2(sum),n:'Rücklagen',c:'',t:Math.min(Date.now(),P.s.getTime()+12*36e5),rlm:k});
+  if(ch)save()}
+function rlRate(){const k=pkey(period(0));return rlRecs().reduce((s,r)=>s+(r.fund&&r.fund.k==k?r.fund.rt||0:0),0)}
+function rlMonthly(){return rlRecs().reduce((s,r)=>s+Math.ceil(r.a/(r.every||1)-0.001),0)}
+function rlGot(){return rlRecs().reduce((s,r)=>s+Math.max(0,(r.fund&&r.fund.got)||0),0)}
+function rlGapL(){return rlRecs().map(r=>{const n=rlNext(r),got=(r.fund&&r.fund.got)||0;return{r,n,gap:Math.max(0,rlSoll(r,n)-got)}}).filter(x=>x.n&&x.gap>=1).sort((a,b)=>a.n.d-b.n.d)}
+function rlGap(){return Math.round(rlGapL().reduce((s,x)=>s+x.gap,0))}
+function rlFrom(r,a){const f=r.fund,sa=sinkAcc();if(!f||!sa)return 0;return rl2(Math.max(0,Math.min(a,f.got,calc(sa).rest)))}
+function rlPay(r,from,pk,t){if(!(from>=0.01))return;r.fund.got=rl2(r.fund.got-from);S.exp.push({id:uid(),type:'tr',b:sinkAcc(),to:r.b,a:from,n:'Rücklagen: '+(r.n||r.c||''),c:'',t,rlp:r.id,pk})}
+/* Startlücke: erst freies Geld in Sinking Funds, Rest als Umbuchung vom Eingangskonto; danach holen die Raten den Rest bis zur Fälligkeit auf */
+function rlFill(){const L=rlGapL(),gap=Math.round(L.reduce((s,x)=>s+x.gap,0));if(gap<1){tell('Die Rücklagen sind auf Stand.');return}const sa=sinkAcc(),pa=pufAcc(),free=Math.max(0,Math.floor(sinkPot().free));
+  const v=prompt(`Startlücke ${eur0(gap)}. ${free>=1?`Davon kommen bis zu ${eur0(Math.min(free,gap))} aus dem freien Geld in ${SHORT[sa]||sa}, der Rest`:'Der Betrag'} wird von ${pa?SHORT[pa.n]||pa.n:'deinem Eingangskonto'} umgebucht. Wie viel jetzt einmalig zurücklegen?`,String(gap));if(v==null)return;const amt=Math.min(gap,pNum(v));if(!(amt>=1)){tell('Bitte einen Betrag eingeben.');return}
+  const sn=JSON.stringify({exp:S.exp,rec:S.rec});const fromFree=Math.min(free,amt),tr=rl2(amt-fromFree);if(tr>0){if(!pa){tell('Kein Eingangskonto gefunden.');return}S.exp.push({id:uid(),type:'tr',b:pa.n,to:sa,a:tr,n:'Rücklagen: Startlücke',c:'',t:Date.now(),rlf:1})}
+  let rest=amt;L.forEach(x=>{if(rest<0.01)return;const a=rl2(Math.min(rest,x.gap));x.r.fund.got=rl2(x.r.fund.got+a);rest-=a});S.rlGapOk=1;save();render();
+  tell(`${eur0(amt)} in die Rücklagen gelegt.`+(gap-amt>=1?' Den Rest holen die Monatsraten bis zur Fälligkeit auf.':''),()=>{const o=JSON.parse(sn);S.exp=o.exp;S.rec=o.rec;save();render()})}
+TIPFN.rlFill=()=>rlFill();
+TIPFN.rlGo=()=>{asstOpen=false;renderAsst();tab='wish';wishV='Monat';render();scrollTo(0,0)};
+TIPFN.rlNo=()=>{S.rlGapOk=1;save();renderAsst()};
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#rlFill'))rlFill()});
+function rlCardH(){const sa=sinkAcc(),L=rlRecs();if(!sa||!L.length)return '';
+  const it=L.map(r=>{const n=rlNext(r),got=(r.fund&&r.fund.got)||0;return{r,n,got}}).sort((a,b)=>(a.n?a.n.d:9e15)-(b.n?b.n.d:9e15));
+  const M=[];for(let o=0;o<12;o++){const P=period(o),k=pkey(P);let v=0;L.forEach(r=>{if(recDue(r,P)&&!(r.skip||[]).includes(k))v+=recA(r,P)});M.push({P,v})}
+  const avg=rlMonthly(),mx=Math.max(avg,...M.map(m=>m.v),1),gap=rlGap(),got=rlGot();
+  const bars=`<div style="position:relative;display:flex;align-items:flex-end;gap:3px;height:70px;margin:10px 0 2px">${M.map(m=>`<div title="${esc(monS(m.P))}: ${eur0(m.v)}" style="flex:1;height:${Math.max(m.v?6:1,m.v/mx*100).toFixed(0)}%;background:${m.v?'var(--warn)':'var(--fill)'};border-radius:3px 3px 0 0;opacity:.8"></div>`).join('')}<div style="position:absolute;left:0;right:0;bottom:${(avg/mx*100).toFixed(0)}%;border-top:2px dashed var(--sink)"></div></div><div style="display:flex;gap:3px;font-size:10px;color:var(--muted)">${M.map(m=>`<span style="flex:1;text-align:center">${esc(monS(m.P).slice(0,1))}</span>`).join('')}</div>
+   <div class="ns-f" style="font-size:12px;margin-top:4px"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--warn);opacity:.8"></span> fällig</span><span><span style="display:inline-block;width:12px;border-top:2px dashed var(--sink);vertical-align:middle"></span> gleichmäßig ${eur0(avg)}/Monat</span></div>`;
+  const rows=it.map(x=>{const a=x.n?x.n.a:x.r.a,pc=Math.min(100,x.got/a*100);return `<div class="srow"><div class="srow-h"><span><b>${esc(x.r.n||x.r.c)}</b> <span class="s" style="font-size:12px;color:var(--muted)">${VM_R[x.r.every]||''}${x.n?' · fällig '+samDM(x.n.d.getTime()):''}</span></span><span></span><b>${eur0(a)}</b></div>
+    <div class="nsbar" style="margin:6px 0 4px"><i style="width:${pc.toFixed(0)}%;background:${x.got>=rlSoll(x.r,x.n)-0.5?'var(--ok)':'var(--warn)'}"></i></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=a-0.5?'<b class="in">voll angespart</b>':`${eur0(x.got)} angespart${x.n&&x.n.o>0?` · ab nächstem Monat ${eur0(Math.ceil((a-x.got)/x.n.o-0.001))}/Monat`:''}`}</span><span></span></div></div>`}).join('');
+  return `<div class="sec"><div class="sh"><span>Rücklagen · ${esc(SHORT[sa]||sa)}</span><span style="text-transform:none">${eur0(rlRate())}/Monat</span></div><div class="mmcard"><div class="pot-r"><span>Angespart für ${L.length} Zahlung${L.length==1?'':'en'}</span><b>${eur0(got)}</b></div>${bars}
+   ${gap>=1?`<div class="note" style="padding:8px 0 0">Startlücke ${eur0(gap)}: Bis zur nächsten Fälligkeit sind die Raten höher. Lege die Lücke einmalig zurück, dann bleibt die Rate gleichmäßig.</div><button class="btn soft" id="rlFill" style="margin:8px 0 0">Lücke schließen</button>`:''}</div><div class="mmcard">${rows}</div>
+   <div class="note">Jeden Monatsanfang wird die Rate vom Eingangskonto nach ${esc(SHORT[sa]||sa)} umgebucht. Bei Fälligkeit wird die Zahlung wie gewohnt vom Konto gebucht und der angesparte Betrag zurück umgebucht. An- und abschalten in der wiederkehrenden Buchung.</div></div>`}
+/* Penny: Startlücke anbieten · Fehlbetrag in den Rücklagen vor Fälligkeit */
+function rlTips(t){if(!sinkAcc())return;const g=rlGap();if(g>=1&&!S.rlGapOk)t.push({sev:'warn',btns:[{l:'Lücke schließen',fn:'rlFill'},{l:'Ansehen',fn:'rlGo'},{l:'Aufholen lassen',fn:'rlNo'}],ttl:`Rücklagen: Startlücke ${eur0(g)}`,txt:`Für deine Zahlungen ab vierteljährlich wird jetzt in ${esc(SHORT[sinkAcc()]||sinkAcc())} angespart. Bis zur nächsten Fälligkeit fehlen ${eur0(g)}. Leg sie einmalig zurück, sonst steigen die Raten bis dahin.`});
+  rlRecs().forEach(r=>{const n=rlNext(r);if(!n||n.o>0||n.d.getTime()-Date.now()>14*864e5)return;const got=(r.fund&&r.fund.got)||0;if(got>=n.a-0.5)return;t.push({sev:'warn',btns:[{l:'Ansehen',fn:'rlGo'}],ttl:`${esc(r.n||r.c)}: ${eur0(n.a-got)} fehlen in den Rücklagen`,txt:`Fällig am ${samDM(n.d.getTime())}. Angespart sind ${eur0(got)}, der Rest geht vom Konto ab.`})})}
 /* v358: Kreditkarten-Sammelposten – Käufe sind normale Buchungen (Budget sofort, eigene Kategorie) mit e.kk=Karten-ID; die Karte zeigt die Monatssumme bis zur Abbuchung im Folgemonat. S.kk=[{id,n,day}] */
 const kkP=()=>S.kk=S.kk||[];
 const kkPv=id=>kkP().find(p=>p.id==id);
