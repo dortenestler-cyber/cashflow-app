@@ -1,5 +1,5 @@
 /* ---------- Mehr: Werkzeug-Raster + Einstellungsgruppen ---------- */
-var toolEdit=false,setParent=null,recF='Alle',setFrom=null;
+var setParent=null,recF='Alle',setFrom=null;
 const MC={c1:'#6E4BD8',c2:'#22A699',c3:'#F0657A',c4:'#4F6BED',c5:'#D4A23A',c6:'#7A7390'};
 function moreItems(){const{c1,c3,c4,c5,c6}=MC;return {
  'g:buchen':['Buchen & Kategorien','wallet',c1,[
@@ -45,16 +45,7 @@ const moreCell=(k,ico,l,s,c)=>{const act=k[0]=='@',attr=act?`data-act="${k.slice
   return `<button class="cell${k=='@kbHelpBtn'?' kbhint':''}" ${attr}><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><span class="chev">›</span></button>`};
 function viewMoreGroup(k){const g=moreItems()[k];if(!g){setView=null;return viewMore()}
   return `${appbar({title:g[0],back:'setBack',noGear:true,slim:true})}<div class="sec"><div class="group">${g[3].map(([kk,ico,l,s])=>moreCell(kk,ico,l,s,g[2])).join('')}</div></div>`}
-function viewMore(){const G=moreItems(),T=moreTools(),pins=(S.toolPin||[]).filter(k=>T.some(t=>t[0]==k));
-  const tile=(t,pinned)=>{const[k,ico,l,c,b]=t,nav=k[0]=='~'?`data-tabgo="${k.slice(1)}"`:`data-set="${k}"`;
-   if(toolEdit){const i=pins.indexOf(k);return `<div class="tool ed${pinned?' pinned':''}"><button class="tool-b" data-tpin="${k}" aria-label="${pinned?'Lösen':'Anpinnen'}: ${l}"><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><span>${l}</span><i class="tpin">${pinned?'−':'+'}</i></button>${pinned?`<div class="tmv"><button data-tmv="${k}|-1" ${i==0?'disabled':''} aria-label="Nach vorn">‹</button><button data-tmv="${k}|1" ${i==pins.length-1?'disabled':''} aria-label="Nach hinten">›</button></div>`:''}</div>`}
-   return `<div class="tool"><button class="tool-b" ${nav}><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><span>${l}</span>${b?`<i class="tbadge">${b}</i>`:''}</button></div>`};
-  const P=pins.map(k=>T.find(t=>t[0]==k)),R=T.filter(t=>!pins.includes(t[0]));
-  const editBtn=`<button class="tedit" id="toolEdit">${toolEdit?'Fertig':'Anpassen'}</button>`;
-  const grid=(L,p)=>`<div class="tgrid">${L.map(t=>tile(t,p)).join('')}</div>`;
-  const tools=P.length||toolEdit
-   ?`<div class="sec"><div class="sh"><span>Meine Werkzeuge</span>${editBtn}</div>${P.length?grid(P,true):''}</div><div class="sec"><div class="sh"><span>${P.length?'Weitere Werkzeuge':'Alle Werkzeuge'}</span></div>${grid(R,false)}</div>`
-   :`<div class="sec"><div class="sh"><span>Werkzeuge</span>${editBtn}</div>${grid(T,false)}</div>`;
+function viewMore(){const G=moreItems(),T=moreTools();/* v396: Werkzeug-Raster samt Anpinnen entfernt – Werkzeuge stehen in ihren Reitern */
   const groups=['g:buchen','g:schutz','g:asst','g:look','g:data'].map(k=>{const g=G[k];return `<button class="cell" data-set="${k}"><div class="ico" style="background:color-mix(in srgb,${g[2]} 14%,transparent);color:${g[2]}">${I(g[1])}</div><div class="t"><div>${g[0]}</div><div class="s">${g[3].map(x=>x[2]).slice(0,3).join(', ')}${g[3].length>3?' …':''}</div></div><span class="chev">›</span></button>`}).join('');
   const all=Object.values(G).flatMap(g=>g[3].map(([k,ico,l,s])=>moreCell(k,ico,l,s,g[2]))).join('')+T.map(([k,ico,l,c])=>k=='g:rep'?'':k[0]=='~'?`<button class="cell" data-tabgo="${k.slice(1)}"><div class="ico" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${I(ico)}</div><div class="t"><div>${l}</div></div><span class="chev">›</span></button>`:moreCell(k,ico,l.replace(/­/g,''),'',c)).join('');
   return `${appbar({title:'Einstellungen',noGear:true,slim:true})}<div class="morelist">
@@ -62,9 +53,6 @@ function viewMore(){const G=moreItems(),T=moreTools(),pins=(S.toolPin||[]).filte
   <div class="sec msearch" hidden><div class="group">${all}</div></div>
   </div><div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
 function bindMore(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
-  on('toolEdit',()=>{toolEdit=!toolEdit;render()});
-  document.querySelectorAll('[data-tpin]').forEach(b=>b.onclick=()=>{const k=b.dataset.tpin,P=S.toolPin=(S.toolPin||[]).slice();const i=P.indexOf(k);if(i>=0)P.splice(i,1);else P.push(k);save();render()});
-  document.querySelectorAll('[data-tmv]').forEach(b=>b.onclick=()=>{const[k,d]=b.dataset.tmv.split('|'),P=S.toolPin=(S.toolPin||[]).slice(),i=P.indexOf(k),j=i+ +d;if(i<0||j<0||j>=P.length)return;[P[i],P[j]]=[P[j],P[i]];save();render()});
   document.querySelectorAll('[data-act=vHelp2]').forEach(b=>b.onclick=()=>voiceHelp());
   document.querySelectorAll('[data-act=kbHelpBtn]').forEach(b=>b.onclick=()=>kbHelp());
   document.querySelectorAll('[data-act=asstShow]').forEach(b=>b.onclick=e=>{e.stopPropagation();asstOpen=true;renderAsst();if(!$('abub'))tell('Gerade gibt es keine Hinweise.')})}

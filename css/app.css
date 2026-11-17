@@ -439,14 +439,6 @@ body.bigcal .cc2 .nums{font-size:12.5px}body.bigcal .cc2{min-height:92px}body.bi
 .qty{display:inline-flex;align-items:center;background:var(--fill);border-radius:999px;overflow:hidden}
 .qty button{border:0;background:none;color:var(--blue);font:inherit;font-size:18px;font-weight:600;width:34px;height:30px;cursor:pointer;display:grid;place-items:center;padding:0}
 .qty button:disabled{color:var(--muted);opacity:.4}.qty b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
-.tgrid{margin-bottom:8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media (min-width:600px){.tgrid{grid-template-columns:repeat(6,minmax(0,1fr))}}
-.tool{position:relative;display:flex;flex-direction:column}.tool-b,.tmv button,.tedit{border:0;background:none;font:inherit;cursor:pointer}.tool-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;background:var(--card);border-radius:16px;color:var(--fg);font-size:11.5px;line-height:1.2;text-align:center;min-height:86px;width:100%;hyphens:manual}
-.tool-b .ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center}.tool-b span{overflow-wrap:anywhere}
-.tbadge{position:absolute;top:6px;right:8px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;line-height:18px;font-weight:600;font-style:normal;text-align:center}
-.tool.ed .tool-b{outline:1.5px dashed color-mix(in srgb,var(--muted) 50%,transparent)}.tool.ed.pinned .tool-b{outline-color:var(--accent)}
-.tpin{position:absolute;top:4px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:15px;line-height:20px;font-weight:700;font-style:normal;text-align:center}.tool.ed:not(.pinned) .tpin{background:var(--fill);color:var(--fg)}
-.tmv{display:flex;justify-content:space-between;margin-top:4px}.tmv button{flex:1;font-size:18px;color:var(--accent);padding:2px 0}.tmv button:disabled{opacity:.25}
-.tedit{color:var(--accent);font-size:13px;padding:0;text-transform:none;letter-spacing:0}
 .ab-ic.vsw{margin-left:2px}
 .tabbar button{font-size:9.5px;letter-spacing:-.01em}.tabbar button[data-t]{flex:1 1 auto}@media (min-width:1000px){.tg-sec{display:none}}/* v253: Kalender ist auf allen Geräten ein Umschalter in Buchungen, kein eigener Reiter */.tabbar .tb-x{display:none}.tabbar button.on2{color:var(--accent)}.tabbar button svg{width:23px;height:23px}
 .pufl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.pufl b{color:var(--fg);font-weight:500;text-align:right}.pufl span b{font-weight:700}
