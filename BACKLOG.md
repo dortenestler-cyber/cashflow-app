@@ -347,3 +347,9 @@ Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absich
 10. Belegfotos aus localStorage nach IndexedDB. – war schon so: Belege liegen in IndexedDB (`cf-docs`), in der Buchung nur ein kleines Vorschaubild. Nichts geändert.
 11. Speichern bündeln (250 ms, beim Verlassen sofort); große Module später laden. – Bündeln umgesetzt (v379). Später laden der großen Module bewusst nicht umgesetzt: die Dateien teilen sich einen Namensraum, das Risiko ist größer als der Gewinn (Ladezeit lokal 0,55 s).
 12. PIN: PBKDF2 + Wartezeit nach 5 Fehlversuchen. (v380; alte PINs werden beim nächsten Entsperren umgestellt)
+
+## 19. Kontoansicht: geplante Umsätze und erwarteter Kontostand (offen, gewünscht 17.11.)
+
+- In der Ansicht eines Kontos auch geplante Umsätze (wiederkehrende/vorgemerkte Buchungen) zeigen, getrennt und erkennbar als „geplant“.
+- Dazu einen erwarteten Kontostand angeben (aktueller Stand + geplante Umsätze).
+- Offen: bis wann (Monatsende oder nächste Gehaltszahlung)? Was fällt dafür weg (eins rein, eins raus)?
