@@ -287,7 +287,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
      <span class="mval"><span class="in">${eur0(r.i)}</span><span class="out">${eur0(r.x)}</span><span class="${r.i-r.x<0?'out':''}" style="font-weight:600">${eur0(r.i-r.x)}</span></span></button>`).join('')}</div>`}
   const lcats=(()=>{const by={};LA.filter(e=>e.type=='out').forEach(e=>by[e.c]=(by[e.c]||0)+e.a);const cs=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,6);if(!cs.length)return '';const mx=cs[0][1];
     return `<div class="lcats"><div class="sh">Ausgaben nach Kategorie</div>${cs.map(([c,a])=>`<button class="lcat" data-lcat="${esc(c)}" style="--cc:${catCol(c)}"><span class="lcat-n">${esc(c)}</span><b>${eur0(a)}</b><i><em style="width:${(a/mx*100).toFixed(1)}%"></em></i></button>`).join('')}</div>`})();
-  const [ph,rest]=dayBlocks(LW,1);return head+`<div class="lsplit"><aside class="lside">${sum(inc,out)+filt+hbar+ph+lcats}</aside><div class="days">${rest}</div></div>${toolBar(['shop','refund','docs','tax'])}`}
+  const [ph,rest]=dayBlocks(LW,1);return head+pnHintH('list')+`<div class="lsplit"><aside class="lside">${sum(inc,out)+filt+hbar+ph+lcats}</aside><div class="days">${rest}</div></div>${toolBar(['shop','refund','docs','tax'])}`}
 function donut(parts){const tot=parts.reduce((s,x)=>s+x.v,0);if(!tot)return '<div class="empty">Keine Ausgaben in diesem Zeitraum.</div>';
   let a=-Math.PI/2,paths='';const R=70,r=44,c=90;
   parts.forEach(x=>{const f=x.v/tot,a2=a+f*Math.PI*2-.0001,lg=f>.5?1:0;
@@ -911,7 +911,7 @@ function musterHtml(){const W=S.wish;if(!W.length)return '';const grp=f=>{const 
 /* v257: Reiter Geld – Geldfluss von Eingang über Ausgeben und Sparen bis Vermögen */
 function viewGeld(){if(posView)return posHtml();
   /* v364: Reiter Vermögen – ruhige Ansicht ohne Monatskennzahlen. Puffer, Töpfe und Sinking stehen auf Heute. */
-  return appbar({title:'Vermögen',big:'Langfristig'})+wealthCard()+vaultHtml()+depotHtml()+toolBar(['ng','ru','pension'])}
+  return appbar({title:'Vermögen',big:'Langfristig'})+pnHintH('verm')+wealthCard()+vaultHtml()+depotHtml()+toolBar(['ng','ru','pension'])}
 function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offen'),act=S.goals.filter(g=>!g.done&&!g.dropped).length;
   /* v232: Reiter Planen = Ziele (inkl. Jahresplan), Wünsche in Wartezeit, Fixkosten, Zukunft (Prognose + Was-wäre-wenn) */
   const ZS=zwStat(),big=wishV=='Ziele'?(ZS.wartet+ZS.spart?[ZS.wartet?ZS.wartet+' wartet':'',ZS.spart?ZS.spart+' spart':''].filter(Boolean).join(' · '):'Nichts offen'):wishV=='Wünsche'?(open.length?open.length+(open.length==1?' Wunsch offen':' Wünsche offen'):'Alles entschieden'):wishV=='Ziele'?(act?act+(act==1?' Ziel aktiv':' Ziele aktiv'):'Keine Ziele'):wishV=='Fixkosten'?'Fixkosten':wishV=='Monat'?'Monatswechsel':'Nächste 6 Monate';
@@ -923,7 +923,7 @@ function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offe
    const wait0=`<div class="jbtns"><button class="btn" id="jUrge" style="display:flex;justify-content:center;gap:6px;align-items:center;background:var(--bad)">${I('alert',18)}Kaufcheck: Ich habe gerade einen Kaufimpuls</button></div><div class="sec"><div class="sh"><span>Wartet</span></div><div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine Wünsche in der Wartezeit. Neue Wünsche warten zuerst, bevor sie ein Sparziel werden.</div>'}</div></div>`;
    return head+flow+wait0+zseg+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
   if(wishV=='Monat')return head+rlCardH()+samCards()+viewClose(true)+toolBar(['salplan']);/* v393: Gehalt verteilen gehört zum Monat *//* v361: Vorgemerktes steht unter Monat, nicht unter Fixkosten */
-  if(wishV=='Fixkosten')return head+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
+  if(wishV=='Fixkosten')return head+pnHintH('fix')+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
   if(wishV=='Zukunft')return head+`<button class="btn soft" id="pcOpen" style="display:flex;justify-content:center;gap:6px;align-items:center;margin-bottom:10px">${I('pen',16)} Plan ändern</button><div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():forecastHtml()}
 `;
   /* v368: Wünsche = Wartezeit und Kaufcheck vorne; Journal, Verzicht, Muster stehen unter Rückblick › Impulse */

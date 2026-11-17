@@ -535,6 +535,16 @@ const PNK={
   return{q:'Ausgaben besprechen',h:`<p><b>Ausgaben ${esc(p.label)}</b></p>`+sr('Ausgegeben',eur0(u),'Vormonat '+eur0(u1)),ctx:`Seite Rückblick › Ausgaben, ${p.label}, ${repB=='Alle'?'alle Budgets':repB}. Ausgegeben ${eur0(u)}, Vormonat ${eur0(u1)}.`,f:ai?['Warum habe ich mehr oder weniger ausgegeben als im Vormonat?','Wo kann ich am leichtesten sparen?','Was ist auffällig?']:['Vergleich zum Vormonat','Monatsbilanz','Was kommt demnächst?']}},
  imp:(sr,ai)=>{const js=(()=>{try{return jStats(Date.now()-60*864e5)}catch(e){return null}})();
   return{q:'Impulse besprechen',h:'<p><b>Impulse, letzte 60 Tage</b></p>'+(js?sr('Impulskäufe',(js.bou||0)+'',''):''),ctx:`Seite Rückblick › Impulse. ${js?'Impulskäufe 60 Tage: '+(js.bou||0)+'. Stimmungen: '+JSON.stringify(js.gBou||[]):''}`,f:ai?['Wann kaufe ich impulsiv?','Was hilft mir gegen Impulskäufe?','Wie viel habe ich durch Verzicht gespart?']:['Monatsbilanz','Wunsch entscheiden','Was kommt demnächst?']}}};
+/* v400: Penny spricht auf Buchungen, Fixkosten und Vermögen – ein Satz, regelbasiert, antippen öffnet Penny */
+function pnHint(k){const P=period(0),T=Date.now();
+  if(k=='list'){const nc=S.exp.filter(e=>!isPlan(e)&&!e.corr&&e.type!='tr'&&inP(e,P)&&!e.c).length,sp=(S.siriPend||[]).length;
+    if(nc)return nc+(nc==1?' Buchung':' Buchungen')+' diesen Monat ohne Kategorie. Zuordnen hält die Auswertung genau.';if(sp)return 'Siri: '+sp+(sp==1?' Eintrag wartet':' Einträge warten')+' auf deine Prüfung.';
+    const w=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&e.t>T-7*864e5).reduce((s,e)=>s+e.a,0),w1=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&e.t>T-14*864e5&&e.t<=T-7*864e5).reduce((s,e)=>s+e.a,0);
+    if(w>0&&w1>0){const d=Math.round((w/w1-1)*100);if(Math.abs(d)>=15)return 'Letzte 7 Tage '+eur0(w)+' – '+Math.abs(d)+' % '+(d>0?'mehr':'weniger')+' als in der Woche davor.'}return ''}
+  if(k=='fix'){const A=aboList(),y=A.reduce((s,x)=>s+x.year,0);if(!A.length)return '';return A.length+(A.length==1?' Abo kostet':' Abos kosten')+' dich '+eur0(y)+' im Jahr. Am teuersten: '+esc(A[0].r.n||A[0].r.c)+' mit '+eur0(A[0].year)+'.'}
+  if(k=='verm'){const W=wParts();if(!W.length)return '';const now=W.reduce((s,x)=>s+x.v,0),M=30.4*864e5,was=W.reduce((s,x)=>{try{return s+(x.f?x.f(T-M):0)}catch(e){return s}},0),d=now-was;
+    if(!was||Math.abs(d)<1)return '';return 'Vermögen '+(d>0?'+':'−')+eur0(Math.abs(d))+' zum Vormonat ('+(d>0?'+':'−')+Math.abs(Math.round(d/was*100))+' %).'+(d<0?' Prüf, ob es an Ausgaben oder am Depot liegt.':'')}return ''}
+function pnHintH(k){let t='';try{t=pnHint(k)}catch(e){}return t?`<button class="pnhint" data-ptalk="${k}"><span>${penny('ausgeglichen',26)}</span><span>${t}</span><span class="chev">›</span></button>`:''}
 function pnKind(){if(setView||curB)return null;if(tab=='dash')return 'mon';if(tab=='list'||tab=='cal')return 'list';if(tab=='geld')return 'verm';
   if(tab=='wish')return {Monat:'plan',Fixkosten:'fix',Zukunft:'fut'}[wishV]||'goal';
   if(tab=='rep'){if(drill)return drill.k=='year'?'year':null;return repV=='Analyse'?'rev':repV=='Impulse'?'imp':'ausg'}return null}
