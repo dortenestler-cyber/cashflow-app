@@ -353,4 +353,4 @@ Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absich
 - In der Ansicht eines Kontos auch geplante Umsätze (wiederkehrende/vorgemerkte Buchungen) zeigen, getrennt und erkennbar als „geplant“.
 - Dazu einen erwarteten Kontostand angeben (aktueller Stand + geplante Umsätze).
 - Erwarteter Kontostand bis Monatsende.
-- Vorschlag fürs Rausnehmen: Block „Vorgemerkt“ unter Planen › Monat (Karten der nächsten 60 Tage). Ladeübersicht und Sammelabrechnungen bleiben über Einstellungen erreichbar. Wartet auf Freigabe.
+- Vorschlag fürs Rausnehmen: Block „Vorgemerkt“ unter Planen › Monat (Karten der nächsten 60 Tage). Die Links Ladeübersicht und Sammelabrechnungen müssen dann woanders hin (z. B. Fixkosten). Wartet auf Freigabe.
