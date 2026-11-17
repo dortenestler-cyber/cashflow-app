@@ -699,10 +699,10 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adju
 /* Buchungsmaske v153: farbiger Kopf, Kacheln mit Auswahl, Tastatur-Panel */
 .sheet.bk{height:calc(100% - 8px - env(safe-area-inset-top,0px));max-height:none;background:var(--bg);overflow:hidden;padding-bottom:0}
 @media (min-width:1000px){.sheet.bk{height:min(820px,90vh)!important;max-height:90vh!important}}
-.bk.t-out{--h1:#c25a4e;--h2:#8e2a22}
+.bk.t-out{--h1:#5A4040;--h2:#3E2C2C}
 .bk.pj{--h1:var(--pjc);--h2:color-mix(in srgb,var(--pjc) 58%,#000)}.bk-pjh{display:flex;align-items:center;justify-content:center;gap:5px;font-size:12.5px;font-weight:600;opacity:.95;margin-top:6px;text-align:center}.bk-pjt{margin-top:6px;overflow-x:auto;scrollbar-width:none}.bk-pjt button{white-space:nowrap}
 .bk-pjp{background:var(--card);border-radius:16px;padding:10px 12px 8px;margin:0 0 12px}.pjrow{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.pji{flex:none;width:54px;border:0;background:none;color:var(--fg);font:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0}.pji .c,.pjp-r .c{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--pc);color:#fff;font-weight:700;font-size:14px}.pji small{font-size:11px;color:var(--muted);max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pji.on .c{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--pc)}.pji.dim .c{opacity:.45}.pji.off .c{background:var(--fill);color:var(--muted)}.bk-pjs{font-size:13px;color:var(--muted);padding-top:2px}.bk-pjs b{color:var(--fg)}
-.pjp{margin-top:10px}.pjp-r{display:flex;align-items:center;gap:10px;padding:6px 0}.pjp-r .c{width:30px;height:30px;font-size:12px;flex:none}.pjp-r .t{flex:1;display:flex;flex-direction:column;min-width:0}.pjp-r small{color:var(--muted);font-size:12px}.pjp-r b.in{color:var(--ok)}.pjp-r b.out{color:var(--bad)}.pjart{display:flex;flex-wrap:wrap;gap:6px;padding:4px 12px 8px}.bk.t-in{--h1:#3aa868;--h2:#1c6a3d}.bk.t-tr{--h1:#5b84d8;--h2:#2a4d97}
+.pjp{margin-top:10px}.pjp-r{display:flex;align-items:center;gap:10px;padding:6px 0}.pjp-r .c{width:30px;height:30px;font-size:12px;flex:none}.pjp-r .t{flex:1;display:flex;flex-direction:column;min-width:0}.pjp-r small{color:var(--muted);font-size:12px}.pjp-r b.in{color:var(--ok)}.pjp-r b.out{color:var(--bad)}.pjart{display:flex;flex-wrap:wrap;gap:6px;padding:4px 12px 8px}.bk.t-in{--h1:#3D5A4A;--h2:#283C31}.bk.t-tr{--h1:#3C4C5E;--h2:#293440}
 .bk-hd{flex:none;margin:6px 6px 0;border-radius:26px;padding:12px 12px 14px;color:#fff;background:linear-gradient(180deg,var(--h1),var(--h2));box-shadow:0 10px 26px rgba(0,0,0,.28);display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:2}
 .bk-top{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px}.bk-top b{font-size:18px;text-align:center}
 .bk-rb{flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.17);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}.bk-rb svg{width:22px;height:22px}.bk-rb.dim{opacity:.45}
@@ -1435,3 +1435,16 @@ body.mm .group,body.mm .mmcard,body.mm .chartbox,body.mm .gcard{box-shadow:none!
 /* v428: Suche in den Einstellungen, „Was kommt“ */
 .morelist .mq{margin:4px 0 14px}.morelist .mq input{width:100%;box-sizing:border-box;height:44px;border-radius:14px;border:0;background:var(--fill);color:var(--fg);font:inherit;font-size:16px;padding:0 14px}
 .wk-first{margin-bottom:6px}
+/* v430: Entsperren und Penny minimalistisch – flacher Grund, keine Linien, ruhige Tasten */
+.lock.lk-dep{background:#151917!important;color:#E4E8E5;--fg:#E4E8E5;--muted:#A0A8A3}
+.lock.lk-dep>.lk-lines{display:none!important}
+.lk-hi,.lock.lk-dep .note,.lock.lk-dep .dots{text-shadow:none!important}
+.lk-d,.lk-c{color:#A0A8A3}.lk-c svg{stroke:#8FC1A6}
+.lock.lk-dep .pad button{background:#1C211F!important;color:#E4E8E5!important;font-weight:400}
+.lock.lk-dep .lk-av{background:none!important;box-shadow:none!important}
+.lock.lk-dep .lk-pin{background:#1C211F!important;border:0!important;border-radius:14px}
+.lock .dots i{background:transparent;box-shadow:inset 0 0 0 1.5px #A0A8A3}.lock .dots i.f{background:#E4E8E5;box-shadow:none}
+.biobtn{background:none!important;color:var(--fg)}
+.penny.pmin{display:block}
+.abar,.abub,.abub.calm,.robo-mini,.abar-r{background:transparent!important;box-shadow:none!important}
+.abar.bad,.abar.warn{background:transparent!important}
