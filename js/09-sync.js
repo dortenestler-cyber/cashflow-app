@@ -353,7 +353,7 @@ function openRecover(){$('sheetRoot').innerHTML=`<div class="scrim" id="scrim"><
       $('sheetRoot').innerHTML='';await sync(false);render();toast('Wiederhergestellt (Stand '+row.ym+'). Neues Sync-Passwort ist aktiv.')}catch(e){E.textContent=e.message||String(e)}}}
 const SYK='cf_sync';let SY=(()=>{try{return JSON.parse(localStorage.getItem(SYK))||{}}catch(e){return{}}})();
 const sySave=()=>{try{localStorage.setItem(SYK,JSON.stringify(SY))}catch(e){}};
-let syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal','wish','depot','shop.items','loose'];
+let syErrAt=0,syKey=null,syTimer=null,syBusy=false,syMsg='';const COLS=['exp','rec','goals','contracts','debts','journal','wish','depot','shop.items','loose'];
 const cGet=(st,c)=>{const[a,b]=c.split('.');const v=b?(st[a]&&st[a][b]):st[a];return Array.isArray(v)?v:[]},cSet=(st,c,v)=>{const[a,b]=c.split('.');if(b){if(st[a]&&typeof st[a]=='object')st[a][b]=v}else st[a]=v};
 function sh32(s){let x=0;for(let i=0;i<s.length;i++)x=Math.imul(x^s.charCodeAt(i),16777619);return (x>>>0).toString(36)}
 function syIds(st){COLS.forEach(c=>cGet(st,c).forEach(x=>{if(x&&typeof x=='object'&&!x.id)x.id='k'+sh32(String(x.t||'')+'|'+(x.n||x.sym||x.isin||''))}))}
@@ -397,6 +397,8 @@ function syAccBase(out,loc,rem){const F=['start','baseD','baseVal','baseAt','rat
 function syDepRu(out,oth){const trs=new Set((out.exp||[]).filter(e=>e&&e.type=='tr').map(e=>e.id)),om=new Map((oth.depot||[]).filter(h=>h&&h.id).map(h=>[h.id,h]));
   (out.depot||[]).forEach(h=>{const o=om.get(h&&h.id);if(!o||!o.tx)return;h.tx=h.tx||[];const have=new Set(h.tx.filter(x=>x.ru).map(x=>x.ru));
     o.tx.filter(x=>x&&x.ru&&!have.has(x.ru)&&trs.has(x.ru)).forEach(x=>{h.tx.push(JSON.parse(JSON.stringify(x)));have.add(x.ru);if(x.q)h.qty=Math.round(((h.qty||0)+x.q)*1e8)/1e8;else if(x.pv)h.pendVal=Math.round(((h.pendVal||0)+x.pv)*100)/100;h.inv=Math.round(((h.inv||0)+(x.a||0))*100)/100})})}
+/* v389: offene Änderungen sofort hochladen, wenn die App in den Hintergrund geht */
+const syFlush=()=>{if(syOn()&&(S._m||0)>(SY.at||0)){clearTimeout(syTimer);sync()}};document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')syFlush()});window.addEventListener('pagehide',syFlush);
 const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0,_km:0}));let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}return (h2>>>0).toString(36)+(h1>>>0).toString(36)};
 function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;syMarkKeys();S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
 async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(!await syLoadKey()){syMsg='Sync-Passwort fehlt auf diesem Gerät.';return}
@@ -406,12 +408,12 @@ async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(
         try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);if(!dirty){SY.at=Date.now();SY.h=syHash()}sySave();if(!dirty){refreshA&&refreshA();render();syMsg='Aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
         render()}
       if((S._m||0)<=(SY.at||0)&&row){syMsg='Synchron · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
-      const enc=await syEnc(S),nr=(row?row.rev:0)+1,body={user_id:SY.uid,data:enc.data,iv:enc.iv,salt:SY.salt,rev:nr,updated_at:new Date().toISOString()};
+      syIds(S);const m0=S._m||0,h0=syHash(),snap=JSON.parse(JSON.stringify(S)),enc=await syEnc(snap),nr=(row?row.rev:0)+1,body={user_id:SY.uid,data:enc.data,iv:enc.iv,salt:SY.salt,rev:nr,updated_at:new Date().toISOString()};
       let r;if(!row)r=await syFetch('/rest/v1/cashflow',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
       else r=await syFetch('/rest/v1/cashflow?user_id=eq.'+SY.uid+'&rev=eq.'+row.rev,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
-      const j=await r.json().catch(()=>[]);if(r.ok&&Array.isArray(j)&&j.length){SY.rev=nr;SY.base=syBase(S);SY.at=Date.now();SY.h=syHash();sySave();syMsg='Gespeichert · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
+      const j=await r.json().catch(()=>[]);if(r.ok&&Array.isArray(j)&&j.length){SY.rev=nr;SY.base=syBase(snap);SY.at=m0;SY.h=h0;sySave();syMsg='Gespeichert · '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}
       if(!r.ok&&r.status!=409)throw new Error('Speichern fehlgeschlagen ('+r.status+')')}
-  }catch(e){syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(setView=='sync')render();setTimeout(()=>bakNow(false).catch(()=>{}),1500);setTimeout(()=>docFlush().then(docGC).catch(()=>{}),2500)}}
+  }catch(e){syErrAt=Date.now();syMsg=e.message||String(e);if(!quiet)toast(syMsg)}finally{syBusy=false;if(syOn()&&(S._m||0)>(SY.at||0)){clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),Date.now()-syErrAt<5000?15000:2500)}if(setView=='sync')render();setTimeout(()=>bakNow(false).catch(()=>{}),1500);setTimeout(()=>docFlush().then(docGC).catch(()=>{}),2500)}}
 async function syLogin(signup){const url=$('syU').value.trim().replace(/\/$/,''),key=$('syK').value.trim(),email=$('syE').value.trim(),pw=$('syP').value,pass=$('syX').value,keep=$('syR').checked;
   if(!url||!key||!email||!pw||!pass){$('syErr').textContent='Bitte alle Felder ausfüllen.';return}if(pass.length<8){$('syErr').textContent='Das Sync-Passwort braucht mindestens 8 Zeichen.';return}
   $('syErr').textContent='Verbinde …';SY.url=url;SY.key=key;
