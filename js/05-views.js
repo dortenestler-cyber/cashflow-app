@@ -431,15 +431,6 @@ const MN=['Januar','Februar','März','April','Mai','Juni','Juli','August','Septe
 function monthOff(Y,m){const c=period(0).s;return (Y*12+m)-(c.getFullYear()*12+c.getMonth())}
 function yearHead(Y,title,sub){return `<div><button class="back" id="drBack">‹ Auswertung</button><h1 class="lt" style="font-size:28px">${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div>
   <div class="ynav"><button id="yPrev" aria-label="Voriges Jahr">‹</button><span><b>${Y}</b> <small>${mStart(Y,0).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})} – ${new Date(mStart(Y+1,0)-864e5).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</small></span><button id="yNext" aria-label="Nächstes Jahr" ${yOff>=0?'disabled':''}>›</button></div>`}
-function viewYear(bs){const Y=period(0).s.getFullYear()+yOff,ms=[];
-  for(let m=0;m<12;m++){const o=monthOff(Y,m),pp=period(o),fut=o>0,L=fut?[]:RX().filter(e=>inP(e,pp)&&!e.corr&&bs.includes(e.b));
-    ms.push({m,o,fut,i:L.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),x:L.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0)})}
-  let cum=0;const pts=ms.map(r=>r.fut?null:(cum+=r.i-r.x));const ti=ms.reduce((s,r)=>s+r.i,0),tx=ms.reduce((s,r)=>s+r.x,0),n=ms.filter(r=>!r.fut&&(r.i||r.x)).length||1;
-  return yearHead(Y,'Jahressaldo '+Y,repB=='Alle'?'Alle sichtbaren Konten':repB)+`<div class="chartbox">${lineChart({n:12,series:[{pts,col:'var(--in)',area:true,dot:true,w:2.4}],labels:ms.map((r,i)=>({i,t:MN[i].slice(0,3),on:r.o==0})),h:190,tipLab:i=>MN[i]+' '+Y+' · Saldo'})}
-   </div>
-  <div class="mmcard"><div class="srow"><div class="srow-h"><span>Einnahmen</span><span></span><span class="in">${eur(ti)}</span></div></div><div class="srow"><div class="srow-h"><span>Ausgaben</span><span></span><span class="out">${eur(tx)}</span></div></div>
-   <div class="srow"><div class="srow-h"><span><b>Saldo</b></span><span></span><b class="${ti-tx<0?'out':'in'}">${eur(ti-tx)}</b></div></div><div class="srow"><div class="srow-h"><span>Ø Ausgaben pro Monat</span><span></span><span>${eur(tx/n)}</span></div></div></div>
-  <div class="mmcard">${ms.map(r=>`<button class="yrow" ${r.fut?'disabled':''} data-ym="${r.o}"><span>${MN[r.m]}</span><span class="ym"><small class="in">${r.i?eur0(r.i):''}</small><small class="out">${r.x?eur0(r.x):''}</small></span><b class="${r.i-r.x<0?'out':''}">${r.fut?'':eur(r.i-r.x)}</b><span class="chev">›</span></button>`).join('')}</div>`}
 function viewCatYear(d){const Y=period(0).s.getFullYear()+yOff,ms=[];
   for(let m=0;m<12;m++){const o=monthOff(Y,m),pp=period(o),L=o>0?[]:RX().filter(e=>inP(e,pp)&&e.b==d.b&&e.c==d.c&&e.type==d.type&&(!d.sc||e.sc==d.sc));ms.push({m,o,fut:o>0,v:L.reduce((s,e)=>s+e.a,0),n:L.length,L})}
   const tot=ms.reduce((s,r)=>s+r.v,0),el=ms.filter(r=>!r.fut).length||1,avg=tot/el,col=COL[d.b]||'var(--blue)',subs={};
