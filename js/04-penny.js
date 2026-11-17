@@ -103,7 +103,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='398 (17.11.)';
+const APP_VER='399 (17.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -435,11 +435,22 @@ const aiTools={
     try{priceWatch().forEach(x=>{if(pi[x.r.id+'|'+x.e.a])return;N.push(['p',x.r.id+'|'+x.e.a,x.r.n||x.r.c])&&L.push({art:'Fixkosten-Betrag geändert',was:x.r.n||x.r.c,datum:ymd(x.e.t),betrag:aiR2(x.e.a),vergleich:'geplant '+aiR2(x.plan)+' € ('+(x.d>0?'+':'')+aiR2(x.d)+' €)'})})}catch(e){}
     if(acts)N.slice(0,3).forEach(([t,id,n])=>acts.push(['Ist normal: '+(t=='k'?id:n||'Buchung'),()=>{normMark(t,id);tell('Merke ich mir. '+(t=='k'?'„'+id+'“ melde ich nicht mehr als auffällig.':'Diese Buchung gilt als normal.'))}]));
     return L.length?{finanzmonat:period(0).label,treffer:L.slice(0,8),hinweis:'Fixkosten, Daueraufträge, Umbuchungen, geplante und als „Passt so“ markierte Buchungen sind bereits herausgefiltert.'}:{nichts:true,hinweis:'Keine Abweichung vom üblichen Ausgabeverhalten gefunden.'}},
+  /* v399: Ziele, Sparkonten, Schulden, Projekte, Rückzahlungen und Vermögen für die KI */
+  goals_status(){const T=Date.now();let sp=null;try{const SP=sinkPot();if(SP.sa)sp={bestand:aiR2(SP.bal),fuer_ziele_gebunden:aiR2(SP.alloc),frei:aiR2(SP.free),zufluss_pro_monat:aiR2(sinkSum()+(+S.sinkExtra||0))}}catch(e){}
+    return{sparziele:(S.goals||[]).filter(g=>!g.done&&!g.dropped).map(g=>{const ist=gSaved(g),D=(g.dep||[]).filter(d=>d.t>T-90*864e5).reduce((s,d)=>s+d.a,0)/3,rest=Math.max((g.ziel||0)-ist,0);return{name:g.n,ziel:aiR2(g.ziel||0),gespart:aiR2(ist),fehlt:aiR2(rest),schnitt_pro_monat_90_tage:aiR2(D),erreicht_etwa:D>0&&rest>0?ymd(T+rest/D*30.4*864e5):null}}),
+     sinking_funds:sp,sparkonten:(()=>{try{return vaultAccs().map(n=>({name:SHORT[n]||n,stand:aiR2(balAt(n,T))}))}catch(e){return[]}})(),
+     kredite:(S.debts||[]).filter(d=>!d.done).map(d=>{const i=debtInfo(d);return{name:d.n,rate:aiR2(debtRate(d)),bezahlt:aiR2(i.paid),rest:aiR2(i.rest),raten_offen:i.n,schuldenfrei_am:ymd(i.last.getTime())}}),
+     projekte:(()=>{try{return projActive().map(x=>({name:x.n,bis:x.to||null}))}catch(e){return[]}})(),
+     rueckzahlungen_offen:(()=>{try{return refunds().map(e=>({wer:e.rf.who||e.p||null,betrag:aiR2(e.rf.a||e.a),fuer:e.n||e.c,seit:ymd(e.t)}))}catch(e){return[]}})()}},
+  wealth_status(){const W=wParts(),T=Date.now(),M=30.4*864e5,at=t=>W.reduce((s,x)=>{try{return s+(x.f?x.f(t):0)}catch(e){return s}},0);let debt=0;(S.debts||[]).filter(d=>!d.done).forEach(d=>{try{debt+=debtInfo(d).rest}catch(e){}});
+    const now=W.reduce((s,x)=>s+x.v,0);return{gesamt:aiR2(now),teile:W.map(x=>({name:x.n,art:x.k,wert:aiR2(x.v)})),vor_1_monat:aiR2(at(T-M)),vor_6_monaten:aiR2(at(T-6*M)),vor_12_monaten:aiR2(at(T-12*M)),restschuld_kredite:aiR2(debt),netto:aiR2(now-debt)}},
   wishes(){return{wuensche:(S.wish||[]).filter(w=>w.s=='offen').map(w=>({name:w.n,preis:aiR2(w.p),frei_ab:ymd(w.t+wait(w.p))}))}},
   journal(){const J=(S.journal||[]).filter(j=>j.t>=Date.now()-90*864e5);return{eintraege_90_tage:J.length,widerstanden:J.filter(j=>j.out=='resist').length,gekauft:J.filter(j=>j.out=='bought').length,eintraege:J.slice(-40).map(j=>({datum:ymd(j.t),text:j.txt,ausgang:(JOUT[j.out]||JOUT.note)[0],gefuehl:j.g||null,ausloeser:j.tr||null,betrag:j.a?aiR2(j.a):null,drang:j.u}))}}};
 function aiRun(name,a,acts){
   if(name=='propose_transfer'){const v=aiAcc(a.von),n=aiAcc(a.nach),b=+a.betrag;if(!v||!n||!(b>0))return{fehler:'Konto oder Betrag unbekannt. Gültige Konten: '+ALL.filter(x=>!WH(x)).join(', ')};
     const t='Umbuchen '+String(aiR2(b)).replace('.',',')+' Euro von '+v+' nach '+n;acts.push(['Umbuchen: '+eur(b)+' '+(SHORT[v]||v)+' → '+(SHORT[n]||n),()=>aiFill(t)]);return{ok:true,hinweis:'Als Knopf angezeigt. Der Nutzer prüft und bestätigt selbst.'}}
+  if(name=='propose_budget'){const k=aiAcc(a.budget),v=Math.round(+a.betrag);if(!k||!BUDG.includes(k)||!(v>0))return{fehler:'Budget oder Betrag unbekannt. Monatsbudgets: '+BUDG.join(', ')};const alt=S.budgets[k]||0;
+    acts.push(['Budget '+(SHORT[k]||k)+': '+eur0(alt)+' → '+eur0(v),()=>{S.budgets[k]=v;save();render();tell('Budget '+(SHORT[k]||k)+' ist jetzt '+eur0(v)+'.',()=>{S.budgets[k]=alt;save();render()})}]);return{ok:true,hinweis:'Als Knopf angezeigt. Die Nutzerin bestätigt selbst.'}}
   if(name=='propose_booking'){const t=String(a.text||'').trim().slice(0,120);if(!t)return{fehler:'text fehlt'};acts.push(['Buchen: '+t,()=>aiFill(t)]);return{ok:true,hinweis:'Als Knopf angezeigt. Der Nutzer prüft und sichert selbst.'}}
   if(name=='propose_shopping'){const L=(Array.isArray(a.artikel)?a.artikel:String(a.artikel||'').split(/,|\n/)).map(x=>String(x).trim()).filter(Boolean).slice(0,20);if(!L.length)return{fehler:'artikel fehlt'};
     acts.push(['Auf den Einkaufszettel: '+L.join(', '),()=>{asstOpen=false;renderAsst();shopVoiceDone(shopVoice(L.join(', ')));render()}]);return{ok:true,hinweis:'Als Knopf angezeigt. Die Nutzerin bestätigt selbst.'}}
@@ -471,7 +482,7 @@ Ton je nach Lage:
 - Ausgeglichen: sachlich, auf kommende Buchungen hinweisen.
 - Im Minus: ruhig und lösungsorientiert, keine Vorwürfe; nenne die 2 bis 3 größten Treiber und einen konkreten nächsten Schritt.
 
-Handeln: Ist eine Umbuchung, Buchung, ein Wunsch auf der Wunschliste oder ein Artikel für den Einkaufszettel sinnvoll, schlage es mit propose_transfer, propose_booking, propose_wish oder propose_shopping vor. Den Einkaufszettel liest du mit shopping_list. Das erscheint als Knopf, die Nutzerin entscheidet selbst. Formuliere „ich schlage vor“, nie „ich lege an“ oder „ich buche“. Behaupte nie, du hättest etwas gebucht oder angelegt. Größere Wünsche erst auf die Wunschliste mit Wartezeit; Konten mit Notfallbremse nicht als Quelle vorschlagen.
+Handeln: Ist eine Umbuchung, Buchung, eine Budget-Anpassung, ein Wunsch auf der Wunschliste oder ein Artikel für den Einkaufszettel sinnvoll, schlage es mit propose_transfer, propose_booking, propose_budget, propose_wish oder propose_shopping vor. Für Ziele, Sparkonten, Schulden, Projekte und Rückzahlungen nutze goals_status, für Vermögen wealth_status. Den Einkaufszettel liest du mit shopping_list. Das erscheint als Knopf, die Nutzerin entscheidet selbst. Formuliere „ich schlage vor“, nie „ich lege an“ oder „ich buche“. Behaupte nie, du hättest etwas gebucht oder angelegt. Größere Wünsche erst auf die Wunschliste mit Wartezeit; Konten mit Notfallbremse nicht als Quelle vorschlagen.
 
 Grenzen:
 - Keine Anlage-, Steuer- oder Rechtsberatung; bei solchen Fragen allgemeine Infos geben und auf Fachleute verweisen.
@@ -492,6 +503,9 @@ function aiToolDefs(lvl){const per={von:{type:'string',description:'Startdatum Y
     {name:'shopping_list',description:'Einkaufszettel: Artikel mit Menge, Preis und Muss/Kann, was schon im Wagen ist, geschätzte Summe, freies Budget des gewählten Topfs und häufig gekaufte Artikel. Für Fragen zum Einkauf, Rezepten, Budget beim Einkaufen.',input_schema:o({})},
     {name:'propose_shopping',description:'Schlägt Artikel für den Einkaufszettel vor (z. B. Zutaten für ein Rezept). Erscheint als Knopf, die Nutzerin bestätigt. Mengen als "2 Brot".',input_schema:o({artikel:{type:'array',items:{type:'string'}},grund:{type:'string'}},['artikel','grund'])},
     {name:'auffaelligkeiten',description:'Echte Auffälligkeiten im laufenden Finanzmonat: Abweichungen vom eigenen Normal (Kategorie über Ø, schneller als sonst, Einzelbuchung über üblichem Betrag beim Händler, geänderte Fixkosten) jeweils mit Vergleichswert. Fixkosten wie Miete, Daueraufträge und Quittiertes sind herausgefiltert. Immer bei Fragen nach Auffälligem, Ungewöhnlichem oder warum es eng wird.',input_schema:o({})},
+    {name:'goals_status',description:'Sparziele mit Fortschritt und geschätztem Erreichungsdatum, Sinking Funds (Bestand), Sparkonten, Kredite mit Restschuld und Schuldenfrei-Datum, aktive Projekte und offene Rückzahlungen.',input_schema:o({})},
+    {name:'wealth_status',description:'Vermögen gesamt und nach Teilen (Girokonto/Puffer, Sparkonten, Depot), Verlauf vor 1, 6 und 12 Monaten, Restschuld und Nettovermögen.',input_schema:o({})},
+    {name:'propose_budget',description:'Schlägt ein neues Monatsbudget für einen Topf vor. Erscheint als Knopf, die Nutzerin bestätigt.',input_schema:o({budget:{type:'string'},betrag:{type:'number'},grund:{type:'string'}},['budget','betrag','grund'])},
     {name:'wishes',description:'Offene Wünsche auf der Wunschliste mit Preis und Ende der Wartezeit.',input_schema:o({})},
     {name:'propose_transfer',description:'Schlägt eine Umbuchung zwischen zwei Konten oder Budgets vor. Erscheint als Knopf, der Nutzer bestätigt.',input_schema:o({betrag:{type:'number'},von:{type:'string'},nach:{type:'string'},grund:{type:'string'}},['betrag','von','nach','grund'])},
     {name:'propose_booking',description:'Schlägt eine neue Buchung vor, die der Nutzer prüft und sichert. text wie gesprochen, z. B. "Rewe 25 Euro Lebensmittel von Flow".',input_schema:o({text:{type:'string'},grund:{type:'string'}},['text','grund'])},
