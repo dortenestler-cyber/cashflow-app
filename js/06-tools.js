@@ -1172,12 +1172,9 @@ function samCardH(e){const p=samPv(e.sam.pid),est=samEst(e),miss=!e.sam.inv&&Dat
   const st=e.sam.inv?['Rechnung da','']:miss?['Rechnung fehlt','warn']:['sammelt',''];
   return `<button class="samc" data-samp="${e.id}" style="--f:${f.toFixed(3)}"><div class="samc-h"><span>${I('bolt',15)} ${esc(p?p.n:'Laden')} · ${samMon(e.sam.ym)}</span><span class="samc-t ${st[1]}">${st[0]}</span></div>
    <div class="samc-v">${eur(e.a)}</div><div class="samc-s">${c} Ladung${c==1?'':'en'}${k?' · '+samKF(k)+' kWh':''} · Abbuchung ${isPlan(e)?'ca. ':''}${samDM(e.t)}${ref?' · Ø '+eur0(ref):''}${e.sam.inv&&Math.abs(e.a-est)>=.01?' · Differenz '+(e.a>est?'+':'−')+eur(Math.abs(e.a-est)):''}</div></button>`}
-/* Reiter Planen › Monat: offene Sammelposten und Vorgemerktes */
-function samCards(){const V=vmItems(),K=kkItems(),SL=samP().length?samL().filter(e=>isPlan(e)||!e.sam.inv):[],lade=samP().length||RX().some(x=>x.kwh>0);
-  const hd=`<div class="sh"><span>Vorgemerkt</span><span style="display:flex;gap:14px">${lade?'<button class="link" data-set="lade">Ladeübersicht</button>':''}${samP().length||kkP().length?'<button class="link" data-set="sam">Sammelabrechnungen</button>':''}</span></div>`;
-  if(!SL.length&&!V.length&&!K.length)return samP().length||kkP().length?`<div class="sec">${hd}<div class="note">Gerade nichts vorgemerkt.</div></div>`:lade?`<div class="sec">${hd}</div>`:'';
-  const L=[...SL.map(e=>({t:e.t,h:samCardH(e)})),...V.map(x=>({t:x.t,h:vmCardH(x)})),...K.map(x=>({t:x.t,h:kkCardH(x)}))].sort((a,b)=>a.t-b.t);
-  return `<div class="sec">${hd}<div class="vmgrid">${L.map(x=>x.h).join('')}</div></div>`}
+/* v417: Block „Vorgemerkt“ unter Planen › Monat entfällt – geplante Umsätze stehen in der Kontoansicht. Links wandern zu Fixkosten. */
+function samLinks(){const lade=samP().length||RX().some(x=>x.kwh>0),sam=samP().length||kkP().length;if(!lade&&!sam)return '';
+  return `<div class="sh" style="justify-content:flex-end"><span style="display:flex;gap:14px">${lade?'<button class="link" data-set="lade">Ladeübersicht</button>':''}${sam?'<button class="link" data-set="sam">Sammelabrechnungen</button>':''}</span></div>`}
 /* v357: Vorgemerkte Buchungen als Karten – einmalig geplante Buchungen und seltene Fixkosten (alle 2+ Monate) der nächsten 60 Tage. Füllbalken = Countdown. */
 const VM_D=60;
 const vmDays=t=>{const a=new Date(t),b=new Date();a.setHours(12,0,0,0);b.setHours(12,0,0,0);return Math.round((a-b)/864e5)};

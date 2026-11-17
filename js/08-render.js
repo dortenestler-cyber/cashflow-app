@@ -36,7 +36,7 @@ function bind(){{const main=!setView&&!curB;if(main){bind.lastMain=tab}}{const p
   
   {const fb=$('fBtn');if(fb)fb.onclick=()=>{showF=!showF;render()}}document.querySelectorAll('[data-lcat]').forEach(b=>b.onclick=()=>{q=b.dataset.lcat;tflt='out';showF=true;render()});{const fc=$('fClr');if(fc)fc.onclick=()=>{flt='Alle';tflt='Alle';q='';wk=null;showF=false;render()}}if(setView=='import')bindImport();const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   document.querySelectorAll('.gcard,.mini,button.cell[data-b]').forEach(g=>g.onclick=()=>{curB=g.dataset.b;render();scrollTo(0,0)});
-  document.querySelectorAll('[data-id]').forEach(r=>r.onclick=()=>{const id=r.dataset.id;if(id.startsWith('v_'))return openVirt(id);const x=S.exp.find(e=>e.id==id);/* v356: Sammelabrechnung öffnet die Detailseite mit den Einzelladungen */if(x&&x.sam&&tab!='more'){setFrom=tab;tab='more';setParent=null;setView='samp:'+id;render();scrollTo(0,0);return}openSheet(x)});
+  document.querySelectorAll('[data-id]').forEach(r=>r.onclick=()=>{const id=r.dataset.id;if(id.startsWith('v_'))return openVirt(id);if(/^v[rm]_/.test(id))return;const x=S.exp.find(e=>e.id==id);/* v356: Sammelabrechnung öffnet die Detailseite mit den Einzelladungen */if(x&&x.sam&&tab!='more'){setFrom=tab;tab='more';setParent=null;setView='samp:'+id;render();scrollTo(0,0);return}openSheet(x)});
   document.querySelectorAll('[data-cat]').forEach(r=>r.onclick=()=>{tab='list';flt=curB;q=r.dataset.cat;off=0;curB=null;render()});
   on('back',()=>{curB=null;render()});
   on('umBtn',()=>openSheet(null,{type:'tr'}));on('shopBtn2',()=>{prevTab=tab;setView='shop';render();scrollTo(0,0)});on('umBtn2',()=>openSheet(null,{type:'tr',b:curB}));on('accBtn',()=>{tab='more';setView='accts';render();scrollTo(0,0)});

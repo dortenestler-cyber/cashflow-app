@@ -144,6 +144,12 @@ function histHero(b,c,sub,xl=''){const hist=[];for(let o=-5;o<=0;o++)hist.push(c
    <div class="lbl" style="font-size:17px;font-weight:700;margin-left:40px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${esc(b)}${xl}</div><div class="bal">${eur(c.rest)}</div><div class="gsub">${sub}</div>
    <div class="hhc" style="width:100%;color:#fff">${lineChart({n:6,w:Math.max(330,Math.min(innerWidth,1200)-(innerWidth>=1024?200:64)),series:[{pts:hist,col:'#fff',area:true,dot:true}],labels:hist.map((_,i)=>({i,t:period(i-5).s.toLocaleDateString('de-DE',{month:'short'}),on:i==5})),h:78,tipLab:i=>period(i-5).s.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}</div>
    <div style="font-size:12px;opacity:.75;margin-top:auto">‹ Wischen zum Kontowechsel ›</div></div>`}
+/* v417: Geplante Umsätze bis Monatsende und erwarteter Stand in der Konto-/Budgetansicht */
+function planSecH(b,c,lab){const p=period(0),nw=Date.now(),L=expV(nw,p.e.getTime()+1).filter(e=>e.t>nw&&inP(e,p)&&(e.b==b||e.to==b)).sort((x,y)=>x.t-y.t);
+  const d=e=>e.type=='tr'?(e.to==b?e.a:0)-(e.b==b?e.a:0):e.b!=b?0:e.type=='in'?e.a:-(e.a+ruA(e)),ex=c.rest+L.reduce((s,e)=>s+d(e),0);
+  const by={};L.forEach(e=>{const k=new Date(e.t).toDateString();(by[k]=by[k]||[]).push(e)});
+  const rows=Object.entries(by).map(([k,es])=>`<div class="sec"><div class="sh"><span>${new Date(k).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</span><span></span></div><div class="group" style="border:1.5px dashed var(--sep)">${es.map(e=>rowOf0(e,false)).join('')}</div></div>`).join('');
+  return `<div class="sec"><div class="sh"><span>Geplant bis Monatsende</span><span></span></div><div class="mmcard" style="padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span>${lab}</span><b class="${ex<0?'out':''}">${eur(ex)}</b></div>${rows||'<div class="note">Keine geplanten Umsätze mehr in diesem Monat.</div>'}</div>`}
 function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear:true})}<div class="mmcard"><div class="empty">${esc(b)} ist tabu und dein Vermögen ist ausgeblendet. Einblenden unter Vermögen › Sparkonten.</div></div>`;const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);const cs=Object.entries(by).sort((x,y)=>y[1]-x[1]);
   return `${histHero(b,c,'Kontostand heute')}
   <div class="seg" id="accSw">${swL().map(x=>`<button class="${x==b?'on':''}" data-f="${x}">${esc(SHORT[x])}</button>`).join('')}</div>
@@ -151,7 +157,7 @@ function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear
   <div class="kpis"><div class="kpi">Rein<b class="in">${eur0(c.inc)}</b></div><div class="kpi">Raus<b>${eur0(c.out)}</b></div><div class="kpi">Umb. rein<b>${eur0(c.trI)}</b></div><div class="kpi">Umb. raus<b>${eur0(c.trO)}</b></div></div>
   <button class="btn soft" id="umBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Von ${esc(b)} umbuchen</button>
   ${cs.length?`<div class="sec"><div class="sh">Ausgaben nach Kategorie</div><div class="group">${cs.map(([k,v])=>`<button class="cell" data-cat="${esc(k)}"><div class="ico" style="background:color-mix(in srgb,${COL[b]} 16%,transparent);color:${COL[b]}">${icoOf(b,k)}</div><div class="t"><div>${esc(k)}</div><div class="bar"><i style="width:${(v/c.out*100).toFixed(0)}%;background:${COL[b]}"></i></div></div><div class="v">${eur(v)}</div></button>`).join('')}</div></div>`:''}
-  <div class="sec"><div class="sh">Buchungen diesen Monat</div></div>${txList(c.list,false)}`}
+  ${planSecH(b,c,'Erwarteter Kontostand am Monatsende')}<div class="sec"><div class="sh">Buchungen diesen Monat</div></div>${txList(c.list,false)}`}
 function viewDetail(b){if(isK(b))return viewKonto(b);const c=calc(b),byCat={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>byCat[e.c]=(byCat[e.c]||0)+e.a);
   const cs=Object.entries(byCat).sort((x,y)=>y[1]-x[1]);
   return `${c.stock||/^cash$/i.test(b)?histHero(b,c,c.stock?'Bestand heute':'übrig diesen Monat',c.stock?'':badge(stat(c),1)):`<div class="hero onbg tank hero-tank dhero ${swipeDir} ${stat(c).k=="bad"?"sl-bad":""}" style="${bgStyle(b)}"><button class="hback" id="back" aria-label="Zurück zur Übersicht">‹</button>
@@ -166,6 +172,7 @@ function viewDetail(b){if(isK(b))return viewKonto(b);const c=calc(b),byCat={};c.
     <div class="t"><div>${esc(k)}</div><div class="bar"><i style="width:${(v/c.out*100).toFixed(0)}%;background:${COL[b]}"></i></div></div>
     <div class="v">${eur(v)}<div class="s">${Math.round(v/c.out*100)} %</div></div></button>`).join('')}</div></div>`:''}
   ${b=='Sinking Funds'?goalsHtml():''}
+  ${planSecH(b,c,c.stock?'Erwarteter Bestand am Monatsende':'Erwartet übrig am Monatsende')}
   <div class="sec"><div class="sh">Buchungen</div></div>${txList(c.list,false)}`}
 
 let listV='Täglich',calDay=null,wk=null,tflt='Alle';const LV=['Täglich','Summe'];/* v309: Woche und Monat sind jetzt eine Auswahl in „Summe“ */let sumR='m';
@@ -925,8 +932,8 @@ function viewWish(){const open=S.wish.map((w,i)=>[w,i]).filter(([w])=>w.s=='offe
    const flow=`<div class="zwflow"><span><b>${ZS.wartet}</b>wartet</span><i>›</i><span><b>${ZS.spart}</b>spart</span><i>›</i><span><b>${ZS.gekauft}</b>gekauft</span><span><b>${ZS.verworfen}</b>verworfen</span></div>`;
    const wait0=`<div class="jbtns"><button class="btn" id="jUrge" style="display:flex;justify-content:center;gap:6px;align-items:center;background:var(--bad)">${I('alert',18)}Kaufcheck: Ich habe gerade einen Kaufimpuls</button></div><div class="sec"><div class="sh"><span>Wartet</span></div><div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine Wünsche in der Wartezeit. Neue Wünsche warten zuerst, bevor sie ein Sparziel werden.</div>'}</div></div>`;
    return head+flow+wait0+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
-  if(wishV=='Monat')return head+rlCardH()+samCards()+viewClose(true)+toolBar(['salplan']);/* v393: Gehalt verteilen gehört zum Monat *//* v361: Vorgemerktes steht unter Monat, nicht unter Fixkosten */
-  if(wishV=='Fixkosten')return head+pnHintH('fix')+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
+  if(wishV=='Monat')return head+rlCardH()+viewClose(true)+toolBar(['salplan']);/* v393: Gehalt verteilen gehört zum Monat *//* v361: Vorgemerktes steht unter Monat, nicht unter Fixkosten */
+  if(wishV=='Fixkosten')return head+pnHintH('fix')+samLinks()+viewSet('rec').replace(/^<div class="lthead">[\s\S]*?<\/h1><\/div>/,'');
   if(wishV=='Zukunft')return head+`<button class="btn soft" id="pcOpen" style="display:flex;justify-content:center;gap:6px;align-items:center;margin-bottom:10px">${I('pen',16)} Plan ändern</button><div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …'],['Jahr','Jahresplaner']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():zukV=='Jahr'?viewYplan(true):forecastHtml()}
 `;
   /* v368: Wünsche = Wartezeit und Kaufcheck vorne; Journal, Verzicht, Muster stehen unter Rückblick › Impulse */
