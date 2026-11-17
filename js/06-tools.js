@@ -1178,63 +1178,59 @@ function rlOn(r){return !!(r&&r.spread&&r.type=='out'&&!r.paused&&(r.every||1)>=
 function rlRecs(){return (S.rec||[]).filter(rlOn)}
 function rl2(v){return Math.round(v*100)/100}
 function rlNext(r){for(let o=0;o<=24;o++){const P=period(o),d=recDue(r,P);if(!d)continue;const k=pkey(P);if((r.skip||[]).includes(k)||S.exp.some(e=>(e.rid==r.id||e.rlp==r.id)&&e.pk==k))continue;return{o,d,k,a:recA(r,P)}}return null}
-function rlSoll(r,n){return n?Math.min(n.a,n.a*Math.max(0,(r.every||1)-n.o)/(r.every||1)):0}
 /* v386: Umzug aus Sinking Funds (v385) aufs eigene Konto: bisherige Rücklagen-Buchungen umhängen, Rest aus Sinking übertragen */
 function rlMove(){const sa=sinkAcc(),ra=rlAcc();let inn=0;S.exp.forEach(e=>{if(e.rlm||e.rlf){if(e.to==sa){e.to=ra;delete e.alloc}inn+=e.a}else if(e.rlp&&e.b==sa){e.b=ra;inn-=e.a}});
   const got=(S.rec||[]).reduce((s,r)=>s+(r.spread&&r.fund?Math.max(0,r.fund.got||0):0),0),d=rl2(got-inn);if(sa&&d>=0.5)S.exp.push({id:uid(),type:'tr',b:sa,to:ra,a:d,n:'Rücklagen: Übertrag aus '+(SHORT[sa]||sa),c:'',t:Date.now(),rlf:1})}
 function rlTick(){let ch=0;
   if(!S.rlMig2){const any=(S.rec||[]).some(r=>r.type=='out'&&(r.every||1)>=3);if(any){if(S.rlMig)rlMove();else rlAcc();(S.rec||[]).forEach(r=>{if(r.type=='out'&&(r.every||1)>=3&&r.spread==null)r.spread=true});S.rlMig=S.rlMig||Date.now();S.rlMig2=Date.now();ch=1}}
   const ra=rlAccN();if(!ra){if(ch)save();return}
-  const P=period(0),k=pkey(P);let sum=0;
-  rlRecs().forEach(r=>{const f=r.fund||(r.fund={got:0});if(f.k===k)return;const n=rlNext(r),rt=n?Math.max(0,Math.ceil((n.a-f.got)/(n.o+1)-0.001)):0;f.got=rl2(f.got+rt);f.k=k;f.rt=rt;sum+=rt;ch=1});
-  const pa=pufAcc();if(sum>0&&pa&&pa.n!=ra&&!S.exp.some(e=>e.rlm==k))S.exp.push({id:uid(),type:'tr',b:pa.n,to:ra,a:rl2(sum),n:'Rücklagen',c:'',t:Math.min(Date.now(),P.s.getTime()+12*36e5),rlm:k});
-  if(ch)save()}
-function rlRate(){const k=pkey(period(0));return rlRecs().reduce((s,r)=>s+(r.fund&&r.fund.k==k?r.fund.rt||0:0),0)}
+  const P=period(0),k=pkey(P),D=rlRate();
+  const pa=pufAcc();if(D>0&&pa&&pa.n!=ra&&!S.exp.some(e=>e.rlm==k)){S.exp.push({id:uid(),type:'tr',b:pa.n,to:ra,a:D,n:'Rücklagen',c:'',t:Math.min(Date.now(),P.s.getTime()+12*36e5),rlm:k});ch=1}
+  if(ch)save();rlSync()}
+/* v388: fester Dauerauftrag – gleichbleibende Rate, die alle Fälligkeiten der nächsten 24 Monate deckt (Überschuss erlaubt, nie Fehlbetrag) */
+function rlDues(H){const D=[];rlRecs().forEach(r=>{for(let o=0;o<H;o++){const P=period(o),k=pkey(P);if(!recDue(r,P)||(r.skip||[]).includes(k))continue;if(o==0&&S.exp.some(e=>(e.rid==r.id||e.rlp==r.id)&&e.pk==k))continue;D.push({o,a:recA(r,P),r})}});return D}
+function rlNeed(){const ra=rlAccN();if(!ra)return 0;const B=calc(ra).rest,booked=S.exp.some(e=>e.rlm==pkey(period(0))),D=rlDues(24);let F=rlMonthly(),cum=0;
+  for(let o=0;o<24;o++){D.filter(x=>x.o==o).forEach(x=>cum+=x.a);const m=o+(booked?0:1);if(m>0&&cum>B)F=Math.max(F,Math.ceil((cum-B)/m-0.001))}return F}
+function rlRate(){const k=pkey(period(0)),e=S.exp.find(x=>x.rlm==k);return e?e.a:(S.rlDA||rlNeed())}
 function rlMonthly(){return rlRecs().reduce((s,r)=>s+Math.ceil(r.a/(r.every||1)-0.001),0)}
 function rlGot(){return rlRecs().reduce((s,r)=>s+Math.max(0,(r.fund&&r.fund.got)||0),0)}
-function rlGapL(){return rlRecs().map(r=>{const n=rlNext(r),got=(r.fund&&r.fund.got)||0;return{r,n,gap:Math.max(0,rlSoll(r,n)-got)}}).filter(x=>x.n&&x.gap>=1).sort((a,b)=>a.n.d-b.n.d)}
-function rlGap(){return Math.round(rlGapL().reduce((s,x)=>s+x.gap,0))}
 function rlPay(r,from,pk,t){if(!(from>=0.01))return;r.fund.got=rl2(r.fund.got-from);S.exp.push({id:uid(),type:'tr',b:rlAccN(),to:r.b,a:from,n:'Rücklagen: '+(r.n||r.c||''),c:'',t,rlp:r.id,pk})}
 /* offene Rücküberweisungen: 7 Tage vor bis 14 Tage nach Fälligkeit, solange nicht als erledigt gebucht */
 function rlPend(){const L=[],nT=Date.now();rlRecs().forEach(r=>{for(let o=-1;o<=1;o++){const P=period(o),d=recDue(r,P);if(!d)continue;const k=pkey(P),dt=d.getTime();if((r.skip||[]).includes(k)||dt-nT>7*864e5||nT-dt>14*864e5||S.exp.some(e=>e.rlp==r.id&&e.pk==k))continue;const bk=S.exp.find(e=>e.rid==r.id&&e.pk==k),a=bk?bk.a:recA(r,P),from=rl2(Math.min(a,Math.max(0,(r.fund&&r.fund.got)||0)));if(from>=1)L.push({r,k,d,a,from})}});return L}
 TIPFN.rlDone=arg=>{const[rid,k]=String(arg).split('|'),x=rlPend().find(p=>p.r.id==rid&&p.k==k);if(!x)return;const sn=JSON.stringify({exp:S.exp,rec:S.rec});rlPay(x.r,x.from,k,Math.min(Date.now(),x.d.getTime()));save();render();renderAsst();tell(`${eur0(x.from)} von ${SHORT[rlAccN()]||rlAccN()} gebucht.`,()=>{const o=JSON.parse(sn);S.exp=o.exp;S.rec=o.rec;save();render()})};
 TIPFN.rlDA=arg=>{S.rlDA=+arg;save();renderAsst()};
-/* Startlücke: Umbuchung vom Eingangskonto; danach holen die Raten den Rest bis zur Fälligkeit auf */
-function rlFill(){const L=rlGapL(),gap=Math.round(L.reduce((s,x)=>s+x.gap,0));if(gap<1){tell('Die Rücklagen sind auf Stand.');return}const ra=rlAccN(),pa=pufAcc();
-  const v=prompt(`Startlücke ${eur0(gap)}. Wie viel überweist du jetzt einmalig von ${pa?SHORT[pa.n]||pa.n:'deinem Girokonto'} auf ${SHORT[ra]||ra}?`,String(gap));if(v==null)return;const amt=Math.min(gap,pNum(v));if(!(amt>=1)){tell('Bitte einen Betrag eingeben.');return}if(!pa){tell('Kein Eingangskonto gefunden.');return}
-  const sn=JSON.stringify({exp:S.exp,rec:S.rec});S.exp.push({id:uid(),type:'tr',b:pa.n,to:ra,a:amt,n:'Rücklagen: Startlücke',c:'',t:Date.now(),rlf:1});
-  let rest=amt;L.forEach(x=>{if(rest<0.01)return;const a=rl2(Math.min(rest,x.gap));x.r.fund.got=rl2(x.r.fund.got+a);rest-=a});S.rlGapOk=1;save();render();
-  tell(`${eur0(amt)} in die Rücklagen gelegt.`+(gap-amt>=1?' Den Rest holen die Monatsraten bis zur Fälligkeit auf.':''),()=>{const o=JSON.parse(sn);S.exp=o.exp;S.rec=o.rec;save();render()})}
-TIPFN.rlFill=()=>rlFill();
 TIPFN.rlGo=()=>{asstOpen=false;renderAsst();tab='wish';wishV='Monat';render();scrollTo(0,0)};
-TIPFN.rlNo=()=>{S.rlGapOk=1;save();renderAsst()};
-document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#rlFill'))rlFill()});
+TIPFN.rlDA=arg=>{S.rlDA=+arg;delete S.rlLow;save();render();renderAsst()};
+TIPFN.rlLow=arg=>{S.rlLow=+arg;save();renderAsst()};
 /* v387: Angespart folgt dem echten Kontostand (z. B. nach Abgleich): Mehr füllt die nächsten Fälligkeiten auf, Weniger kürzt die spätesten zuerst */
 function rlSync(){const ra=rlAccN(),L=rlRecs();if(!ra||!L.length)return;const bal=Math.max(0,calc(ra).rest);let d=rl2(bal-rlGot());if(Math.abs(d)<1)return;
   const it=L.map(r=>({r,n:rlNext(r),f:r.fund||(r.fund={got:0})})).sort((a,b)=>(a.n?a.n.d:9e15)-(b.n?b.n.d:9e15));
   if(d>0)it.forEach(x=>{if(d<0.01)return;const cap=Math.max(0,(x.n?x.n.a:x.r.a)-x.f.got),a=Math.min(cap,d);x.f.got=rl2(x.f.got+a);d-=a});
   else it.reverse().forEach(x=>{if(d>-0.01)return;const a=Math.min(x.f.got,-d);x.f.got=rl2(x.f.got-a);d+=a});save()}
-/* v387: Monatsraten der nächsten 12 Monate (Dauerauftrag), bis die gleichmäßige Rate erreicht ist */
-function rlPlan(){const L=rlRecs(),R=Array(12).fill(0);L.forEach(r=>{const f=r.fund||{got:0};let g=f.got;const due=[];for(let o=0;o<=36;o++){const P=period(o),k=pkey(P);if(!recDue(r,P)||(r.skip||[]).includes(k))continue;if(o==0&&S.exp.some(e=>(e.rid==r.id||e.rlp==r.id)&&e.pk==k))continue;due.push({o,a:recA(r,P)})}
-  for(let o=0;o<12;o++){const nx=due.find(x=>x.o>=o);let rt=0;if(o==0)rt=f.k==pkey(period(0))?f.rt||0:0;else if(nx){rt=Math.max(0,Math.ceil((nx.a-g)/(nx.o-o+1)-0.001));g+=rt}R[o]+=rt;const dd=due.find(x=>x.o==o);if(dd)g=Math.max(0,g-dd.a)}});return R}
+/* Kontostand Rücklagen am Monatsende der nächsten 12 Monate bei fester Rate F */
+function rlProj(F){const ra=rlAccN(),D=rlDues(12),booked=S.exp.some(e=>e.rlm==pkey(period(0)));let b=calc(ra).rest;const out=[];for(let o=0;o<12;o++){if(o>0||!booked)b+=F;D.filter(x=>x.o==o).forEach(x=>b-=x.a);out.push(b)}return out}
 function rlCardH(){const ra=rlAccN(),L=rlRecs();if(!ra||!L.length)return '';rlSync();
   const it=L.map(r=>{const n=rlNext(r),got=(r.fund&&r.fund.got)||0;return{r,n,got}}).sort((a,b)=>(a.n?a.n.d:9e15)-(b.n?b.n.d:9e15));
   const M=[];for(let o=0;o<12;o++){const P=period(o),k=pkey(P);let v=0;L.forEach(r=>{if(recDue(r,P)&&!(r.skip||[]).includes(k))v+=recA(r,P)});M.push({P,v})}
-  const avg=rlMonthly(),RP=rlPlan(),mx=Math.max(avg,...M.map(m=>m.v),1),gap=rlGap(),got=rlGot(),bal=calc(ra).rest;
+  const need=rlNeed(),F=S.rlDA||need,avg=rlMonthly(),PJ=rlProj(F),mx=Math.max(...M.map(m=>m.v),1),got=rlGot(),bal=calc(ra).rest,low=Math.min(...PJ);
   const bars=`<div style="position:relative;display:flex;align-items:flex-end;gap:3px;height:70px;margin:10px 0 2px">${M.map(m=>`<div title="${esc(monS(m.P))}: ${eur0(m.v)}" style="flex:1;height:${Math.max(m.v?6:1,m.v/mx*100).toFixed(0)}%;background:${m.v?'var(--warn)':'var(--fill)'};border-radius:3px 3px 0 0;opacity:.8"></div>`).join('')}</div><div style="display:flex;gap:3px;font-size:10px;color:var(--muted)">${M.map(m=>`<span style="flex:1;text-align:center">${esc(monS(m.P).slice(0,1))}</span>`).join('')}</div>
-   <div style="display:flex;gap:3px;font-size:10px;font-weight:600;margin-top:3px">${RP.map((v,i)=>`<span style="flex:1;text-align:center;color:${i&&v==RP[i-1]?'var(--muted)':'var(--fg)'}">${Math.round(v)}</span>`).join('')}</div>
-   <div class="ns-f" style="font-size:12px;margin-top:4px"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--warn);opacity:.8"></span> fällig</span><span><b>Zahlen</b> = zur Seite legen (€)</span></div>
-   <div class="note" style="padding:6px 0 0">${(()=>{const i=RP.findIndex((v,j)=>RP.slice(j).every(w=>Math.abs(w-avg)<=3));return i>0?`Ab ${esc(monS(period(i)))} gleichbleibend rund ${eur0(avg)} im Monat.`:i==0?`Gleichbleibend rund ${eur0(avg)} im Monat.`:`Langfristig rund ${eur0(avg)} im Monat.`})()}</div>`;
+   <div style="display:flex;gap:3px;font-size:10px;font-weight:600;margin-top:3px">${PJ.map(v=>`<span style="flex:1;text-align:center;color:${v<-0.5?'var(--bad)':'var(--fg)'}">${Math.round(v)}</span>`).join('')}</div>
+   <div class="ns-f" style="font-size:12px;margin-top:4px"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--warn);opacity:.8"></span> fällig</span><span><b>Zahlen</b> = Stand Monatsende (€)</span></div>`;
+  const msg=S.rlDA&&S.rlDA<need?`<b class="out">Dein Dauerauftrag über ${eur0(S.rlDA)} reicht nicht.</b> Erhöhe ihn auf ${eur0(need)}, sonst fehlt Geld bei einer Fälligkeit.`
+   :`${S.rlDA?'Dein Dauerauftrag':'Ein Dauerauftrag'} über <b>${eur0(F)}</b> im Monat deckt alle Fälligkeiten der nächsten 24 Monate${low>=0.5?`, der niedrigste Stand liegt bei ${eur0(low)}`:''}.${F>avg+2?` Langfristig genügen ${eur0(avg)}. Penny sagt Bescheid, wenn du senken kannst.`:''}`;
   const rows=it.map(x=>{const a=x.n?x.n.a:x.r.a,pc=Math.min(100,x.got/a*100);return `<div class="srow"><div class="srow-h"><span><b>${esc(x.r.n||x.r.c)}</b> <span class="s" style="font-size:12px;color:var(--muted)">${VM_R[x.r.every]||''}${x.n?' · fällig '+samDM(x.n.d.getTime()):''}</span></span><span></span><b>${eur0(a)}</b></div>
-    <div class="nsbar" style="margin:6px 0 4px"><i style="width:${pc.toFixed(0)}%;background:${x.got>=rlSoll(x.r,x.n)-0.5?'var(--ok)':'var(--warn)'}"></i></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=a-0.5?'<b class="in">voll angespart</b>':`${eur0(x.got)} angespart${x.n&&x.n.o>0?` · ab nächstem Monat ${eur0(Math.ceil((a-x.got)/x.n.o-0.001))}/Monat`:''}`}</span><span></span></div></div>`}).join('');
-  return `<div class="sec"><div class="sh"><span>Rücklagen</span><span style="text-transform:none">${eur0(rlRate())}/Monat</span></div><div class="mmcard"><div class="pot-r"><span>Angespart für ${L.length} Zahlung${L.length==1?'':'en'}</span><b>${eur0(got)}</b></div>${Math.abs(bal-got)>=1?`<div class="pot-r" style="font-size:12px;color:var(--muted)"><span>Kontostand ${esc(SHORT[ra]||ra)}</span><span>${eur0(bal)}</span></div>`:''}${bars}
-   ${gap>=1?`<div class="note" style="padding:8px 0 0">Startlücke ${eur0(gap)}: Bis zur nächsten Fälligkeit sind die Raten höher. Überweise die Lücke einmalig, dann bleibt die Rate gleichmäßig.</div><button class="btn soft" id="rlFill" style="margin:8px 0 0">Lücke schließen</button>`:''}</div><div class="mmcard">${rows}</div>
-   <div class="note">Dauerauftrag zum Monatsanfang: ${eur0(rlRate())} vom Girokonto aufs Tagesgeld (${esc(SHORT[ra]||ra)}). Vor jeder Fälligkeit erinnert Penny dich an die Rücküberweisung. An- und abschalten in der wiederkehrenden Buchung.</div></div>`}
-/* Penny: Startlücke · Rücküberweisung vor Fälligkeit · Dauerauftrag anpassen */
-function rlTips(t){const ra=rlAccN();if(!ra||!rlRecs().length)return;const R=SHORT[ra]||ra,g=rlGap();
+    <div class="nsbar" style="margin:6px 0 4px"><i style="width:${pc.toFixed(0)}%;background:var(--ok)"></i></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=a-0.5?'<b class="in">voll angespart</b>':`${eur0(x.got)} angespart`}</span><span></span></div></div>`}).join('');
+  return `<div class="sec"><div class="sh"><span>Rücklagen</span><span style="text-transform:none">Dauerauftrag ${eur0(F)}/Monat</span></div><div class="mmcard"><div class="pot-r"><span>Kontostand ${esc(SHORT[ra]||ra)}</span><b>${eur0(bal)}</b></div>${bars}
+   <div class="note" style="padding:8px 0 0">${msg}</div>${!S.rlDA||S.rlDA<need?`<button class="btn soft" id="rlDAset" data-a="${need}" style="margin:8px 0 0">Dauerauftrag über ${eur0(need)} ist eingerichtet</button>`:''}</div><div class="mmcard">${rows}</div>
+   <div class="note">Der Dauerauftrag läuft zum Monatsanfang vom Girokonto aufs Tagesgeld (${esc(SHORT[ra]||ra)}). Vor jeder Fälligkeit erinnert Penny dich an die Rücküberweisung. An- und abschalten in der wiederkehrenden Buchung.</div></div>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#rlDAset');if(b)TIPFN.rlDA(b.dataset.a)});
+/* Penny: Rücküberweisung vor Fälligkeit · Dauerauftrag einrichten, erhöhen oder senken */
+function rlTips(t){const ra=rlAccN();if(!ra||!rlRecs().length)return;const R=SHORT[ra]||ra;
   rlSync();rlPend().forEach(x=>{const past=x.d.getTime()<Date.now();t.push({sev:past?'warn':'info',btns:[{l:'Erledigt',fn:'rlDone',arg:x.r.id+'|'+x.k},{l:'Ansehen',fn:'rlGo'}],ttl:`${eur0(x.from)} von ${esc(R)} aufs Girokonto`,txt:`${esc(x.r.n||x.r.c)} ${past?'wurde am':'wird am'} ${samDM(x.d.getTime())} abgebucht (${eur0(x.a)}). Überweise ${eur0(x.from)} vom Tagesgeld zurück${x.from<x.a-0.5?', der Rest kommt vom Konto':''}.`})});
-  const rt=rlRate();if(rt>=1&&Math.abs(rt-(S.rlDA||0))>=2)t.push({sev:'info',btns:[{l:'Ist eingerichtet',fn:'rlDA',arg:rt},{l:'Ansehen',fn:'rlGo'}],ttl:`Dauerauftrag Rücklagen: ${eur0(rt)}/Monat`,txt:S.rlDA?`Die Rate hat sich geändert (bisher ${eur0(S.rlDA)}). Pass den Dauerauftrag vom Girokonto aufs Tagesgeld an.`:`Richte einen Dauerauftrag zum Monatsanfang vom Girokonto aufs Tagesgeld (${esc(R)}) ein.`});
-  if(g>=1&&!S.rlGapOk)t.push({sev:'warn',btns:[{l:'Lücke schließen',fn:'rlFill'},{l:'Ansehen',fn:'rlGo'},{l:'Aufholen lassen',fn:'rlNo'}],ttl:`Rücklagen: Startlücke ${eur0(g)}`,txt:`Bis zur nächsten Fälligkeit fehlen ${eur0(g)}. Überweise sie einmalig aufs Tagesgeld, sonst steigen die Raten bis dahin.`})}
+  const need=rlNeed();
+  if(!S.rlDA)t.push({sev:'info',btns:[{l:'Ist eingerichtet',fn:'rlDA',arg:need},{l:'Ansehen',fn:'rlGo'}],ttl:`Dauerauftrag Rücklagen: ${eur0(need)}/Monat`,txt:`Richte einen gleichbleibenden Dauerauftrag zum Monatsanfang vom Girokonto aufs Tagesgeld (${esc(R)}) ein. Er deckt alle Fälligkeiten der nächsten 24 Monate.`});
+  else if(S.rlDA<need)t.push({sev:'warn',btns:[{l:'Erhöht',fn:'rlDA',arg:need},{l:'Ansehen',fn:'rlGo'}],ttl:`Dauerauftrag Rücklagen auf ${eur0(need)} erhöhen`,txt:`Mit ${eur0(S.rlDA)} fehlt bei einer der nächsten Fälligkeiten Geld (z. B. durch eine neue oder teurere Zahlung).`});
+  else if(S.rlDA-need>=5&&S.rlLow!=need)t.push({sev:'info',btns:[{l:'Gesenkt',fn:'rlDA',arg:need},{l:'So lassen',fn:'rlLow',arg:need}],ttl:`Dauerauftrag Rücklagen: ${eur0(need)} reichen`,txt:`Du legst ${eur0(S.rlDA)} im Monat zurück, ${eur0(need)} decken alle Fälligkeiten der nächsten 24 Monate. Der Rest bleibt als Puffer liegen.`})}
 /* v358: Kreditkarten-Sammelposten – Käufe sind normale Buchungen (Budget sofort, eigene Kategorie) mit e.kk=Karten-ID; die Karte zeigt die Monatssumme bis zur Abbuchung im Folgemonat. S.kk=[{id,n,day}] */
 const kkP=()=>S.kk=S.kk||[];
 const kkPv=id=>kkP().find(p=>p.id==id);

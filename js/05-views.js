@@ -180,7 +180,7 @@ function recVirt(fromT,toT){const out=[],nowT=Date.now();for(let k=-1;k<=13;k++)
   (S.rec||[]).forEach(r=>{if(r.paused)return;const d=recDue(r,p);if(!d)return;const t=d.getTime();if(t<=nowT||t<fromT||t>=toT)return;if(S.exp.some(e=>e.rid==r.id&&e.pk==pk))return;
    const v=recView(r,p);out.push({id:'v_'+r.id+'_'+pk,type:r.type,b:r.b,to:r.to,c:r.c||'',a:v.a,n:r.n,t,rid:r.id,pk,virt:true,alloc:r.alloc,adj:v.kind?v:null});
    if(typeof rlOn=='function'&&rlOn(r))out.push({id:'vr_'+r.id+'_'+pk,type:'tr',b:rlAccN(),to:r.b,c:'',a:v.a,n:'Rücklagen: '+(r.n||r.c||''),t:t+1,virt:true,rlc:true})});
-  /* v385: Rücklagen-Rate zum Monatsbeginn */const t0=p.s.getTime()+12*36e5,pa=pufAcc(),m=k>0&&typeof rlMonthly=='function'&&rlAccN()?rlMonthly():0;if(m>0&&pa&&t0>nowT&&t0>=fromT&&t0<toT)out.push({id:'vm_'+pk,type:'tr',b:pa.n,to:rlAccN(),c:'',a:m,n:'Rücklagen',t:t0,virt:true,rlc:true})}return out}
+  /* v385: Rücklagen-Rate zum Monatsbeginn */const t0=p.s.getTime()+12*36e5,pa=pufAcc(),m=k>0&&typeof rlMonthly=='function'&&rlAccN()&&rlRecs().length?(S.rlDA||rlMonthly()):0;if(m>0&&pa&&t0>nowT&&t0>=fromT&&t0<toT)out.push({id:'vm_'+pk,type:'tr',b:pa.n,to:rlAccN(),c:'',a:m,n:'Rücklagen',t:t0,virt:true,rlc:true})}return out}
 const expV=(fromT,toT)=>S.exp.concat(recVirt(fromT,toT));
 function openVirt(id){const v=recVirt(0,9e15).find(x=>x.id==id);if(!v)return;openSheet(null,{type:v.type,b:v.b,to:v.to||ALL.find(a=>a!=v.b),c:v.c,amt:String(v.a),n:v.n,dt:ymd(v.t),rid:v.rid,pk:v.pk,alloc:v.alloc,adj:v.adj})}
 /* v244: Geplante Buchungen eingeklappt, Liste startet oben (kein Sprung, der den Kopf abschneidet) */let planOpen=false;
