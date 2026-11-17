@@ -191,10 +191,8 @@ function bindRu(){const R=ruS(),sv=()=>{save();render()};
  document.querySelectorAll('[data-ruc]').forEach(el=>el.onchange=()=>{const v=el.value,c=R.cards[el.dataset.ruc];if(!v||v=='-'){c.to=v;c.dep=''}else{const q=ruPick(v);c.to=q.to;c.dep=q.dep}sv()});
  document.querySelectorAll('[data-rua]').forEach(c=>c.onchange=()=>{const all=[...document.querySelectorAll('[data-rua]')],ch=all.filter(x=>x.checked).map(x=>x.dataset.rua);R.accs=ch.length==all.length?[]:ch;sv()})}
 /* ---------- Siri & Apple Pay über die Zwischenablage: Assistent bietet beim Öffnen an ---------- */
-let clipAsk=false,clipHidAt=0;
-const CLIPTIP={sev:'ok',ttl:'Von Siri übernehmen?',txt:'Hast du gerade etwas diktiert oder mit Apple Pay bezahlt? Ein Tipp holt es aus der Zwischenablage: Einkauf, Buchung, Wunsch oder Frage.',btns:[{l:'Übernehmen',fn:'clipGo'},{l:'Nicht jetzt',fn:'clipNo'}]};
+let clipAsk=false;
 const SUPRX=/rewe|edeka|aldi|lidl|norma|netto|penny|kaufland|tegut|globus|real\b|denns|alnatura|bio company|\bdm\b|rossmann|müller/i;
-function clipPrompt(){if(window.SHOPM||!featOn('shopclip')||clipAsk)return;clipAsk=true;S.seenTips=(S.seenTips||[]).filter(k=>!/^ok\|Von Siri/.test(k));renderAsst()}
 function clipKind(v){const l=v.toLowerCase().trim();
  if(/(^|\n)\s*apple ?pay\b/.test(l))return 'pay';
  if(/^(buchung|ausgabe|einnahme|umbuchung)\b/.test(l))return 'book';
@@ -327,10 +325,7 @@ Object.assign(TIPFN,{
    const ad={k:'clip',recs,dups,open,shop:shopN.length>0},acts=clipActs(ad);
    say(h,acts,'Von Siri & Apple Pay: '+(cnt||'nichts Neues'),recs.length||dups.length||open.length?ad:undefined)}
   asks.forEach(o=>asstAsk(o.body));if(urge)openUrge()},
- clipNo:()=>{clipAsk=false;renderAsst()},
  payQRun:()=>{const q=payQOpen();if(q.length)TIPFN.clipRun(q.join('\n'));else toast('Keine offenen Kartenzahlungen.')}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')clipHidAt=Date.now();else if(clipHidAt&&Date.now()-clipHidAt>30*60e3)setTimeout(clipPrompt,600)});setTimeout(clipPrompt,1500);
-setTimeout(clipPrompt,1500);
 
 /* Kurzbefehl öffnet die App mit ?sag=… oder ?frage=… */
 setTimeout(()=>{try{const q=new URLSearchParams(location.search),sag=q.get('sag'),fr=q.get('frage');if(!sag&&!fr)return;history.replaceState(history.state,'',location.pathname);
