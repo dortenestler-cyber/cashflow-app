@@ -52,7 +52,7 @@ function lock(){if(window.SHOPM||!pinActive())return;if($('lockRoot').innerHTML)
   const tryBio=async(auto)=>{if(window.__bioRun||!hasBio||!$('lockRoot').innerHTML)return;window.__bioRun=true;try{if(await bioCheck()){window.__bioOkAt=Date.now();hidAt=0;$('lockRoot').innerHTML='';notifFlush();return}draw(bioName()+' hat nicht geklappt')}catch(e){if(!auto||e.name!='NotAllowedError'||Date.now()-t0>1500)draw(e.name=='NotAllowedError'&&auto?'':bioName()+' abgebrochen')}finally{window.__bioRun=false}};const t0=Date.now();
   /* Rechner (Maus/Trackpad): Windows-Anmeldung mit Penny-Avatar und PIN-Feld; iPhone/iPad: Penny statt Face-ID-Symbol, Ziffernfeld bleibt */
   const win=!tapMode&&matchMedia('(pointer:fine)').matches;let showPad=!win;
-  const pn=()=>`<div class="lk-av">${penny('ausgeglichen',win?104:70)}</div>`,
+  const pn=()=>''/* v431: keine Figur auf dem Sperrbildschirm */,
     pad=()=>`<div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>k?`<button data-k="${k}">${k=='⌫'?I('backspace',24):k}</button>`:'<span></span>').join('')}</div>`,
     dots=()=>`<div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div>`;
   const press=k=>{v=k=='⌫'?v.slice(0,-1):(v+k).slice(0,4);
