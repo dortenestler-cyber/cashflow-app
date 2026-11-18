@@ -334,6 +334,7 @@ function openAbo(rid,kind){const ri=(S.rec||[]).findIndex(r=>r.id==rid),isNew=ri
     <div class="cell plain"><label for="abP">Anbieter</label><input id="abP" value="${esc(c.prov||'')}" placeholder="optional"></div>
     <div class="cell plain"><label for="abA">Kosten</label><input id="abA" inputmode="decimal" value="${r.a?String(r.a).replace('.',','):''}" placeholder="€"></div>
     <div class="cell plain"><label for="abE">Rhythmus</label><select id="abE">${[[1,'monatlich'],[2,'alle 2 Monate'],[3,'vierteljährlich'],[6,'halbjährlich'],[12,'jährlich']].map(([v,l])=>`<option value="${v}" ${(r.every||1)==v?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="cell plain" id="abMr" style="${(r.every||1)>1?'':'display:none'}"><label for="abM">Abbuchung im</label><select id="abM">${(()=>{const st=r.start||((r.every||1)>1&&typeof recAnc=='function'?recAnc(r):''),cm=st?+st.slice(5,7):new Date().getMonth()+1;return MN.map((m,k)=>`<option value="${k+1}" ${cm==k+1?'selected':''}>${m}</option>`).join('')})()}</select></div>
     <div class="cell plain"><label for="abD">Abbuchung am</label><select id="abD">${Array.from({length:31},(_,k)=>`<option value="${k+1}" ${r.day==k+1?'selected':''}>${k+1}.</option>`).join('')}</select></div>
     <div class="cell plain"><label for="abB">Konto</label><select id="abB">${ALL.filter(a=>!isTabu(a)).map(a=>`<option ${r.b==a?'selected':''}>${esc(a)}</option>`).join('')}</select></div>
     <div class="cell plain"><label for="abC">Kategorie</label><select id="abC">${cs.map(k=>`<option ${r.c==k[0]?'selected':''}>${esc(k[0])}</option>`).join('')}${cs.some(k=>k[0]==r.c)?'':`<option selected>${esc(r.c||'Abos')}</option>`}</select></div>
@@ -349,7 +350,7 @@ function openAbo(rid,kind){const ri=(S.rec||[]).findIndex(r=>r.id==rid),isNew=ri
    <div class="note" id="abErr" style="padding:0;color:var(--bad)"></div>
    ${isNew?'':'<button class="btn soft" id="abNo">Kein Abo, aus dem Radar nehmen</button><button class="btn danger" id="abDel">Dauerauftrag löschen</button>'}</div></div>`;
    const rp=id=>{const n=parseInt(($(id+'N')||{}).value);return n>0?{u:$(id+'U').value,n}:null};
-   const keep=()=>{r.n=$('abN').value.trim();c.prov=$('abP').value.trim();r.a=pNum($('abA').value)||0;r.every=+$('abE').value;r.day=+$('abD').value;r.b=$('abB').value;r.c=$('abC').value;r.paused=$('abPa').checked;hasK=$('abK').checked;
+   const keep=()=>{r.n=$('abN').value.trim();c.prov=$('abP').value.trim();r.a=pNum($('abA').value)||0;r.every=+$('abE').value;r.day=+$('abD').value;if(r.every>1&&$('abM')){const m=+$('abM').value,n=new Date(),y=m<=n.getMonth()+1?n.getFullYear():n.getFullYear()-1;r.start=y+'-'+String(m).padStart(2,'0')+'-'+String(Math.min(r.day,new Date(y,m,0).getDate())).padStart(2,'0');delete r.anc}r.b=$('abB').value;r.c=$('abC').value;r.paused=$('abPa').checked;hasK=$('abK').checked;
      if($('abNx')){c.next=$('abNx').value;c.notice=rp('abF');c.auto=$('abAu').checked;c.renew=rp('abR')||c.renew;c.state=$('abCa').checked?'cancelled':'active'}};
    $('scrim').onclick=$('abX').onclick=()=>{$('sheetRoot').innerHTML='';renderAsst()};
    document.querySelectorAll('#abKd button').forEach(b=>b.onclick=()=>{keep();r.kind=b.dataset.v;if(r.kind=='vertrag'&&!hasK){hasK=true;const d=new Date();d.setFullYear(d.getFullYear()+1);c.next=c.next||ymd(d.getTime());c.notice=c.notice||{u:'m',n:1}}draw()});
@@ -359,6 +360,7 @@ function openAbo(rid,kind){const ri=(S.rec||[]).findIndex(r=>r.id==rid),isNew=ri
      if(isNew)S.rec.push(r);else S.rec[ri]=r;S.contracts=S.contracts||[];
      if(hasK){c.n=r.n;c.rid=r.id;c.cost=undefined;c.next=c.next||c.start;if(ci>=0)S.contracts[ci]=c;else S.contracts.push(c)}else if(ci>=0)S.contracts.splice(ci,1);
      save();applyRec();$('sheetRoot').innerHTML='';render();tell((r.kind=='vertrag'?'Vertrag ':'Abo ')+(isNew?'angelegt.':'gesichert.'),()=>{S.rec=JSON.parse(sr);S.contracts=JSON.parse(sc);save();render()})};
+   if($('abE')&&$('abMr'))$('abE').addEventListener('change',()=>{$('abMr').style.display=+$('abE').value>1?'':'none'});
    if($('abNo'))$('abNo').onclick=()=>{S.rec[ri].abo=false;save();$('sheetRoot').innerHTML='';render();tell(r.n+' zählt nicht mehr als Abo.',()=>{delete S.rec[ri].abo;save();render()})};
    if($('abDel'))$('abDel').onclick=()=>{const b=$('abDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen? Gebuchtes bleibt.';return}const sr=JSON.stringify(S.rec),sc=JSON.stringify(S.contracts||[]);S.rec.splice(ri,1);if(ci>=0)S.contracts.splice(ci,1);save();$('sheetRoot').innerHTML='';render();tell('Gelöscht.',()=>{S.rec=JSON.parse(sr);S.contracts=JSON.parse(sc);save();render()})}};
   draw();renderAsst()}
