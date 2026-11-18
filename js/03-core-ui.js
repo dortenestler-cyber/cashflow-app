@@ -87,7 +87,7 @@ function uName(){return String(S.uname||"").trim()}function GN(){const a=S.accts
 /* v231: Filter trennt Töpfe und Bankkonten */
 function fltSeg(){const P=BN.filter(b=>BUDG.includes(b)),K=BN.filter(b=>!BUDG.includes(b)),bt=b=>`<button class="${flt==b?'on':''}" data-f="${esc(b)}">${b=='Alle'?b:esc(SHORT[b]||b)}</button>`;
   return `<div id="flt" class="fltw"><div class="seg">${['Alle',...P].map(bt).join('')}</div>${K.length?`<div class="seg"><span class="seg-l">Konten</span>${K.map(bt).join('')}</div>`:''}</div>`}
-let rowPj=false;function rowOf(e,showB){if(ruHide(e))return '';if(corrPair(e))return '';if(!rowPj&&e.sh&&e.sh.by!='me')return '';return swWrap(e.id,rowOf0(e,showB))}
+let rowPj=false;function rowOf(e,showB){if(ruHide(e))return '';if(e.corr)return '';/* v453: Kontoabgleich-Buchungen nie in Listen */if(!rowPj&&e.sh&&e.sh.by!='me')return '';return swWrap(e.id,rowOf0(e,showB))}
 function rowOf0(e,showB){const ic=e.type=='tr'?I('swap'):icoOf(e.b,e.c),col=COL[e.b];
   const sub=e.type=='tr'?`Umbuchung ${SHORT[e.b]} → ${SHORT[e.to]}`:[e.c,showB?SHORT[e.b]:null,e.p?'mit '+e.p:null,e.proj&&(S.projects||[]).find(x=>x.id==e.proj)?(()=>{const X=S.projects.find(x=>x.id==e.proj);return e.sh?`${X.n} · ${pjNm(X,e.sh.by)} · ${eur(e.sh.tot)}, dein Anteil ${eur(shOwn(e.sh.tot,e.sh))}${e.sh.by!='me'?' (kein Konto)':''}`:X.n})():null,e.rid?(S.exp.some(x=>x.rlp&&x.rlp==e.rid&&x.pk==e.pk)?'aus Rücklagen':'wiederkehrend'):null,e.kk&&typeof kkPv=='function'&&kkPv(e.kk)?kkPv(e.kk).n:null,ruA(e)?eur(e.a)+' + '+eur(ruA(e))+' Wechselgeld':null].filter(Boolean).join(' · ');
   const sign=e.type=='in'?'+':e.type=='tr'?'':'−';
@@ -193,7 +193,7 @@ function brandsHtml(){const M=S.brandMap||{},cnt={},none={};S.exp.forEach(e=>{if
     </div>`:''}
    ${Object.keys(M).length?`<div class="sec"><div class="sh">Deine Zuordnungen</div><div class="group">${Object.entries(M).map(([k,d])=>`<div class="cell plain">${d?bIcon(d):''}<div class="t" style="flex:1"><div>${esc(k)}</div><div class="s">${esc(d)}</div></div><button class="del" data-bmx="${esc(k)}" aria-label="Entfernen">${I('minus',20)}</button></div>`).join('')}</div></div>`:''}
    `}
-function txList(list,showB){if(!list.length)return '<div class="group"><div class="empty">Keine Buchungen gefunden.</div></div>';
+function txList(list,showB){list=list.filter(e=>!e.corr);if(!list.length)return '<div class="group"><div class="empty">Keine Buchungen gefunden.</div></div>';
   const by={};list.slice().sort((a,b)=>b.t-a.t).forEach(e=>{const k=new Date(e.t).toDateString();(by[k]=by[k]||[]).push(e)});
   return Object.entries(by).map(([k,es])=>{const dt=new Date(k),lab=dt.toDateString()==now.toDateString()?'Heute':dt.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
     const sum=es.reduce((s,e)=>s+(e.type=='out'?e.a+ruA(e):e.type=='in'?-e.a:0),0);
