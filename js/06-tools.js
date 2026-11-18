@@ -1324,10 +1324,10 @@ function wkRow(it){const x=it.x,d=new Date(it.t).toLocaleDateString('de-DE',{day
   else{at=`data-kkp="${esc(x.p.id)}|${x.ym}"`;n=esc(x.p.n)+' · '+samMon(x.ym);sub='Kreditkarte · '+x.c+(x.c==1?' Kauf':' Käufe');a='−'+eur(x.a)}
   return `<button class="cell" ${at}><div class="t"><div>${n}</div><div class="s">${d} · ${sub}</div></div><div class="v">${a}</div><span class="chev">›</span></button>`}
 function wasKommtH(){const L=wkItems(),f=L[0];
-  const card=f?(f.k=='vm'?vmCardH(f.x):f.k=='sam'?samCardH(f.x):kkCardH(f.x)):'';const rows=L.slice(1).map(wkRow).join('');
-  return (f?`<div class="wk-first">${card}</div>`:`<div class="mmcard"><div class="empty">In den nächsten 60 Tagen ist nichts Besonderes vorgemerkt. Monatliche Fixkosten stehen unter Fixkosten.</div></div>`)
-   +(rows?`<div class="sec"><div class="sh">Danach</div><div class="group">${rows}</div></div>`:'')+rlCardH()
-   +`<div class="sh" style="justify-content:flex-end"><span style="display:flex;gap:14px"><button class="link" data-wgo="Fixkosten">Monatliche Fixkosten</button><button class="link" data-set="sam">Sammelabrechnungen verwalten</button></span></div>`}
+  const rows=L.map(wkRow).join('');/* v432: keine Kachel – alles als Zeilen */
+  return (f?'':`<div class="mmcard"><div class="empty">In den nächsten 60 Tagen ist nichts Besonderes vorgemerkt. Monatliche Fixkosten stehen unter Fixkosten.</div></div>`)
+   +(rows?`<div class="sec"><div class="group">${rows}</div></div>`:'')+rlCardH()
+   +`<div class="wk-links"><button class="link" data-wgo="Fixkosten">Monatliche Fixkosten</button><button class="link" data-set="sam">Sammelabrechnungen verwalten</button></div>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-wk]');if(!t)return;setView=null;curB=null;tab='wish';wishV='Kommt';render();scrollTo(0,0)});
 function kkPView(k){const[pid,ym]=String(k).split('|'),p=kkPv(pid);if(!p||!/^\d{4}-\d{2}$/.test(ym||'')){setView=setParent||null;setParent=null;return setView?viewSet(setView):''}
   const L=kkL(pid,ym).sort((a,b)=>b.t-a.t),a=kkSum(pid,ym);

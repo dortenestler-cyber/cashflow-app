@@ -680,7 +680,7 @@ function devHtml(){const D=S.devSel=S.devSel||{r:'1y',c:'',q:''},R=devRange(D.r)
    <div class="sec"><div class="sh">${esc(D.c||(q?'„'+D.q+'“':'Alle Ausgaben'))} pro Monat</div><div class="chartbox">${barChart({vals,col:'var(--accent)',labels:lab,ref:avg?{v:avg,label:'Ø '+eur0(avg)}:null,flat:true,h:170,tipLab:i=>ms[i].ll,tipName:''})}</div></div>
    ${top.length?`<div class="sec"><div class="sh">Wofür genau</div><div class="mmcard">${top.map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)} <small style="color:var(--muted)">${v.n}×</small></span><span></span><b>${eur(v.v)}</b></div><div class="bar" style="height:5px"><i style="width:${(v.v/top[0][1].v*100).toFixed(0)}%;background:var(--accent)"></i></div></div>`).join('')}</div></div>`:''}
    ${chHtml}${shHtml}`}
-const REPG=[['Monat','Monat',[['Analyse','Monatsrückblick'],['Monat','Ausgaben']]],['Trends','Verlauf',[['Verlauf','Verlauf']]]];/* v428: Impulse unter Planen *//* v368: Journal, Verzicht und Muster als ein Monatsblick */
+const REPG=[['Monat','Monat',[['Analyse','Monat']]],['Ausg','Ausgaben',[['Monat','Ausgaben']]],['Trends','Verlauf',[['Verlauf','Verlauf']]]];/* v432: eine Ebene *//* v428: Impulse unter Planen *//* v368: Journal, Verzicht und Muster als ein Monatsblick */
 const repGrp=v=>(REPG.find(g=>g[2].some(x=>x[0]==v))||REPG[0])[0];
 function repSub(){const g=REPG.find(x=>x[0]==repGrp(repV));return g&&g[2].length>1?`<div class="seg subseg" id="repV">${g[2].map(([v,l])=>`<button class="${repV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>`:''}
 /* ---------- Wiederkehrende Ausgaben aller Konten: bereinigter 12-Monats-Richtwert ---------- */

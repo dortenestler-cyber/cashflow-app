@@ -1502,3 +1502,72 @@ body.mm .mmcl{background:none!important;color:var(--muted)!important;padding:0!i
 body.mm .mmcat .ico{background:none!important;color:var(--muted)!important}
 
 .lock.lk-dep>.lk-lines{top:0!important;height:17%!important}
+/* v432: Budget- und Kontoseiten einheitlich – Kopf links wie Heute, keine Szene, Kategorien mit dünner Linie */
+body.mm .view.detail .dhero{display:flex!important;flex-direction:column;align-items:flex-start!important;text-align:left!important;gap:2px!important;padding:calc(env(safe-area-inset-top,0px) + 6px) 2px 14px!important;overflow:visible!important}
+body.mm .dhero .hero-scn,body.mm .dhero .tk-sc,body.mm .dhero .tk-f,body.mm .dhero .tk-p{display:none!important}
+body.mm .dhero *{color:inherit;text-shadow:none!important}
+body.mm .dhero .hback{position:static!important;width:44px;height:44px;margin:0 0 4px -10px;border:0!important;display:flex;align-items:center;justify-content:center}
+body.mm .dhero .lbl{font-size:30px!important;font-weight:700!important;letter-spacing:-.4px;padding-right:0!important;color:var(--fg)!important;opacity:1!important}
+body.mm .dhero .grest,body.mm .dhero .bal{font-family:var(--round)!important;font-size:48px!important;font-weight:600!important;letter-spacing:-1px!important;line-height:1.1;margin-top:14px!important;color:var(--fg)!important;text-align:left!important}
+body.mm .dhero .gsub{font-size:15px!important;color:var(--muted)!important;text-align:left!important;margin:0!important}
+body.mm .dhero .hhc{width:100%;margin-top:14px!important;opacity:.9}
+body.mm .dhero .hhc text{fill:var(--muted)!important}
+body.mm .fillrow .bar{inset:auto 2px 0 2px!important;height:2px!important;border-radius:1px!important;z-index:0}
+body.mm .fillrow .bar i{opacity:.85!important;height:2px!important;border-radius:1px!important}
+body.mm .gcard2 .g-scn{display:none!important}
+body.mm .gcard2:first-child .g-scn{display:block!important;height:64px!important;opacity:.6;border-radius:14px;overflow:hidden}
+body.mm .potc,body.mm .note{background:transparent!important;box-shadow:none!important;border:0!important;border-radius:0!important}
+body.mm .kpis{border-top:1px solid var(--sep)!important;border-bottom:1px solid var(--sep)!important;padding:12px 0!important;margin:6px 0 10px!important}
+body.mm .kpi b{font-family:var(--round);font-weight:600}
+body.mm .legend i{border-radius:50%!important}
+/* v432: Penny als Symbol – auf der Penny-Seite nur angedeutet, schwebend klein */
+.pw-face{animation:none!important}.pw-face svg{width:36px!important;height:36px!important;opacity:.4}
+.pw-face *{animation:none!important}
+#asstRoot .abar{width:44px!important;height:44px!important}
+#asstRoot .abar .abub,#asstRoot .abar .penny{width:30px!important;height:30px!important;background:none!important;box-shadow:none!important}
+body.mm .dhero .lbl{padding-left:0!important;margin-left:0!important}
+body.mm .dhero .hhc path[fill="none"],body.mm .dhero .hhc polyline{stroke:var(--accent)!important}
+body.mm .dhero .hhc path:not([fill="none"]){fill:color-mix(in srgb,var(--accent) 10%,transparent)!important;stroke:none!important}
+body.mm .dhero .hhc circle{fill:var(--accent)!important;stroke:none!important}
+body.mm .view.detail .btn.soft{justify-content:flex-start!important;text-align:left;font-size:16px!important;padding-left:2px!important}
+/* v432: Penny-Seite flach – Grund, Zeilen, Text-Links */
+html body #asstRoot .apop,html body .apop{background:var(--bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;border:0!important;border-top:1px solid var(--sep)!important}
+html body .adim{background:rgba(0,0,0,.35)!important}
+html body .apop .ah-menu,html body .apop .ah-pill,html body .apop #aClose,html body .apop .pw-c,html body .apop .pw-mini{background:none!important;box-shadow:none!important;border:0!important}
+html body .apop .ah-pill{font-weight:600}
+html body .apop .aq-q{background:none!important;color:var(--fg)!important;border:0!important;box-shadow:none!important;padding:4px 0!important;font-weight:600;align-self:flex-start!important;text-align:left}
+html body .apop .aq-a{background:none!important;border:0!important;box-shadow:none!important;padding:4px 0!important}
+html body .apop .alist{background:none!important;border-radius:0!important}
+html body .apop .arow,html body .apop .srow{border-color:var(--sep)!important}
+html body .apop .achip,html body .apop .achip.fu{background:none!important;border:0!important;box-shadow:none!important;color:var(--accent)!important;padding:6px 0!important}
+html body .apop .aq-pill{background:var(--card)!important;border:0!important;box-shadow:none!important}
+html body .apop .pw-c .dot,html body .apop .pw-c i,html body .apop .pw-mini i{background:var(--accent)!important}
+html body .apop .pw-i{background:none!important;color:var(--muted)!important}
+/* v432: Keine Kacheln – Ankerkarten, Monatsleiste, Kopfsymbole und Sonderkarten flach */
+body.mm .anchor,body.mm .hc-big,body.mm .mmsum,body.mm .mmsum.strip,body.mm .kpis.kts,body.mm .simtop,body.mm .setup-c,body.mm .bcheck,body.mm .yr-t,body.mm .balance,body.mm .wk,body.mm .mcal,body.mm .samc,body.mm .vmc,body.mm .kkc,body.mm .hero2,body.mm .hero2c,body.mm .hero,body.mm .slide,body.mm .potc,body.mm .gcard2,body.mm .ofc,body.mm .pncard{background:transparent!important;background-image:none!important;box-shadow:none!important;border:0!important;border-radius:0!important;color:var(--fg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.mm .anchor *,body.mm .hc-big *,body.mm .mmsum *,body.mm .kpis.kts *,body.mm .hero2 *,body.mm .samc *{text-shadow:none!important}
+body.mm .anchor,body.mm .hc-big,body.mm .mmsum,body.mm .kpis.kts,body.mm .samc,body.mm .simtop,body.mm .setup-c,body.mm .bcheck,body.mm .yr-t{padding-left:2px!important;padding-right:2px!important;border-bottom:1px solid var(--sep)!important}
+body.mm .hc-big .hc-v,body.mm .hc-big b,body.mm .hc-big .bal{color:var(--fg)!important}
+body.mm .hc-month{background:transparent!important;border:0!important;box-shadow:none!important}
+body.mm .hc-ic,body.mm .ab-ic,body.mm .hc-gear,body.mm .hc-pn{background:transparent!important;box-shadow:none!important;border:0!important}
+body.mm .seg button.on,body.mm .subseg button.on{background:none!important}
+body.mm .dlg-i,body.mm .ssel,body.mm .ab-sel{background:transparent!important;border:0!important;box-shadow:none!important}
+body.mm .chartbox,body.mm .tc{background:transparent!important}
+body.mm .sw-del,body.mm .sw-dup{border-radius:0!important}
+html body.mm .mmsum.strip,html body.mm .stickhead .mmsum,html body.mm .kpis,html body.mm .kpis.kts{background:transparent!important;background-image:none!important;box-shadow:none!important;border:0!important;border-top:1px solid var(--sep)!important;border-bottom:1px solid var(--sep)!important;border-radius:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body.mm .seg button,html body.mm .seg.subseg button,html body.mm .subseg button{background:none!important;box-shadow:none!important;border:0!important;border-radius:0!important}
+html body.mm .seg button.on,html body.mm .subseg button.on{background:none!important;color:var(--fg)!important;box-shadow:inset 0 -2px 0 var(--accent)!important}
+html body.mm .choices button,html body.mm .rep-g button,html body.mm .wk button{background:none!important}
+html body.mm .wk div{background:none!important;box-shadow:none!important;border-radius:0!important}
+html body.mm .d2-fav span{background:none!important;box-shadow:none!important;border:1px solid var(--sep)!important}
+html body.mm .d2-fav button{background:none!important;box-shadow:none!important}
+/* v432: Ankerkarten-Fläche global aus */
+html body.mm{--hero:transparent!important;--r-hero:0px!important}
+html body.mm .mmsum.strip,html body.mm .kpis{color:var(--fg)!important;padding-left:0!important;padding-right:0!important}
+html body.mm .gcard2 .g-scn,html body.mm .gcard2:first-child .g-scn{display:none!important}
+html body.mm .wk-links,html body.mm .sh[style*="flex-end"]{justify-content:flex-start!important}
+.wk-links{display:flex;gap:18px;padding:14px 2px;flex-wrap:wrap}
+.more-d{margin:8px 0 12px;border-top:1px solid var(--sep)}
+.more-d>summary{list-style:none;cursor:pointer;padding:14px 2px;color:var(--accent);font-weight:500}
+.more-d>summary::-webkit-details-marker{display:none}
+.more-d>summary::after{content:" ›";display:inline-block;transition:transform .2s}.more-d[open]>summary::after{transform:rotate(90deg)}

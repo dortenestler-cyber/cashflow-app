@@ -109,7 +109,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='431 (17.11.)';
+const APP_VER='432 (18.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -130,11 +130,10 @@ function fuGo(t){if(t=='KI-Rückblick'){aiReview();return}if(t=='Journal: '){con
 /* ---------- Penny: Avatar C (Monokel, Fliege, Börsennadel) mit Stimmungen ---------- */
 /* v429: Penny ruhig – gedämpfte Farben, keine Effekte (Hut, Umhang, Konfetti) */
 const PNYCOL={plus:'#A9D4B8',ausgeglichen:'#DCC48C',gruebelt:'#DDB896',minus:'#D99A9A'};
-/* v431: Penny als Münze – Salbei, feiner Rand, Glanz, Kapsel-Augen, Mund je Stimmung */
-function penny(m,size){m=PNYCOL[m]?m:'ausgeglichen';const z=size||32,d='#1B2620',k=`stroke="${d}" stroke-width="1.7" fill="none" stroke-linecap="round"`,cap=(x,y)=>`<rect x="${x}" y="${y}" width="2.1" height="3.8" rx="1.05" fill="${d}"/>`;
-  const eyes=m=='plus'?`<path d="M10.6 15.4c.9-1.3 2.5-1.3 3.4 0M18 15.4c.9-1.3 2.5-1.3 3.4 0" ${k}/>`:m=='gruebelt'?cap(11.8,11.9)+cap(19.1,11.9):cap(11.3,12.9)+cap(18.6,12.9);
-  const mouth=m=='plus'?`<path d="M12.2 19.4c2.1 2.3 5.5 2.3 7.6 0" ${k}/>`:m=='minus'||m=='gruebelt'?`<path d="M14 20.2h4" ${k}/>`:`<path d="M13 19.6c1.7 1.5 4.3 1.5 6 0" ${k}/>`;
-  return `<svg class="penny pmin" viewBox="0 0 32 32" width="${z}" height="${z}" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#8FC1A6"/><circle cx="16" cy="16" r="12.6" fill="none" stroke="${d}" stroke-opacity=".14" stroke-width="1"/><path d="M7.2 11.2a10 10 0 0 1 5-5.2" stroke="#fff" stroke-opacity=".45" stroke-width="1.4" fill="none" stroke-linecap="round"/>${eyes}${mouth}</svg>`}
+/* v432: Penny als Symbol – Ring mit Funken, keine Gesichter. Farbe je Stimmung. */
+const PNSYM={plus:'#A9D4B8',ausgeglichen:'#8FC1A6',gruebelt:'#DCC48C',minus:'#D99A9A'};
+function penny(m,size){const z=size||32,c=PNSYM[m]||PNSYM.ausgeglichen;
+  return `<svg class="penny pmin" viewBox="0 0 32 32" width="${z}" height="${z}" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="${c}" stroke-width="${z>48?1:1.6}" opacity=".9"/><path d="M16 9.6c.5 3.6 2.8 5.9 6.4 6.4-3.6.5-5.9 2.8-6.4 6.4-.5-3.6-2.8-5.9-6.4-6.4 3.6-.5 5.9-2.8 6.4-6.4z" fill="${c}"/></svg>`}
 const PNFX3=`<g class="pn-fx pn-coin3"><circle cx="30.6" cy="40" r="2.4" fill="#F5B92E" stroke="#B7791F" stroke-width=".8"/></g>
 <g class="pn-fx pn-pig"><ellipse cx="69" cy="47" rx="8" ry="6" fill="#F9A8D4"/><path d="M64 42l1.5-4 2.5 3z" fill="#F472B6"/><ellipse cx="76.5" cy="47" rx="2" ry="2.4" fill="#F472B6"/><circle cx="66" cy="45.5" r=".9" fill="#1F2937"/><path d="M66.5 41.6h5" stroke="#9D174D" stroke-width="1.2" stroke-linecap="round"/><path d="M64 52v2.5M73 52v2.5" stroke="#F472B6" stroke-width="2" stroke-linecap="round"/></g>
 <g class="pn-fx pn-glit"><path d="M60 36l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z M77 38l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z M70 34l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6z" fill="#FDE047"/></g>
