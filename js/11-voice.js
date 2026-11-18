@@ -6,7 +6,7 @@ const accIn=l=>{let best=null;ALL.forEach(a=>{const n=a.toLowerCase(),s=(SHORT[a
 const amtIn=l=>{const m=spoken(l).match(/(\d+(?:[.,]\d{1,2})?)/);return m?pNum(m[1]):null};
 function vNav(l){if(!/^(zeig|zeige|öffne|öffnen|geh|gehe|wechsel|wechsle|bring mich|navigier)/.test(l))return false;
   const go=(t,o)=>{$('sheetRoot').innerHTML='';tab=t;curB=null;setView=null;drill=null;Object.assign(window,{});if(o)o();render();scrollTo(0,0)};
-  const M=[[/prognose|vorschau|zukunft/,()=>go('rep',()=>{repV='Prognose'})],[/vertr[aä]g/,()=>go('rep',()=>{repV='Verträge'})],[/vermögen|depot|etf|krypto|aktie/,()=>go('rep',()=>{repV='Vermögen'})],[/verlauf/,()=>go('rep',()=>{repV='Verlauf'})],
+  const M=[[/prognose|vorschau|zukunft/,()=>go('rep',()=>{repV='Prognose'})],[/vertr[aä]g/,()=>go('rep',()=>{repV='Verträge'})],[/vermögen|depot|etf|krypto|aktie/,()=>go('geld',()=>{})],[/verlauf/,()=>go('rep',()=>{repV='Verlauf'})],
     [/analyse|monatsanalyse|rückblick/,()=>go('rep',()=>{repV='Analyse'})],[/bericht/,()=>{go('more');setView='report';render()}],[/ausgaben|auswertung|statistik/,()=>go('rep',()=>{repV='Monat'})],[/sparziel/,()=>go('wish',()=>{wishV='Sparziele'})],[/verzicht/,()=>go('wish',()=>{wishV='Verzicht'})],[/wunsch|wünsche|impuls/,()=>go('wish',()=>{wishV='Wünsche'})],
     [/einkauf|zettel/,()=>{$('sheetRoot').innerHTML='';prevTab=tab;setView='shop';render();scrollTo(0,0)}],[/kalender/,()=>go('cal')],[/buchungen|liste|umsätze/,()=>go('list')],[/einstellung/,()=>go('more')],
     [/assistent|hinweis/,()=>{$('sheetRoot').innerHTML='';asstOpen=true;renderAsst()}],[/übersicht|start|home/,()=>go('dash')]];
@@ -486,7 +486,7 @@ function briefCard(t,b){const L=String(b||'').split('\n').map(x=>x.trim()).filte
 let visSince=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')visSince=Date.now()});
 let notifPend=null;function notifFlush(){const n=notifPend;notifPend=null;if(n)setTimeout(()=>notifOpen(n),60)}
 function notifOpen(n){if(!n)return;if(pinActive()&&$('lockRoot').innerHTML){notifPend=n;return}const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
-  if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='rep';repV='Vermögen';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();ASH='full';asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
+  if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='geld';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();ASH='full';asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
   const id=tag.replace(/^[a-z]+-/,'');
   if(/^due-/.test(tag)){const i=(S.rec||[]).findIndex(r=>r.id==id);tab='more';setView='rec';render();if(i>=0)setTimeout(()=>openRec(i),200);return}
   if(/^ctr-/.test(tag)){const i=(S.contracts||[]).findIndex(c=>c.id==id);tab='rep';repV='Verträge';render();if(i>=0)setTimeout(()=>openContract(i),200);return}

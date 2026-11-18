@@ -362,7 +362,7 @@ function openAbo(rid,kind){const ri=(S.rec||[]).findIndex(r=>r.id==rid),isNew=ri
    if($('abNo'))$('abNo').onclick=()=>{S.rec[ri].abo=false;save();$('sheetRoot').innerHTML='';render();tell(r.n+' zählt nicht mehr als Abo.',()=>{delete S.rec[ri].abo;save();render()})};
    if($('abDel'))$('abDel').onclick=()=>{const b=$('abDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Wirklich löschen? Gebuchtes bleibt.';return}const sr=JSON.stringify(S.rec),sc=JSON.stringify(S.contracts||[]);S.rec.splice(ri,1);if(ci>=0)S.contracts.splice(ci,1);save();$('sheetRoot').innerHTML='';render();tell('Gelöscht.',()=>{S.rec=JSON.parse(sr);S.contracts=JSON.parse(sc);save();render()})}};
   draw();renderAsst()}
-function bindAbos(){if(setView!='rec'&&!(tab=='wish'&&wishV=='Fixkosten'&&!setView))return;document.querySelectorAll('[data-abo]').forEach(b=>b.onclick=()=>openAbo(b.dataset.abo));if($('aboNew'))$('aboNew').onclick=()=>openAbo(null,'abo');if($('aboNewV'))$('aboNewV').onclick=()=>openAbo(null,'vertrag');
+function bindAbos(){if(setView!='rec')return;document.querySelectorAll('[data-abo]').forEach(b=>b.onclick=()=>openAbo(b.dataset.abo));if($('aboNew'))$('aboNew').onclick=()=>openAbo(null,'abo');if($('aboNewV'))$('aboNewV').onclick=()=>openAbo(null,'vertrag');
   document.querySelectorAll('[data-ctrx]').forEach(b=>b.onclick=()=>openContract(+b.dataset.ctrx));
   document.querySelectorAll('[data-abomark]').forEach(b=>b.onclick=()=>{const r=S.rec.find(x=>x.id==b.dataset.abomark);r.abo=true;save();render();tell((r.n||r.c)+' ist jetzt in den Fixkosten.')})}
 /* Eine Quelle für alles, was im Sinking-Funds-Topf angespart wird: S.goals. Jahresplaner = Sparziele mit Fälligkeitsmonat (m), jährlich wiederkehrend; Projekte können ein Sparziel haben (g.proj / x.goal). */
@@ -371,6 +371,8 @@ const goalsAct=()=>(S.goals||[]).filter(g=>!g.done&&!g.dropped);
 /* v237: Sinking Funds = Summe der Zielraten. Ziele mit Termin rechnen ihre Rate selbst (Jahresplan), Ziele ohne Termin haben eine eigene Monatsrate (g.rate). */
 function sinkRates(){const Y={};try{yplanStatus().forEach(x=>{if(x.g)Y[x.g.id]=x})}catch(e){}return goalsAct().map(g=>{const y=Y[g.id];const r=y?(y.skipNext?0:y.need):Math.min(+g.rate||0,Math.max(g.ziel-gSaved(g),0));return{g,rate:Math.round(r*100)/100,dated:!!y}})}
 function sinkSum(){return Math.round(sinkRates().reduce((s,x)=>s+x.rate,0))}
+/* v454: einmalige Datenumstellungen, laufen je geladenem Datenstand einmal (Start, Sync, Wiederherstellen) */
+function migOnce(){if(migOnce.S===S)return;migOnce.S=S;try{migYplan()}catch(e){}try{migZW()}catch(e){}}
 function migSink(){if(S.sink3&&!S.sinkIn&&sinkAcc()){S.sinkIn={};for(let o=-1;o>-60;o--){const P=period(o);if(P.s.getTime()<S.sink3)break;S.sinkIn[pkey(P)]=sinkSum()}}if(S.sink3&&S.sinkExtra==null&&sinkAcc()){S.sinkExtra=Math.max(Math.round((S.sinkOld||0)-sinkSum()),0);setTimeout(()=>{try{save()}catch(e){}},0)}if(S.sink3||!sinkAcc())return;const sn=sinkAcc(),B=S.budgets[sn]||0,R=sinkRates(),N=R.filter(x=>x.dated).reduce((s,x)=>s+x.rate,0),U=R.filter(x=>!x.dated&&!(x.g.rate>0));
   const L=Math.max(B-N,0);U.forEach(x=>{x.g.rate=Math.round(L/U.length)});S.sink3=period(1).s.getTime();S.sinkOld=B;if(S.sinkExtra==null)S.sinkExtra=Math.max(Math.round(B-sinkSum()),0);setTimeout(()=>{try{save()}catch(e){}},0)}
 function sinkPot(){const sa=sinkAcc(),bal=sa?calc(sa).rest:0,alloc=goalsAct().reduce((s,g)=>s+gSaved(g),0);return{sa,bal,alloc,free:bal-alloc}}

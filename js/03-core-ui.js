@@ -202,17 +202,17 @@ function txList(list,showB){if(!list.length)return '<div class="group"><div clas
 
 /* v335: Baustopp – Nutzungszähler, nur lokal auf diesem Gerät (nicht im Sync) */
 const USEK='cf_use',BAU_START='2026-11-14',BAU_END='2026-11-28';
-const useGet=()=>{let o=null;try{o=JSON.parse(localStorage.getItem(USEK)||'null')}catch(e){}if(!o||!o.v)o={since:Date.now(),v:{}};return o};
+const useGet=()=>{let o=null;try{o=JSON.parse(localStorage.getItem(USEK)||'null')}catch(e){}if(!o||!o.v)o={since:Date.now(),v:{}};/* v454: Reiter heißt Vermögen */[['Geld','Vermögen'],['Geld › Depot-Position','Vermögen › Depot-Position']].forEach(([a,b])=>{if(o.v[a]&&!o.v[b]){o.v[b]=o.v[a];delete o.v[a]}});return o};
 function useHit(k,n){if(!k)return;try{const o=useGet(),x=o.v[k]||(o.v[k]={n:0,last:0});x.n+=n||1;x.last=Date.now();localStorage.setItem(USEK,JSON.stringify(o))}catch(e){}}
-const useLab=k=>{try{const L={};Object.values(moreItems()).forEach(g=>g[3].forEach(t=>{L[t[0]]=t[2]}));moreTools().forEach(t=>{L[t[0]]=t[2]});return String(L[k]||k).replace(/­/g,'')}catch(e){return k}};
-const useTool=k=>{try{return moreTools().some(t=>t[0]==k)}catch(e){return false}};
-function useKey(){const T={dash:'Heute',list:'Buchungen',cal:'Kalender',wish:'Planen',geld:'Geld',rep:'Rückblick',more:'Einstellungen'};
+const useLab=k=>{try{const L={};Object.values(moreItems()).forEach(g=>g[3].forEach(t=>{L[t[0]]=t[2]}));Object.values(TOOLX).forEach(t=>{L[t[0]]=t[2]});moreTools().forEach(t=>{L[t[0]]=t[2]});return String(L[k]||k).replace(/­/g,'')}catch(e){return k}};
+const useTool=k=>{try{return ['yplan','close','shop'].includes(k)||moreTools().some(t=>t[0]==k)}catch(e){return false}};
+function useKey(){const T={dash:'Heute',list:'Buchungen',cal:'Kalender',wish:'Planen',geld:'Vermögen',rep:'Rückblick',more:'Einstellungen'};
   if(setView=='usage')return null;
   if(setView)return (useTool(setView)?'Werkzeug › ':'Einstellungen › ')+useLab(setView);
   if(curB)return 'Konto-Detail';
   if(tab=='wish'){let s=wishV;if(wishV=='Wünsche')s+=' › '+wishS;else if(wishV=='Zukunft')s+=' › '+(zukV=='Sim'?'Was wäre, wenn':zukV=='Jahr'?'Jahresplaner':'Prognose');return 'Planen › '+s}
   if(tab=='rep')return 'Rückblick › '+(drill?(drill.k=='year'?'Jahr':'Kategorie im Jahr'):repV);
-  if(tab=='geld'&&posView)return 'Geld › Depot-Position';
+  if(tab=='geld'&&posView)return 'Vermögen › Depot-Position';
   return T[tab]||tab}
 function useView(){const k=useKey();if(k&&k!=useView.last){useView.last=k;useHit(k)}}
 /* v439: Erklärtexte nur beim ersten Mal (je Gerät) offen zeigen, danach hinter ⓘ */
