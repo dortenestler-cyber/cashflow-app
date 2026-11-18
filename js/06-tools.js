@@ -1460,7 +1460,7 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
   add(KB,'Beträge auf Cent genau',EX.filter(e=>num(e.a)&&Math.abs(e.a*100-Math.round(e.a*100))>1e-6).map(e=>(e.n||e.c)+' '+dt(e.t)+': '+e.a),true);
   {const b=[];for(let o=-36;o<=24;o++){const p=period(o),q=period(o+1);if(q.s.getTime()!=p.e.getTime())b.push('Lücke/Überlappung nach '+p.label);
     if(p.len<(S.startLW?26:28)||p.len>(S.startLW?33:31))b.push(p.label+': '+p.len+' Tage');
-    if(S.startLW){const d=p.s,l=new Date(d.getFullYear(),d.getMonth()+1,0),wd=d.getDay();let rest=0;for(let x=new Date(d.getTime()+864e5);x<=l;x.setDate(x.getDate()+1))if(x.getDay()%6)rest++;if(!(wd%6)||rest)b.push(p.label+' beginnt nicht am letzten Werktag')}
+    if(S.startLW){const d=p.s,l=new Date(d.getFullYear(),d.getMonth()+1,0),wd=d.getDay();let rest=0;for(let x=new Date(d.getTime()+864e5);x<=l;x.setDate(x.getDate()+1))if(isWD(x))rest++;if(!isWD(d)||rest)b.push(p.label+' beginnt nicht am letzten Werktag')}
     else if(S.start<=28&&p.s.getDate()!=S.start)b.push(p.label+' beginnt am '+p.s.getDate()+'.')}
     const p0=period(0);if(!(NOW>=p0.s.getTime()&&NOW<p0.e.getTime()))b.push('Heute liegt nicht im aktuellen Monat');
     add(KB,'Monate lückenlos, ohne Überlappung',b)}
