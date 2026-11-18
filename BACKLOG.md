@@ -399,3 +399,9 @@ Penny hat heute 7 Eingänge mit 4 verschiedenen Darstellungen: ✦ im Seitenkopf
 10. Schlanke Eingabe: ein Feld, rechts ein Knopf, der leer Mikro und mit Text Senden ist. Verlauf, Hinweise und „Chat löschen“ ins Menü. Entfällt: Plus, getrennter Mikro-Knopf, Link „Chat löschen“, Titel im Verlauf.
 11. KI erkennbar, aber leise: Antworten der KI tragen ein kleines „✦ KI“ und den Zeitraum („Nov. 1.–18.“), Regel-Hinweise nicht. Kein Sprechblasen-Look, nur Text mit feiner Akzentlinie links. Entfällt: Kartenhintergrund im Chat.
 12. Eine Stimme für Mitteilungen: Ein Hinweis erscheint entweder als Punkt am ✦ oder als Mitteilung, nie zusätzlich als Karte oder Toast. Entfällt: doppelte Hinweise.
+
+## 22. Konto-Karten Flow und Gönn dir: heutigen Kontostand zeigen (offen, 18.11.)
+
+**Wunsch:** In den Konto-Karten von Flow und Gönn dir (Kopf der Kontoansicht, wischbar) zusätzlich immer den heutigen Kontostand anzeigen. Bisher steht dort nur „übrig von Budget“.
+
+**Vorschlag:** Unter „273,41 € übrig von 407 €“ eine Zeile „Kontostand heute 1.234,56 €“. Gerechnet wie bei Comdirect (Startwert bzw. letzter Abgleich plus alle gebuchten Umsätze bis heute, ohne geplante).
