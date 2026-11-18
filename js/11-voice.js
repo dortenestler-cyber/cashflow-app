@@ -548,7 +548,7 @@ function pnHint(k){const P=period(0),T=Date.now();
     const w=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&e.t>T-7*864e5).reduce((s,e)=>s+e.a,0),w1=S.exp.filter(e=>e.type=='out'&&!isPlan(e)&&!e.corr&&e.t>T-14*864e5&&e.t<=T-7*864e5).reduce((s,e)=>s+e.a,0);
     if(w>0&&w1>0){const d=Math.round((w/w1-1)*100);if(Math.abs(d)>=15)return 'Letzte 7 Tage '+eur0(w)+' – '+Math.abs(d)+' % '+(d>0?'mehr':'weniger')+' als in der Woche davor.'}return ''}
   if(k=='fix'){const A=aboList(),y=A.reduce((s,x)=>s+x.year,0);if(!A.length)return '';return A.length+(A.length==1?' Abo kostet':' Abos kosten')+' dich '+eur0(y)+' im Jahr. Am teuersten: '+esc(A[0].r.n||A[0].r.c)+' mit '+eur0(A[0].year)+'.'}
-  if(k=='verm'){const W=wParts();if(!W.length)return '';const now=W.reduce((s,x)=>s+x.v,0),M=30.4*864e5,was=W.reduce((s,x)=>{try{return s+(x.f?x.f(T-M):0)}catch(e){return s}},0),d=now-was;
+  if(k=='verm'){if(!(S.showWealth||depShow))return '';const W=wParts();if(!W.length)return '';const now=W.reduce((s,x)=>s+x.v,0),M=30.4*864e5,was=W.reduce((s,x)=>{try{return s+(x.f?x.f(T-M):0)}catch(e){return s}},0),d=now-was;
     if(!was||Math.abs(d)<1)return '';return 'Vermögen '+(d>0?'+':'−')+eur0(Math.abs(d))+' zum Vormonat ('+(d>0?'+':'−')+Math.abs(Math.round(d/was*100))+' %).'+(d<0?' Prüf, ob es an Ausgaben oder am Depot liegt.':'')}return ''}
 function pnHintH(k){let t='';try{t=pnHint(k)}catch(e){}return t?`<button class="pnhint" data-ptalk="${k}"><span>${penny('ausgeglichen',26)}</span><span>${t}</span><span class="chev">›</span></button>`:''}
 function pnKind(){if(setView||curB)return null;if(tab=='dash')return 'mon';if(tab=='list'||tab=='cal')return 'list';if(tab=='geld')return 'verm';

@@ -355,7 +355,7 @@ Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absich
 - Erwarteter Kontostand bis Monatsende.
 - Vorschlag fürs Rausnehmen: Block „Vorgemerkt“ unter Planen › Monat (Karten der nächsten 60 Tage). Die Links Ladeübersicht und Sammelabrechnungen müssen dann woanders hin (z. B. Fixkosten). Wartet auf Freigabe.
 
-## 20. UX/UI-Audit v437 (18.11.) – wartet auf Freigabe
+## 20. UX/UI-Audit v437 (18.11.) – 1, 2, 8, 9, 13 umgesetzt in v438; Rest wartet auf Freigabe
 Geprüft auf iPhone (390 px), dunkel und hell, mit Beispieldaten. Eins rein, eins raus: je Punkt steht, was entfällt.
 
 **Design**
