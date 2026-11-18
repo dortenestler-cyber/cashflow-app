@@ -1571,3 +1571,13 @@ html body.mm .wk-links,html body.mm .sh[style*="flex-end"]{justify-content:flex-
 .more-d>summary{list-style:none;cursor:pointer;padding:14px 2px;color:var(--accent);font-weight:500}
 .more-d>summary::-webkit-details-marker{display:none}
 .more-d>summary::after{content:" ›";display:inline-block;transition:transform .2s}.more-d[open]>summary::after{transform:rotate(90deg)}
+/* v434: Füllstände minimalistisch – dünne Linie am unteren Rand statt Flächenfüllung */
+html body.mm .fillcard .bar{inset:auto 0 0 0!important;height:2px!important;overflow:visible}
+html body.mm .fillcard .bar i{top:auto!important;bottom:0!important;height:2px!important;width:var(--fp,0%)!important;right:auto!important;opacity:.9!important;border-radius:1px!important}
+html body.mm .gcard2,html body.mm .gcard2.fillcard{background:transparent!important}
+html body.mm .nsbar{height:2px!important;border-radius:1px!important;background:var(--sep)!important;margin:10px 0 6px!important}
+html body.mm .nsbar i{border-radius:1px!important}
+html body.mm .kpis .kt::before{top:auto!important;bottom:0!important;right:auto!important;height:2px!important;width:var(--fp,0%)!important;border-radius:1px;opacity:.9!important;background:var(--muted)!important;z-index:0}
+html body.mm .kpis .kt:has(b.out)::before{background:var(--out)!important}
+html body.mm .kpis .kt:has(b.in)::before{background:var(--in)!important}
+html body.mm .kpis .kt{border-radius:0!important}

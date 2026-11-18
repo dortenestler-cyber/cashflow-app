@@ -140,10 +140,12 @@ function miniCum(){const{p,v}=dayVals(TOTM,0),lim=budOf(TOTM)||1,n=p.len,big=inn
   return `<svg viewBox="-4 0 ${W+8} ${H}" width="100%" height="54" aria-label="Ausgaben im Monatsverlauf" role="img" style="margin-top:6px"><path d="${ideal}" stroke="currentColor" stroke-opacity=".45" stroke-dasharray="3 4" fill="none"/>${d?`<path d="${d} L${L[0]} ${H-4}Z" fill="currentColor" fill-opacity=".18"/><path d="${d}" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linejoin="round"/><circle cx="${L[0]}" cy="${L[1]}" r="4" fill="currentColor"/>`:''}</svg>
    <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.8"><span>${p.s.getDate()}.${p.s.getMonth()+1}.</span><span>Linie: so viel ausgegeben · gestrichelt: Plan</span><span>${new Date(p.e-864e5).getDate()}.</span></div>`}
 /* v295: Kopf mit 6-Monats-Linie – Konten, Cash und Sinking Funds */
-function histHero(b,c,sub,xl=''){const hist=[];for(let o=-5;o<=0;o++)hist.push(calc(b,o).rest);
+/* v434: Verlauf einheitlich als Abschnitt unter den Kennzahlen – Konten und Bestände 6 Monate, Budgets diesen Monat */
+function histSecH(b){const hist=[];for(let o=-5;o<=0;o++)hist.push(calc(b,o).rest);
+  return `<div class="sec"><div class="sh">Verlauf 6 Monate</div><div class="chartbox">${lineChart({n:6,w:Math.max(330,Math.min(innerWidth,1200)-(innerWidth>=1024?200:64)),series:[{pts:hist,col:COL[b],area:true,dot:true}],labels:hist.map((_,i)=>({i,t:period(i-5).s.toLocaleDateString('de-DE',{month:'short'}),on:i==5})),h:110,tipLab:i=>period(i-5).s.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}</div></div>`}
+function histHero(b,c,sub,xl=''){
   return `<div class="hero onbg dhero ${swipeDir}" style="${bgStyle(b)};align-items:flex-start">${heroScn(b)}<button class="hback" id="back" aria-label="Zurück zur Übersicht">‹</button>
    <div class="lbl" style="font-size:17px;font-weight:700;margin-left:40px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${esc(b)}${xl}</div><div class="bal">${eur(c.rest)}</div><div class="gsub">${sub}</div>
-   <div class="hhc" style="width:100%;color:#fff">${lineChart({n:6,w:Math.max(330,Math.min(innerWidth,1200)-(innerWidth>=1024?200:64)),series:[{pts:hist,col:'#fff',area:true,dot:true}],labels:hist.map((_,i)=>({i,t:period(i-5).s.toLocaleDateString('de-DE',{month:'short'}),on:i==5})),h:78,tipLab:i=>period(i-5).s.toLocaleDateString('de-DE',{month:'long',year:'numeric'})})}</div>
    <div style="font-size:12px;opacity:.75;margin-top:auto">‹ Wischen zum Kontowechsel ›</div></div>`}
 /* v417: Geplante Umsätze bis Monatsende und erwarteter Stand in der Konto-/Budgetansicht */
 function planSecH(b,c,lab){const p=period(0),nw=Date.now(),L=expV(nw,p.e.getTime()+1).filter(e=>e.t>nw&&inP(e,p)&&(e.b==b||e.to==b)).sort((x,y)=>x.t-y.t);
@@ -154,8 +156,9 @@ function planSecH(b,c,lab){const p=period(0),nw=Date.now(),L=expV(nw,p.e.getTime
 function viewKonto(b){if(WH(b))return `${appbar({title:esc(b),back:'back',noGear:true})}<div class="mmcard"><div class="empty">${esc(b)} ist tabu und dein Vermögen ist ausgeblendet. Einblenden unter Vermögen › Sparkonten.</div></div>`;const c=calc(b),by={};c.list.filter(e=>e.type=='out'&&e.b==b).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);const cs=Object.entries(by).sort((x,y)=>y[1]-x[1]);
   return `${histHero(b,c,'Kontostand heute')}
   <div class="seg" id="accSw">${swL().map(x=>`<button class="${x==b?'on':''}" data-f="${x}">${esc(SHORT[x])}</button>`).join('')}</div>
-  <button class="btn soft" id="kAbg" data-kb="${esc(b)}" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('check',18)}Kontostand mit Bank abgleichen</button>
   <div class="kpis"><div class="kpi">Rein<b class="in">${eur0(c.inc)}</b></div><div class="kpi">Raus<b>${eur0(c.out)}</b></div><div class="kpi">Umb. rein<b>${eur0(c.trI)}</b></div><div class="kpi">Umb. raus<b>${eur0(c.trO)}</b></div></div>
+  ${histSecH(b)}
+  <button class="btn soft" id="kAbg" data-kb="${esc(b)}" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('check',18)}Kontostand mit Bank abgleichen</button>
   <button class="btn soft" id="umBtn2" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('swap',18)}Von ${esc(b)} umbuchen</button>
   ${cs.length?`<div class="sec"><div class="sh">Ausgaben nach Kategorie</div><div class="group">${cs.map(([k,v])=>`<button class="cell" data-cat="${esc(k)}"><div class="ico" style="background:color-mix(in srgb,${COL[b]} 16%,transparent);color:${COL[b]}">${icoOf(b,k)}</div><div class="t"><div>${esc(k)}</div><div class="bar"><i style="width:${(v/c.out*100).toFixed(0)}%;background:${COL[b]}"></i></div></div><div class="v">${eur(v)}</div></button>`).join('')}</div></div>`:''}
   ${planSecH(b,c,'Erwarteter Kontostand am Monatsende')}<div class="sec"><div class="sh">Buchungen diesen Monat</div></div>${txList(c.list,false)}`}
@@ -166,6 +169,7 @@ function viewDetail(b){if(isK(b))return viewKonto(b);const c=calc(b),byCat={};c.
    <div style="font-size:12px;opacity:.75;margin-top:auto">‹ Wischen zum Kontowechsel ›</div></div>`}
   <div class="seg" id="accSw">${swL().map(x=>`<button class="${x==b?'on':''}" data-f="${x}">${esc(SHORT[x])}</button>`).join('')}</div>
   ${c.stock?(()=>{const SP=sinkPot();return `<div class="kpis"><div class="kpi">Zufluss im Monat<b class="in">${eur0(c.total-c.carry-(c.st||0))}</b></div><div class="kpi">Ausgegeben im Monat<b>${eur0(c.used)}</b></div><div class="kpi">Für Ziele gebunden<b>${eur0(SP.alloc)}</b></div><div class="kpi">${SP.free<0?'Fehlt':'Frei für Sonstiges'}<b class="${SP.free<0?'out':''}">${eur0(Math.abs(SP.free))}</b></div></div>`})():`<div class="kpis"><div class="kpi">Budget<b>${eur0(c.total)}</b></div><div class="kpi">Ausgegeben<b>${eur0(c.used)}</b></div><div class="kpi">Pro Tag<b>${eur(c.tag)}</b></div><div class="kpi">Pro Woche<b>${eur0(c.woche)}</b></div></div>`}
+  ${c.stock||/^cash$/i.test(b)?histSecH(b):''}
   ${c.stock?'':`<div class="sec"><div class="sh">Verlauf diesen Monat</div>${cumChart([b],0,COL[b])}</div>`}
   ${c.inc||c.trI||c.trO||c.carry||c.st?`<div class="note">Enthält ${[c.carry&&eur(c.carry)+' Übertrag aus dem Vormonat',c.st&&eur(c.st)+' Anfangsbestand',c.inc&&eur(c.inc)+' Einnahmen',c.trI&&eur(c.trI)+' Umbuchung rein',c.trO&&eur(c.trO)+' Umbuchung raus'].filter(Boolean).join(' · ')}.</div>`:''}
   ${cs.length?`<div class="sec"><div class="sh">Nach Kategorie</div><div class="group">${cs.map(([k,v])=>`
