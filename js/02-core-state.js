@@ -93,9 +93,10 @@ addEventListener('pagehide',()=>{if(svT)saveNow()});document.addEventListener('v
 /* recurring entries become real bookings once due */
 /* v453: Rhythmus > monatlich ohne Startdatum lief jeden Monat – Anker aus erster Buchung, sonst aktueller Monat (einmalig gemerkt) */
 function recAnc(r){if((r.every||1)<=1)return '';if(r.anc)return r.anc;const L=(S.exp||[]).filter(e=>e.rid==r.id&&!e.corr);const t=L.length?Math.min(...L.map(e=>e.t)):Date.now(),d=new Date(t);r.anc=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';try{save()}catch(e){}return r.anc}
-function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}
-  if(d>=p.e)return null;const st=r.start||recAnc(r);if(st){const s=new Date(st+'T00:00');if(d<s)return null;const md=(d.getFullYear()-s.getFullYear())*12+d.getMonth()-s.getMonth();if((r.every||1)>1&&md%(r.every)!==0)return null}
-  if(r.end&&d>new Date(r.end+'T23:59'))return null;return recWD(r,d,p)}
+/* v466: alle Kandidaten-Monate des Finanzmonats prüfen – bei „letzter Werktag“ fielen Termine am 28.–31. bei vierteljährlich/halbjährlich/jährlich weg */
+function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12),ev=r.every||1,st=r.start||recAnc(r),s=st?new Date(st+'T00:00'):null,en=r.end?new Date(r.end+'T23:59'):null;
+  for(let i=0;i<3;i++){const d=mk(p.s.getFullYear(),p.s.getMonth()+i);if(d<p.s)continue;if(d>=p.e)break;if(s){if(d<s)continue;const md=(d.getFullYear()-s.getFullYear())*12+d.getMonth()-s.getMonth();if(ev>1&&md%ev!==0)continue}
+    if(en&&d>en)return null;return recWD(r,d,p)}return null}
 const budFor=(b,p)=>{if(S.sink3&&b==sinkAcc()&&p.s.getTime()>=S.sink3){/* v253: Zufluss vergangener Monate bleibt eingefroren, damit der Bestand sich nicht rückwirkend ändert */const k=pkey(p),past=p.e.getTime()<Date.now();if(past&&S.sinkIn&&S.sinkIn[k]!=null)return S.sinkIn[k];const v=sinkSum()+(+S.sinkExtra||0);if(!past&&p.s.getTime()<=Date.now())(S.sinkIn||(S.sinkIn={}))[k]=v;return v}const k=pkey(p),o=(S.monthOv||{})[k];if(o&&o.b&&o.b[b]!=null)return o.b[b];const pn=S.planNext;if(pn&&pn.b&&pn.b[b]!=null&&k>=pn.pk)return pn.b[b];return S.budgets[b]||0};
 const monS=p=>p.m.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
 /* Eine Quelle für den Betrag einer wiederkehrenden Buchung in einem Monat: normal · Monats-Ausnahme · Vormerkung · neuer Betrag */
