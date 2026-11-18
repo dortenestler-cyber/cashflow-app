@@ -1693,3 +1693,6 @@ html body .bk-hd .link{color:var(--accent)}
 html body.mm .ofc{background:var(--card)!important;box-shadow:0 8px 22px rgba(0,0,0,.12)!important}
 html body.mm .ofc-d,html body.mm .ofc-d b{color:var(--fg)}html body.mm .ofc-d small{color:var(--muted)}
 html body.mm .ofc{border-radius:14px!important}
+
+/* v452: Rückzahlung unter Geplant – Betrag und Knopf untereinander */
+.rfamt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.rfamt .chip{margin:0}.mmcard.plan .rfrow .amt{opacity:1}
