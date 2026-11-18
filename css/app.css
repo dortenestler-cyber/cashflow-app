@@ -1176,7 +1176,7 @@ body[data-tab="dash"] .view>.stickhead{padding-bottom:34px}
 .hero2c{color:#fff;border-radius:var(--r-hero);padding:20px 22px 18px;display:flex;flex-direction:column;gap:2px}
 /* Buchungen & Kalender: Monatssumme als Anker-Karte */
 body.mm[data-tab="list"] .mmsum.strip,body.mm[data-tab="cal"] .mmsum.strip{background:var(--hero)!important;color:#B9C3BE;border-radius:var(--r-hero)!important;box-shadow:none!important;padding:16px 10px}
-body.mm[data-tab="list"] .mmsum.strip b,body.mm[data-tab="cal"] .mmsum.strip b{color:#fff;font-family:var(--round);font-size:18px}
+body.mm[data-tab="list"] .mmsum.strip b,body.mm[data-tab="cal"] .mmsum.strip b{color:var(--fg);font-family:var(--round);font-size:18px}
 body.mm[data-tab="list"] .mmsum.strip b.in,body.mm[data-tab="cal"] .mmsum.strip b.in{color:#3CCB92}
 body.mm[data-tab="list"] .mmsum.strip b.out,body.mm[data-tab="cal"] .mmsum.strip b.out{color:#FF8A9B}
 /* Planen: Sinking-Bestand als Anker-Karte */
