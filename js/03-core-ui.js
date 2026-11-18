@@ -67,7 +67,7 @@ function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class
   return `<div class="stickhead"><header class="hcard${o.month?' hcm':''}${o.back?' hcb':''}"><div class="hc-row">${o.back?`<button class="hc-ic" id="${o.back}" aria-label="Zurück">${I('back',20)}</button>`:''}<h1 class="hc-t">${o.title}</h1>
    <div class="hc-r">${o.left||''}${o.right||''}${(()=>{const k=!o.back&&typeof pnKind=='function'&&pnKind();return k?`<button class="hc-ic hc-pn" data-ptalk="${k}" aria-label="Penny fragen" title="Penny fragen">${I('sparkle',19)}</button>`:''})()}${!o.back&&tab!='more'&&!setView?gearBtn():''}</div></div>
    ${o.sub?`<div class="hc-sub">${o.sub}</div>`:''}${lead?`<div class="hc-lead">${lead}</div>`:''}
-   ${o.month?`<div class="hc-month"><button class="hc-ic" id="prevM" aria-label="Voriger Monat">${I('back',18)}</button><b>${period(off).label}</b><button class="hc-ic" id="nextM" aria-label="Nächster Monat" ${off>=((tab=='list'||tab=='cal')?12:0)?'disabled':''}>${I('fwd',18)}</button></div>${off?'<button class="hc-today" id="todayM">Zurück zu heute</button>':''}`:''}
+   ${o.month?`<div class="hc-month"><button class="hc-ic" id="prevM" aria-label="Voriger Monat">${I('back',18)}</button><b>${(()=>{const L=period(off).label,m=/^(\S+) (\d{4})$/.exec(L);return m?`<span class="ml">${L}</span><span class="ms">${m[1].length>4?m[1].slice(0,3)+".":m[1]} ${m[2].slice(2)}</span>`:L})()}</b><button class="hc-ic" id="nextM" aria-label="Nächster Monat" ${off>=((tab=='list'||tab=='cal')?12:0)?'disabled':''}>${I('fwd',18)}</button></div>${off?'<button class="hc-today" id="todayM">Zurück zu heute</button>':''}`:''}
    ${o.stats||''}</header>
    ${o.tabs?`<div class="seg" id="${o.tabs.id}">${items}</div>`:''}</div>`}
 function stickCmp(){const sh=document.querySelector('#app .stickhead,#app .lthead');if(!sh)return;if(innerWidth>=1280&&document.body.dataset.tab=='dash'){sh.classList.remove('cmp');return}const de=document.scrollingElement||document.documentElement,bd=document.body,y=scrollY||de.scrollTop||bd.scrollTop||0,th=innerWidth>=1000?200:sh.querySelector('.carw')?120:56,on=sh.classList.contains('cmp'),room=Math.max(de.scrollHeight-de.clientHeight,bd.scrollHeight-bd.clientHeight);
@@ -215,3 +215,8 @@ function useKey(){const T={dash:'Heute',list:'Buchungen',cal:'Kalender',wish:'Pl
   if(tab=='geld'&&posView)return 'Geld › Depot-Position';
   return T[tab]||tab}
 function useView(){const k=useKey();if(k&&k!=useView.last){useView.last=k;useHit(k)}}
+/* v439: Erklärtexte nur beim ersten Mal (je Gerät) offen zeigen, danach hinter ⓘ */
+const NOTE_NOW=new Set();
+function noteOnce(k,h){let s={};try{s=JSON.parse(localStorage.getItem('cf-seenN')||'{}')}catch(e){}
+  if(!s[k]||NOTE_NOW.has(k)){if(!s[k]){s[k]=1;NOTE_NOW.add(k);try{localStorage.setItem('cf-seenN',JSON.stringify(s))}catch(e){}}return `<div class="note">${h}</div>`}
+  return `<details class="note-i"><summary>ⓘ Erklärung</summary><div class="note">${h}</div></details>`}

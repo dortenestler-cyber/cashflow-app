@@ -1489,7 +1489,7 @@ body.mm .mmcat{background:none!important;color:var(--muted)!important;padding:0!
 body.mm .mmrow .ico{background:none!important;color:var(--muted)!important;box-shadow:none!important}
 body.mm .dayh .wd{background:none!important;color:var(--muted)!important;padding:0!important}
 body.mm .choices button,body.mm #clAbg,body.mm #clRev,body.mm #aboNew,body.mm #aboNewV,body.mm .wrow button:not(.cell){background:none!important;border:0!important;box-shadow:none!important;color:var(--accent)!important;padding-left:0!important;padding-right:12px!important;min-height:36px}
-body.mm #jUrge{background:none!important;color:var(--bad)!important;box-shadow:none!important;border:0!important;border-top:1px solid var(--sep)!important;border-bottom:1px solid var(--sep)!important;border-radius:0!important;justify-content:flex-start!important;font-weight:500}
+body.mm #jUrge{background:none!important;color:var(--accent)!important;box-shadow:none!important;border:0!important;border-top:1px solid var(--sep)!important;border-bottom:1px solid var(--sep)!important;border-radius:0!important;justify-content:flex-start!important;font-weight:500}
 body.mm .pnhint{background:transparent!important;border:0!important;border-top:1px solid var(--sep)!important;border-bottom:1px solid var(--sep)!important;border-radius:0!important;box-shadow:none!important}
 body.mm .dhero{outline:none!important;border:0!important}
 body.mm .morelist .group{display:block!important;background:transparent!important;gap:0!important}
@@ -1581,3 +1581,21 @@ html body.mm .kpis .kt::before{top:auto!important;bottom:0!important;right:auto!
 html body.mm .kpis .kt:has(b.out)::before{background:var(--out)!important}
 html body.mm .kpis .kt:has(b.in)::before{background:var(--in)!important}
 html body.mm .kpis .kt{border-radius:0!important}
+/* v439: eingeklappter Kopf zeigt den Monat kurz („Nov. 26“) statt abgeschnitten */
+.hc-month .ms{display:none}.stickhead.cmp .hc-month .ml{display:none}.stickhead.cmp .hc-month .ms{display:inline}
+/* v439: zerstörende Aktionen sehen nicht wie normale Links aus und stehen rechts */
+body.mm .choices button[style*="--muted"]{color:var(--muted)!important}body.mm .choices button[style*="--bad"]{color:var(--bad)!important}
+body.mm .choices button[data-gdrop],body.mm .choices button[data-s="verworfen"],body.mm .choices button[data-pjx]{margin-left:auto}
+/* v439: Buchungsliste auf dem iPhone – Kategorie in der Unterzeile statt eigener Zeile (wie auf Heute) */
+.mmcc{display:none}
+@media (max-width:700px){body.mm .mmrow>.mmcat>.mmcl{display:none!important}body.mm .mmrow>.mmnote{grid-row:1/3!important;align-self:center}body.mm .mmcc{display:inline}}
+body.mm .dayh .out{color:var(--muted)!important}
+/* v439: Titel antippen = bearbeiten, kein Stift mehr */
+.ed-ic.ed-t{color:inherit;font:inherit;font-weight:inherit;padding:6px 0;margin:-6px 0;text-align:left}
+/* v439: zweite Ebene (Rückblick Alle/Einmalig/Wiederkehrend, Planen Ziele/Impulse) als Filter-Chips statt zweiter Reiterleiste */
+html body.mm .seg.kseg,html body.mm #zielV{gap:6px;margin:4px 0 10px;border:0!important}
+html body.mm .seg.kseg button,html body.mm #zielV button{flex:0 0 auto;border:1px solid var(--sep)!important;border-radius:999px!important;padding:5px 14px;font-size:13px;min-height:34px}
+html body.mm .seg.kseg button.on,html body.mm #zielV button.on{background:color-mix(in srgb,var(--accent) 16%,transparent)!important;color:var(--accent)!important;border-color:transparent!important;box-shadow:none!important;font-weight:600}
+.note-i{margin:6px 2px}.note-i summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;padding:6px 0;min-height:32px}.note-i summary::-webkit-details-marker{display:none}
+.stickhead.cmp .hc-month{gap:2px}.stickhead.cmp .hc-month .hc-ic{width:30px!important;height:30px!important}.stickhead.cmp .hc-month b{font-size:15px;min-width:64px}.stickhead.cmp .hc-r .ab-sel select{max-width:58px}
+html body.mm .ed-ic.ed-t{color:var(--fg)!important;padding-left:0!important}
