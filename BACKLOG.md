@@ -354,3 +354,26 @@ Aus dem UX-Review. Alle Punkte freigegeben. Eins rein, eins raus: Es sind Absich
 - Dazu einen erwarteten Kontostand angeben (aktueller Stand + geplante Umsätze).
 - Erwarteter Kontostand bis Monatsende.
 - Vorschlag fürs Rausnehmen: Block „Vorgemerkt“ unter Planen › Monat (Karten der nächsten 60 Tage). Die Links Ladeübersicht und Sammelabrechnungen müssen dann woanders hin (z. B. Fixkosten). Wartet auf Freigabe.
+
+## 20. UX/UI-Audit v437 (18.11.) – wartet auf Freigabe
+Geprüft auf iPhone (390 px), dunkel und hell, mit Beispieldaten. Eins rein, eins raus: je Punkt steht, was entfällt.
+
+**Design**
+1. Haupt-Knöpfe (Weiter, Monat abschließen, Erste Position anlegen): weiße Schrift auf hellem Grün, Kontrast ca. 2:1 → dunkleres Grün (`--accent-fill`) oder dunkle Schrift. Entfällt: nichts (Korrektur).
+2. Mindestschrift 11–12 px: Leistenbeschriftung 9,5–10 px, Achsen in Charts, rund 50 Stellen ≤ 11 px. Entfällt: nichts.
+3. Kopfzeile beim Scrollen kürzt auf „Novem…“, „N…“, „Alle Bud…“ → im kleinen Kopf „Nov. 26“ und Budget-Symbol ohne Text. Entfällt: Langform im kleinen Kopf.
+4. „Löschen“, „Aufgeben“, „Verwerfen“ sehen aus wie normale grüne Links neben „Zurücklegen“ → zerstörende Aktionen grau/rot und rechts. Entfällt: nichts.
+5. Kaufcheck-Knopf rot wie eine Warnung → neutral/Akzent, Rot nur für Probleme. Entfällt: nichts.
+6. Buchungsliste: Kategorie steht doppelt (Zwischenzeile über jeder Buchung und in der Unterzeile), Tagessumme rot wie eine Ausgabe → Zwischenzeile streichen, Tagessumme grau. Entfällt: Kategorie-Zwischenzeile.
+7. Stift-Symbol klebt am Titel („Kopfhörer✎“) → Bearbeiten durch Antippen der Karte. Entfällt: Stift-Symbole.
+
+**Nutzung**
+8. Heute: „Heute ausgeben 33,01 €“ ist zweideutig (schon ausgegeben oder noch erlaubt?) → „Heute noch frei“. Entfällt: alter Begriff.
+9. Drei Wege zum Buchen auf Heute (Plus in der Leiste, Kreis „Neu“, Favoriten-Kreise) → Kreis „Neu“ streichen. Entfällt: „Neu“.
+10. Kalender zeigt Wochenstreifen und Monatsraster übereinander, je Tag bis zu 3 Zahlen und Kategorie-Punkte mit langer Legende → eine Zahl je Tag (Ausgaben), Punkte und Legende weg. Entfällt: Wochenstreifen, Legende, Punkte.
+11. Planen › Fixkosten: drei Hinzufügen-Wege („Wiederkehrende Buchung hinzufügen“, „+ Abo“, „+ Vertrag“ zweimal) → ein „+ Hinzufügen“ mit Auswahl. Entfällt: drei Links.
+12. Zwei Reiterebenen in Planen (Ziele › Ziele/Impulse) und Rückblick (Ausgaben › Alle/Einmalig/Wiederkehrend) → Unterebene als Filter-Chip in der Seite. Entfällt: zweite Reiterleiste.
+13. Vermögen: Gesamtsumme versteckt („•••• €“), aber Penny-Zeile zeigt „+801 € zum Vormonat“ → Penny-Zeile mit ausblenden. Außerdem „Noch keine Sparkonten“, obwohl Puffer und Sinking darüber stehen → Text nur zeigen, wenn wirklich keine. Entfällt: Hinweistext.
+14. Dauerhafte Erklärtexte (Rückblick „Nur deine Monatsbudgets …“, Vermögen „Fasst gleiche Bereiche …“) → einmal zeigen, danach hinter ⓘ. Entfällt: Dauertexte.
+15. Verwaiste Linkzeilen am Seitenende (Planen: „Projekte · Kredit eintragen“, Vermögen: „Sparkonten · Wechselgeld · Altersvorsorge“, Monat: „Gehalt verteilen“ doppelt) → in die passende Karte oder streichen. Entfällt: Linkzeilen.
+16. Texte: „1 Wünsche“ → „1 Wunsch“; Auslöser „–“ → „ohne Angabe“; Trend „Ø 0 € · 0 %“ → „neu“. Entfällt: nichts.
