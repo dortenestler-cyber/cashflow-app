@@ -400,7 +400,7 @@ Penny hat heute 7 Eingänge mit 4 verschiedenen Darstellungen: ✦ im Seitenkopf
 11. KI erkennbar, aber leise: Antworten der KI tragen ein kleines „✦ KI“ und den Zeitraum („Nov. 1.–18.“), Regel-Hinweise nicht. Kein Sprechblasen-Look, nur Text mit feiner Akzentlinie links. Entfällt: Kartenhintergrund im Chat.
 12. Eine Stimme für Mitteilungen: Ein Hinweis erscheint entweder als Punkt am ✦ oder als Mitteilung, nie zusätzlich als Karte oder Toast. Entfällt: doppelte Hinweise.
 
-## 22. Konto-Karten Flow und Gönn dir: heutigen Kontostand zeigen (umgesetzt in v449)
+## 22. Konto-Karten Flow und Gönn dir: heutigen Kontostand zeigen (v449 umgesetzt, in v451 auf Wunsch wieder entfernt)
 
 **Wunsch:** In den Konto-Karten von Flow und Gönn dir (Kopf der Kontoansicht, wischbar) zusätzlich immer den heutigen Kontostand anzeigen. Bisher steht dort nur „übrig von Budget“.
 
