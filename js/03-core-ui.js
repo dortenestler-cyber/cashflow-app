@@ -11,8 +11,8 @@ let carIdx=0;
 function todayFree(){const P=period(0),T=new Date().setHours(0,0,0,0),left=Math.max(P.left||1,1);
   const B=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)).map(b=>{const c=calc(b),today=S.exp.reduce((s,e)=>s+(e.type=='out'&&e.b==b&&!isPlan(e)&&!e.corr&&e.t>=T&&inP(e,P)?e.a:0),0),day=Math.max(0,c.rest+today)/left;return{b,c,day,today,free:Math.max(0,day-today)}});
   /* v425: Tagesrest darf negativ werden (rot), damit Überziehen sichtbar ist */
-  /* v435: nach Überziehen statt Minus der neue Tagesschnitt ab morgen */
-  const rest=B.reduce((s,x)=>s+x.c.rest,0),next=Math.max(0,rest)/Math.max(left-1,1);
+  /* v435: nach Überziehen statt Minus der neue Tagesschnitt inkl. heute */
+  const rest=B.reduce((s,x)=>s+x.c.rest,0),next=Math.max(0,rest)/left;
   return{tot:B.reduce((s,x)=>s+x.day-x.today,0),B,left,next}}
 function kontoSlide(b,c){return `<div class="slide" data-k="${b}" style="${bgStyle(b)}" role="button" tabindex="0" aria-label="${esc(b)} öffnen">
    <div class="lbl">${esc(b)} <span style="opacity:.7">›</span></div><div class="bal">${WH(b)?MASK:eur(c.rest)}</div><div style="font-size:13px;opacity:.9">Kontostand${acc(b).tot?'':' · nicht im Gesamtbudget'}</div>
