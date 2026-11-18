@@ -1638,3 +1638,7 @@ html body #asstRoot .aq-pill input{flex:1;min-width:0}
 /* v442: untere Leiste – Beschriftung nur am aktiven Reiter (iPhone/iPad) */
 @media (max-width:999px){body.mm .tabbar button[data-t]:not(.on):not(.on2)>span{display:none!important}}
 body.mm .vmmenu{flex-wrap:wrap;gap:8px;padding:4px 0 12px;border-bottom:1px solid var(--sep);margin-bottom:6px}
+/* v443: alte Penny-Blase auch bei geöffnetem Penny aus (Desktop zeigte sie unten links) */
+#asstRoot .abar{display:none!important}
+/* v443: Favoriten auf Heute links ausgerichtet statt über die volle Breite verteilt */
+body.mm .d2-fav{justify-content:flex-start!important;gap:28px!important}
