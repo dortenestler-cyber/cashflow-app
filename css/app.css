@@ -1681,3 +1681,15 @@ html body.mm .hero2 .bal.neg,html body.mm .hero2c .bal.neg,html body.mm .h2-ft b
 html body.mm .h2-ft b.pos,html body.mm .mmsum.strip b.in{color:var(--in)}
 html body.mm[data-tab="wish"] .potc .nsbar{background:var(--fill)}
 html body.mm[data-tab="wish"] .potc button,html body.mm[data-tab="wish"] .potc .link,html body.mm[data-tab="wish"] .potc a{color:var(--accent)}
+/* v448: Buchungsmaske – Kopf ist flach (Kartenfarbe), daher Schrift aus dem Thema statt Weiß */
+html body .bk-hd{color:var(--fg)}
+html body .bk-hd .bk-amt{color:var(--fg)}
+html body .bk-hd .bk-typ{background:var(--fill)}html body .bk-hd .bk-typ button{color:var(--muted)}html body .bk-hd .bk-typ button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+html body .bk-hd .bk-rb{border-color:var(--sep);background:var(--fill);color:var(--fg)}
+html body .bk-hd .bk-rcw,html body .bk-hd .bk-err{background:var(--fill)}
+html body .bk-hd .cat.bk-rc{color:var(--fg)}html body .bk-hd .cat.bk-rc .ico{background:var(--card);color:var(--fg)}html body .bk-hd .cat.bk-rc.on .ico{background:var(--accent-fill);color:#fff}
+html body .bk-hd .link{color:var(--accent)}
+/* v448: Willkommens-Karten wieder mit Kartenfläche, sonst Schrift auf bunten Kreisen unlesbar */
+html body.mm .ofc{background:var(--card)!important;box-shadow:0 8px 22px rgba(0,0,0,.12)!important}
+html body.mm .ofc-d,html body.mm .ofc-d b{color:var(--fg)}html body.mm .ofc-d small{color:var(--muted)}
+html body.mm .ofc{border-radius:14px!important}

@@ -335,7 +335,7 @@ function drawSheet(){setTimeout(renderAsst,0);const shown=E.amt?E.amt.replace(/\
    ${impact?`<div class="bk-imp">${impact}</div>`:''}
    ${E.type=='out'&&a&&ruAmt(a)&&ruDef(E)?(()=>{const old=E.id&&S.exp.find(e=>e.id==E.id),t=old&&old.ru&&S.exp.find(e=>e.id==old.ru),to=t?t.to:ruTo({card:E.card}),dep=t?(t.dep||''):ruDepOf({card:E.card});return `<div class="bk-imp">+ ${eur(ruAmt(a))} Wechselgeld → ${esc(ruLab(to,dep))}</div>`})():''}
    <div class="bk-err" id="eerr"></div>
-   ${!E.id&&E.type=='out'&&!(evalAmt(E.amt)||0)?'<button class="link bk-urge" id="bkUrge" type="button" style="color:#fff;opacity:.85;font-size:13px;margin-top:4px">Nur ein Kaufimpuls? Erst kurz warten ›</button>':''}
+   ${!E.id&&E.type=='out'&&!(evalAmt(E.amt)||0)?'<button class="link bk-urge" id="bkUrge" type="button" style="font-size:13px;margin-top:4px">Nur ein Kaufimpuls? Erst kurz warten ›</button>':''}
    ${RC.length?`<div class="bk-rcw"><div class="bk-rct">Zuletzt verwendete Kategorien</div><div class="bk-rcs">${RC.map(x=>`<button class="cat bk-rc ${E.c==x.c?'on':''}" data-c="${esc(x.c)}" aria-label="${esc(x.c)}"><span class="ico">${I(x.ico,22)}</span><span class="nm">${esc(x.c)}</span></button>`).join('')}</div></div>`:''}
   </div>
   <div class="sheet-b es bk-b">
