@@ -1,6 +1,6 @@
 /* ---------- Online-Sync (Supabase, Ende-zu-Ende verschlüsselt) ---------- */
 /* ---------- push notifications ---------- */
-const PUSH_FN=`// Supabase Edge Function "push" v10: Mitteilungen + Daily Briefing für CashFlow (Web Push)
+const PUSH_FN=`// Supabase Edge Function "push" v11: Mitteilungen + Daily Briefing für CashFlow (Web Push)
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 const sb = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
@@ -147,6 +147,7 @@ Deno.serve(async (req) => {
         await sb.from("push_queue").update({ sent: true }).eq("id", m.id);
       }
       await sb.from("push_queue").delete().eq("sent", true).lt("at", new Date(Date.now() - 7 * 864e5).toISOString());
+      try { await sb.from("inbox").delete().neq("status", "offen").lt("done_at", new Date(Date.now() - 60 * 864e5).toISOString()); } catch (_) {}
       let b = 0; try { b = await briefs(); } catch (_) {} try { await stale(); } catch (_) {} try { await sb.from("push_cfg").update({ last_cron: new Date().toISOString() }).eq("id", 1); } catch (_) {}
       return J({ ok: true, n: (q || []).length, briefs: b });
     }
@@ -193,32 +194,34 @@ Deno.serve(async (req) => {
         const evs = (d.ev || []).filter((e) => e.d >= B.ymd).slice(0, 4).map((e) => (e.d === B.ymd ? "heute " : "") + e.t); if (evs.length) L.push("Demnächst: " + evs.join(", ") + ".");
         if (d.pos && d.pos.length) { let ws = 0, wp = 0; for (const p of d.pos.slice(0, 10)) { const m = await move(p); if (m == null) continue; ws += p.w || 0; wp += (p.w || 0) * m; } if (ws) L.push("Depot heute " + PC(wp / ws) + "."); }
         if (at) L.push("Stand " + new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(at) + " Uhr.");
-        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 10 });
+        return SAY(L.join(" ") || "Keine Daten vorhanden.", 200, { v: 11 });
       }
       const txt0 = String(body.txt || "").trim(), big = /^(beleg|mitteilung|mail|sms)\\s*:/i.test(txt0), txt = txt0.slice(0, big ? 4000 : 300); if (!txt) return SAY("Ich habe nichts verstanden.");
-      const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su); if ((count || 0) >= 50) return SAY("Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter.");
+      const { count } = await sb.from("inbox").select("id", { count: "exact", head: true }).eq("user_id", su).eq("status", "offen"); if ((count || 0) >= 200) return SAY("Die Ablage ist voll. Öffne CashFlow einmal, dann geht es weiter.");
       const { error } = await sb.from("inbox").insert({ user_id: su, txt }); if (error) return SAY("Konnte nicht speichern.", 500);
       if (/^apple ?pay/i.test(txt)) { try { await payPush(su, txt); } catch (_) {} } else { try { await siriPush(su, txt, big); } catch (_) {} }
-      return SAY(big ? "In CashFlow abgelegt. Beim Öffnen bestätigen." : "Notiert: " + txt, 200, { v: 10 });
+      return SAY(big ? "In CashFlow abgelegt. Beim Öffnen bestätigen." : "Notiert: " + txt, 200, { v: 11 });
     }
-    if (body.op === "ping") return J({ pong: true, v: 10 });
+    if (body.op === "ping") return J({ pong: true, v: 11 });
     const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
     const { data: u } = await sb.auth.getUser(jwt); const uid = u && u.user && u.user.id;
     if (!uid) return J({ error: "not signed in" }, 401);
-    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 10, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
+    if (body.op === "key") { const { data: br } = await sb.from("push_brief").select("sent_m,sent_e,updated_at").eq("user_id", uid).maybeSingle(); const { count: subs } = await sb.from("push_subs").select("endpoint", { count: "exact", head: true }).eq("user_id", uid); return J({ key: c.vapid_public, v: 11, cron: c.last_cron || null, sm: br && br.sent_m, se: br && br.sent_e, bu: br && br.updated_at, subs: subs || 0, now: berlin().ymd }); }
     if (body.op === "sub") { await sb.from("push_subs").upsert({ endpoint: body.sub.endpoint, user_id: uid, sub: body.sub }); return J({ ok: true }); }
     if (body.op === "unsub") { await sb.from("push_subs").delete().eq("endpoint", body.endpoint).eq("user_id", uid); return J({ ok: true }); }
     if (body.op === "plan") {
       await sb.from("push_queue").delete().eq("user_id", uid).eq("sent", false);
       const items = (body.items || []).slice(0, 30).map((x) => ({ user_id: uid, at: new Date(x.at).toISOString(), title: String(x.title).slice(0, 120), body: String(x.body || "").slice(0, 300), tag: x.tag || null }));
       if (items.length) await sb.from("push_queue").insert(items);
-      return J({ ok: true, n: items.length, v: 10 });
+      return J({ ok: true, n: items.length, v: 11 });
     }
-    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 10 }); }
+    if (body.op === "brief") { const { error } = await sb.from("push_brief").upsert({ user_id: uid, data: body.data, updated_at: new Date().toISOString() }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 11 }); }
     if (body.op === "brieftest") { const { data: r } = await sb.from("push_brief").select("*").eq("user_id", uid).single(); const d = (r && r.data) || body.data || {}; const m = await compose(d, body.kind === "e" ? "e" : "m"); const n = await sendTo(uid, m); if (body.real && n) await sb.from("push_brief").update(body.kind === "e" ? { sent_e: berlin().ymd } : { sent_m: berlin().ymd }).eq("user_id", uid); return J({ ok: true, sent: n, msg: m }); }
-    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 10 }); }
-    if (body.op === "inbox") { const { data: rows, error } = await sb.from("inbox").select("id,txt,created_at").eq("user_id", uid).order("id").limit(50); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 10 }); }
-    if (body.op === "inbox_del") { const ids = (body.ids || []).map(Number).filter(Boolean); if (ids.length) await sb.from("inbox").delete().eq("user_id", uid).in("id", ids); return J({ ok: true }); }
+    if (body.op === "siri_key") { const kh = String(body.h || ""); if (!/^[0-9a-f]{64}$/.test(kh)) return J({ error: "bad key" }, 400); await sb.from("siri_keys").delete().eq("user_id", uid); const { error } = await sb.from("siri_keys").insert({ user_id: uid, key_hash: kh }); if (error) return J({ error: error.message }, 500); return J({ ok: true, v: 11 }); }
+    if (body.op === "inbox") { let q = sb.from("inbox").select("id,txt,created_at,status,done_at").eq("user_id", uid); q = body.all ? q.gte("created_at", new Date(Date.now() - 60 * 864e5).toISOString()).order("id", { ascending: false }).limit(300) : q.eq("status", "offen").order("id").limit(200); const { data: rows, error } = await q; if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 11 }); }
+    if (body.op === "inbox_set") { const ids = (body.ids || []).map(Number).filter(Boolean), st = ["gebucht", "verworfen", "erledigt", "offen"].includes(body.st) ? body.st : "erledigt"; if (ids.length) await sb.from("inbox").update({ status: st, done_at: st === "offen" ? null : new Date().toISOString() }).eq("user_id", uid).in("id", ids); return J({ ok: true, v: 11 }); }
+    if (body.op === "inbox_add") { const L = (body.items || []).map((x) => String((x && x.txt) || "").trim().slice(0, 4000)).filter(Boolean).slice(0, 100); if (!L.length) return J({ items: [], v: 11 }); const { data: ex } = await sb.from("inbox").select("txt").eq("user_id", uid).in("txt", L); const have = new Set((ex || []).map((r) => r.txt)), add = [...new Set(L)].filter((t) => !have.has(t)); if (!add.length) return J({ items: [], v: 11 }); const { data: rows, error } = await sb.from("inbox").insert(add.map((txt) => ({ user_id: uid, txt }))).select("id,txt,created_at,status"); if (error) return J({ error: error.message }, 500); return J({ items: rows || [], v: 11 }); }
+    if (body.op === "inbox_del") { const ids = (body.ids || []).map(Number).filter(Boolean); if (ids.length) await sb.from("inbox").update({ status: "erledigt", done_at: new Date().toISOString() }).eq("user_id", uid).eq("status", "offen").in("id", ids); return J({ ok: true, v: 11 }); }
     if (body.op === "test") return J({ ok: true, sent: await sendTo(uid, { title: "CashFlow", body: "Mitteilungen funktionieren. 👍", tag: "test" }) });
     return J({ error: "unknown op" }, 400);
   } catch (e) { return J({ error: String(e) }, 500); }
@@ -239,6 +242,9 @@ create table if not exists public.siri_keys (user_id uuid primary key references
 create table if not exists public.inbox (id bigserial primary key, user_id uuid not null references auth.users on delete cascade, txt text not null, created_at timestamptz default now());
 alter table public.siri_keys enable row level security;
 alter table public.inbox enable row level security;
+alter table public.inbox add column if not exists status text not null default 'offen';
+alter table public.inbox add column if not exists done_at timestamptz;
+create index if not exists inbox_user_status on public.inbox (user_id, status);
 select cron.schedule('cashflow-push', '*/10 * * * *', $cron$ select net.http_post(url := '__URL__/functions/v1/push', headers := jsonb_build_object('Content-Type','application/json','x-cron',(select secret from public.push_cfg where id = 1)), body := '{}'::jsonb) $cron$);`.replace('__URL__',(SY.url||SYDEF).replace(/\/$/,''));
 const PUSHK='cf_push',pushOn=()=>{try{return localStorage.getItem(PUSHK)==='1'}catch(e){return false}};
 const pushSupported=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
@@ -388,7 +394,11 @@ function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.s
     [...L,...Rm].filter(x=>x&&!x.id).forEach(x=>res.push(x));cSet(out,c,res)});
   try{syDepRu(out,locNew?rem:loc)}catch(e){}
   try{syAccBase(out,loc,rem)}catch(e){}
+  try{syPayU(out,loc,rem)}catch(e){}
   return out}
+/* v452: offene Kartenzahlungen und „schon übernommen“-Listen beider Geräte vereinen – sonst gewann ein Gerät komplett und Zahlungen verschwanden */
+function syPayU(out,loc,rem){['clipSeen','paySeen'].forEach(k=>{if(loc[k]||rem[k])out[k]=[...new Set([...(loc[k]||[]),...(rem[k]||[])])].slice(-600)});
+  const seen=new Set([...(out.clipSeen||[]),...(out.paySeen||[])]),K=new Set(),Q=[];[...(loc.payQ||[]),...(rem.payQ||[])].forEach(x=>{const k=x&&String(x.l||'').trim().toLowerCase();if(!k||K.has(k)||seen.has(k))return;K.add(k);Q.push(x)});if(loc.payQ||rem.payQ)out.payQ=Q.slice(-100)}
 /* Bestand & Zinsen je Konto: neuester Stand (baseAt) gewinnt, auch wenn das andere Gerät die Kontenliste zuletzt geändert hat */
 function syBaseNewer(loc,rem){const rm=new Map((rem.accts||[]).filter(Boolean).map(a=>[a.n,a]));return (loc.accts||[]).some(a=>a&&(a.baseAt||0)>((rm.get(a.n)||{}).baseAt||0)&&rm.has(a.n))}
 function syAccBase(out,loc,rem){const F=['start','baseD','baseVal','baseAt','rates'],all=[...(loc.accts||[]),...(rem.accts||[])];
