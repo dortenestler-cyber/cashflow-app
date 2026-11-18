@@ -1696,3 +1696,6 @@ html body.mm .ofc{border-radius:14px!important}
 
 /* v452: Rückzahlung unter Geplant – Betrag und Knopf untereinander */
 .rfrow{box-sizing:border-box}.rfamt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.rfamt .chip{margin:0}.mmcard.plan .rfrow .amt{opacity:1}
+
+/* v456: Sparplan-Zeile in Depot-Positionen */
+.dep-sp{display:flex;align-items:center;gap:4px;margin-top:3px;color:var(--accent);font-size:12px}.dep-sp.off{color:var(--muted)}.adjdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:4px;flex:none}
