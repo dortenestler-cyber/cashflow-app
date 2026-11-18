@@ -129,7 +129,8 @@ const pufAcc=()=>S.accts.find(a=>a.rolle=='eingang');
 function pufOpen(){const a=pufAcc();if(!a)return{list:[],sum:0};const P=period(0),k=pkey(P),L=[];
   (S.rec||[]).forEach(r=>{if(r.paused||r.b!=a.n||r.type=='in')return;const d=recDue(r,P);if(!d||(r.skip||[]).includes(k))return;if(S.exp.some(e=>e.rid==r.id&&e.pk==k))return;L.push({n:r.n,a:r.a,d})});
   S.exp.forEach(e=>{if(e.b==a.n&&isPlan(e)&&inP(e,P)&&(e.type=='out'||e.type=='tr')&&!L.some(x=>x.n==e.n&&Math.abs(x.a-e.a)<.01))L.push({n:e.n||e.c,a:e.a,d:new Date(e.t)})});
-  L.sort((x,y)=>x.d-y.d);return{list:L,sum:L.reduce((s,x)=>s+x.a,0)}}
+  /* v454: nur noch kommende Abbuchungen – Vergangenes steckt schon im Kontostand */const t0=new Date();t0.setHours(0,0,0,0);const F=L.filter(x=>x.d>=t0);
+  F.sort((x,y)=>x.d-y.d);return{list:F,sum:F.reduce((s,x)=>s+x.a,0)}}
 const pufBal=()=>{const a=pufAcc();return a?calc(a.n).rest:0};
 /* v258: Puffer-Ziel einstellbar, Standard 1.000 € */
 const pufZiel=()=>(+S.pufZiel>0?+S.pufZiel:1000);
