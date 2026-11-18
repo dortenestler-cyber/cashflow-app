@@ -1624,3 +1624,14 @@ body.mm .mmsum1{display:flex;gap:14px;align-items:baseline;justify-content:cente
 body.mm .mmsum1 b{color:var(--fg);font-weight:700}
 #asstRoot .apop-h .ah-pill{margin:0 auto}#asstRoot .apop-h #aSet{margin-right:8px}
 #asstRoot .apop-h{grid-template-columns:44px 1fr 36px 36px!important}#asstRoot .apop-h #aSet{margin:0}
+/* v441: Penny-Antworten ohne Karte, KI leise gekennzeichnet, eine Aktion, schlanke Eingabe */
+html body #asstRoot .aq-a{background:none!important;border:0!important;border-radius:0!important;padding:2px 0 2px 2px!important}
+html body #asstRoot .aq-a.ai{border-left:2px solid var(--accent)!important;padding-left:12px!important}
+#asstRoot .aq-src{color:var(--muted);font-size:11px;margin:2px 0 0!important;letter-spacing:.01em}
+html body #asstRoot .aq-a>.chip[data-aact]{background:var(--accent-fill)!important;color:#fff!important;border:0!important;border-radius:999px!important;padding:7px 14px!important;font-weight:600;min-height:34px}
+html body #asstRoot .aq-pill{flex-direction:row!important;align-items:center!important;border-radius:999px!important;padding:5px 5px 5px 16px!important;gap:8px!important}
+html body #asstRoot .aq-pill input{flex:1;min-width:0}
+#asstRoot .aq-one{flex:none;width:36px;height:36px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:var(--fill);color:var(--accent)}
+#asstRoot .aq-one.go{background:var(--accent-fill);color:#fff}
+#asstRoot .ah-menu.pdot{position:relative}#asstRoot .ah-menu.pdot::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+#asstRoot .apop-h{grid-template-columns:44px 1fr 44px!important}

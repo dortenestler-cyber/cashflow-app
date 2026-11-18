@@ -109,7 +109,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='440 (18.11.)';
+const APP_VER='441 (18.11.)';
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});
   if(/heute noch ausgeben|tagesbudget/.test(l))add('Was kommt diese Woche?','Wie war mein Tag?','Wofür habe ich diesen Monat am meisten ausgegeben?');
@@ -520,7 +520,7 @@ function aiMd(t){const L=esc(String(t||'')).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'
 function aiScroll(){setTimeout(()=>{const c=document.querySelector('.apop-b');if(c)c.scrollTop=c.scrollHeight},30)}
 function aiErr(e){const m=String(e&&e.message||e);if(m=='LIMIT')return'Dein KI-Monatslimit ist erreicht. Bis Monatsende antworte ich nur mit den festen Auswertungen.';if(m=='NOFN')return'Die Funktion „ai“ fehlt noch in Supabase. Einstellungen › KI-Assistent › Einrichtung.';
   if(/not signed|401/.test(m))return'Bitte in der Online-Synchronisierung neu anmelden.';if(/Failed to fetch|NetworkError|Load failed/i.test(m))return'Keine Verbindung. Die KI braucht Internet.';return'Die KI hat nicht geantwortet: '+m}
-async function aiChat(q,hint){const c=aiCfg(),u=aiUse(),m={q,h:`<p class="a-s aq-pf">${penny('gruebelt',22)} Penny grübelt …</p>`};PTHINK=true;AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
+async function aiChat(q,hint){const c=aiCfg(),u=aiUse(),m={q,ai:1,t:Date.now(),h:`<p class="a-s aq-pf">${penny('gruebelt',22)} Penny grübelt …</p>`};PTHINK=true;AQ.msgs.push(m);if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll();
   const setUp=()=>{asstOpen=false;renderAsst();tab='more';setView='ai';render()};
   if(u.usd>=c.lim){PTHINK=false;m.h=`<p>${esc(aiErr('LIMIT'))}</p>`;m.a=[['Limit ändern',setUp]];renderAsst();return}
   if(!AI.conv.length||Date.now()-AI.t>18e5||AI.conv.length>24||AI.lvl!=c.lvl){AI.conv=[];AI.lvl=c.lvl}AI.t=Date.now();
