@@ -1636,7 +1636,7 @@ html body #asstRoot .aq-pill input{flex:1;min-width:0}
 #asstRoot .ah-menu.pdot{position:relative}#asstRoot .ah-menu.pdot::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
 #asstRoot .apop-h{grid-template-columns:44px 1fr 44px!important}
 /* v442: untere Leiste – Beschriftung nur am aktiven Reiter (iPhone/iPad) */
-@media (max-width:999px){body.mm .tabbar button[data-t]:not(.on):not(.on2)>span{display:none!important}}
+@media (max-width:999px){body.mm .tabbar button[data-t]:not(.on):not(.on2)>span{visibility:hidden!important}}
 body.mm .vmmenu{flex-wrap:wrap;gap:8px;padding:4px 0 12px;border-bottom:1px solid var(--sep);margin-bottom:6px}
 /* v443: alte Penny-Blase auch bei geöffnetem Penny aus (Desktop zeigte sie unten links) */
 #asstRoot .abar{display:none!important}
@@ -1646,3 +1646,6 @@ body.mm .d2-fav{justify-content:flex-start!important;gap:28px!important}
 body.mm .mmsum1 .pl1{font-style:italic;color:var(--muted)}
 .lthead{position:relative}.lthead .hc-pn-x{position:absolute;top:2px;right:0}
 .dhero{position:relative}.dhero .hc-pn-x{position:absolute;top:10px;right:10px;z-index:2}
+/* v445: Plus fest rechts außen, Reiter gleich breit – die Leiste verschiebt sich beim Wechseln nicht mehr */
+@media (max-width:999px){html body.mm .tabbar .tb-plus{order:99;margin:-28px 0 0 6px!important}
+html body.mm .tabbar button[data-t]{flex:1 1 0!important;min-width:0!important}}
