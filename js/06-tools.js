@@ -1204,7 +1204,7 @@ function vmTips(t){const n=Date.now();
    Monatsbeginn: Umbuchung Eingangskonto → Rücklagen (rlm, echter Dauerauftrag). Vor Fälligkeit erinnert Penny an die Rücküberweisung, „Erledigt“ bucht sie (rlp). */
 function rlAccN(){const a=(S.accts||[]).find(x=>x.rolle=='ruecklage');return a?a.n:null}
 function rlAcc(){let n=rlAccN();if(n)return n;n='Rücklagen';let k=2;while(S.accts.some(x=>x.n==n))n='Rücklagen '+k++;S.accts.push({n,kind:'konto',col:'#3FA7A0',vis:false,tot:false,start:0,rolle:'ruecklage'});S.cats[n]=[["Sparen","target"],["Sonstiges","dot"]];S.bg=S.bg||{};S.bg[n]={g:7};refreshA();return n}
-function rlOn(r){return !!(r&&r.spread&&r.type=='out'&&!r.paused&&(r.every||1)>=3&&rlAccN()&&r.b!=rlAccN())}
+/* v469: wie im Dialog – ohne ausdrückliches Aus gilt „Über Rücklagen ansparen“ (neue Zahlungen aus der Buchungsmaske/Abos fehlten) */function rlOn(r){return !!(r&&r.spread!==false&&r.type=='out'&&!r.paused&&(r.every||1)>=3&&rlAccN()&&r.b!=rlAccN())}
 function rlRecs(){return (S.rec||[]).filter(rlOn)}
 function rl2(v){return Math.round(v*100)/100}
 function rlNext(r){for(let o=0;o<=24;o++){const P=period(o),d=recDue(r,P);if(!d)continue;const k=pkey(P);if((r.skip||[]).includes(k)||S.exp.some(e=>(e.rid==r.id||e.rlp==r.id)&&e.pk==k))continue;return{o,d,k,a:recA(r,P)}}return null}
