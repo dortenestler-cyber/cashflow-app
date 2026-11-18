@@ -1635,3 +1635,6 @@ html body #asstRoot .aq-pill input{flex:1;min-width:0}
 #asstRoot .aq-one.go{background:var(--accent-fill);color:#fff}
 #asstRoot .ah-menu.pdot{position:relative}#asstRoot .ah-menu.pdot::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
 #asstRoot .apop-h{grid-template-columns:44px 1fr 44px!important}
+/* v442: untere Leiste – Beschriftung nur am aktiven Reiter (iPhone/iPad) */
+@media (max-width:999px){body.mm .tabbar button[data-t]:not(.on):not(.on2)>span{display:none!important}}
+body.mm .vmmenu{flex-wrap:wrap;gap:8px;padding:4px 0 12px;border-bottom:1px solid var(--sep);margin-bottom:6px}

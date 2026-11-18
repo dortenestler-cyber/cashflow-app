@@ -378,7 +378,7 @@ Geprüft auf iPhone (390 px), dunkel und hell, mit Beispieldaten. Eins rein, ein
 15. Verwaiste Linkzeilen am Seitenende (Planen: „Projekte · Kredit eintragen“, Vermögen: „Sparkonten · Wechselgeld · Altersvorsorge“, Monat: „Gehalt verteilen“ doppelt) → in die passende Karte oder streichen. Entfällt: Linkzeilen.
 16. Texte: „1 Wünsche“ → „1 Wunsch“; Auslöser „–“ → „ohne Angabe“; Trend „Ø 0 € · 0 %“ → „neu“. Entfällt: nichts.
 
-## 21. Design-Audit Minimalismus, kleine Ansicht und Penny (18.11., v439) – 1, 2, 7, 8, 9 umgesetzt in v440, 10, 11, 12 in v441; 3–6 warten auf Freigabe
+## 21. Design-Audit Minimalismus, kleine Ansicht und Penny (18.11., v439) – komplett umgesetzt (v440–v442)
 Geprüft auf iPhone SE (375×667) mit Beispieldaten. Leitlinie: Pro Seite eine Aussage, ein Haupt-Knopf und höchstens eine Penny-Zeile. Eins rein, eins raus steht je Punkt.
 
 **A. Kleine Ansicht**
