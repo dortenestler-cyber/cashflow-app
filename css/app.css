@@ -1654,3 +1654,30 @@ html body.mm .tabbar button[data-t]{flex:1 1 0!important;min-width:0!important}}
 html body.mm .tabbar{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;height:auto!important;min-height:60px;border-radius:0!important;margin:0!important;
  padding:6px max(10px,calc(50% - 330px)) calc(env(safe-area-inset-bottom,0px) + 6px)!important;background:var(--fill)!important;border:0!important;border-top:1px solid var(--sep)!important;box-shadow:0 -6px 18px rgba(0,0,0,.18)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 html body.mm .tabbar .tb-plus{border-color:var(--fill)!important}}
+
+/* v447: Sperrbildschirm folgt dem hellen Modus; Kontokopf und Rückblick-Kennzahlen ohne weiße Schrift auf hellem Grund */
+:root[data-theme="light"] .lock.lk-dep{background:var(--bg)!important;color:#18201C;--fg:#18201C;--muted:#646D68;--accent:#3E7A5C}
+:root[data-theme="light"] .lk-d,:root[data-theme="light"] .lk-c{color:#646D68}:root[data-theme="light"] .lk-c svg{stroke:#3E7A5C}
+:root[data-theme="light"] .lock.lk-dep .pad button{background:#fff!important;color:#18201C!important}
+:root[data-theme="light"] .lock.lk-dep .lk-pin{background:#fff!important}
+:root[data-theme="light"] .lock .dots i{box-shadow:inset 0 0 0 1.5px #646D68}:root[data-theme="light"] .lock .dots i.f{background:#18201C}
+:root[data-theme="light"] .lock .lk-lines path[stroke="#E4E8E5"]{stroke:#18201C}:root[data-theme="light"] .lock .lk-lines path[stroke="#8FC1A6"]{stroke:#3E7A5C}
+@media (prefers-color-scheme:light){
+:root:not([data-theme="dark"]) .lock.lk-dep{background:var(--bg)!important;color:#18201C;--fg:#18201C;--muted:#646D68;--accent:#3E7A5C}
+:root:not([data-theme="dark"]) .lk-d,:root:not([data-theme="dark"]) .lk-c{color:#646D68}:root:not([data-theme="dark"]) .lk-c svg{stroke:#3E7A5C}
+:root:not([data-theme="dark"]) .lock.lk-dep .pad button{background:#fff!important;color:#18201C!important}
+:root:not([data-theme="dark"]) .lock.lk-dep .lk-pin{background:#fff!important}
+:root:not([data-theme="dark"]) .lock .dots i{box-shadow:inset 0 0 0 1.5px #646D68}:root:not([data-theme="dark"]) .lock .dots i.f{background:#18201C}
+:root:not([data-theme="dark"]) .lock .lk-lines path[stroke="#E4E8E5"]{stroke:#18201C}:root:not([data-theme="dark"]) .lock .lk-lines path[stroke="#8FC1A6"]{stroke:#3E7A5C}}
+html body.mm .hero.onbg{--fg:inherit;--muted:inherit;--fill:inherit;color:var(--fg)}
+html body.mm .hero.onbg .hback{border:1px solid var(--sep);background:transparent;color:var(--fg)}
+html body.mm[data-tab="rep"] .kpis .kpi b{color:var(--fg)}html body.mm[data-tab="rep"] .kpis .kpi b.in{color:var(--in)}html body.mm[data-tab="rep"] .kpis .kpi b.out{color:var(--out)}
+html body.mm[data-tab="rep"] .kpis,html body.mm[data-tab="rep"] .kpis .kpi{color:var(--muted)}
+html body.mm .hcard .hc-big span,html body.mm .hero2 .lbl,html body.mm .hero2c .lbl,html body.mm .h2-ft,html body.mm[data-tab="list"] .mmsum.strip,html body.mm[data-tab="cal"] .mmsum.strip,html body.mm[data-tab="wish"] .mmcard.potc{color:var(--muted)}
+html body.mm .hcard .hc-big .eyeb{background:var(--fill);color:var(--fg)}
+html body.mm .hero2 .bal,html body.mm .hero2c .bal,html body.mm .h2-ft b,html body.mm[data-tab="wish"] .potc b,html body.mm .hero.hero-tank>.tk-p span{color:var(--fg)}
+html body.mm .hero2 .lbl-m{background:var(--fill);color:var(--fg)}
+html body.mm .hero2 .bal.neg,html body.mm .hero2c .bal.neg,html body.mm .h2-ft b.neg,html body.mm[data-tab="wish"] .potc b.out,html body.mm .mmsum.strip b.out{color:var(--out)}
+html body.mm .h2-ft b.pos,html body.mm .mmsum.strip b.in{color:var(--in)}
+html body.mm[data-tab="wish"] .potc .nsbar{background:var(--fill)}
+html body.mm[data-tab="wish"] .potc button,html body.mm[data-tab="wish"] .potc .link,html body.mm[data-tab="wish"] .potc a{color:var(--accent)}
