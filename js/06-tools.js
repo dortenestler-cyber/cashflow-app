@@ -1175,7 +1175,7 @@ function samLinks(){const lade=samP().length||RX().some(x=>x.kwh>0),sam=samP().l
 /* v357: Vorgemerkte Buchungen als Karten – einmalig geplante Buchungen und seltene Fixkosten (alle 2+ Monate) der nächsten 60 Tage. Füllbalken = Countdown. */
 const VM_D=60;
 const vmDays=t=>{const a=new Date(t),b=new Date();a.setHours(12,0,0,0);b.setHours(12,0,0,0);return Math.round((a-b)/864e5)};
-const VM_R={2:'alle 2 Monate',3:'vierteljährlich',6:'halbjährlich',12:'jährlich'};
+const VM_R={1:'monatlich',2:'alle 2 Monate',3:'vierteljährlich',6:'halbjährlich',12:'jährlich'};
 function vmItems(){const n=Date.now(),to=n+VM_D*864e5;
   const A=(S.exp||[]).filter(e=>isPlan(e)&&!e.sam&&!e.rid&&!e.tpl&&e.t<=to&&!WH(e.b)).map(e=>Object.assign({},e,{k:'one'}));
   const R=recVirt(n,to).filter(v=>!v.rlc).map(v=>{const r=(S.rec||[]).find(x=>x.id==v.rid);return r&&(r.every||1)>1&&!WH(v.b)?Object.assign({},v,{k:'rec',ev:r.every}):null}).filter(Boolean);
@@ -1312,6 +1312,7 @@ function kkCardH(x){const ref=kkRef(x.p.id,x.ym),run=x.ym==samYm(Date.now()),d=v
 /* v428: Planen › Was kommt – Vorgemerktes, seltene Fixkosten, Sammelabrechnungen und Kreditkarten in einer Liste nach Fälligkeit */
 function wkItems(){const to=Date.now()+VM_D*864e5,L=[];
   try{vmItems().forEach(x=>L.push({t:x.t,k:'vm',x}))}catch(e){}
+  /* v457: monatliche Fixkosten bis Monatsende wieder in Planen (Reiter Fixkosten ist entfallen) */try{const pe=period(0).e.getTime();recVirt(Date.now(),Math.min(to,pe)).filter(v=>!v.rlc&&!WH(v.b)).forEach(v=>{const r=(S.rec||[]).find(x=>x.id==v.rid);if(r&&(r.every||1)==1&&!r.paused)L.push({t:v.t,k:'vm',x:Object.assign({},v,{k:'rec',ev:1})})})}catch(e){}
   try{samL().filter(e=>isPlan(e)&&e.t<=to).forEach(e=>L.push({t:e.t,k:'sam',x:e}))}catch(e){}
   try{kkItems().forEach(x=>L.push({t:x.t,k:'kk',x}))}catch(e){}
   return L.sort((a,b)=>a.t-b.t)}
@@ -1322,7 +1323,7 @@ function wkRow(it){const x=it.x,d=new Date(it.t).toLocaleDateString('de-DE',{day
   return `<button class="cell" ${at}><div class="t"><div>${n}</div><div class="s">${d} · ${sub}</div></div><div class="v">${a}</div><span class="chev">›</span></button>`}
 function wasKommtH(){const L=wkItems(),f=L[0];
   const rows=L.map(wkRow).join('');/* v432: keine Kachel – alles als Zeilen */
-  return (f?'':`<div class="mmcard"><div class="empty">In den nächsten 60 Tagen ist nichts Besonderes vorgemerkt. Monatliche Fixkosten stehen unter Fixkosten.</div></div>`)
+  return (f?'':`<div class="mmcard"><div class="empty">In den nächsten 60 Tagen ist nichts vorgemerkt.</div></div>`)
    +(rows?`<div class="sec"><div class="group">${rows}</div></div>`:'')+rlCardH()
    +`<div class="wk-links"><button class="link" data-wgo="Fixkosten">Monatliche Fixkosten</button><button class="link" data-set="sam">Sammelabrechnungen verwalten</button></div>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-wk]');if(!t)return;setView=null;curB=null;tab='wish';wishV='Kommt';render();scrollTo(0,0)});
