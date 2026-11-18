@@ -1599,3 +1599,28 @@ html body.mm .seg.kseg button.on,html body.mm #zielV button.on{background:color-
 .note-i{margin:6px 2px}.note-i summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;padding:6px 0;min-height:32px}.note-i summary::-webkit-details-marker{display:none}
 .stickhead.cmp .hc-month{gap:2px}.stickhead.cmp .hc-month .hc-ic{width:30px!important;height:30px!important}.stickhead.cmp .hc-month b{font-size:15px;min-width:64px}.stickhead.cmp .hc-r .ab-sel select{max-width:58px}
 html body.mm .ed-ic.ed-t{color:var(--fg)!important;padding-left:0!important}
+/* v440: Penny minimal – ein Zeichen (✦) oben rechts, Punkt = neue Hinweise, keine schwebende Blase */
+body:not(.asst-open) #asstRoot .abar{display:none!important}
+.hc-pn{color:var(--accent)!important;position:relative}
+.hc-pn.pdot::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--bg)}
+/* v440: Penny-Zeile – ein Satz ohne Rahmen statt Karte */
+html body.mm .pnline{display:flex;gap:8px;align-items:flex-start;width:100%;background:none!important;border:0!important;box-shadow:none!important;color:var(--fg);font:inherit;font-size:14px;line-height:1.4;text-align:left;padding:12px 2px;margin:4px 0;cursor:pointer}
+html body.mm .pnline>.i,html body.mm .pnline>svg{flex:none;color:var(--accent);margin-top:3px}
+html body.mm .pnline b{font-weight:600}
+/* v440: Penny-Antwort – ein Satz mit Akzentlinie, Details aufklappbar, Vorschläge umbrechen */
+#asstRoot .achips[hidden]{display:none!important}
+#asstRoot .a-lead{border-left:2px solid var(--accent);padding:2px 0 2px 12px;margin:6px 0 8px;font-size:16px;line-height:1.45;color:var(--fg)}
+#asstRoot .a-more>summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;padding:6px 0 6px 14px}#asstRoot .a-more>summary::-webkit-details-marker{display:none}
+#asstRoot .aq-fu{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:6px}
+#asstRoot .aq-fu .achip{white-space:nowrap}
+/* v440: Penny-Antwort – ein Satz mit Akzentlinie, Details aufklappbar, Vorschläge umbrechen */
+#asstRoot .achips[hidden]{display:none!important}
+#asstRoot .a-lead{border-left:2px solid var(--accent);padding:2px 0 2px 12px;margin:6px 0 8px;font-size:16px;line-height:1.45;color:var(--fg)}
+#asstRoot .a-more>summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;padding:6px 0 6px 14px}#asstRoot .a-more>summary::-webkit-details-marker{display:none}
+#asstRoot .aq-fu{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:6px}
+#asstRoot .aq-fu .achip{white-space:nowrap}
+/* v440: Buchungen/Kalender – Einnahmen, Ausgaben, Saldo in einer Zeile */
+body.mm .mmsum1{display:flex;gap:14px;align-items:baseline;justify-content:center;flex-wrap:wrap;padding:10px 4px 12px;border-bottom:1px solid var(--sep);font-size:14px;font-variant-numeric:tabular-nums;color:var(--muted)}
+body.mm .mmsum1 b{color:var(--fg);font-weight:700}
+#asstRoot .apop-h .ah-pill{margin:0 auto}#asstRoot .apop-h #aSet{margin-right:8px}
+#asstRoot .apop-h{grid-template-columns:44px 1fr 36px 36px!important}#asstRoot .apop-h #aSet{margin:0}

@@ -522,7 +522,8 @@ function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><d
     h=`<p><b>${esc(P.label)} · noch ${P.left} Tage</b></p>`+BUDG.map(b=>{const c=calc(b);return sr(b,eur(c.rest)+' übrig',`von ${eur(c.total)} · ${eur(c.tag)} pro Tag`)}).join('')
      +(top.length?`<p class="a-s" style="margin-top:6px">Größte Ausgaben</p><div class="alist">${top.map(aRow).join('')}</div>`:'');
     f=ai?['Reicht es bis Monatsende?','Wo kann ich sparen?','Was ist auffällig?']:['Reicht es bis Monatsende?','Was kommt demnächst?','Vergleich zum Vormonat']}
-  AQ.msgs=[{q,h,f}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;ASH='full';renderAsst();aiScroll()}
+  /* v440: Penny antwortet zuerst in einem Satz, Zahlen-Details aufklappbar; Blatt öffnet halbhoch */const lead=(()=>{try{const t=pnHint(kind);if(t)return t}catch(e){}if(!PNK[kind]&&kind!='year'){const P=period(0),R=BUDG.reduce((s,b)=>s+calc(b).rest,0),d=Math.max(P.left,1);return R>=0?`Noch ${eur0(R)} für ${d} ${d==1?'Tag':'Tage'}, das sind ${eur0(R/d)} pro Tag.`:`Diesen Monat ${eur0(-R)} über Budget.`}return ''})();if(lead)h=`<p class="a-lead">${lead}</p><details class="a-more"><summary>Details</summary>${h}</details>`;
+  AQ.msgs=[{q:'',tt:q,h,f:(f||[]).slice(0,3)}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;ASH='half';renderAsst();setTimeout(()=>{const b=document.querySelector("#asstRoot .apop-b");if(b)b.scrollTop=0},60)}
 /* v398: Penny fragen – je Seite Lage, Kontext für die KI und drei passende Fragen */
 const PNK={
  list:(sr,ai)=>{const P=period(0),D=864e5,L=S.exp.filter(e=>!isPlan(e)&&!e.corr),w=L.filter(e=>e.type=='out'&&e.t>Date.now()-7*D),ws=w.reduce((s,e)=>s+e.a,0),nc=L.filter(e=>e.type!='tr'&&inP(e,P)&&!e.c).length,sp=(S.siriPend||[]).length;
@@ -550,11 +551,11 @@ function pnHint(k){const P=period(0),T=Date.now();
   if(k=='fix'){const A=aboList(),y=A.reduce((s,x)=>s+x.year,0);if(!A.length)return '';return A.length+(A.length==1?' Abo kostet':' Abos kosten')+' dich '+eur0(y)+' im Jahr. Am teuersten: '+esc(A[0].r.n||A[0].r.c)+' mit '+eur0(A[0].year)+'.'}
   if(k=='verm'){if(!(S.showWealth||depShow))return '';const W=wParts();if(!W.length)return '';const now=W.reduce((s,x)=>s+x.v,0),M=30.4*864e5,was=W.reduce((s,x)=>{try{return s+(x.f?x.f(T-M):0)}catch(e){return s}},0),d=now-was;
     if(!was||Math.abs(d)<1)return '';return 'Vermögen '+(d>0?'+':'−')+eur0(Math.abs(d))+' zum Vormonat ('+(d>0?'+':'−')+Math.abs(Math.round(d/was*100))+' %).'+(d<0?' Prüf, ob es an Ausgaben oder am Depot liegt.':'')}return ''}
-function pnHintH(k){let t='';try{t=pnHint(k)}catch(e){}return t?`<button class="pnhint" data-ptalk="${k}"><span>${penny('ausgeglichen',26)}</span><span>${t}</span><span class="chev">›</span></button>`:''}
+function pnHintH(k){let t='';try{t=pnHint(k)}catch(e){}return t?`<button class="pnline" data-ptalk="${k}">${I('sparkle',14)}<span>${t}</span></button>`:''}
 function pnKind(){if(setView||curB)return null;if(tab=='dash')return 'mon';if(tab=='list'||tab=='cal')return 'list';if(tab=='geld')return 'verm';
   if(tab=='wish')return {Monat:'plan',Fixkosten:'fix',Zukunft:'fut'}[wishV]||'goal';
   if(tab=='rep'){if(drill)return drill.k=='year'?'year':null;return repV=='Analyse'?'rev':repV=='Impulse'?'imp':'ausg'}return null}
 /* v316: alle „Mit Penny besprechen“-Buttons über data-ptalk – öffnet Penny immer, auch wenn eine Auswertung scheitert */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-ptalk]');if(!b)return;e.stopPropagation();e.preventDefault();const k=b.dataset.ptalk;
-  try{pennyTalk(k)}catch(err){try{console.error(err)}catch(_){}AQ.msgs=[{q:k=='year'?'Jahr besprechen':k=='rev'?'Rückblick besprechen':'Monat besprechen',h:`<p>Die Zahlen konnten gerade nicht zusammengestellt werden. Frag mich trotzdem gern.</p><p class="a-s">Fehler: ${esc(String(err&&err.message||err))}</p>`,f:['Monatsbilanz','Was kommt demnächst?']}];AQ.id=0;AQ.ctx=null;asstOpen=true;ASH='full';renderAsst()}},true);
+  try{pennyTalk(k)}catch(err){try{console.error(err)}catch(_){}AQ.msgs=[{q:k=='year'?'Jahr besprechen':k=='rev'?'Rückblick besprechen':'Monat besprechen',h:`<p>Die Zahlen konnten gerade nicht zusammengestellt werden. Frag mich trotzdem gern.</p><p class="a-s">Fehler: ${esc(String(err&&err.message||err))}</p>`,f:['Monatsbilanz','Was kommt demnächst?']}];AQ.id=0;AQ.ctx=null;asstOpen=true;ASH='half';renderAsst()}},true);
 
