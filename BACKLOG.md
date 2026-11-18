@@ -377,3 +377,25 @@ Geprüft auf iPhone (390 px), dunkel und hell, mit Beispieldaten. Eins rein, ein
 14. Dauerhafte Erklärtexte (Rückblick „Nur deine Monatsbudgets …“, Vermögen „Fasst gleiche Bereiche …“) → einmal zeigen, danach hinter ⓘ. Entfällt: Dauertexte.
 15. Verwaiste Linkzeilen am Seitenende (Planen: „Projekte · Kredit eintragen“, Vermögen: „Sparkonten · Wechselgeld · Altersvorsorge“, Monat: „Gehalt verteilen“ doppelt) → in die passende Karte oder streichen. Entfällt: Linkzeilen.
 16. Texte: „1 Wünsche“ → „1 Wunsch“; Auslöser „–“ → „ohne Angabe“; Trend „Ø 0 € · 0 %“ → „neu“. Entfällt: nichts.
+
+## 21. Design-Audit Minimalismus, kleine Ansicht und Penny (18.11., v439) – wartet auf Freigabe
+Geprüft auf iPhone SE (375×667) mit Beispieldaten. Leitlinie: Pro Seite eine Aussage, ein Haupt-Knopf und höchstens eine Penny-Zeile. Eins rein, eins raus steht je Punkt.
+
+**A. Kleine Ansicht**
+1. Buchungen: Bis zur ersten Buchung vergehen rund 340 px (Kopf mit 4 Symbolen, Monat, Täglich/Summe, drei Summen). Vorschlag: Summen als eine Zeile „+3.206 · −2.677 · = 530“, Täglich/Summe als Symbol im Kopf. Entfällt: Summen-Streifen, Umschalter.
+2. Zahnrad in jedem Seitenkopf → nur noch auf Heute (und im Penny-Menü). Entfällt: 4 Zahnräder.
+3. Rückblick: drei große Zahlen, Chips und Erklärung stehen vor der Kurve → zuerst Satz und Kurve, Kennzahlen darunter als eine Zeile. Entfällt: Kennzahl-Kacheln.
+4. Planen: 5 Reiter passen auf 375 px nur knapp („Ziele 3“ am Rand), dazu Untertitel „Monatswechsel“ → Untertitel weg, „Kommt“ in „Monat“ aufnehmen (4 Reiter). Entfällt: Reiter „Kommt“, Untertitel.
+5. Vermögen: Untertitel „Langfristig“, Erklärtext und zwei Textlinks vor den Konten → Summe, Konten, fertig. Umbuchen/Konten verwalten als ein „…“-Menü. Entfällt: Untertitel, Linkzeile.
+6. Leiste unten: 5 Reiter mit Text plus Plus → Text nur am aktiven Reiter. Entfällt: 4 Beschriftungen.
+
+**B. Penny ganzheitlich – Befund**
+Penny hat heute 7 Eingänge mit 4 verschiedenen Darstellungen: ✦ im Seitenkopf, eigener Kreis auf Heute, schwebende Blase (überdeckt in Einstellungen auf SE das „Hilfe“-Symbol), Hinweis-Karten in Seiten (z. B. „Impulse“), „6 Hinweise“ im Chat, „Pennys Fazit“ in Dein Jahr, Penny-Stimmungen (`pMood`). Der Chat füllt den ganzen Bildschirm, wiederholt den Titel („Monat besprechen“ zweimal), wiederholt Zahlen, die schon auf Heute stehen, und zeigt 13 Vorschlags-Chips mit „›“ in einer Scrollzeile, dazu Menü, Griff, Schließen, Plus, Mikro, Senden und „Chat löschen“.
+
+**C. Penny minimal – Vorschlag**
+7. Ein Zeichen, ein Ort: Penny ist nur noch ✦ oben rechts auf jeder Seite, gleiche Größe überall. Ein kleiner Punkt am ✦ zeigt neue Hinweise. Entfällt: Kreis auf Heute, schwebende Blase, Zeile „6 Hinweise“, Stimmungs-Varianten.
+8. Penny-Zeile statt Karte: höchstens eine Zeile pro Seite, ohne Rahmen, Form „✦ Ein Satz mit Zahl.“, z. B. „✦ Reicht bis Monatsende, 21 €/Tag.“ Antippen öffnet Penny mit genau diesem Thema. Entfällt: Hinweis-Karten (`pnhint`, Impulse-Karte auf Heute).
+9. Kleines Blatt statt Vollbild-Chat: öffnet halbhoch, zeigt die Antwort als 1–3 Sätze mit einer Aktion („Umbuchen“, „Ansehen“), darunter 3 Vorschläge, die umbrechen statt scrollen. Größer erst beim Schreiben oder Hochziehen. Entfällt: Antwort-Tabellen, die Heute wiederholen, 10 der 13 Chips.
+10. Schlanke Eingabe: ein Feld, rechts ein Knopf, der leer Mikro und mit Text Senden ist. Verlauf, Hinweise und „Chat löschen“ ins Menü. Entfällt: Plus, getrennter Mikro-Knopf, Link „Chat löschen“, Titel im Verlauf.
+11. KI erkennbar, aber leise: Antworten der KI tragen ein kleines „✦ KI“ und den Zeitraum („Nov. 1.–18.“), Regel-Hinweise nicht. Kein Sprechblasen-Look, nur Text mit feiner Akzentlinie links. Entfällt: Kartenhintergrund im Chat.
+12. Eine Stimme für Mitteilungen: Ein Hinweis erscheint entweder als Punkt am ✦ oder als Mitteilung, nie zusätzlich als Karte oder Toast. Entfällt: doppelte Hinweise.
