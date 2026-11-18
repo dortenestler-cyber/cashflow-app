@@ -1649,3 +1649,8 @@ body.mm .mmsum1 .pl1{font-style:italic;color:var(--muted)}
 /* v445: Plus fest rechts außen, Reiter gleich breit – die Leiste verschiebt sich beim Wechseln nicht mehr */
 @media (max-width:999px){html body.mm .tabbar .tb-plus{order:99;margin:-28px 0 0 6px!important}
 html body.mm .tabbar button[data-t]{flex:1 1 0!important;min-width:0!important}}
+/* v446: Leiste ganz unten angedockt, eigene Fläche statt schwebend */
+@media (max-width:999px),(min-width:1000px) and (pointer:coarse){
+html body.mm .tabbar{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;height:auto!important;min-height:60px;border-radius:0!important;margin:0!important;
+ padding:6px max(10px,calc(50% - 330px)) calc(env(safe-area-inset-bottom,0px) + 6px)!important;background:var(--fill)!important;border:0!important;border-top:1px solid var(--sep)!important;box-shadow:0 -6px 18px rgba(0,0,0,.18)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body.mm .tabbar .tb-plus{border-color:var(--fill)!important}}
