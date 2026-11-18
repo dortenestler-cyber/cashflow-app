@@ -648,7 +648,7 @@ function bindYearEnd(){const all=(s,f)=>document.querySelectorAll(s).forEach(f),
   all('[data-yego]',b=>b.onclick=()=>{const k=b.dataset.yego;mk(k=='yearrev'?1:6);prevTab=tab;setFrom=tab;tab='more';setView=k;if(k=='yearrev')yrY=yeY();render();scrollTo(0,0)});
   const yb=$('yeBud');if(yb)yb.onclick=()=>{const old=JSON.stringify(S.budgets),D=yeBud().filter(x=>x.n>=3&&Math.abs(x.sug-x.cur)>=10);D.forEach(x=>S.budgets[x.b]=x.sug);mk(2);save();render();tell(D.length+(D.length==1?' Budget':' Budgets')+' angepasst.',()=>{S.budgets=JSON.parse(old);save();render()})};
   all('[data-yekill]',b=>b.onclick=()=>{const r=(S.rec||[]).find(x=>String(x.id)==b.dataset.yekill);if(!r)return;r.kill=r.kill?undefined:Date.now();mk(3);save();render()});
-  all('[data-yefix]',b=>b.onclick=()=>{mk(4);tab='wish';wishV='Fixkosten';setView=null;render();scrollTo(0,0)});
+  all('[data-yefix]',b=>b.onclick=()=>{mk(4);tab='more';setView='rec';setParent='g:buchen';setFrom=null;render();scrollTo(0,0)});
   const yd=$('yeDist');if(yd)yd.onclick=()=>{mk(5);goalDistribute()};
   all('[data-yegoal]',b=>b.onclick=()=>{mk(5);tab='wish';wishV='Ziele';setView=null;render();scrollTo(0,0)});
   const dn=$('yeDone');if(dn)dn.onclick=()=>{const pk=pkey(period(yeTarget()));S.closeDone=S.closeDone||{};S.closeDone[pk]=Date.now();yeSt().done=Date.now();save();try{celebrate('Jahr '+yeY()+' abgeschlossen!',true)}catch(e){tell('Jahr abgeschlossen. Gut gemacht!',0,'trophy')}setView=null;render();scrollTo(0,0)}}
