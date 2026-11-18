@@ -79,9 +79,9 @@ function bind(){try{repTidy()}catch(e){}{const main=!setView&&!curB;if(main){bin
   document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{const ds=b.dataset.day;if(b.classList.contains('out-m')){const t=new Date(ds).getTime();for(let o=off-1;o<=Math.min(off+1,0);o++){if(inP({t},period(o))){off=o;break}}}calDay=calDay==ds?null:ds;render()});
   document.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{off=+b.dataset.mo;listV='Täglich';render();scrollTo(0,0)});
   document.querySelectorAll('#repB button').forEach(b=>b.onclick=()=>{repB=b.dataset.f;render()});
-  document.querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{const[x,c,t]=b.dataset.dc.split('|');drill={k:'cat',b:x,c,type:t||'out'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
+  document.querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{const[x,c,t]=b.dataset.dc.split('|');drill={k:'cat',b:x,c,type:t||'out'};yOff=period(off).m.getFullYear()-period(0).m.getFullYear();render();scrollTo(0,0)});
   document.querySelectorAll('[data-dsub]').forEach(b=>b.onclick=()=>{drill=Object.assign({},drill,{sc:b.dataset.dsub});render();scrollTo(0,0)});
-  on('toYear',()=>{drill={k:'year'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
+  on('toYear',()=>{drill={k:'year'};yOff=period(off).m.getFullYear()-period(0).m.getFullYear();render();scrollTo(0,0)});
   on('drBack',()=>{if(drill&&drill.sc){drill=Object.assign({},drill);delete drill.sc}else{drill=null;if(repV=='Jahr')repV='Monat'}render()});
   on('yPrev',()=>{yOff--;render()});on('yNext',()=>{if(yOff<0){yOff++;render()}});
   document.querySelectorAll('[data-ym]').forEach(b=>b.onclick=()=>{off=+b.dataset.ym;drill=null;repV='Analyse';render();scrollTo(0,0)});
@@ -93,7 +93,7 @@ function bind(){try{repTidy()}catch(e){}{const main=!setView&&!curB;if(main){bin
   on('rpCopy',()=>{copy(reportText(reportData(repB=='Alle'?TOT:[repB])),$('rpMsg'),$('rpOut'))});
   on('rpCsv',()=>{const R=reportData(repB=='Alle'?TOT:[repB]);copy([['Datum','Typ','Konto','Nach','Kategorie','Unterkategorie','Notiz','Betrag']].concat(R.L.map(e=>[new Date(e.t).toLocaleDateString('de-DE'),{out:'Ausgabe',in:'Einnahme',tr:'Umbuchung'}[e.type],e.b,e.to||'',e.c||'',e.sc||'',e.n||'',e.a.toFixed(2).replace('.',',')])).map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n'),$('rpMsg'),$('rpOut'))});
   if($('repBsel'))$('repBsel').onchange=()=>{repB=$('repBsel').value;render()};
-  on('toYear2',()=>{drill={k:'year'};yOff=period(off).s.getFullYear()-period(0).s.getFullYear();render();scrollTo(0,0)});
+  on('toYear2',()=>{drill={k:'year'};yOff=period(off).m.getFullYear()-period(0).m.getFullYear();render();scrollTo(0,0)});
   document.querySelectorAll('#repK button').forEach(b=>b.onclick=()=>{repK=b.dataset.f;render()});
   if($('toSim2'))$('toSim2').onclick=()=>{SIM=null;repV='Simulator';render()};document.querySelectorAll('#app .pencard[data-setgo]').forEach(b=>b.onclick=()=>{prevTab=tab;setFrom=tab;tab='more';setView=b.dataset.setgo;render();scrollTo(0,0)});document.querySelectorAll('[data-fcl]').forEach(b=>b.onclick=()=>{const k=b.dataset.fcl;fcOff[k]=!fcOff[k];render()});document.querySelectorAll('[data-fm]').forEach(b=>b.onclick=()=>{fcMo=+b.dataset.fm;render()});if($('fcVault'))$('fcVault').onclick=()=>{fcVault=!fcVault;render()};document.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{S.fcRate=+b.dataset.fr;save();render()});bindSim();
   document.querySelectorAll('[data-recid]').forEach(b=>b.onclick=()=>{const i=(S.rec||[]).findIndex(r=>r.id==b.dataset.recid);if(i>=0)openRec(i)});

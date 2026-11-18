@@ -585,7 +585,7 @@ function yearData(y){const s=new Date(y,0,1).getTime(),e=new Date(y+1,0,1).getTi
   const so=ms.slice().sort((a,b)=>b.v-a.v),jn=(S.journal||[]).filter(j=>j.t>=s&&j.t<e).length,bav=S.pension?bavMon()*Math.max(0,Math.min(12,(Math.min(e,Date.now())-Math.max(s,histT(),dataStart()))/(30.44*864e5))):0;
   return{y,s,inc,out,saved,top,cats,fix,big,letGo,nW:W.length,ns,ms,best:so[0],worst:so.length>1?so[so.length-1]:null,jn,freq,n:L.length,arch:AR.length,bav:Math.round(bav)}}
 /* Budgets im Jahr: abgeschlossene Zeiträume, in denen das Budget gehalten hat */
-function yearBud(y){const os=[],ds=dataStart();for(let o=-1;o>-25;o--){const P=period(o);if(P.e.getTime()<=ds)break;const yy=P.s.getFullYear();if(yy>y)continue;if(yy<y)break;os.push(o)}
+function yearBud(y){const os=[],ds=dataStart();for(let o=-1;o>-25;o--){const P=period(o);if(P.e.getTime()<=ds)break;const yy=P.m.getFullYear();if(yy>y)continue;if(yy<y)break;os.push(o)}
   return BUDG.map(b=>{const r=os.map(o=>calc(b,o)).filter(c=>c.total>0);return{b,ok:r.filter(c=>c.rest>=0).length,n:r.length}}).filter(x=>x.n)}
 function yrChart(ms,best,worst){const W=340,H=170,X0=40,top=12,bot=H-22,mx0=Math.max(1,...ms.map(x=>Math.max(x.i,x.o))),st=[50,100,200,250,500,1000,2000,2500,5000,10000,20000,50000].find(v=>v*4>=mx0)||Math.ceil(mx0/4),mx=st*Math.ceil(mx0/st),sw=(W-X0)/12,L='JFMAMJJASOND',Y=v=>bot-v/mx*(bot-top),k=v=>v>=1000?(v/1000).toLocaleString('de-DE',{maximumFractionDigits:1})+'k':String(v);let g='';
   for(let v=0;v<=mx+.1;v+=st)g+=`<line x1="${X0}" x2="${W}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--sep)" stroke-width="1"/><text x="${X0-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${k(v)}${v?'':' €'}</text>`;
@@ -877,7 +877,7 @@ function viewYplan(inl){const it=yplanStatus();
   ${potHtml(SP,true)}
   <div class="bcheck ${need>sb?'bad':need>sb*.8?'warn':'ok'}"><div class="bc-h">${I(need>sb?'alert':'check',18)}<b>${need>sb?'Der Zufluss reicht nicht':'Der Zufluss reicht'}</b></div><div>${need>sb?`Dir fehlen ${eur(need-sb)} im Monat. Erhöhe den Zufluss in Sinking Funds oder streiche geplante Ausgaben.`:`Es bleiben ${eur(sb-need)} im Monat für Ziele ohne Termin und Sonstiges.`}</div></div>
   <div class="mmcard">${it.map(x=>`<div class="srow"><div class="srow-h"><span><b>${esc(x.n)}</b> <span class="s" style="font-size:12px;color:var(--muted)">${MN2[x.m-1]}${x.src=='dauerauftrag'?' · Dauerauftrag, läuft über Comdirect':''}</span></span><span></span><b>${eur0(x.a)}</b></div>
-    ${x.src=='eigen'?`<div class="nsbar" style="margin:6px 0 4px"><i style="width:${Math.min(100,x.got/x.a*100).toFixed(0)}%;background:${x.ok?'var(--ok)':'var(--warn)'}"></i></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=x.a-0.5?`<b class="in">voll angespart</b>${x.proj?' · Projekt':''}`:`<b class="${x.ok?'in':'out'}">${x.ok?'auf Kurs':eur0(x.behind)+' hinterher'}</b>${x.proj?' · Projekt':''} · ${eur0(x.got)} angespart · noch ${eur(x.need)}/Monat in ${x.moE} Monat${x.moE>1?'en':''}`}</span><span></span></div><div class="srow-h" style="font-size:12px">${x.got>=x.a-0.5?'<span></span>':`<button class="link" data-ysk="${x.id}">${x.skipNext?MN2[period(1).s.getMonth()]+' wieder einplanen':MN2[period(1).s.getMonth()]+' aussetzen'}</button>`}<span></span><button class="link" data-ypx="${x.id}" style="color:var(--bad)">Entfernen</button></div>`:''}</div>`).join('')||'<div class="empty">Noch nichts geplant.</div>'}</div>
+    ${x.src=='eigen'?`<div class="nsbar" style="margin:6px 0 4px"><i style="width:${Math.min(100,x.got/x.a*100).toFixed(0)}%;background:${x.ok?'var(--ok)':'var(--warn)'}"></i></div><div class="srow-h" style="font-size:12px;color:var(--muted)"><span>${x.got>=x.a-0.5?`<b class="in">voll angespart</b>${x.proj?' · Projekt':''}`:`<b class="${x.ok?'in':'out'}">${x.ok?'auf Kurs':eur0(x.behind)+' hinterher'}</b>${x.proj?' · Projekt':''} · ${eur0(x.got)} angespart · noch ${eur(x.need)}/Monat in ${x.moE} Monat${x.moE>1?'en':''}`}</span><span></span></div><div class="srow-h" style="font-size:12px">${x.got>=x.a-0.5?'<span></span>':`<button class="link" data-ysk="${x.id}">${x.skipNext?MN2[period(1).m.getMonth()]+' wieder einplanen':MN2[period(1).m.getMonth()]+' aussetzen'}</button>`}<span></span><button class="link" data-ypx="${x.id}" style="color:var(--bad)">Entfernen</button></div>`:''}</div>`).join('')||'<div class="empty">Noch nichts geplant.</div>'}</div>
   <div class="mmcard"><div class="shadd"><input id="ypN" placeholder="z. B. Geburtstag Mama"><input id="ypA" inputmode="decimal" placeholder="€" style="flex:0 0 70px;text-align:right"><select id="ypM" style="flex:0 0 74px;background:var(--fill);border-radius:10px;padding:10px 6px">${MN2.map((m,i)=>`<option value="${i+1}" ${i==(now.getMonth()+2)%12?'selected':''}>${m.slice(0,3)}</option>`).join('')}</select><button class="btn" id="ypAdd" style="width:auto;padding:9px 12px">${I('plus',18)}</button></div>
    <div class="chips" style="padding:0 12px 10px">${[['Weihnachten',250,12],['Urlaub',800,7],['Geburtstage',150,5],['Kfz/Steuer',120,3],['Kletterausrüstung',200,4]].map(([n,a,m])=>`<button class="chip" data-ysug="${n}|${a}|${m}">${n}</button>`).join('')}</div></div>
   `}
@@ -1220,7 +1220,7 @@ function rlTick(){let ch=0;
 function rlDues(H){const D=[];rlRecs().forEach(r=>{for(let o=0;o<H;o++){const P=period(o),k=pkey(P);if(!recDue(r,P)||(r.skip||[]).includes(k))continue;if(o==0&&S.exp.some(e=>(e.rid==r.id||e.rlp==r.id)&&e.pk==k))continue;D.push({o,a:recA(r,P),r})}});return D}
 function rlMonthly(){return Math.ceil(rlRecs().reduce((s,r)=>s+r.a/(r.every||1),0)-0.001)}
 const rlBooked=()=>S.exp.some(e=>e.rlm==pkey(period(0)));
-const rlMonL=o=>esc(period(o).s.toLocaleDateString('de-DE',{month:'long'}));
+const rlMonL=o=>esc(period(o).m.toLocaleDateString('de-DE',{month:'long'}));
 function rlDAh(){return S.rlDAh=S.rlDAh||[]}
 function rlDAk(k){let a=null;rlDAh().slice().sort((x,y)=>x.from<y.from?-1:x.from>y.from?1:0).forEach(x=>{if(x.from<=k)a=x.a});return a}
 function rlDAnow(){return rlDAk(pkey(period(1)))}
@@ -1264,7 +1264,7 @@ function rlSync(){const ra=rlAccN(),L=rlRecs();if(!ra||!L.length)return;const ba
   const it=L.map(r=>({r,n:rlNext(r),f:r.fund||(r.fund={got:0})})).sort((a,b)=>(a.n?a.n.d:9e15)-(b.n?b.n.d:9e15));
   if(d>0)it.forEach(x=>{if(d<0.01)return;const cap=Math.max(0,(x.n?x.n.a:x.r.a)-x.f.got),a=Math.min(cap,d);x.f.got=rl2(x.f.got+a);d-=a});
   else it.reverse().forEach(x=>{if(d>-0.01)return;const a=Math.min(x.f.got,-d);x.f.got=rl2(x.f.got-a);d+=a});save()}
-const rlMon=o=>esc(period(o).s.toLocaleDateString('de-DE',{month:'short'}).replace('.',''));
+const rlMon=o=>esc(period(o).m.toLocaleDateString('de-DE',{month:'short'}).replace('.',''));
 /* Zeitleiste ab nächstem Monat als Abschnitte gleicher Rate */
 function rlSegs(H){const S0=[];for(let o=1;o<H;o++){const v=rlRateAt(o);const l=S0[S0.length-1];if(l&&l.v==v)l.to=o;else S0.push({v,from:o,to:o})}return S0}
 function rlCardH(){const ra=rlAccN(),L=rlRecs();if(!ra||!L.length)return '';rlSync();

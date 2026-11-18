@@ -46,7 +46,8 @@ function period(off,start){const P=start||S.start,LW=!start&&S.startLW;let s=mSt
   s=mStart(s.getFullYear(),s.getMonth()+off,start);const e=mStart(s.getFullYear(),s.getMonth()+1,start);
   const len=Math.round((e-s)/864e5),idx=off==0?Math.floor((new Date(now.getFullYear(),now.getMonth(),now.getDate())-s)/864e5)+1:off<0?len:0;
   const label=P==1&&!LW?s.toLocaleDateString('de-DE',{month:'long',year:'numeric'}):s.toLocaleDateString('de-DE',{day:'numeric',month:'short'})+' – '+new Date(e-864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'});
-  return{s,e,len,idx,left:Math.max(len-idx+1,0),label}}
+  /* v460: m = Mitte des Finanzmonats – nach ihm wird der Monat benannt (30.10.–29.11. = November) */const m=new Date(s.getTime()+Math.floor(len/2)*864e5);
+  return{s,e,m,len,idx,left:Math.max(len-idx+1,0),label}}
 const pkey=p=>p.s.toISOString().slice(0,10);
 if(!S){S=DEF();S.exp=sample()}
 if(S.ex&&!S.v5){S.exp=sample();S.v5=true}
@@ -88,7 +89,7 @@ function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new 
   if(d>=p.e)return null;const st=r.start||recAnc(r);if(st){const s=new Date(st+'T00:00');if(d<s)return null;const md=(d.getFullYear()-s.getFullYear())*12+d.getMonth()-s.getMonth();if((r.every||1)>1&&md%(r.every)!==0)return null}
   if(r.end&&d>new Date(r.end+'T23:59'))return null;return d}
 const budFor=(b,p)=>{if(S.sink3&&b==sinkAcc()&&p.s.getTime()>=S.sink3){/* v253: Zufluss vergangener Monate bleibt eingefroren, damit der Bestand sich nicht rückwirkend ändert */const k=pkey(p),past=p.e.getTime()<Date.now();if(past&&S.sinkIn&&S.sinkIn[k]!=null)return S.sinkIn[k];const v=sinkSum()+(+S.sinkExtra||0);if(!past&&p.s.getTime()<=Date.now())(S.sinkIn||(S.sinkIn={}))[k]=v;return v}const k=pkey(p),o=(S.monthOv||{})[k];if(o&&o.b&&o.b[b]!=null)return o.b[b];const pn=S.planNext;if(pn&&pn.b&&pn.b[b]!=null&&k>=pn.pk)return pn.b[b];return S.budgets[b]||0};
-const monS=p=>p.s.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
+const monS=p=>p.m.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
 /* Eine Quelle für den Betrag einer wiederkehrenden Buchung in einem Monat: normal · Monats-Ausnahme · Vormerkung · neuer Betrag */
 function recView(r,p){const k=pkey(p),o=(S.monthOv||{})[k],base=r.a;let a=r.a,kind=null,lab='',src=null;
   if(o&&o.r&&o.r[r.id]!=null){a=o.r[r.id];kind='once';lab='nur '+monS(p)}
