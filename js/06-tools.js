@@ -1317,7 +1317,7 @@ function wkItems(){const to=Date.now()+VM_D*864e5,L=[];
   try{kkItems().forEach(x=>L.push({t:x.t,k:'kk',x}))}catch(e){}
   return L.sort((a,b)=>a.t-b.t)}
 function wkRow(it){const x=it.x,d=new Date(it.t).toLocaleDateString('de-DE',{day:'numeric',month:'short'});let at,n,sub,a;
-  if(it.k=='vm'){at=`data-vm="${esc(x.id)}"`;n=esc(x.n||x.c||'Umbuchung');sub=x.k=='rec'?VM_R[x.ev]||'Fixkosten':x.type=='tr'?'Umbuchung':'einmalig geplant';a=(x.est?'ca. ':'')+(x.type=='in'?'+':x.type=='tr'?'':'−')+eur(x.a)}
+  if(it.k=='vm'){at=`data-vm="${esc(x.id)}"`;n=esc(x.n||x.c||'Umbuchung');sub=x.k=='rec'?(VM_R[x.ev]||'Fixkosten')+(x.mv?' · verschoben vom '+x.mv+'.':''):x.type=='tr'?'Umbuchung':'einmalig geplant';a=(x.est?'ca. ':'')+(x.type=='in'?'+':x.type=='tr'?'':'−')+eur(x.a)}
   else if(it.k=='sam'){const p=samPv(x.sam.pid);at=`data-samp="${esc(x.id)}"`;n=esc(p?p.n:'Laden')+' · '+samMon(x.sam.ym);sub='Sammelabrechnung';a='−'+eur(x.a)}
   else{at=`data-kkp="${esc(x.p.id)}|${x.ym}"`;n=esc(x.p.n)+' · '+samMon(x.ym);sub='Kreditkarte · '+x.c+(x.c==1?' Kauf':' Käufe');a='−'+eur(x.a)}
   return `<button class="cell" ${at}><div class="t"><div>${n}</div><div class="s">${d} · ${sub}</div></div><div class="v">${a}</div><span class="chev">›</span></button>`}

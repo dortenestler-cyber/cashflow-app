@@ -40,8 +40,16 @@ function preBakGet(){return bakDB().then(db=>new Promise(res=>{const q=db.transa
 if(S&&RAW0)baseBakEnsure(RAW0);if(S&&RAW0&&(S.schema||0)<SCHEMA){preBakPut(RAW0,S.schema||0);S.schema=SCHEMA;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}}
 if(S&&(S.fut||S.futPlan||S.futOff1||(S.featO&&'fut' in S.featO))){delete S.fut;delete S.futPlan;delete S.futOff1;if(S.featO)delete S.featO.fut;try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v231: Future-Reiter entfernt, Altdaten aufgeräumt */
 if(S&&S.exp&&S.exp.some(e=>e.sh&&e.sh.by!='me'&&e.a)){S.exp.forEach(e=>{if(e.sh&&e.sh.by!='me')e.a=0});try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}} /* v229: Zahlungen anderer belasten kein eigenes Konto */
+/* v461: Werktage – Feiertage Bayern (rechnerisch, Osterformel) */
+const HOLC={};function holBY(y){if(HOLC[y])return HOLC[y];const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1,E=new Date(y,mo-1,da),o=n=>{const x=new Date(E);x.setDate(x.getDate()+n);return (x.getMonth()+1)+'-'+x.getDate()};
+  return HOLC[y]=new Set(['1-1','1-6','5-1','8-15','10-3','11-1','12-25','12-26',o(-2),o(1),o(39),o(50),o(60)])}
+const isHol=d=>holBY(d.getFullYear()).has((d.getMonth()+1)+'-'+d.getDate()),isWD=d=>d.getDay()!=0&&d.getDay()!=6&&!isHol(d);
+/* Lastschriften/Daueraufträge auf den nächsten Werktag, Einnahmen vorziehen; Sparpläne nicht. Bleibt im eigenen Finanzmonat. */
+const recIsSp=r=>{try{return typeof depot=='function'&&depot().some(h=>h.rid==r.id)}catch(e){return false}};
+const recWdOn=r=>r.wd===false?false:r.wd===true?true:!recIsSp(r);
+function recWD(r,d,p){if(!d||!recWdOn(r)||isWD(d))return d;const dir=r.type=='in'?-1:1,mv=n=>{const x=new Date(d);while(!isWD(x))x.setDate(x.getDate()+n);return x};let x=mv(dir);if(x>=p.e||x<p.s)x=mv(-dir);if(x>=p.e||x<p.s)return d;x.mv=d.getDate();return x}
 /* v419: Monatsbeginn – fester Tag (1–28) oder letzter Werktag (Mo–Fr) des Monats, Feiertage zählen als Werktag */
-function mStart(y,m,start){if(!start&&S.startLW){const d=new Date(y,m+1,0);while(d.getDay()==0||d.getDay()==6)d.setDate(d.getDate()-1);return d}return new Date(y,m,start||S.start)}
+function mStart(y,m,start){if(!start&&S.startLW){const d=new Date(y,m+1,0);while(!isWD(d))d.setDate(d.getDate()-1);return d}return new Date(y,m,start||S.start)}
 function period(off,start){const P=start||S.start,LW=!start&&S.startLW;let s=mStart(now.getFullYear(),now.getMonth(),start);if(now<s)s=mStart(now.getFullYear(),now.getMonth()-1,start);
   s=mStart(s.getFullYear(),s.getMonth()+off,start);const e=mStart(s.getFullYear(),s.getMonth()+1,start);
   const len=Math.round((e-s)/864e5),idx=off==0?Math.floor((new Date(now.getFullYear(),now.getMonth(),now.getDate())-s)/864e5)+1:off<0?len:0;
@@ -87,7 +95,7 @@ addEventListener('pagehide',()=>{if(svT)saveNow()});document.addEventListener('v
 function recAnc(r){if((r.every||1)<=1)return '';if(r.anc)return r.anc;const L=(S.exp||[]).filter(e=>e.rid==r.id&&!e.corr);const t=L.length?Math.min(...L.map(e=>e.t)):Date.now(),d=new Date(t);r.anc=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';try{save()}catch(e){}return r.anc}
 function recDue(r,p){const dim=(y,m)=>new Date(y,m+1,0).getDate(),mk=(y,m)=>new Date(y,m,Math.min(r.day,dim(y,m)),12);let d=mk(p.s.getFullYear(),p.s.getMonth());if(d<p.s){const n=new Date(p.s.getFullYear(),p.s.getMonth()+1,1);d=mk(n.getFullYear(),n.getMonth())}
   if(d>=p.e)return null;const st=r.start||recAnc(r);if(st){const s=new Date(st+'T00:00');if(d<s)return null;const md=(d.getFullYear()-s.getFullYear())*12+d.getMonth()-s.getMonth();if((r.every||1)>1&&md%(r.every)!==0)return null}
-  if(r.end&&d>new Date(r.end+'T23:59'))return null;return d}
+  if(r.end&&d>new Date(r.end+'T23:59'))return null;return recWD(r,d,p)}
 const budFor=(b,p)=>{if(S.sink3&&b==sinkAcc()&&p.s.getTime()>=S.sink3){/* v253: Zufluss vergangener Monate bleibt eingefroren, damit der Bestand sich nicht rückwirkend ändert */const k=pkey(p),past=p.e.getTime()<Date.now();if(past&&S.sinkIn&&S.sinkIn[k]!=null)return S.sinkIn[k];const v=sinkSum()+(+S.sinkExtra||0);if(!past&&p.s.getTime()<=Date.now())(S.sinkIn||(S.sinkIn={}))[k]=v;return v}const k=pkey(p),o=(S.monthOv||{})[k];if(o&&o.b&&o.b[b]!=null)return o.b[b];const pn=S.planNext;if(pn&&pn.b&&pn.b[b]!=null&&k>=pn.pk)return pn.b[b];return S.budgets[b]||0};
 const monS=p=>p.m.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
 /* Eine Quelle für den Betrag einer wiederkehrenden Buchung in einem Monat: normal · Monats-Ausnahme · Vormerkung · neuer Betrag */
@@ -111,7 +119,7 @@ function applyRec(){try{rlTick()}catch(e){}const cur=pkey(period(0)),run=S.recRu
   for(let o=-3;o<=0;o++){const p=period(o),k=pkey(p);if(o<0&&(!run||k<=run.pk||p.e.getTime()<=S.since))continue;
     R.forEach(r=>{if(r.paused||(o<0&&!ids.includes(r.id)))return;const d=recDue(r,p);
       if(!d||d>now||(r.skip||[]).includes(k)||S.exp.some(e=>e.rid==r.id&&e.pk==k)||S.recHold.some(h=>h.rid==r.id&&h.pk==k))return;
-      const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;
+      const v=recView(r,p),x={id:uid(),type:r.type,b:r.b,to:r.to,alloc:r.alloc,c:r.c,a:v.a,n:r.n,t:d.getTime()+12*36e5>Date.now()?Date.now():d.getTime()+12*36e5,rid:r.id,pk:k};if(v.kind)x.adj=v;if(d.mv)x.mv=d.mv;
       const rf=typeof rlOn=='function'&&rlOn(r)&&S.exp.some(e=>e.rlp==r.id&&e.pk==k)?1:0;
       if(r.type!='in'&&!r.neg&&!rf&&ALL.includes(r.b)&&calc(r.b).rest-v.a<-0.005){S.recHold.push({rid:r.id,pk:k,x,d:d.getTime()});return}
       S.exp.push(x)})}
