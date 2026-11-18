@@ -291,6 +291,7 @@ function clipActs(d){const recs=d.recs||[],dups=d.dups||[],open=d.open||[],acts=
  if(d.shop)acts.push(['Zettel öffnen',()=>{prevTab=tab;tab='more';setView='shop';render();scrollTo(0,0)}]);
  return acts}
 ACTREB.clip=clipActs;
+/* v444: Aktion „Was kommt diese Woche“ auch in gespeicherten Chats */ACTREB.kommt=()=>[['Was kommt diese Woche',()=>{asstOpen=false;curB=null;setView=null;tab='wish';wishV='Monat';render();renderAsst();scrollTo(0,0)}]];
 const CLIPPFX=/^(apple ?pay\b|buchung\s*:|einkauf(?:sliste|szettel)?\s*:)/i;
 Object.assign(TIPFN,{
  clipGo:async()=>{clipAsk=false;let t='';try{t=await navigator.clipboard.readText()}catch(e){}return TIPFN.clipRun((t||'').trim())},
@@ -524,7 +525,7 @@ function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><d
     f=ai?['Reicht es bis Monatsende?','Wo kann ich sparen?','Was ist auffällig?']:['Reicht es bis Monatsende?','Was kommt demnächst?','Vergleich zum Vormonat']}
   /* v440: Penny antwortet zuerst in einem Satz, Zahlen-Details aufklappbar; Blatt öffnet halbhoch */const lead=(()=>{try{const t=pnHint(kind);if(t)return t}catch(e){}if(!PNK[kind]&&kind!='year'){const P=period(0),R=BUDG.reduce((s,b)=>s+calc(b).rest,0),d=Math.max(P.left,1);return R>=0?`Noch ${eur0(R)} für ${d} ${d==1?'Tag':'Tage'}, das sind ${eur0(R/d)} pro Tag.`:`Diesen Monat ${eur0(-R)} über Budget.`}return ''})();if(lead)h=`<p class="a-lead">${lead}</p><details class="a-more"><summary>Details</summary>${h}</details>`;
   const go=(fn)=>()=>{asstOpen=false;curB=null;setView=null;fn();render();renderAsst();scrollTo(0,0)},act=(!PNK[kind]&&kind!='year')?[['Was kommt diese Woche',go(()=>{tab='wish';wishV='Kommt'})]]:null;
-  AQ.msgs=[{q:'',tt:q,h,a:act,f:(f||[]).slice(0,3)}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;ASH='half';renderAsst();setTimeout(()=>{const b=document.querySelector("#asstRoot .apop-b");if(b)b.scrollTop=0},60)}
+  AQ.msgs=[{q:'',tt:q,h,a:act,ad:act?{k:'kommt'}:null,f:(f||[]).slice(0,3)}];AQ.id=0;AQ.ctx=ctx;asstHist=false;asstTips=false;try{AI.conv=[]}catch(e){}asstOpen=true;ASH='half';renderAsst();setTimeout(()=>{const b=document.querySelector("#asstRoot .apop-b");if(b)b.scrollTop=0},60)}
 /* v398: Penny fragen – je Seite Lage, Kontext für die KI und drei passende Fragen */
 const PNK={
  list:(sr,ai)=>{const P=period(0),D=864e5,L=S.exp.filter(e=>!isPlan(e)&&!e.corr),w=L.filter(e=>e.type=='out'&&e.t>Date.now()-7*D),ws=w.reduce((s,e)=>s+e.a,0),nc=L.filter(e=>e.type!='tr'&&inP(e,P)&&!e.c).length,sp=(S.siriPend||[]).length;

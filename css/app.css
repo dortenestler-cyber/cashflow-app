@@ -1642,3 +1642,7 @@ body.mm .vmmenu{flex-wrap:wrap;gap:8px;padding:4px 0 12px;border-bottom:1px soli
 #asstRoot .abar{display:none!important}
 /* v443: Favoriten auf Heute links ausgerichtet statt über die volle Breite verteilt */
 body.mm .d2-fav{justify-content:flex-start!important;gap:28px!important}
+.rec-c{cursor:pointer}
+body.mm .mmsum1 .pl1{font-style:italic;color:var(--muted)}
+.lthead{position:relative}.lthead .hc-pn-x{position:absolute;top:2px;right:0}
+.dhero{position:relative}.dhero .hc-pn-x{position:absolute;top:10px;right:10px;z-index:2}
