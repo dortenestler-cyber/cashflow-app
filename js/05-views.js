@@ -507,12 +507,12 @@ function catTrend(bs){
 let DSC={k:-1,v:0};function dataStart(){if(DSC.k===DV)return DSC.v;const t=(S.exp||[]).filter(e=>!isPlan(e)&&!e.corr).reduce((m,e)=>Math.min(m,e.t),Infinity);const d=new Date(isFinite(t)?t:Date.now());d.setHours(0,0,0,0);DSC={k:DV,v:Math.max(d.getTime(),histT())};return DSC.v}
 const recKind=r=>r.type=='out'?'fix':r.type=='tr'?(acc(r.to).kind=='budget'&&!isTabu(r.to)?'bud':'spar'):'fix';
 function dupRecs(){const G={};(S.rec||[]).filter(r=>!r.paused&&r.type!='in').forEach(r=>{const k=r.type=='tr'?['tr',r.b,r.to,r.a].join('|'):['out',r.b,r.a,subKey(r.n||r.c)].join('|');(G[k]=G[k]||[]).push(r)});return Object.values(G).filter(L=>L.length>1)}
-function fcRec(an,o,open){const p=period(o),k=pkey(p);let inn=0,out=0;const items=[];
+function fcRec(an,o,open){const p=period(o),k=pkey(p);let inn=0,out=0;const items=[],ins=[];
   (S.rec||[]).forEach(r=>{if(r.paused)return;const d=recDue(r,p);if(!d)return;if(open&&S.exp.some(e=>e.rid==r.id&&e.pk==k))return;
-    const ra=recA(r,p);if((r.type=='in'&&r.b==an)||(r.type=='tr'&&r.to==an))inn+=ra;else if((r.type=='out'||r.type=='tr')&&r.b==an){out+=ra;items.push({n:r.n||r.c,a:ra,d,b:an,every:r.every||1,k:recKind(r)})}});
-  S.exp.forEach(e=>{if(!isPlan(e)||!inP(e,p)||e.rid)return;if((e.type=='in'&&e.b==an)||(e.type=='tr'&&e.to==an))inn+=e.a;else if(e.b==an&&(e.type=='out'||e.type=='tr')){out+=e.a;items.push({n:e.n||e.c,a:e.a,d:new Date(e.t),b:an,plan:1,k:'plan'})}});
-  if(!open){const rf=refundIn(an,p,o);if(rf)inn+=rf;const pj=projIn(an,p,o);if(pj>0)inn+=pj;else if(pj<0){out+=-pj;items.push({n:'Projekte ausgleichen',a:-pj,d:p.s,b:an,k:'plan'})}}
-  return{inn,out,items}}
+    const ra=recA(r,p);if((r.type=='in'&&r.b==an)||(r.type=='tr'&&r.to==an)){inn+=ra;ins.push({n:r.n||r.c,a:ra,d,b:r.type=='tr'?r.b:null,rid:r.id})}else if((r.type=='out'||r.type=='tr')&&r.b==an){out+=ra;items.push({n:r.n||r.c,a:ra,d,b:an,to:r.type=='tr'?r.to:null,every:r.every||1,k:recKind(r),rid:r.id})}});
+  S.exp.forEach(e=>{if(!isPlan(e)||!inP(e,p)||e.rid)return;if((e.type=='in'&&e.b==an)||(e.type=='tr'&&e.to==an)){inn+=e.a;ins.push({n:e.n||e.c,a:e.a,d:new Date(e.t),b:e.type=='tr'?e.b:null,id:e.id})}else if(e.b==an&&(e.type=='out'||e.type=='tr')){out+=e.a;items.push({n:e.n||e.c,a:e.a,d:new Date(e.t),b:an,plan:1,k:'plan',id:e.id})}});
+  if(!open){const rf=refundIn(an,p,o);if(rf){inn+=rf;ins.push({n:'Erwartete Rückzahlungen',a:rf,d:p.s})}const pj=projIn(an,p,o);if(pj>0){inn+=pj;ins.push({n:'Projekte',a:pj,d:p.s})}else if(pj<0){out+=-pj;items.push({n:'Projekte ausgleichen',a:-pj,d:p.s,b:an,k:'plan'})}}
+  return{inn,out,items,ins}}
 /* ---------- Budget-Simulator ---------- */
 /* v242: Ø einmalig nur aus Buchungen ab Stichtag (Standard 01.10.2026, nie vor „Aktiv ab“); angebrochene Monate werden hochgerechnet */
 const oneFromD=()=>{const a=S.oneFrom||'2026-10-01',h=HISTD();return a>h?a:h};
@@ -668,13 +668,19 @@ function fcCore(N){N=N||6;const pa=pufAcc(),mn=o=>period(o).m.toLocaleDateString
   const M=[];let E=null,over=0;
   let x0=0;if(pa){const o0=fcRec(pa.n,0,true);E=pufBal()+o0.inn-o0.out;x0=Math.max(0,E-1000);over+=x0;E-=x0}const E0=E;
   const FO=fcOne(pa),oneFrom=FO.from,oneInfo=FO.info,one=pa?FO.one:0;
-  for(let o=1;o<=N;o++){const r=pa?fcRec(pa.n,o):{inn:0,out:0,items:[]};let x=0;if(pa){E+=r.inn-r.out-one;x=Math.max(0,E-1000);E-=x;over+=x}const kk=k=>r.items.filter(it=>it.k==k).reduce((s,it)=>s+it.a,0);M.push({o,l:mn(o),inn:r.inn,fix:r.out,fx:kk('fix'),bud:kk('bud'),spar:kk('spar'),plan:kk('plan'),items:r.items,one,end:E,x})}
+  for(let o=1;o<=N;o++){const r=pa?fcRec(pa.n,o):{inn:0,out:0,items:[]};let x=0;if(pa){E+=r.inn-r.out-one;x=Math.max(0,E-1000);E-=x;over+=x}const kk=k=>r.items.filter(it=>it.k==k).reduce((s,it)=>s+it.a,0);M.push({o,l:mn(o),inn:r.inn,fix:r.out,fx:kk('fix'),bud:kk('bud'),spar:kk('spar'),plan:kk('plan'),items:r.items,ins:r.ins||[],one,end:E,x})}
   return{N,pa,mn,ds,avg3,M,E0,x0,over,oneFrom,oneInfo,one}}
 /* v230: frühestes drohendes Minus (Puffer oder Konto) in den nächsten 12 Monaten, für die Übersicht */
 function fcWarn(){try{const C=fcCore(12),out=[];if(C.pa){const m=C.M.find(m=>m.end<0);if(m)out.push({n:C.pa.n,o:m.o,v:m.end,puf:true})}
   const F=fcAccModel(C);F.rows.filter(r=>r.kind=='konto'&&(!C.pa||r.n!=C.pa.n)).forEach(r=>{const i=r.vals.findIndex((x,i)=>i>0&&x<-0.5);if(i>0)out.push({n:r.n,o:i,v:r.vals[i]})});
   out.sort((x,y)=>x.o-y.o);const w=out.find(x=>!(S.fcWarnOff||[]).includes(fcWarnKey(x)));return w||null}catch(e){return null}}
 const fcWarnKey=w=>w.n+'|'+pkey(period(w.o))+'|'+Math.round(w.v/50);
+/* v475: Prognose-Monate aufklappbar – jeder Posten führt zur Buchung oder wiederkehrenden Buchung */let fcOpen=null;
+function fcDetH(m){const KL={fix:'Fixkosten',bud:'Budgets',spar:'Sparen',plan:'geplant'},at=x=>x.rid?`data-recid="${esc(x.rid)}"`:x.id?`data-id="${esc(x.id)}"`:'',
+  row=(x,sg,sub)=>`<${at(x)?'button':'div'} class="cell ${at(x)?'':'plain'}" ${at(x)}><div class="t"><div>${esc(x.n||'Posten')}</div><div class="s">${x.d.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} · ${sub}</div></div><div class="v ${sg=='+'?'in':''}">${sg}${eur(x.a)}</div>${at(x)?'<span class="chev">›</span>':''}</${at(x)?'button':'div'}>`;
+  const ins=(m.ins||[]).slice().sort((a,b)=>a.d-b.d),out=m.items.slice().sort((a,b)=>a.d-b.d);
+  return `<div class="fc-det">${ins.map(x=>row(x,'+','Eingang'+(x.b?' · von '+esc(SHORT[x.b]||x.b):''))).join('')}${out.map(x=>row(x,'−',(KL[x.k]||'')+(x.to?' · → '+esc(SHORT[x.to]||x.to):'')+(x.every>1?' · alle '+x.every+' Monate':''))).join('')||''}${!ins.length&&!out.length?'<div class="cell plain" style="color:var(--muted)">Keine Posten.</div>':''}</div>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-fco]');if(!t)return;const o=+t.dataset.fco;fcOpen=fcOpen===o?null:o;render()});
 function forecastHtml(){const{N,pa,mn,ds,avg3,M,E0,x0,over,oneFrom,oneInfo,one}=fcCore(6);
   const neg=M.filter(m=>m.end!=null&&m.end<0);
   // Chart
@@ -698,7 +704,8 @@ function forecastHtml(){const{N,pa,mn,ds,avg3,M,E0,x0,over,oneFrom,oneInfo,one}=
   ${(()=>{const D=dupRecs();return D.length?`<div class="tip">${I('alert',14)} <b>Vermutlich doppelt angelegt:</b> ${D.map(L=>L.map(r=>'„'+esc(r.n||r.c)+'“').join(' und ')+' ('+eur0(L[0].a)+')').join(' · ')}. Prüfe das unter Planen › Fixkosten.</div>`:''})()}
   <div class="sec"><div class="sh">${esc(pa.n)} Monat für Monat</div><div class="chartbox">${tcWrap(`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Prognose Eingänge, Ausgaben und Puffer">${g}</svg>`,{W,H,xs:M.map((m,i)=>5+cw*i+cw/2),bw:cw*.85,y0:H-bot,y1:top,tips:M.map(m=>tcHead(period(m.o).m.toLocaleDateString('de-DE',{month:'long',year:'numeric'}))+tcRow('Eingänge',m.inn,'var(--ok)')+tcRow('Fixkosten',m.fx,'var(--bad)')+(m.one?tcRow('Ø einmalig',m.one,'var(--bad)'):'')+(m.bud?tcRow('Budgets',m.bud,'var(--bad)'):'')+(m.spar?tcRow('Sparen',m.spar,'var(--bad)'):'')+(m.plan?tcRow('Geplant',m.plan,'var(--bad)'):'')+(pa?tcRow(SHORT[pa.n]||pa.n,m.end,'var(--blue)'):''))})}
    <div class="legend"><span><i style="background:var(--ok)"></i>Eingänge</span><span><i style="background:var(--bad)"></i>Geplante Abgänge${one?' + Ø Einmaliges':''}</span><span><i style="background:var(--blue)"></i>Puffer-Verlauf</span></div></div>
-   <div class="group">${M.map(m=>`<div class="cell plain"><div class="t"><div>${period(m.o).label}</div><div class="s">+${eur0(m.inn)} Eingänge · −${eur0(m.fx)} Fixkosten${m.bud?` · −${eur0(m.bud)} Budgets`:''}${m.spar?` · −${eur0(m.spar)} Sparen`:''}${m.plan?` · −${eur0(m.plan)} geplant`:''}${m.one?` · −${eur0(m.one)} Ø einmalig`:''}${m.x?` · ${eur0(m.x)} → Vermögensaufbau`:''}</div></div><div class="v ${m.end<0?'out':''}">${eur0(m.end)}</div></div>`).join('')}</div>
+   <div class="group">${M.map(m=>`<button class="cell" data-fco="${m.o}"><div class="t"><div>${period(m.o).label}</div><div class="s">+${eur0(m.inn)} Eingänge · −${eur0(m.fx)} Fixkosten${m.bud?` · −${eur0(m.bud)} Budgets`:''}${m.spar?` · −${eur0(m.spar)} Sparen`:''}${m.plan?` · −${eur0(m.plan)} geplant`:''}${m.one?` · −${eur0(m.one)} Ø einmalig`:''}${m.x?` · ${eur0(m.x)} → Vermögensaufbau`:''}</div></div><div class="v ${m.end<0?'out':''}">${eur0(m.end)}</div><span class="chev">${fcOpen==m.o?'⌄':'›'}</span></button>${fcOpen==m.o?fcDetH(m):''}`).join('')}</div>
+   <div class="note">Tippe auf einen Monat, um alle Posten zu sehen und anzupassen.</div>
    <div class="note">Fixkosten = echte wiederkehrende Ausgaben. Budgets = Monatsverteilung auf deine Budgetkonten. Sparen = Sparraten und Umbuchungen in den Vermögensaufbau. Gerechnet wird mit Geplantem: Einnahmen, Fixkosten, Budget-Verteilung, Sparraten und bereits erfasste zukünftige Buchungen.</div></div>`:`<div class="note">Lege in den Einstellungen ein Eingangskonto fest, dann wird auch dein Puffer vorausberechnet.</div>`}
   ${fcAccHtml({N,M,E0,x0,avg3,pa})}
   ${B.length?`<div class="sec"><div class="sh">Budgets im Schnitt</div><div class="group">${B.map(r=>`<div class="cell plain"><div class="ico" style="background:color-mix(in srgb,${COL[r.b]} 16%,transparent);color:${COL[r.b]}">${I('wallet')}</div><div class="t"><div>${esc(SHORT[r.b]||r.b)}</div><div class="s">Budget ${eur0(r.bud)} · erwartet Ø ${eur0(r.exp)}/Monat</div></div><div class="v ${r.d<0?'out':'in'}">${r.d<0?'−':'+'}${eur0(Math.abs(r.d*N))}<div class="s">in 6 Monaten</div></div></div>`).join('')}</div><div class="note">Minus heißt: Bleibt es beim bisherigen Tempo, reicht das Budget nicht.</div></div>`:''}
