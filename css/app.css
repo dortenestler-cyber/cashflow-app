@@ -1432,6 +1432,12 @@ body.mm .group,body.mm .mmcard,body.mm .chartbox,body.mm .gcard{box-shadow:none!
 .hb-pr b{font-family:var(--round);font-weight:600}.hb-pr b.out{color:var(--bad)}.hb-pr small{color:var(--muted);font-size:13px}
 .hb-bar{height:3px;border-radius:2px;background:var(--fill);overflow:hidden}.hb-bar i{display:block;height:3px;border-radius:2px;background:var(--c)}
 .hb-pot.st-bad .hb-bar i{background:var(--bad)}
+/* v470: Monatschart und Budget-Chips auf Heute */
+.hb-ch{padding:18px 0 4px;max-width:640px;color:var(--fg)}.hb-ch svg{display:block;touch-action:pan-y}
+.hb-leg{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px}.hb-leg i{display:inline-block;width:14px;vertical-align:middle;margin-right:5px}.hb-leg i.l{height:2px;background:var(--accent,var(--ok))}.hb-leg i.g{border-top:2px dashed var(--muted)}.hb-leg .r{margin-left:auto;font-variant-numeric:tabular-nums}
+.hb-chips{display:flex;flex-wrap:wrap;gap:8px;padding:14px 0 8px}
+.hb-pot.hb-chip{flex-direction:row;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:.5px solid var(--sep);font-size:13px;color:var(--muted)}
+.hb-chip>i{width:7px;height:7px;border-radius:50%;background:var(--c)}.hb-chip b{color:var(--fg);font-weight:600}.hb-chip b.out{color:var(--bad)}
 /* v428: Suche in den Einstellungen, „Was kommt“ */
 .morelist .mq{margin:4px 0 14px}.morelist .mq input{width:100%;box-sizing:border-box;height:44px;border-radius:14px;border:0;background:var(--fill);color:var(--fg);font:inherit;font-size:16px;padding:0 14px}
 .wk-first{margin-bottom:6px}
