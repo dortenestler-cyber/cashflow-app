@@ -1705,3 +1705,18 @@ html body.mm .ofc{border-radius:14px!important}
 
 /* v456: Sparplan-Zeile in Depot-Positionen */
 .dep-sp{display:flex;align-items:center;gap:4px;margin-top:3px;color:var(--accent);font-size:12px}.dep-sp.off{color:var(--muted)}.adjdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:4px;flex:none}
+/* v471: Heute am Desktop – zwei Spalten (links Betrag, Chart, Töpfe; rechts Geplant und Buchungen) statt verrutschtem Altraster */
+.hb-col1,.hb-col2{display:contents}
+@media (min-width:700px){
+ body[data-tab="dash"] .view{grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr)!important;grid-template-areas:"head head" "l r"!important;grid-template-rows:auto 1fr!important;gap:8px 48px!important;align-items:start!important}
+ body[data-tab="dash"] .view>.hb-head{grid-area:head}
+ body[data-tab="dash"] .view>.hb-col1{display:block;grid-area:l;min-width:0}
+ body[data-tab="dash"] .view>.hb-col2{display:block;grid-area:r;min-width:0;padding-top:22px}
+ body[data-tab="dash"] .hb-col2>.sec{margin:0 0 28px}
+}
+@media (min-width:1280px){body[data-tab="dash"] .view{max-width:1200px!important;margin-left:calc(232px + max(0px,(100vw - 232px - 1200px)/2))!important}}
+/* v471: Zeilen auf Heute bündig – Buchungen (Wisch-Hülle) wie geplante Zeilen, Beträge in einer Flucht */
+body.mm[data-tab="dash"] .group>.swr>.cell{padding-left:2px!important;padding-right:2px!important}
+body[data-tab="dash"] .hb-col2 .sh{align-items:center}
+body[data-tab="dash"] .d-up .chev{width:12px;flex:none;text-align:right}
+body[data-tab="dash"] .d-last .cell .v{margin-right:24px}
