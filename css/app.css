@@ -1722,3 +1722,7 @@ body[data-tab="dash"] .d-up .chev{width:12px;flex:none;text-align:right}
 body[data-tab="dash"] .d-last .cell .v{margin-right:24px}
 /* v472: Dein Jahr am Desktop – Jahresleiste und „Als Text kopieren“ über die volle Breite */
 @media (min-width:700px){body[data-tab="rep"] .view>.seg,body[data-tab="rep"] .view>.yr-share,body[data-tab="rep"] .view>#yrMsg{grid-column:1/-1}}
+/* v474: Planen › Monat – Verlaufs-Chart */
+.pm-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.pm-nav button{border:0;background:none;color:var(--fg);font:inherit;font-size:22px;padding:4px 12px;cursor:pointer}.pm-nav button:disabled{opacity:.25;cursor:default}.pm-nav .pm-m{font-size:16px;font-weight:600}
+.pm-k{display:flex;justify-content:space-between;gap:8px;margin:0 4px 10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}.pm-k span{display:flex;flex-direction:column}.pm-k span:nth-child(2){align-items:center}.pm-k span:last-child{align-items:flex-end}.pm-k b{font-size:15px;color:var(--fg);font-weight:600}.pm-k b.out{color:var(--out)}.pm-k small{font-size:11px}
+.pm-sw{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted)}

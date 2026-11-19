@@ -403,6 +403,40 @@ function hbChart(bs){const{p,v}=dayVals(bs,0),lim=budOf(bs)||0,n=p.len,W=330,H=1
   <text x="0" y="${H-4}" font-size="11" fill="var(--muted)">${f(p.s)}</text><text x="${Math.min(Math.max(lx,24),W-60)}" y="${H-4}" font-size="11" fill="var(--fg)" text-anchor="middle">heute</text><text x="${W}" y="${H-4}" font-size="11" fill="var(--muted)" text-anchor="end">${f(new Date(p.e-864e5))}</text></svg>
   <div class="hb-leg"><span><i class="l"></i>ausgegeben</span><span><i class="g"></i>geplant</span><span id="hbTip" class="r">${Math.abs(df)<1?'genau im Plan':eur0(Math.abs(df))+(df>0?' über':' unter')+' Plan'}</span></div></div>`}
 function dayVals(bs,o,kf){const p=period(o),v=Array(p.len).fill(0);RX().forEach(e=>{if(inP(e,p)&&!isPlan(e)){const i=Math.floor((e.t-p.s)/864e5);if(i>=0&&i<p.len)v[i]+=used(e,bs,kf)}});return{p,v}}
+/* v474: Planen › Monat – Verlauf aller Konten und Budgets ohne Sparen: Ist bis heute, Prognose danach (Budgets gleichmäßig verteilt), bis 12 Monate voraus */
+let pmO=0,pmAcc=(()=>{try{return localStorage.getItem('cf_pmAcc')=='1'}catch(e){return false}})();
+const pmF=(e,n)=>(e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n)?e.a:(e.type=='out'||e.type=='tr')&&e.b==n?-e.a:0;
+const pmU=(e,n)=>(e.type=='out'&&e.b==n)||(e.type=='tr'&&e.b==n&&!e.alloc)?e.a:(e.type=='in'&&e.b==n)||(e.type=='tr'&&e.to==n&&!e.alloc)?-e.a:0;
+function pmRows(){const VA=vaultAccs().concat(depAccs()),sk=sinkAcc();return S.accts.filter(a=>!VA.includes(a.n)&&a.rolle!='ruecklage'&&!isStock(a.n)&&a.n!=sk&&!isTabu(a.n)&&(isK(a.n)||BUDG.includes(a.n)))}
+function pmBal(n,T){const a=acc(n),an=ancD(a)&&T>a.baseD;let v=(typeof zinsAt=='function'?zinsAt(n,T):0)+(an?+a.baseVal:(a.start||0));S.exp.forEach(e=>{if(e.t<T&&!isPlan(e)&&(!an||e.t>=a.baseD))v+=pmF(e,n)});return v}
+function pmModel(o){const P=period(o),n=P.len,D=864e5,now=Date.now(),s=P.s.getTime(),de=i=>s+(i+1)*D,ti=o==0?P.idx-1:-1;
+  const fut=S.exp.filter(e=>isPlan(e)&&!e.tpl&&e.t<P.e.getTime()).concat(recVirt(now,P.e.getTime())),rows=[];
+  pmRows().forEach((a,k)=>{const nm=a.n,vals=Array(n).fill(0),col=a.col||COL[nm]||PCOL[k%PCOL.length];
+    if(isK(nm)){const B=calc(nm).rest,F=fut.filter(e=>pmF(e,nm));for(let i=0;i<n;i++){if(i<ti)vals[i]=pmBal(nm,de(i));else if(i==ti)vals[i]=B;else{const T=de(i);vals[i]=B+F.reduce((x,e)=>x+(e.t<T?pmF(e,nm):0),0)}}}
+    else{const c=calc(nm),R=c.rest;if(o==0){const L=S.exp.filter(e=>inP(e,P)&&!isPlan(e)&&pmU(e,nm));for(let i=0;i<n;i++)vals[i]=i<ti?R+L.reduce((x,e)=>x+(e.t>=de(i)?pmU(e,nm):0),0):R>0&&n-1>ti?R*(n-1-i)/(n-1-ti):R}
+      else{let v=R>0?0:R,st=0,ex=0;for(let q=1;q<=o;q++){const Q=period(q),b=budFor(nm,Q);st=(isCarry(a)?Math.max(v,0):0)+b;ex=Math.max(b,recPlan([nm],q));v=st-ex}for(let i=0;i<n;i++)vals[i]=st-ex*(i+1)/n}}
+    rows.push({n:nm,col,vals,k:isK(nm)})});
+  const sum=Array.from({length:n},(_,i)=>rows.reduce((x,r)=>x+r.vals[i],0)),bk=Array.from({length:n},()=>[]);
+  fut.forEach(e=>{if(e.t<s||!rows.some(r=>r.k&&pmF(e,r.n)))return;const i=Math.floor((e.t-s)/D);if(i>=0&&i<n&&i>ti)bk[i].push(e)});
+  return{P,n,ti,rows,sum,bk,s}}
+function pmChartH(){const o=pmO=Math.max(0,Math.min(12,pmO)),M=pmModel(o),{P,n,ti,rows,sum,bk,s}=M,D=864e5;if(!rows.length)return '';
+  const dl=i=>new Date(s+i*D),f=i=>dl(i).getDate()+'.'+(dl(i).getMonth()+1)+'.',lab=P.m.toLocaleDateString('de-DE',{month:'long',year:'numeric'});
+  let mi=0;sum.forEach((v,i)=>{if(v<sum[mi])mi=i});
+  const ser=[];if(pmAcc)rows.forEach(r=>ser.push({pts:r.vals,col:r.col,w:1.4,op:.7}));
+  if(ti>=0)ser.push({pts:sum.map((v,i)=>i<=ti?v:null),col:'var(--accent,var(--ok))',w:2.4});
+  ser.push({pts:sum.map((v,i)=>i>=Math.max(ti,0)?v:null),col:'var(--accent,var(--ok))',w:2.2,dash:'5 4',op:ti>=0?.8:1});
+  const sg=e=>{const x=rows.filter(r=>r.k).reduce((z,r)=>z+pmF(e,r.n),0);return (x>=0?'+':'−')+eur(Math.abs(x))};
+  const tips=sum.map((v,i)=>tcHead(dl(i).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'}))+tcRow(i<=ti?'Stand':'Prognose',v)+(pmAcc?rows.map(r=>tcRow(SHORT[r.n]||r.n,r.vals[i],r.col,WH(r.n))).join(''):'')+bk[i].map(e=>tcRow(e.n||e.c||'Umbuchung',sg(e))).join(''));
+  const marks=bk.map((L,i)=>L.length?{i,v:sum[i],col:'var(--accent,var(--ok))',n:L.length,r:3.5}:null).filter(Boolean);
+  const labels=[{i:0,t:f(0)},...(ti>0&&ti<n-1?[{i:ti,t:'heute',on:true}]:[]),{i:n-1,t:f(n-1)}];
+  const ch=lineChart({series:ser,n,labels,h:170,fit:true,tips,marks});
+  return `<div class="sec pm-ch"><div class="pm-nav"><button data-pmd="-1" ${o==0?'disabled':''} aria-label="Vormonat">‹</button><button class="pm-m" data-pmt="1" aria-label="Zurück zum aktuellen Monat">${lab}</button><button data-pmd="1" ${o>=12?'disabled':''} aria-label="Nächster Monat">›</button></div>
+   <div class="pm-k"><span>Start<b>${eur0(sum[0])}</b></span><span>Tiefster Stand<b class="${sum[mi]<0?'out':''}">${eur0(sum[mi])}</b><small>${f(mi)}</small></span><span>Monatsende<b class="${sum[n-1]<0?'out':''}">${eur0(sum[n-1])}</b></span></div>
+   <div class="chartbox">${ch}<div class="hb-leg">${ti>=0?'<span><i class="l"></i>Stand</span>':''}<span><i class="g"></i>Prognose</span><label class="pm-sw" for="pmAcc">Je Konto <input id="pmAcc" type="checkbox" class="switch" ${pmAcc?'checked':''}></label></div>
+   ${pmAcc?`<div class="dlg">${rows.map(r=>`<span class="dlg-i"><i style="background:${r.col}"></i><span>${esc(SHORT[r.n]||r.n)}</span><b>${WH(r.n)?MASK:eur0(r.vals[n-1])}</b><small>Monatsende</small></span>`).join('')}</div>`:''}</div>
+   <div class="note" style="padding:4px 4px 0">Alle Konten und Budgets ohne Sparen, Rücklagen und Vermögen. Prognose aus geplanten Buchungen, Budgets gleichmäßig auf die Tage verteilt.</div></div>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-pmd],[data-pmt]');if(!t||t.disabled)return;pmO=t.dataset.pmt?0:pmO+(+t.dataset.pmd);render()});
+document.addEventListener('change',e=>{if(!e.target||e.target.id!='pmAcc')return;pmAcc=e.target.checked;try{localStorage.setItem('cf_pmAcc',pmAcc?'1':'0')}catch(x){}render()});
 function cumChart(bs,o,col,kf){const{p,v}=dayVals(bs,o,kf),pr=dayVals(bs,o-1,kf),L0=kf===undefined?{v:budOf(bs),label:'Budget '+eur0(budOf(bs))}:kindLim(bs,o,kf),lim=L0?L0.v:0,n=p.len;
   let c=0,cum=v.map((x,i)=>(c+=x,o==0&&i>=p.idx?null:c));let c2=0,cum2=pr.v.map(x=>c2+=x).slice(0,n);while(cum2.length<n)cum2.push(c2);
   const ideal=Array.from({length:n},(_,i)=>lim*(i+1)/n);
@@ -942,7 +976,7 @@ function viewWish(){if(wishV=='Kommt')wishV='Monat';/* v442: „Kommt“ steht u
    const flow=`<div class="zwflow"><span><b>${ZS.wartet}</b>wartet</span><i>›</i><span><b>${ZS.spart}</b>spart</span><i>›</i><span><b>${ZS.gekauft}</b>gekauft</span><span><b>${ZS.verworfen}</b>verworfen</span></div>`;
    const wait0=`<div class="jbtns"><button class="btn" id="jUrge" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('hourglass',18)}Kaufcheck: Ich habe gerade einen Kaufimpuls</button></div><div class="sec"><div class="sh"><span>Wartet</span></div><div class="mmcard">${open.map(([w,i])=>wishRow(w,i)).join('')||'<div class="empty">Keine Wünsche in der Wartezeit. Neue Wünsche warten zuerst, bevor sie ein Sparziel werden.</div>'}</div></div>`;
    return head+`<div class="seg subseg" id="zielV"><button class="on" data-f="Liste">Ziele</button><button data-f="Impulse">Impulse</button></div>`+flow+wait0+goalsHtml()+(D.length?`<div class="sec"><div class="sh"><span>Schuldenfrei</span><button class="link" data-set="debts">Alle</button></div>${D.map(debtCard).join('')}</div>`:'')+toolBar(D.length?['proj']:['proj','debts'])}
-  if(wishV=='Monat'){const pend=!(S.closeDone||{})[pkey(period(yeTarget()??closeTarget()))];return pend?head+viewClose(true)+wasKommtH():head+wasKommtH()+viewClose(true)}/* v439: „Gehalt verteilen“ steht schon als Schritt 2 */
+  if(wishV=='Monat'){const pend=!(S.closeDone||{})[pkey(period(yeTarget()??closeTarget()))];return pend?head+viewClose(true)+pmChartH()+wasKommtH(pmO):head+pmChartH()+wasKommtH(pmO)+viewClose(true)}/* v439: „Gehalt verteilen“ steht schon als Schritt 2 */
   if(wishV=='Zukunft')return head+`<button class="btn soft" id="pcOpen" style="display:flex;justify-content:center;gap:6px;align-items:center;margin-bottom:10px">${I('pen',16)} Plan ändern</button><div class="seg" id="zukV">${[['Prog','Prognose'],['Sim','Was wäre, wenn …'],['Jahr','Jahresplaner']].map(([v,l])=>`<button class="${zukV==v?'on':''}" data-f="${v}">${l}</button>`).join('')}</div>${zukV=='Sim'?simHtml():zukV=='Jahr'?viewYplan(true):forecastHtml()}
 `;
   wishV='Monat';return viewWish()}/* v454: alte Ansichten (Wünsche, Fixkosten, Kommt) führen zum Monat */
