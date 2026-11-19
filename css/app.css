@@ -1720,3 +1720,5 @@ body.mm[data-tab="dash"] .group>.swr>.cell{padding-left:2px!important;padding-ri
 body[data-tab="dash"] .hb-col2 .sh{align-items:center}
 body[data-tab="dash"] .d-up .chev{width:12px;flex:none;text-align:right}
 body[data-tab="dash"] .d-last .cell .v{margin-right:24px}
+/* v472: Dein Jahr am Desktop – Jahresleiste und „Als Text kopieren“ über die volle Breite */
+@media (min-width:700px){body[data-tab="rep"] .view>.seg,body[data-tab="rep"] .view>.yr-share,body[data-tab="rep"] .view>#yrMsg{grid-column:1/-1}}
