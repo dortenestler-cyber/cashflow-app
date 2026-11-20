@@ -200,9 +200,19 @@ function txList(list,showB){list=list.filter(e=>!e.corr);if(!list.length)return 
     return `<div class="sec"><div class="sh"><span>${lab}</span><span>${sum>0?'−'+eur(sum):sum<0?'+'+eur(-sum):''}</span></div><div class="group">${es.map(e=>rowOf(e,showB)).join('')}</div></div>`}).join('')}
 
 
-/* v335: Baustopp – Nutzungszähler, nur lokal auf diesem Gerät (nicht im Sync) */
-const USEK='cf_use',BAU_START='2026-11-14',BAU_END='2026-11-28';
-const useGet=()=>{let o=null;try{o=JSON.parse(localStorage.getItem(USEK)||'null')}catch(e){}if(!o||!o.v)o={since:Date.now(),v:{}};/* v454: Reiter heißt Vermögen */[['Geld','Vermögen'],['Geld › Depot-Position','Vermögen › Depot-Position']].forEach(([a,b])=>{if(o.v[a]&&!o.v[b]){o.v[b]=o.v[a];delete o.v[a]}});return o};
+/* v335: Nutzungszähler, je Gerät gezählt. v481: zum Start von v1.0 einmal auf null gesetzt; Tagesstand jedes Geräts liegt synchronisiert in S.useSnap */
+const USEK='cf_use';
+const useGet=()=>{let o=null;try{o=JSON.parse(localStorage.getItem(USEK)||'null')}catch(e){}if(!o||!o.v||!o.r1){o={since:Date.now(),v:{},r1:1};try{localStorage.setItem(USEK,JSON.stringify(o))}catch(e){}}/* v454: Reiter heißt Vermögen */[['Geld','Vermögen'],['Geld › Depot-Position','Vermögen › Depot-Position']].forEach(([a,b])=>{if(o.v[a]&&!o.v[b]){o.v[b]=o.v[a];delete o.v[a]}});return o};
+/* v481: Änderungsfenster alle 14 Tage ab 04.12.2026 – dann Nutzung aller Geräte auswerten */
+const cwAt=n=>new Date(2026,11,4+14*n),cwK=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function cwLast(){const t=new Date();t.setHours(0,0,0,0);let n=-1;while(cwAt(n+1)<=t)n++;return n<0?null:cwAt(n)}
+function cwNext(){const t=new Date();t.setHours(0,0,0,0);let n=0;while(cwAt(n)<t)n++;return cwAt(n)}
+function cwDue(){const l=cwLast();return !!l&&(S.cwDone||'')<cwK(l)}
+function useDev(){let id='';try{id=localStorage.getItem('cf_dev')||'';if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem('cf_dev',id)}}catch(e){}const U=navigator.userAgent,k=/iPad/.test(U)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1)?'iPad':/iPhone|iPod/.test(U)?'iPhone':'Rechner';return{id,k}}
+function useSnap(force){try{const o=useGet(),D=useDev(),td=cwK(new Date());S.useSnap=S.useSnap||{};const c=S.useSnap[D.id];if(!force&&c&&c.day==td)return;S.useSnap[D.id]={k:D.k,day:td,at:Date.now(),since:o.since,v:o.v};save()}catch(e){}}
+/* Alle Geräte zusammen: eigenes Gerät live, andere aus ihrem letzten Tagesstand */
+function useAllDev(){const D=useDev(),o=useGet(),L=[{id:D.id,k:D.k,since:o.since,v:o.v,live:1}];Object.entries(S.useSnap||{}).forEach(([id,x])=>{if(id!=D.id&&x&&x.v)L.push({id,k:x.k,since:x.since,v:x.v,day:x.day})});
+  const sum={};L.forEach(d=>Object.entries(d.v).forEach(([k,x])=>{const s=sum[k]||(sum[k]={n:0,last:0});s.n+=x.n;s.last=Math.max(s.last,x.last||0)}));return{devs:L,sum,since:Math.max(new Date(2026,10,20).getTime(),Math.min(...L.map(d=>d.since||Date.now())))}}
 function useHit(k,n){if(!k)return;try{const o=useGet(),x=o.v[k]||(o.v[k]={n:0,last:0});x.n+=n||1;x.last=Date.now();localStorage.setItem(USEK,JSON.stringify(o))}catch(e){}}
 const useLab=k=>{try{const L={};Object.values(moreItems()).forEach(g=>g[3].forEach(t=>{L[t[0]]=t[2]}));Object.values(TOOLX).forEach(t=>{L[t[0]]=t[2]});moreTools().forEach(t=>{L[t[0]]=t[2]});return String(L[k]||k).replace(/­/g,'')}catch(e){return k}};
 const useTool=k=>{try{return ['yplan','close','shop'].includes(k)||moreTools().some(t=>t[0]==k)}catch(e){return false}};

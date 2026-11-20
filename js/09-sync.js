@@ -395,6 +395,7 @@ function syMerge(loc,rem,base){syIds(loc);syIds(rem);const out=JSON.parse(JSON.s
   try{syDepRu(out,locNew?rem:loc)}catch(e){}
   try{syAccBase(out,loc,rem)}catch(e){}
   try{syPayU(out,loc,rem)}catch(e){}
+  /* v481: Nutzungsstände je Gerät zusammenführen, neuerer Stand gewinnt */try{const a=loc.useSnap||{},b=rem.useSnap||{},m={};new Set([...Object.keys(a),...Object.keys(b)]).forEach(k=>{const x=a[k],y=b[k];m[k]=!x?y:!y?x:(x.at||0)>=(y.at||0)?x:y});if(Object.keys(m).length)out.useSnap=m}catch(e){}
   return out}
 /* v452: offene Kartenzahlungen und „schon übernommen“-Listen beider Geräte vereinen – sonst gewann ein Gerät komplett und Zahlungen verschwanden */
 function syPayU(out,loc,rem){['clipSeen','paySeen'].forEach(k=>{if(loc[k]||rem[k])out[k]=[...new Set([...(loc[k]||[]),...(rem[k]||[])])].slice(-600)});

@@ -18,11 +18,13 @@
 - Nutzerdaten liegen nur lokal auf dem Gerät, nie personenbezogene Daten ins Repo.
 - Sinking Funds ist ein Bestand, kein Monatsbudget (`isStock`), und steht nicht in `BUDG`.
 
-## Arbeitsweise
-- Baustopp (14.11.–28.11.2026) am 16.11. von der Nutzerin aufgehoben.
-- Nach dem Baustopp gilt: Eins rein, eins raus – jede neue Funktion ersetzt oder streicht eine bestehende.
-- Änderungswünsche erst sammeln (Liste führen), umsetzen erst nach Freigabe des Nutzers.
-- Bugs immer sofort beheben und pushen.
+## Arbeitsweise (seit Version 1.0, 20.11.2026)
+- Bugs immer sofort beheben und pushen. Sie zählen automatisch als Patch: 1.0.1, 1.0.2 … (`relVer()` = Build − `REL_B`).
+- Änderungswünsche nur ins `BACKLOG.md`, mit Datum. Wartefrist 1 Woche: erst danach ins nächste Änderungsfenster.
+- Änderungsfenster alle 14 Tage ab 04.12.2026 (`cwAt` in `03-core-ui.js`). Nur dann echte Änderungen umsetzen, nach Freigabe.
+- Echte Änderung = neue Release-Version: in `js/04-penny.js` `REL` erhöhen (1.1, 1.2 …) und `REL_B` auf den neuen Build setzen; Git-Tag `vX.Y`.
+- Im Fenster: Nutzungsauswertung (Einstellungen › Nutzung, alle Geräte) und Testset/Penny-Prüfprompt laufen lassen.
+- Eins rein, eins raus – jede neue Funktion ersetzt oder streicht eine bestehende.
 
 ## Sparsam arbeiten
 - Dateien NIE komplett lesen. Erst mit grep die relevante Stelle suchen,

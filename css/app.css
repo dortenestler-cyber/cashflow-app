@@ -1730,3 +1730,5 @@ body[data-tab="dash"] .d-last .cell .v{margin-right:24px}
 /* v479: Vermögenschart – Höchst-/Tiefstwert und Zeitachse */
 .wc-chw{position:relative}.wc-mx,.wc-mn{position:absolute;left:0;font-size:11px;color:var(--muted);pointer-events:none;background:color-mix(in srgb,var(--card) 70%,transparent);padding:0 4px;border-radius:4px;font-variant-numeric:tabular-nums}.wc-mx{top:-2px}.wc-mn{bottom:2px}
 .wc-ax{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-4px}
+/* v481: Textlinks mit größerer Tippfläche (mind. 44 px), ohne das Layout zu verschieben */
+button.link,button.ed-link,#sinkEx{position:relative}button.link::after,button.ed-link::after,#sinkEx::after{content:"";position:absolute;inset:-12px -6px}

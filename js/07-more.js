@@ -44,7 +44,7 @@ function moreItems(){const{c1,c2,c3,c4,c5,c6}=MC;return {
   ['sync','repeat','Online-Sync',syOn()?'Verbunden · '+esc(SY.email||''):'iPhone und PC mit denselben Daten']]],/* v454: Supabase-Einrichtung steht in Online-Sync */
  /* v454: Finanzbericht und Dein Jahr stehen nur im Rückblick */
  'g:help':['Hilfe','book',c6,[
-  ['usage','chart','Nutzung',(()=>{const n=Object.keys(useGet().v).length;return n+' Bereiche genutzt · nur auf diesem Gerät'})()],
+  ['usage','chart','Nutzung',(()=>{const n=Object.keys(useAllDev().sum).length;return cwDue()?'Änderungsfenster: jetzt auswerten':n+' Bereiche genutzt · Fenster '+cwNext().toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})})()],
   ['@vHelp2','mic','Sprachbefehle','Was du per Spracheingabe sagen kannst'],
   ['@glossBtn','book','Begriffe','Monatsbudget, Puffer, Sinking Funds, Rücklagen, Sparkonten'],
   ['@kbHelpBtn','grid','Tastaturkürzel','N für neue Buchung, 1–6 für Bereiche, ? für alle']]]}}
@@ -67,7 +67,7 @@ function viewMore(){const G=moreItems(),T=moreTools();/* v396: Werkzeug-Raster s
   return `${appbar({title:'Einstellungen',noGear:true,slim:true})}<div class="morelist"><div class="search mq"><input id="moreQ" type="search" placeholder="Funktion suchen …" aria-label="Funktion suchen" autocomplete="off"></div>
   <div class="mhome"><div class="sec"><div class="sh">Einstellungen</div><div class="group">${groups}${moreCell('g:help','book','Hilfe','Sprachbefehle, Tastaturkürzel, Hinweise',MC.c6)}</div></div></div>
   <div class="sec msearch" hidden><div class="group">${FIDX.map(fCell).join('')}</div></div>
-  </div><div class="note" style="text-align:center">CashFlow · Version ${APP_VER}</div>`}
+  </div><div class="note" style="text-align:center">CashFlow · Version ${verText()}</div>`}
 function bindMore(){const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
   document.querySelectorAll('[data-act=vHelp2]').forEach(b=>b.onclick=()=>voiceHelp());
   document.querySelectorAll('[data-act=kbHelpBtn]').forEach(b=>b.onclick=()=>kbHelp());
@@ -101,7 +101,7 @@ function setupHtml(){const st=SETUP.st||{},lab=v=>v===true?['Aktuell','ok','chec
      <div class="setup-a"><button class="btn soft" data-setcp="${x.k}">${I('copy',16)} ${x.w=='SQL'?'SQL':'Code'} kopieren</button><button class="btn soft" data-setsh="${x.k}" aria-label="Anzeigen">${I('eye',16)}</button></div>
      <pre class="setup-code" id="setpre-${x.k}" hidden></pre></div></div>`}).join('')}
    <div class="note">Supabase findest du unter supabase.com › dein Projekt. Den Secret Key brauchst du nirgends, nur den Publishable Key in der App.</div>`}
-function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const back=`<div class="lthead"><button class="back" id="setBack">‹ ${setParent?'Zurück':setFrom&&setFrom!='more'?({wish:'Planen',rep:'Rückblick',list:'Buchungen',dash:'Heute',geld:'Vermögen'})[setFrom]||'Zurück':'Mehr'}</button>`;
+function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const back=`<div class="lthead"><button class="back" id="setBack">‹ ${setParent?'Zurück':setFrom&&setFrom!='more'?({wish:'Planen',rep:'Rückblick',list:'Buchungen',dash:'Heute',geld:'Vermögen'})[setFrom]||'Zurück':'Einstellungen'}</button>`;
   if(k=='cfg')return viewCfg();
   if(k=='ru')return viewRu();
   if(k=='sam')return samView();if(k=='lade')return ladeView();if(String(k).startsWith('samp:'))return samPView(k.slice(5));if(String(k).startsWith('kkp:'))return kkPView(k.slice(4));
@@ -153,10 +153,10 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
   if(k=='lohn')return back+`<h1 class="lt">Stundenlohn</h1></div><div class="group"><div class="cell plain"><label for="lohn">Netto pro Stunde</label><input id="lohn" type="number" step="0.1" inputmode="decimal" value="${S.lohn}"></div></div><div class="note">3.200 € netto ÷ rund 165 Stunden ≈ 19,40 €. Damit rechnet die App Preise in Arbeitszeit um. Der Puffer ergibt sich jetzt aus dem Kontostand deines Eingangskontos.</div>`;
   
   if(k=='shop')return viewShop();if(k=='abos'){setView='rec';recF='Abos';return viewSet('rec')}if(k=='yplan')return viewYplan();if(k=='pension')return viewPension();if(k=='icons')return viewIcons();if(k=='catclean')return viewCatClean();if(k=='proj')return viewProj();if(k=='docs')return viewDocs();if(k=='tax')return viewTax();if(k=='yearrev')return viewYear();if(k=='close')return viewClose();if(k=='ng')return viewNg();if(k=='sync')return viewSync();if(k=='report')return viewReport(TOT,appbar({title:'Finanzbericht',back:'setBack',noGear:true,month:rpP=='Monat'}));if(k=='review')return viewReview();
-  if(k=='bgs')return `<div><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Kartenhintergründe</h1></div>
+  if(k=='bgs')return `<div><button class="back" id="setBack">‹ Einstellungen</button><h1 class="lt">Kartenhintergründe</h1></div>
    
    <div class="bgl">${['Gesamt',...BN].map(b=>`<button class="bgcard" data-bg="${esc(b)}" style="${bgStyle(b)}"><span>${b=='Gesamt'?'Alle Budgets':esc(b)}</span><small>${S.bg[b]&&S.bg[b].img?'Eigenes Foto':esc((GR[(S.bg[b]||{g:0}).g||0]||GR[0])[0])} ›</small></button>`).join('')}</div>`;
-  if(k=='theme')return `<div><button class="back" id="setBack">‹ Mehr</button><h1 class="lt">Darstellung</h1></div>
+  if(k=='theme')return `<div><button class="back" id="setBack">‹ Einstellungen</button><h1 class="lt">Darstellung</h1></div>
    <div class="sec"><div class="sh">Erscheinungsbild</div><div class="seg" id="thSeg">${[['system','Automatisch'],['light','Hell'],['dark','Dunkel']].map(x=>`<button class="${themeGet()==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div></div>
    <div class="group"><div class="cell plain"><div class="t"><div>Große Schrift im Kalender</div><div class="s">Beträge in den Tagesfeldern größer anzeigen</div></div><input type="checkbox" class="switch" id="bigCal" ${S.bigCal?'checked':''}></div>
     <div class="cell plain"><div class="t"><div>Erfolge feiern</div><div class="s">Kurze Animation, wenn du verzichtest oder ein Ziel schaffst</div></div><input type="checkbox" class="switch" id="celeOn" ${S.cele!==false?'checked':''}></div></div>`;
@@ -244,7 +244,7 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
     <div class="note">Einmalig in Supabase: SQL Editor › New query › <button class="link" id="bakSql">SQL kopieren</button> › Run. Alle Codes gebündelt: <button class="link" data-gosetup="1">Supabase-Einrichtung</button></div>`}</div>
    <div class="note" id="expMsg"></div><textarea class="box" id="expOut" hidden readonly></textarea>
    <div class="sec"><div class="sh">Zurücksetzen</div>${S.ex?'<button class="btn danger" id="clearEx">Beispieldaten löschen</button>':''}<button class="btn danger" id="resetAll">Alles auf Anfang</button><div class="note" id="resetMsg"></div></div>
-   <div class="note" style="text-align:center">CashFlow · Version ${APP_VER}${navigator.serviceWorker?` · <button class="ed-link" id="updNow" style="color:var(--blue);font-size:13px">Nach Update suchen</button>`:''}</div>`;
+   <div class="note" style="text-align:center">CashFlow · Version ${verText()}${navigator.serviceWorker?` · <button class="ed-link" id="updNow" style="color:var(--blue);font-size:13px">Nach Update suchen</button>`:''}</div>`;
   return ''}
 let catB='Flow',pickI=-1,icq='',delArm=false,resetArm=false;
 
@@ -270,15 +270,16 @@ function useAll(){const L=['Heute','Buchungen','Kalender','Vermögen','Rückblic
   try{moreTools().forEach(t=>{if(!t[0].startsWith('g:'))L.push('Werkzeug › '+useLab(t[0]))});['yplan','close','shop'].forEach(k=>L.push('Werkzeug › '+useLab(k)));['report','yearrev'].forEach(k=>L.push('Einstellungen › '+useLab(k)));Object.values(moreItems()).forEach(g=>g[3].forEach(t=>{if(!t[0].startsWith('@')&&!t[0].startsWith('g:')&&!useTool(t[0])&&t[0]!='usage')L.push('Einstellungen › '+useLab(t[0]))}))}catch(e){}return [...new Set(L)]}
 function useSrc(since){const c={'Manuell':0,'Siri':0,'Apple Pay':0,'Einkaufszettel':0,'Fixkosten (automatisch)':0};
   (S.exp||[]).forEach(e=>{if(e.t<since||isPlan(e))return;const g=e.tg||[];const k=g.includes('applepay')?'Apple Pay':g.includes('einkaufszettel')?'Einkaufszettel':g.includes('siri')?'Siri':e.rid?'Fixkosten (automatisch)':'Manuell';c[k]++});return c}
-function useText(){const o=useGet(),R=Object.entries(o.v).sort((a,b)=>b[1].n-a[1].n),nie=useAll().filter(k=>!o.v[k]);
-  return 'CashFlow-Nutzung seit '+new Date(o.since).toLocaleDateString('de-DE')+' (dieses Gerät, '+(matchMedia('(pointer:coarse)').matches?'Touch':'Desktop')+')\n\n'+R.map(([k,x])=>x.n+'× '+k).join('\n')+'\n\nNie geöffnet:\n'+nie.join('\n')+'\n\nBuchungen nach Herkunft:\n'+Object.entries(useSrc(o.since)).map(([k,v])=>v+'× '+k).join('\n')}
-function useHtml(){const o=useGet(),R=Object.entries(o.v).sort((a,b)=>b[1].n-a[1].n),max=R.length?R[0][1].n:1,nie=useAll().filter(k=>!o.v[k]),d=t=>new Date(t).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'}),src=useSrc(o.since),
-  left=Math.max(0,Math.ceil((new Date(BAU_END+'T23:59')-Date.now())/864e5));
-  return `<div class="note">Selten genutzte Bereiche sind Kandidaten für „Eins rein, eins raus“. Gezählt wird nur auf diesem Gerät, seit ${new Date(o.since).toLocaleDateString('de-DE')}. Nichts verlässt das Gerät.</div>
+function useText(){const A=useAllDev(),R=Object.entries(A.sum).sort((a,b)=>b[1].n-a[1].n),nie=useAll().filter(k=>!A.sum[k]),d=t=>new Date(t).toLocaleDateString('de-DE'),l=cwLast();
+  return 'CashFlow-Nutzung · Version '+verText()+'\nGezählt seit '+d(A.since)+(l?' · Änderungsfenster '+d(l):'')+'\nGeräte: '+A.devs.map(x=>x.k+(x.live?' (dieses)':' (Stand '+(x.day||'?')+')')).join(', ')+'\n\n'+R.map(([k,x])=>x.n+'× '+k).join('\n')+'\n\nNie geöffnet:\n'+nie.join('\n')+'\n\nBuchungen nach Herkunft:\n'+Object.entries(useSrc(A.since)).map(([k,v])=>v+'× '+k).join('\n')}
+function useHtml(){const A=useAllDev(),R=Object.entries(A.sum).sort((a,b)=>b[1].n-a[1].n),nie=useAll().filter(k=>!A.sum[k]),d=t=>new Date(t).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'}),src=useSrc(A.since),
+  nx=cwNext(),due=cwDue(),days=Math.round((nx-new Date().setHours(0,0,0,0))/864e5);
+  return `<div class="note">Zählt, welche Bereiche du wirklich nutzt – seit ${new Date(A.since).toLocaleDateString('de-DE')} (Start von Version 1.0). Jedes Gerät zählt für sich, die Auswertung fasst alle zusammen: ${A.devs.map(x=>esc(x.k)+(x.live?' (dieses)':'')).join(', ')}.</div>
+  <div class="sec"><div class="sh">Änderungsfenster</div><div class="group"><div class="cell plain"><div class="t"><div>${due?'Heute auswerten':'Nächstes Fenster '+nx.toLocaleDateString('de-DE',{day:'numeric',month:'numeric',year:'numeric'})}</div><div class="s">${due?'Auswertung kopieren und mit dem Backlog in den Chat geben.':days==0?'heute':'in '+days+' Tag'+(days==1?'':'en')+' · alle 14 Tage'}</div></div></div></div></div>
   <div class="sec"><div class="sh">Genutzt (${R.length})</div><div class="group">${R.map(([k,x])=>`<div class="cell plain"><div class="t"><div>${esc(k)}</div><div class="s">zuletzt ${d(x.last)}</div></div><b>${x.n}×</b></div>`).join('')||'<div class="cell plain"><div class="t">Noch nichts gezählt.</div></div>'}</div></div>
   <div class="sec"><div class="sh">Buchungen nach Herkunft</div><div class="group">${Object.entries(src).map(([k,v])=>`<div class="cell plain"><div class="t">${k}</div><b>${v}</b></div>`).join('')}</div></div>
   <div class="sec"><div class="sh">Nie geöffnet (${nie.length})</div><div class="group">${nie.map(k=>`<div class="cell plain"><div class="t s">${esc(k)}</div></div>`).join('')||'<div class="cell plain"><div class="t">Alles mindestens einmal genutzt.</div></div>'}</div></div>
-  <button class="btn soft" id="useCopy">${I('copy',16)} Als Text kopieren</button><button class="btn soft" id="useReset" style="margin-top:8px">Zähler zurücksetzen</button>`}
+  <button class="btn soft" id="useCopy">${I('copy',16)} ${due?'Auswertung kopieren und abschließen':'Als Text kopieren'}</button><button class="btn soft" id="useReset" style="margin-top:8px">Zähler auf diesem Gerät zurücksetzen</button>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#useCopy,#useReset');if(!t)return;
-  if(t.id=='useCopy'){try{navigator.clipboard.writeText(useText()).then(()=>toast('Nutzung kopiert'),()=>toast('Kopieren nicht möglich'))}catch(_){toast('Kopieren nicht möglich')}return}
-  if(confirm('Zähler auf diesem Gerät zurücksetzen?')){try{localStorage.removeItem(USEK)}catch(_){}useView.last=null;render()}});
+  if(t.id=='useCopy'){const due=cwDue();try{useSnap(true);navigator.clipboard.writeText(useText()).then(()=>{if(due){S.cwDone=cwK(cwLast());save();render()}toast(due?'Auswertung kopiert · Fenster abgeschlossen':'Nutzung kopiert')},()=>toast('Kopieren nicht möglich'))}catch(_){toast('Kopieren nicht möglich')}return}
+  if(confirm('Zähler auf diesem Gerät zurücksetzen?')){try{localStorage.removeItem(USEK)}catch(_){}useView.last=null;useSnap(true);render()}});
