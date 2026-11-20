@@ -328,12 +328,12 @@ function tcWrap(svg,o){const id='tc'+(++tcN);TCR[id]=o;const k=Object.keys(TCR);
 function tcPill(){let p=document.getElementById('tcPill');if(!p){p=document.createElement('div');p.id='tcPill';p.setAttribute('role','status');document.body.appendChild(p)}return p}
 function tcPlace(html,x,y,yb){const p=tcPill();p.innerHTML=html;p.style.display='flex';const w=p.offsetWidth,h=p.offsetHeight;let l=Math.max(8,Math.min(innerWidth-w-8,x-w/2)),t=y-h-10;if(t<8)t=(yb||y)+(yb?8:18);p.style.left=l+'px';p.style.top=t+'px'}
 function tcHide(){const p=document.getElementById('tcPill');if(p)p.style.display='none';document.querySelectorAll('.gmk').forEach(k=>k.style.display='none');document.querySelectorAll('.tc-g').forEach(g=>g.style.display='none');tcCur=null}
-function tcShow(el,cx,cy){const o=TCR[el.dataset.tc];if(!o)return;const svg=el.querySelector('svg');if(!svg)return;const r=svg.getBoundingClientRect(),sc=Math.min(r.width/o.W,r.height/o.H),ox=r.left+(r.width-o.W*sc)/2,oy=r.top+(r.height-o.H*sc)/2,vx=(cx-ox)/sc,vy=(cy-oy)/sc,P=o.ys||o.xs,vv=o.ys?vy:vx;
+function tcShow(el,cx,cy){const o=TCR[el.dataset.tc];if(!o)return;const svg=el.querySelector('svg');if(!svg)return;const r=svg.getBoundingClientRect(),sc=Math.min(r.width/o.W,r.height/o.H),sx=o.ns?r.width/o.W:sc,sy=o.ns?r.height/o.H:sc,ox=r.left+(r.width-o.W*sx)/2,oy=r.top+(r.height-o.H*sy)/2,vx=(cx-ox)/sx,vy=(cy-oy)/sy,P=o.ys||o.xs,vv=o.ys?vy:vx;
   let bi=-1,bd=1e9;P.forEach((x,i)=>{if(typeof o.tips!='function'&&o.tips[i]==null)return;const d=Math.abs(x-vv);if(d<bd){bd=d;bi=i}});if(bi<0){tcHide();return}
   document.querySelectorAll('.tc-g').forEach(g=>{if(!el.contains(g))g.style.display='none'});
   const g=el.querySelector('.tc-g'),er=el.getBoundingClientRect(),bw=(o.bw||0)*sc;let px,py;
   if(o.ys){const gy=oy+o.ys[bi]*sc;g.style.cssText=`display:block;left:${ox-er.left}px;width:${o.W*sc}px;top:${gy-er.top-bw/2-3}px;height:${bw+6}px`;g.className='tc-g band';px=cx;py=gy-bw/2}
-  else{const gx=ox+o.xs[bi]*sc;g.style.cssText=`display:block;left:${gx-er.left-(bw?bw/2+2:1)}px;width:${bw?bw+4:2}px;top:${oy+o.y1*sc-er.top}px;height:${(o.y0-o.y1)*sc}px`;g.className='tc-g'+(bw?' band':'');px=gx;py=oy+o.y1*sc}
+  else{const gx=ox+o.xs[bi]*sx;g.style.cssText=`display:block;left:${gx-er.left-(bw?bw/2+2:1)}px;width:${bw?bw+4:2}px;top:${oy+o.y1*sy-er.top}px;height:${(o.y0-o.y1)*sy}px`;g.className='tc-g'+(bw?' band':'');px=gx;py=oy+o.y1*sy}
   tcPlace(typeof o.tips=='function'?o.tips(bi):o.tips[bi],px,py);tcCur=el;if(o.pick)try{o.pick(bi)}catch(e){}}
 function barTip(bar){if(bar.dataset.tip)return bar.dataset.tip;const row=bar.closest('.cell,.srow,.dep,.slide,.card,button,li')||bar.parentElement;
   const lab=row.querySelector('.t>div:first-child,.srow-h>span:first-child,.lbl,.t b,b,strong');const lt=lab?lab.textContent.trim().slice(0,40):'';
