@@ -1549,6 +1549,10 @@ html body .apop .achip,html body .apop .achip.fu{background:none!important;borde
 html body .apop .aq-pill{background:var(--card)!important;border:0!important;box-shadow:none!important}
 html body .apop .pw-c .dot,html body .apop .pw-c i,html body .apop .pw-mini i{background:var(--accent)!important}
 html body .apop .pw-i{background:none!important;color:var(--muted)!important}
+/* v483: Penny-Vorschläge im flachen Design als senkrechte Liste statt Karussell (zweite Karte war abgeschnitten) */
+html body .apop .pw-cards{flex-direction:column;gap:0;overflow:visible;scroll-snap-type:none;width:100%;margin:0;padding:0}
+html body .apop .pw-c{width:100%;border-bottom:1px solid var(--sep)!important;border-radius:0;padding:10px 2px}html body .apop .pw-c:last-child{border-bottom:0!important}
+html body .apop .pw-c>span:last-child{min-width:0;flex:1}html body .apop .pw-c small{max-width:none}
 /* v432: Keine Kacheln – Ankerkarten, Monatsleiste, Kopfsymbole und Sonderkarten flach */
 body.mm .anchor,body.mm .hc-big,body.mm .mmsum,body.mm .mmsum.strip,body.mm .kpis.kts,body.mm .simtop,body.mm .setup-c,body.mm .bcheck,body.mm .yr-t,body.mm .balance,body.mm .wk,body.mm .mcal,body.mm .samc,body.mm .vmc,body.mm .kkc,body.mm .hero2,body.mm .hero2c,body.mm .hero,body.mm .slide,body.mm .potc,body.mm .gcard2,body.mm .ofc,body.mm .pncard{background:transparent!important;background-image:none!important;box-shadow:none!important;border:0!important;border-radius:0!important;color:var(--fg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.mm .anchor *,body.mm .hc-big *,body.mm .mmsum *,body.mm .kpis.kts *,body.mm .hero2 *,body.mm .samc *{text-shadow:none!important}
