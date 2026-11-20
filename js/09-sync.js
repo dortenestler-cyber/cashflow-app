@@ -379,7 +379,7 @@ async function syFetch(path,opt={},auth=true){const h=Object.assign({apikey:SY.k
 async function syAuthSet(j){if(!j.access_token)throw new Error(j.error_description||j.msg||j.error||'Anmeldung fehlgeschlagen');SY.access=j.access_token;SY.refresh=j.refresh_token;SY.exp=Date.now()+(j.expires_in||3600)*1000;SY.uid=j.user&&j.user.id||SY.uid;SY.email=j.user&&j.user.email||SY.email;sySave()}
 async function syRefresh(){const r=await fetch(SY.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SY.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:SY.refresh})});
   const j=await r.json().catch(()=>({}));if(!r.ok){if(r.status==400||r.status==401){SY.refresh=null;SY.access=null;sySave();throw new Error('Sitzung abgelaufen. Bitte neu anmelden.')}throw new Error('Keine Verbindung zu Supabase ('+r.status+'). Später erneut versuchen.')}await syAuthSet(j)}
-async function syGet(){const r=await syFetch('/rest/v1/cashflow?select=*&user_id=eq.'+SY.uid);if(!r.ok)throw new Error('Laden fehlgeschlagen ('+r.status+'). Ist die Tabelle angelegt?');const a=await r.json();return a[0]||null}
+async function syGet(sel){const r=await syFetch('/rest/v1/cashflow?select='+(sel||'*')+'&user_id=eq.'+SY.uid);if(!r.ok)throw new Error('Laden fehlgeschlagen ('+r.status+'). Ist die Tabelle angelegt?');const a=await r.json();return a[0]||null}
 setTimeout(()=>{try{syMarkKeys()}catch(e){}},0);
 /* v348: Basis merkt sich je Eintrag und je Schlüssel einen Prüfwert – beim Zusammenführen gewinnt die Seite, die seit dem letzten gemeinsamen Stand wirklich geändert hat */
 const syH=v=>{let j;try{j=JSON.stringify(v)}catch(e){j=''}return sh32(j||'')},syTH=(st,k)=>syH(k=='shop'?Object.assign({},st.shop,{items:0}):st[k]);
@@ -413,7 +413,7 @@ const syFlush=()=>{if(syOn()&&(S._m||0)>(SY.at||0)){clearTimeout(syTimer);sync()
 const syHash=()=>{const s=JSON.stringify(Object.assign({},S,{_m:0,_km:0}));let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}return (h2>>>0).toString(36)+(h1>>>0).toString(36)};
 function syDirty(){if(!syOn())return;if(syHash()===SY.h)return;syMarkKeys();S._m=Date.now();try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}clearTimeout(syTimer);syTimer=setTimeout(()=>sync(),2500)}
 async function sync(quiet=true){if(!syOn()||syBusy||!navigator.onLine)return;if(!await syLoadKey()){syMsg='Sync-Passwort fehlt auf diesem Gerät.';return}
-  syBusy=true;try{for(let tries=0;tries<3;tries++){const row=await syGet();
+  syBusy=true;try{for(let tries=0;tries<3;tries++){/* v482: erst nur die Revision fragen, Daten nur bei Änderung laden */let row=await syGet('rev');if(row&&row.rev!==SY.rev)row=await syGet();
       if(row&&row.rev!==SY.rev){const rem=await syDec(row);const dirty=(S._m||0)>(SY.at||0)||syBaseNewer(S,rem);
         if(!dirty){S=rem}else{S=syMerge(S,rem,SY.base);S._m=Date.now()}migFlags(S);syKH={};syMarkKeys();DV++;
         try{localStorage.setItem('dodo4',JSON.stringify(S))}catch(e){}SY.rev=row.rev;SY.base=syBase(rem);if(!dirty){SY.at=Date.now();SY.h=syHash()}sySave();if(!dirty){refreshA&&refreshA();render();syMsg='Aktualisiert '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return}

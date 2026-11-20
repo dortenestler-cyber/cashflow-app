@@ -406,7 +406,9 @@ Penny hat heute 7 Eingänge mit 4 verschiedenen Darstellungen: ✦ im Seitenkopf
 
 **Vorschlag:** Unter „273,41 € übrig von 407 €“ eine Zeile „Kontostand heute 1.234,56 €“. Gerechnet wie bei Comdirect (Startwert bzw. letzter Abgleich plus alle gebuchten Umsätze bis heute, ohne geplante).
 
-## 23. Audit v1.0 (20.11.2026) – Änderungswünsche, Wartefrist bis 27.11., frühestens Fenster 04.12.
+## 23. Audit v1.0 (20.11.2026) – auf Wunsch vor dem Start komplett umgesetzt in v482 (= Version 1.0)
+
+Entscheidung zu 1: Prognose unter Zukunft gestrichen, der Monats-Chart ist die einzige Vorschau. Zu 4: Legende am Rechner größer; der Leerraum rechts hängt an den Daten (Demnächst geplant füllt ihn).
 
 1. **Zwei Prognosen mit verschiedener Logik (hoch).** Planen › Monat (12 Monate, echter Kontostand) und Planen › Zukunft › Prognose (6 Monate, deckelt den Puffer bei 1.000 € und rechnet den Rest gedanklich in den Vermögensaufbau) zeigen für denselben Monat unterschiedliche Stände. Vermutlich der Grund für „Prognose stimmt nicht“. Vorschlag: Prognose unter Zukunft streichen (Eins rein, eins raus) oder auf die Logik des Monats-Charts umstellen.
 2. **Sync lädt jede Minute alles (mittel).** `syGet` holt bei jedem Abgleich den kompletten verschlüsselten Datenstand, auch ohne Änderung. Vorschlag: erst nur `rev` abfragen, Daten nur bei neuer Revision laden – spart Datenvolumen und Akku.

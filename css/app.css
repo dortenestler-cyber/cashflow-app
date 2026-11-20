@@ -1732,3 +1732,7 @@ body[data-tab="dash"] .d-last .cell .v{margin-right:24px}
 .wc-ax{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-4px}
 /* v481: Textlinks mit größerer Tippfläche (mind. 44 px), ohne das Layout zu verschieben */
 button.link,button.ed-link,#sinkEx{position:relative}button.link::after,button.ed-link::after,#sinkEx::after{content:"";position:absolute;inset:-12px -6px}
+/* v482 (Audit): Kategorien in Buchungen ohne Karte (Designsprache 3), Konto-Auswahl im Rückblick größer, Heute-Legende am Rechner lesbarer */
+html body.mm .lcats,html body .lcats{background:none;box-shadow:none;border-radius:0;padding:4px 0 0;border-top:.5px solid var(--sep)}
+.ab-sel{min-height:36px;padding:0 10px;box-sizing:border-box}.ab-sel select{min-height:36px;font-size:14px}
+@media (pointer:fine) and (min-width:1000px){.hb-leg{font-size:13px}}
