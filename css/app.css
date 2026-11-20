@@ -1727,3 +1727,6 @@ body[data-tab="dash"] .d-last .cell .v{margin-right:24px}
 .pm-k{display:flex;justify-content:space-between;gap:8px;margin:0 4px 10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}.pm-k span{display:flex;flex-direction:column}.pm-k span:nth-child(2){align-items:center}.pm-k span:last-child{align-items:flex-end}.pm-k b{font-size:15px;color:var(--fg);font-weight:600}.pm-k b.out{color:var(--out)}.pm-k small{font-size:11px}
 .pm-sw{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted)}
 .fc-det{background:var(--fill);border-radius:12px;margin:2px 8px 8px}.fc-det .cell{background:none}.fc-det .cell .t>div:first-child{font-size:15px}
+/* v479: Vermögenschart – Höchst-/Tiefstwert und Zeitachse */
+.wc-chw{position:relative}.wc-mx,.wc-mn{position:absolute;left:0;font-size:11px;color:var(--muted);pointer-events:none;background:color-mix(in srgb,var(--card) 70%,transparent);padding:0 4px;border-radius:4px;font-variant-numeric:tabular-nums}.wc-mx{top:-2px}.wc-mn{bottom:2px}
+.wc-ax{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-4px}
