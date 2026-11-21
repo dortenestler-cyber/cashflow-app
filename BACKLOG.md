@@ -419,8 +419,10 @@ Entscheidung zu 1: Prognose unter Zukunft gestrichen, der Monats-Chart ist die e
 Ohne Befund: Start ca. 0,3 s, jede Ansicht unter 30 ms, keine JS-Fehler, kein waagrechtes Scrollen, keine NaN/undefined-Anzeigen (iPhone, iPad, Desktop), Plausi 28 Szenarien ohne Fehler.
 Nicht geprüft (braucht echte Daten/Geräte): Penny-KI-Antworten (Testset), Face ID, Mitteilungen, Kurzbefehle.
 
-## 24. Penny-Benachrichtigungspunkt in Lachs (21.11.2026, offen – frühestens Fenster 04.12.)
+## 24. Benachrichtigungen und besondere Hinweise in Lachs (21.11.2026, offen – frühestens Fenster 04.12.)
 
 **Wunsch:** Der Benachrichtigungspunkt am Penny-Symbol (Kopfzeile `.hc-pn.pdot`, Assistent-Menü `.ah-menu.pdot`) soll lachsfarben statt grün (`--accent`) sein.
 
 **Vorschlag:** `#F4A58A` (gedämpftes Lachs, gut sichtbar auf dunklem Hintergrund), am besten als eigene Variable, damit hell/dunkel stimmig bleiben.
+
+**Erweiterung (21.11.):** Generell alle Benachrichtigungspunkte und besonderen Hinweise (z. B. Zähler/Punkte in der Leiste `.abar`, Hinweis-Badges) im selben Lachston, nicht nur bei Penny. Vorher klären, was als „besonderer Hinweis“ zählt und was Warnung/Fehler bleibt (`--warn`, `--bad`).
