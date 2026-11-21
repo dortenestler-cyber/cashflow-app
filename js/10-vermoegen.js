@@ -586,12 +586,16 @@ function wParts(){const pa=pufAcc(),V=vaultCash(),D=depot(),out=[];
   if(V.length)out.push({k:'spar',n:V.length==1?(SHORT[V[0]]||V[0]):'Sparkonten',ico:'piggy',col:'var(--sink)',v:V.reduce((x,n)=>x+balAt(n,Date.now()),0),f:t=>V.reduce((x,n)=>x+balAt(n,t),0)});
   /* v406: offene Kredite als negativer Teil – Vermögen ist netto (Vermögen minus Restschuld) */
   {const DB=(S.debts||[]).filter(d=>!d.done&&(+d.total||0)>0);if(DB.length){const I=DB.map(d=>{try{return{d,i:debtInfo(d),st:new Date(d.start+'T00:00').getTime()}}catch(e){return null}}).filter(Boolean);
-   const restAt=t=>-I.reduce((s,x)=>t<x.st-5*864e5?s:s+Math.max((x.d.total||0)-(x.d.paidBefore||0)-x.i.pays.filter(e=>e.t<=t).reduce((q,e)=>q+e.a,0),0),0);
-   const v=-I.reduce((s,x)=>s+x.i.rest,0);if(v<-0.5)out.push({k:'debt',n:I.length==1?(I[0].d.n||'Kredit'):'Kredite',ico:'target',col:'var(--bad)',v,f:restAt})}}
+   /* Restschuld zählt erst ab Starttermin des Kreditlaufplans, danach sinkt sie mit jeder Rate. Heute gleiche Formel wie im Verlauf. */
+   const restAt=t=>-I.reduce((s,x)=>t<x.st?s:s+Math.max((x.d.total||0)-(x.d.paidBefore||0)-x.i.pays.filter(e=>e.t<=t).reduce((q,e)=>q+e.a,0),0),0);
+   const v=restAt(Date.now());if(v<-0.5)out.push({k:'debt',n:I.length==1?(I[0].d.n||'Kredit'):'Kredite',ico:'target',col:'var(--bad)',v,f:restAt})}}
   if(D.length){const BB=D.map(h=>posBase(h));out.push({k:'dep',n:'Depot',ico:'chart',col:'var(--accent)',v:D.reduce((x,h)=>x+posVal(h),0),f:t=>D.reduce((x,h,i)=>x+posAt(h,BB[i],t).q*(priceAt(h,t,'d')||h.price||0),0)})}
   return out}
 function wSeries(P,r){const now=Date.now();let t0=WR[r][1]?now-WR[r][1]*864e5:Math.min(now-30*864e5,...S.exp.map(e=>e.t).filter(t=>t>0).slice(0,5000),...depot().flatMap(h=>(h.tx||[]).map(x=>new Date(x.d||0).getTime()).filter(Boolean)));
-  t0=Math.max(t0,now-10*365*864e5);const n=60,out=[];for(let i=0;i<=n;i++){const t=i==n?now:t0+(now-t0)*i/n;out.push({t,v:i==n?P.reduce((x,p)=>x+p.v,0):P.reduce((x,p)=>x+(+p.f(t)||0),0)})}return out}
+  t0=Math.max(t0,now-10*365*864e5);/* echte Datenpunkte: Tagesendstand je Tag (bei langen Zeiträumen je Woche), zuletzt heute */
+  const d0=new Date(t0);d0.setHours(23,59,59,999);const days=Math.ceil((now-d0.getTime())/864e5),st=days>400?7:1,out=[];
+  for(let i=0;i*st<days;i++){const d=new Date(d0);d.setDate(d0.getDate()+i*st);const t=d.getTime();if(t>=now)break;out.push({t,v:P.reduce((x,p)=>x+(+p.f(t)||0),0)})}
+  out.push({t:now,v:P.reduce((x,p)=>x+p.v,0)});if(out.length<2)out.unshift({t:t0,v:P.reduce((x,p)=>x+(+p.f(t0)||0),0)});return out}
 function wealthCard(){const P=wParts();if(!P.length)return '';const show=S.showWealth||depShow;
   if(!show)return `<div class="wcard"><div class="wc-h"><div><div class="wc-l">Vermögen gesamt</div><div class="wc-v">•••• €</div></div><button class="btn soft wc-eye" data-eye="1">${I('eye',16)} Einblenden</button></div></div>`;
   const tot=P.reduce((x,p)=>x+p.v,0),Sr=wSeries(P,wRange),f=Sr[0].v,d=tot-f,pc=f?d/Math.abs(f)*100:0,W=320,H=86,vs=Sr.map(x=>x.v),mn=Math.min(...vs),mx=Math.max(...vs),rg=mx-mn||1;
