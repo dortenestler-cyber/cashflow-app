@@ -26,6 +26,13 @@
 - Im Fenster: Nutzungsauswertung (Einstellungen › Nutzung, alle Geräte) und Testset/Penny-Prüfprompt laufen lassen.
 - Eins rein, eins raus – jede neue Funktion ersetzt oder streicht eine bestehende.
 
+## Konten und Ablösung (seit 24.11.2026)
+- Mehrere Claude-Konten arbeiten an diesem Repo, z. B. wenn eines sein Limit erreicht. Rolle hier: **Kasse** `[CF]`, immer nur eine Sitzung gleichzeitig.
+- Gedächtnis ist `UEBERGABE.md`. Start: diese Datei lesen, Belegt-Zeile prüfen (belegt → nur nach ausdrücklicher Übernahme durch die Nutzerin), letzte Commits auf `main`, `BUGS.md`, `BACKLOG.md`, Änderungsfenster prüfen. Dann Belegt-Zeile setzen und pushen.
+- Unterwegs: Übergabe nach jedem Schritt nachführen und pushen, nicht erst am Ende. Limit naht: sofort Übergabe schreiben, `· Limit erwartet`.
+- Ende: Übergabe fertig, `Belegt: frei`, `git status` leer.
+- Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
+
 ## Sparsam arbeiten
 - Dateien NIE komplett lesen. Erst mit grep die relevante Stelle suchen,
   dann nur diese Zeilen lesen (offset/limit).
