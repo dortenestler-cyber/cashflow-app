@@ -10,11 +10,12 @@ let carIdx=0;
 /* v363: „Heute noch frei“ = Tagesbudget (Rest zu Tagesbeginn / Resttage) minus heute Ausgegebenes, über alle Ausgabe-Budgets */
 function todayFree(){const P=period(0),T=new Date().setHours(0,0,0,0),left=Math.max(P.left||1,1);
   /* v501: geplante Ausgaben bis Monatsende sind reserviert – sie senken das Tagesbudget gleichmäßig statt am Fälligkeitstag */const FUT=typeof expV=='function'?expV(Date.now(),P.e.getTime()).filter(e=>isPlan(e)&&inP(e,P)&&!e.corr):[];
-  const B=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)).map(b=>{const c=calc(b),today=S.exp.reduce((s,e)=>s+(e.type=='out'&&e.b==b&&!isPlan(e)&&!e.corr&&e.t>=T&&inP(e,P)?e.a:0),0),plan=FUT.reduce((s,e)=>s+(e.b==b&&(e.type=='out'||(e.type=='tr'&&!e.alloc&&!BUDG.includes(e.to)))?(+e.a||0):0),0),day=Math.max(0,c.rest-plan+today)/left;return{b,c,day,today,plan,free:Math.max(0,day-today)}});
+  /* v506: offene Rückzahlungen mit Erwartet-bis-Datum in diesem Finanzmonat zählen ins Budget */const RF=typeof refunds=='function'?refunds().filter(e=>{if(e.proj||!e.rf.due)return false;const t=new Date(e.rf.due+'T12:00').getTime();return t>=P.s.getTime()&&t<P.e.getTime()}):[];
+  const B=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)).map(b=>{const c=calc(b),today=S.exp.reduce((s,e)=>s+(e.type=='out'&&e.b==b&&!isPlan(e)&&!e.corr&&e.t>=T&&inP(e,P)?e.a:0),0),plan=FUT.reduce((s,e)=>s+(e.b==b&&(e.type=='out'||(e.type=='tr'&&!e.alloc&&!BUDG.includes(e.to)))?(+e.a||0):0),0),rf=RF.reduce((s,e)=>s+(e.b==b?(+(e.rf.a||e.a)||0):0),0),day=Math.max(0,c.rest-plan+rf+today)/left;return{b,c,day,today,plan,rf,free:Math.max(0,day-today)}});
   /* v425: Tagesrest darf negativ werden (rot), damit Überziehen sichtbar ist */
   /* v435: nach Überziehen statt Minus der neue Tagesschnitt inkl. heute */
-  const plan=B.reduce((s,x)=>s+x.plan,0),rest=B.reduce((s,x)=>s+x.c.rest,0)-plan,next=Math.max(0,rest)/left;
-  return{tot:B.reduce((s,x)=>s+x.day-x.today,0),B,left,next,plan,rest}}
+  const plan=B.reduce((s,x)=>s+x.plan,0),rf=B.reduce((s,x)=>s+x.rf,0),rest=B.reduce((s,x)=>s+x.c.rest,0)-plan+rf,next=Math.max(0,rest)/left;
+  return{tot:B.reduce((s,x)=>s+x.day-x.today,0),B,left,next,plan,rf,rest}}
 function kontoSlide(b,c){return `<div class="slide" data-k="${b}" style="${bgStyle(b)}" role="button" tabindex="0" aria-label="${esc(b)} öffnen">
    <div class="lbl">${esc(b)} <span style="opacity:.7">›</span></div><div class="bal">${WH(b)?MASK:eur(c.rest)}</div><div style="font-size:13px;opacity:.9">Kontostand${acc(b).tot?'':' · nicht im Gesamtbudget'}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">+${eur0(c.inc+c.trI)} rein</span><span class="pill" style="background:rgba(255,255,255,.22)">−${eur0(c.out+c.trO)} raus</span></div>
