@@ -565,7 +565,8 @@ function openVaultNew(){const draw=(err)=>{$('sheetRoot').innerHTML=`<div class=
 function vaultRows(V,Vv){return `<div class="group" style="margin-top:10px">${V.map(n=>{const a=acc(n),r=rateNow(n);return `<div class="cell"><button class="cell" data-vkb="${esc(n)}" style="padding:0;flex:1;min-width:0;min-height:0"><div class="ico" style="background:color-mix(in srgb,${a.col||'#1F9D6B'} 16%,transparent);color:${a.col||'#1F9D6B'}">${I('lock')}</div><div class="t"><div>${esc(n)}</div><div class="s">${r?String(r).replace('.',',')+' % · Zinsen bisher '+Vv(eur(zinsAt(n,Date.now()))):'ohne Zinsen'}</div></div><div class="v">${Vv(eur(calc(n).rest))}</div></button><button class="link" data-vabg="${esc(n)}" style="margin-left:8px">Abgleichen</button></div>`}).join('')}</div>`}
 const vaultCash=()=>vaultAccs().filter(n=>!depot().some(h=>h.to==n));
 function balAt(n,t){const a=acc(n);if(a.baseD&&t<a.baseD)return 0;return rawBal(n,t)+zinsAt(n,t)}
-function vaultSeries(){const V=vaultCash(),y0=rStart(dRange),days=Math.max(1,Math.ceil((Date.now()-y0)/864e5)),out=[];
+/* v495: eigener Zeitraum für den Sparkonten-Chart */let vRange='ytd';
+function vaultSeries(){const V=vaultCash(),y0=rStart(vRange),days=Math.max(1,Math.ceil((Date.now()-y0)/864e5)),out=[];
   for(let i=0;i<=days;i++){const t=i==days?Date.now():Math.min(y0+i*864e5,Date.now());const per=V.map(n=>balAt(n,t));out.push({t,v:per.reduce((s,x)=>s+x,0),per})}return out}
 let vOff={};
 /* v305: Entsperren mit Depot-Linien der letzten 3 Monate – nur Form, keine Beträge */
@@ -635,9 +636,10 @@ function openVaultBase(){const V=vaultCash();if(!V.length){tell('Noch keine Spar
     for(const k in ZM)delete ZM[k];save();$('sheetRoot').innerHTML='';render();tell('Sparkonto gesichert.',()=>{S.accts=JSON.parse(sa);refreshA();save();render()})}};
 function vaultSecHtml(show){const V=vaultCash();if(!V.length)return '';/* v442: kein Erklärtext ohne Sparkonten */
   const S0=vaultSeries(),f=S0[0],l=S0[S0.length-1],sg=v=>v>0?'+':'',Vv=x=>show?x:'•••',dl=l.v-f.v;
-  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Vermögen · ${RGL[dRange]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span><button class="link" id="vInOpen">Einzahlen</button><button class="link" id="vbOpen">Zinsen</button></span></div>
+  return `<div class="sec" style="grid-column:1/-1"><div class="sh"><span>Vermögen · ${RGL[vRange]}</span><span style="display:flex;gap:12px;align-items:center;text-transform:none"><span class="in">${Vv(sg(dl)+eur0(dl))} im Zeitraum</span><button class="link" id="vInOpen">Einzahlen</button><button class="link" id="vbOpen">Zinsen</button></span></div>
    <div class="chartbox">${show?`<div class="vtot"><span>Bestand</span><div class="eyerow"><b>${eur(l.v)}</b>${eyeBtn()}</div></div>`:`<div class="vtot"><span>Bestand verborgen</span><div class="eyerow"><b>•••</b>${eyeBtn()}</div></div>`}
     ${vaultChart(S0,V,show)}
+    <div class="seg wc-rg" role="group" aria-label="Zeitraum">${['1w','1m','3m','6m','ytd','1y'].map(k=>`<button class="${vRange==k?'on':''}" data-vr="${k}">${RANGES[k][0]}</button>`).join('')}</div>
     <div class="dlg">${(V.length==1?[['__tot',V[0],'#1F9D6B',l.v,f.v]]:[['__tot','Vermögen gesamt','#1F9D6B',l.v,f.v],...V.map((n,k)=>[n,n,acc(n).col||PCOL[k%PCOL.length],l.per[k],f.per[k]])]).map(([id,n,c,v,v0])=>`<button class="dlg-i ${vOff[id]?'off':''}" data-vlg="${esc(id)}"><i style="background:${c}"></i><span>${esc(n)}</span><b>${Vv(eur0(v))}</b><small class="${v-v0<0?'out':'in'}">${Vv(sg(v-v0)+eur0(v-v0))} im Zeitraum</small></button>`).join('')}</div>
     ${V.some(n=>rateNow(n))?`<div class="ztag">${V.filter(n=>rateNow(n)).map(n=>`${I('up',13)} ${esc(n)}: ${String(rateNow(n)).replace('.',',')} % Zinsen · bisher ${Vv(eur(zinsAt(n,Date.now())))} ${rawBal(n,Date.now())>0?` · heute +${Vv(eur(rawBal(n,Date.now())*rateNow(n)/36500))}`:''}`).join('<br>')}</div>`:''}
     ${vaultRows(V,Vv)}
