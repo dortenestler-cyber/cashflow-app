@@ -111,7 +111,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
 const APP_VER='507 (25.11.)';
 /* v481: Release-Version. Bugfixes zählen automatisch als 1.0.x (Build − REL_B), echte Änderungen erhöhen REL (1.1, 1.2 …) und setzen REL_B auf den neuen Build */
-const REL='1.4',REL_B=501;function relVer(){const p=parseInt(APP_VER)-REL_B;return REL+(p>0?'.'+p:'')}
+const REL='1.5',REL_B=507;function relVer(){const p=parseInt(APP_VER)-REL_B;return REL+(p>0?'.'+p:'')}
 function verText(){return relVer()+' · Build '+APP_VER}
 /* ---------- Folgefragen unter Antworten ---------- */
 function fuFor(q){const l=String(q||'').toLowerCase(),A=[],add=(...x)=>x.forEach(t=>{if(t&&!A.includes(t)&&t.toLowerCase().replace(/[?]/g,'')!=l.replace(/[?]/g,'').trim())A.push(t)});

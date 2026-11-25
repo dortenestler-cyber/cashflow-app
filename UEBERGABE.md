@@ -7,7 +7,7 @@ Zuständig für das ganze Repo cashflow-app. Jedes Claude-Konto darf diese Rolle
 Belegt-Zeile: `Belegt: Konto A · Sitzung <Link> · seit JJJJ-MM-TT HH:MM` oder `Belegt: frei`. Beim Start zuerst setzen und pushen, beim Ende auf `frei`. Bei nahendem Limit `· Limit erwartet` anhängen, bei Übernahme `· übernommen von Konto A`. Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
 
 ## Stand in einem Satz
-Version 1.4.5 (Build 506, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
+Version 1.5 (Build 507, 25.11.) läuft – Heute-Nebenzeile als Kennzahlenzeile, keine offenen Bugs in `BUGS.md`.
 
 ## In Arbeit
 - Nichts.
