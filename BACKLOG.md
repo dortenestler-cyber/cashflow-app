@@ -426,3 +426,18 @@ Nicht geprüft (braucht echte Daten/Geräte): Penny-KI-Antworten (Testset), Face
 **Vorschlag:** `#F4A58A` (gedämpftes Lachs, gut sichtbar auf dunklem Hintergrund), am besten als eigene Variable, damit hell/dunkel stimmig bleiben.
 
 **Erweiterung (21.11.):** Generell alle Benachrichtigungspunkte und besonderen Hinweise (z. B. Zähler/Punkte in der Leiste `.abar`, Hinweis-Badges) im selben Lachston, nicht nur bei Penny. Vorher klären, was als „besonderer Hinweis“ zählt und was Warnung/Fehler bleibt (`--warn`, `--bad`).
+
+## 25. Buchungen: Kopf aufräumen (25.11.2026, Konzept, wartet auf Freigabe – frühestens Fenster 04.12.)
+
+**Wunsch:** Der Kopf der Seite Buchungen ist unübersichtlich: vier Symbole, Penny-Satz, drei gleich große Summen, Block „Geplant“ mit Erklärtext, Rückzahlung, Link „Geplante anzeigen“.
+
+**Konzept (im bestehenden Stil: dunkel, ruhig, Akzentgrün, keine Karten):**
+1. **Kopfzeile:** Titel, Suche, Kalender, Penny. Das Chart-Symbol entfällt (Rückblick ist in der Leiste).
+2. **Zeitraum:** groß „November“ mit ‹ ›, darunter klein „30.10. – 29.11.“.
+3. **Eine Hauptzahl:** „435,26 €“ groß mit „übrig im Zeitraum“, darunter eine schmale Leiste (Rein grün, Raus rosé) mit „Rein 4.065 €“ links und „Raus 3.630 €“ rechts. Ersetzt die Dreierzeile „+ / − / =“.
+4. **Penny-Satz:** klein und gedämpft unter der Leiste, nur wenn auffällig (z. B. ab ±25 % zur Vorwoche).
+5. **Geplant als eine Zeile:** „Geplant · 5 Buchungen · +63 € · −54 € ›“, ganze Zeile antippbar. Erklärtext „zählen erst am Tag selbst …“ und Link „Geplante anzeigen“ entfallen.
+6. **Offene Rückzahlung:** als Chip darunter „Rückzahlung offen · AKDB 40,50 € · Erhalten“.
+7. **Tageskopf:** „Heute · Mi 25.11.“ statt „25 Mi 11.2026 · Heute“; leerer Tag nur gedämpfte Zeile.
+
+**Eins rein, eins raus:** neu ist die Rein/Raus-Leiste; dafür entfallen Chart-Symbol, Erklärtext, Link „Geplante anzeigen“ und die Dreierzeile.
