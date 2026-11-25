@@ -61,6 +61,9 @@ function renderTabs(){$('tabbar').innerHTML=`<button class="tb-new" id="tbNew" a
   $('tabbar').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;calDay=null;if(off>0)off=0;curB=null;setView=null;drill=null;if(repV=='Jahr')repV='Monat';render();scrollTo(0,0)})}
 /* v297: Einstellungen über das Zahnrad oben rechts (Design 2.0) */
 const gearBtn=()=>`<button class="hc-ic hc-gear" data-tabgo="more" aria-label="Einstellungen" title="Einstellungen">${I('gear',20)}</button>`;
+/* v491/v492: Hauptzahl mit Rein/Raus-Leiste (Konzept 25) – Buchungen, Kalender, Rückblick, Planen */
+function heroH(i,o,lb,extra,cls){const b=i-o,[w,c]=eur(Math.abs(b)).split(',');return `<div class="lhero ${cls||''}"><div class="lh-big ${b<0?'out':''}">${b<0?'−':''}${w}<span>,${c}</span></div><div class="lh-lb">${lb||(b<0?'mehr ausgegeben als eingenommen':'übrig im Zeitraum')}</div>${i||o?`<div class="lh-bar"><i class="in" style="flex:${i}"></i><i class="out" style="flex:${o}"></i></div>`:''}<div class="lh-ro"><span>Rein <b>${eur0(i)}</b></span><span>Raus <b>${eur0(o)}</b></span></div>${extra||''}</div>`}
+/* v492: eine Hauptzahl mit Zeile darunter statt Kennzahl-Kacheln */function statH(v,lb,sub,cls){return `<div class="lhero sm"><div class="lh-big ${cls||''}">${v}</div><div class="lh-lb">${lb}</div>${sub?`<div class="lh-ro" style="justify-content:flex-start;gap:16px">${sub}</div>`:''}</div>`}
 function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class="${o.tabs.cur==v?'on':''}" data-f="${esc(v)}">${l}${n?` <span class="cnt">${n}</span>`:''}</button>`).join(''):'';
   /* v299: eine Designsprache – Titel groß links, runde Knöpfe rechts, Monat als Pille, keine farbigen Kopfkästen mehr */
   const lead=!o.month&&!o.stats&&!o.back&&!o.slim&&o.big&&o.big!=o.title?o.big:'';

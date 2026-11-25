@@ -441,3 +441,13 @@ Nicht geprüft (braucht echte Daten/Geräte): Penny-KI-Antworten (Testset), Face
 7. **Tageskopf:** „Heute · Mi 25.11.“ statt „25 Mi 11.2026 · Heute“; leerer Tag nur gedämpfte Zeile.
 
 **Eins rein, eins raus:** neu ist die Rein/Raus-Leiste; dafür entfallen Chart-Symbol, Erklärtext, Link „Geplante anzeigen“ und die Dreierzeile.
+
+## 26. Konzept 25 auf die ganze App übertragen (25.11.2026) – auf Wunsch sofort umgesetzt in v492 (gehört zu Version 1.1)
+Eine Hauptzahl mit Rein/Raus-Leiste oder kurzer Zeile statt Kennzahl-Kacheln und Dreierzeilen (`heroH`, `statH` in `03-core-ui.js`):
+1. Kalender: Hauptzahl statt „+ / − / =“, Legende unter dem Kalender entfällt.
+2. Rückblick › Monat: Hauptzahl mit Leiste, „Gespart · Sparquote“ als eine Zeile statt vier Kacheln.
+3. Rückblick › Verlauf: „Ø pro Monat“ groß, Rest als Zeile; Jahressaldo als Zeile statt großem Knopf.
+4. Dein Jahr: Bilanz als Hauptzahl mit Leiste statt vier Kacheln, Pfeile und Pfeil-Erklärung entfallen.
+5. Wiederkehrende Buchungen: „feste Kosten im Monat“ groß, Erklärzeilen unter den Gruppen entfallen.
+6. Planen › Zukunft (Was wäre, wenn): „Plus im Monat“ groß, Puffer, Sparquote, Budgets als Zeile.
+7. Impulse „Dein Verzicht wirkt“: Kachelraster als eine Zeile.
