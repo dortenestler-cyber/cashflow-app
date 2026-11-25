@@ -7,7 +7,7 @@ Zuständig für das ganze Repo cashflow-app. Jedes Claude-Konto darf diese Rolle
 Belegt-Zeile: `Belegt: Konto A · Sitzung <Link> · seit JJJJ-MM-TT HH:MM` oder `Belegt: frei`. Beim Start zuerst setzen und pushen, beim Ende auf `frei`. Bei nahendem Limit `· Limit erwartet` anhängen, bei Übernahme `· übernommen von Konto A`. Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
 
 ## Stand in einem Satz
-Version 1.4.2 (Build 503, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
+Version 1.4.3 (Build 504, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 
 ## In Arbeit
 - Nichts.
@@ -45,5 +45,6 @@ Version 1.4.2 (Build 503, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 - v501 = Version 1.4: Tagesbudget reserviert geplante Ausgaben bis Monatsende (`todayFree`: plan je Budget, Rückgabe plan/rest), Heute-Zeile „verplant“. Branch `release-1.4`.
 - v502: Depot-Chart am Computer (ab 1000 px) breiter gezeichnet (760×240) statt hochskaliert, neu zeichnen beim Größenwechsel.
 - v503: Sparkonten-Chart am Computer ebenfalls breiter (760×220) statt hochskaliert.
+- v504: iPad: Depot- und Sparkonten-Chart ab 700 px mit eigener Breite (`chW()`: 340/600/760), Hauptzahl-Blöcke auf zweispaltigen Seiten über die volle Breite. Geprüft: iPad hoch/quer und Computer für Buchungen, Kalender, Rückblick, Planen › Zukunft, Wiederkehrende, Schuldenfrei, Vermögen.
 - v485/v486: Apple Pay – zweite Zahlung kurz nach der ersten, gleiche Zahlungen, „schon gebucht“-Markierung, Datum als Betrag (BUGS Nr. 29, 30).
 - Übergabe-Datei angelegt (24.11.).
