@@ -7,7 +7,7 @@ Zuständig für das ganze Repo cashflow-app. Jedes Claude-Konto darf diese Rolle
 Belegt-Zeile: `Belegt: Konto A · Sitzung <Link> · seit JJJJ-MM-TT HH:MM` oder `Belegt: frei`. Beim Start zuerst setzen und pushen, beim Ende auf `frei`. Bei nahendem Limit `· Limit erwartet` anhängen, bei Übernahme `· übernommen von Konto A`. Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
 
 ## Stand in einem Satz
-Version 1.3.2 (Build 500, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
+Version 1.4 (Build 501, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 
 ## In Arbeit
 - Nichts.
@@ -42,5 +42,6 @@ Version 1.3.2 (Build 500, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 - v498 = Version 1.3: Depot-Chart standardmäßig nur Depotwert + Eingezahlt mit Gewinnfläche, Umschalter Gesamt/Einzelne Positionen/Anteile (`depMode`), Positionsliste mit Mini-Kurve, Antippen fokussiert eine Position (`depFocus`); Kennzahl-Kacheln als eine Zeile. Branch `release-1.3`.
 - v499: Kreisdiagramm „Aufteilung“ im Depot entfernt (Anteile stecken jetzt im Depot-Chart und in der Anteilsleiste).
 - v500: Untere Positionsliste im Depot entfernt. Positionen nur noch in der Liste unter dem Chart: Antippen = Chart-Fokus, nach links wischen = Details (Depot-Karte) / Bearbeiten, am Computer Stift-Symbol. Abgleichen und + Position stehen über der Liste; „kein Kurs“/„veraltet“ in der Unterzeile.
+- v501 = Version 1.4: Tagesbudget reserviert geplante Ausgaben bis Monatsende (`todayFree`: plan je Budget, Rückgabe plan/rest), Heute-Zeile „verplant“. Branch `release-1.4`.
 - v485/v486: Apple Pay – zweite Zahlung kurz nach der ersten, gleiche Zahlungen, „schon gebucht“-Markierung, Datum als Betrag (BUGS Nr. 29, 30).
 - Übergabe-Datei angelegt (24.11.).

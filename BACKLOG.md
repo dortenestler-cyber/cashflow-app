@@ -467,3 +467,6 @@ Problem: acht Linien übereinander, kleine Positionen kleben an der 0-Linie, Mar
 3. Umschalter unter dem Chart: Gesamt · Einzelne Positionen (bisherige Linien) · Anteile (gestapelt, 100 %).
 4. Positionen als Liste: Farbpunkt, Name, Anteil in %, Mini-Kurve (grün/rosé je nach Entwicklung), Wert und Veränderung. Darüber eine Anteilsleiste. Antippen einer Position zeigt nur deren Kurve im Chart.
 Entfällt: Kennzahl-Kacheln, Positions-Legende unter dem Chart, Marker-Haufen am Linienende.
+
+## 29. Geplante Ausgaben vorab reservieren (25.11.2026) – auf Wunsch sofort umgesetzt in v501 (= Version 1.4)
+Geplante Ausgaben (auch wiederkehrende) aus einem Monatsbudget bis Monatsende werden vom Rest abgezogen, bevor das Tagesbudget berechnet wird (`todayFree`). Heute zeigt „x € bis Monatsende · y € verplant“, Penny „davon y € verplant“. Kontostände und Budget-Rest selbst bleiben unverändert (zählen weiter erst am Tag).
