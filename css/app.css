@@ -1426,6 +1426,12 @@ body.mm .group,body.mm .mmcard,body.mm .chartbox,body.mm .gcard{box-shadow:none!
 .hb-big{font-family:var(--round);font-size:56px;font-weight:600;letter-spacing:-1.2px;line-height:1.08;font-variant-numeric:tabular-nums}
 .hb-big.neg{color:var(--bad)}
 .hb-s{font-size:15px;color:var(--muted)}
+.hb-kz{display:flex;margin-top:14px;padding:10px 0;border-top:.5px solid var(--sep);border-bottom:.5px solid var(--sep)}
+.hb-kz>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:.5px solid var(--sep)}
+.hb-kz>div:first-child{flex:1.4;padding-left:0;border-left:0}
+.hb-kz b{font-family:var(--round);font-size:17px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hb-kz b.out{color:var(--out,var(--bad))}.hb-kz b.in{color:var(--in,var(--ok))}
+.hb-kz span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb-pots{display:flex;flex-direction:column;gap:18px;padding:22px 4px 8px}
 .hb-pot{all:unset;display:flex;flex-direction:column;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .hb-pr{display:flex;justify-content:space-between;align-items:baseline;font-size:16px}
