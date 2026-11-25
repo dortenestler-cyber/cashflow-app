@@ -7,7 +7,7 @@ Zuständig für das ganze Repo cashflow-app. Jedes Claude-Konto darf diese Rolle
 Belegt-Zeile: `Belegt: Konto A · Sitzung <Link> · seit JJJJ-MM-TT HH:MM` oder `Belegt: frei`. Beim Start zuerst setzen und pushen, beim Ende auf `frei`. Bei nahendem Limit `· Limit erwartet` anhängen, bei Übernahme `· übernommen von Konto A`. Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
 
 ## Stand in einem Satz
-Version 1.0.7 (Build 489, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
+Version 1.0.8 (Build 490, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 
 ## In Arbeit
 - Nichts.
@@ -31,5 +31,6 @@ Version 1.0.7 (Build 489, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 - v487: Neues App-Symbol „Pegel“ (alle PNG-Größen inkl. maskable). Aufs iPhone kommt es erst nach Löschen und neu „Zum Home-Bildschirm“.
 - v488: Leeren Knopf „Genauer mit KI“ unter Pennys festen Antworten entfernt.
 - v489: Monatschart auf Heute: Tippen zeigt Markierung mit Datum und Ausgabenstand direkt im Chart (4 s).
+- v490: Rücklagen-Balken (Planen): Inhalt beim Tippen direkt unter dem Chart statt als Meldung oben, Balken hervorgehoben.
 - v485/v486: Apple Pay – zweite Zahlung kurz nach der ersten, gleiche Zahlungen, „schon gebucht“-Markierung, Datum als Betrag (BUGS Nr. 29, 30).
 - Übergabe-Datei angelegt (24.11.).
