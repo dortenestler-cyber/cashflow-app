@@ -451,3 +451,11 @@ Eine Hauptzahl mit Rein/Raus-Leiste oder kurzer Zeile statt Kennzahl-Kacheln und
 5. Wiederkehrende Buchungen: „feste Kosten im Monat“ groß, Erklärzeilen unter den Gruppen entfallen.
 6. Planen › Zukunft (Was wäre, wenn): „Plus im Monat“ groß, Puffer, Sparquote, Budgets als Zeile.
 7. Impulse „Dein Verzicht wirkt“: Kachelraster als eine Zeile.
+
+## 27. Schuldenfrei ansprechender (25.11.2026, Vorlage gezeigt, wartet auf Freigabe)
+1. Oben Ring „x % getilgt“, daneben groß „schuldenfrei im April 2029“, darunter „noch 29 Raten · 1.740 € offen“.
+2. Ratenkette: ein Kreis je Rate, nach Jahren in Zeilen; bezahlt gefüllt (Sage), nächste Rate hervorgehoben, Rest offen.
+3. Restschuld-Leiste: getilgt, offen, Zinsanteil (gold).
+4. Meilensteine mit Datum: erste Rate, ein Viertel, Halbzeit, drei Viertel, schuldenfrei.
+5. Eckdaten in einer Zeile (Gesamt, Zinsen, Rate); Ankersatz gekürzt ans Ende, Bearbeiten/Entfernen darunter.
+Entfällt: Tabelle Gesamtbetrag/Zinsen/Raten/Schuldenfrei/Noch (verrutscht am Computer) und der lange Ankersatz oben.
