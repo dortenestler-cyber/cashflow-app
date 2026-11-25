@@ -508,26 +508,28 @@ function briefCard(t,b){const L=String(b||'').split('\n').map(x=>x.trim()).filte
   return `<div class="brf"><div class="brf-h">${esc(t||'Briefing')}</div>${L.map(l=>`<div class="brf-l"><span class="brf-i">${I(ic(l),14)}</span><span>${esc(l)}</span></div>`).join('')}</div>`}
 /* Inhalt aus Benachrichtigungen erst nach dem Entsperren anzeigen */
 let visSince=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')visSince=Date.now()});
+/* v505: angetippte Mitteilung liegt dauerhaft im Cache (iOS verliert die Nachricht vom Service Worker oft) – beim Start, Zurückkehren und Entsperren abholen */let notifLast='',notifLastAt=0;function notifTake(){try{if(!window.caches)return;caches.open('cf-notif').then(c=>c.match('./__notif').then(r=>r?r.json():null).then(d=>{if(!d)return;c.delete('./__notif');if(Date.now()-(d.at||0)<6e5)notifOpen(d.msg)})).catch(()=>{})}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(notifTake,700)});
 let notifPend=null;function notifFlush(){const n=notifPend;notifPend=null;if(n)setTimeout(()=>notifOpen(n),60)}
-function notifOpen(n){if(!n)return;if(pinActive()&&$('lockRoot').innerHTML){notifPend=n;return}const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
+function notifOpen(n){if(!n)return;{const k=String(n.tag||'')+'|'+(n.title||'')+'|'+(n.body||'');if(k==notifLast&&Date.now()-notifLastAt<8000)return;if(!(pinActive()&&$('lockRoot').innerHTML)){notifLast=k;notifLastAt=Date.now()}}if(pinActive()&&$('lockRoot').innerHTML){notifPend=n;return}const tag=String(n.tag||'');$('sheetRoot').innerHTML='';setView=null;posView=null;
   if(/^brief/.test(tag)){AQ.msgs.push({q:'',h:briefCard(n.title,n.body),a:[['Buchungen von heute',()=>{tab='list';render()}],['Depot ansehen',()=>{tab='geld';render()}],['Kalender',()=>{tab='cal';render()}]]});tab='dash';render();ASH='full';asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80);return}
   const id=tag.replace(/^[a-z]+-/,'');
-  if(/^due-/.test(tag)){const i=(S.rec||[]).findIndex(r=>r.id==id);tab='more';setView='rec';render();if(i>=0)setTimeout(()=>openRec(i),200);return}
-  if(/^ctr-/.test(tag)){const i=(S.contracts||[]).findIndex(c=>c.id==id);tab='rep';repV='Verträge';render();if(i>=0)setTimeout(()=>openContract(i),200);return}
-  if(/^wish-/.test(tag)){tab='wish';wishV='Wünsche';render();const i=(S.wish||[]).findIndex(w=>w.id==id);if(i>=0)setTimeout(()=>openKaufCheck(i),200);return}
-  if(/^rg-/.test(tag)){const e=S.exp.find(x=>x.id==id);tab='list';render();if(e)setTimeout(()=>openSheet(e),200);return}
-  if(tag=='chk'){tab='dash';render();setTimeout(()=>openCheckin(),200);return}
-  if(/^pay(-|$)/.test(tag)||tag=='stale'){tab='dash';render();setTimeout(()=>siriPull(true),200);return}
-  if(/^sal-/.test(tag)&&salP().rows.length){tab='dash';render();setTimeout(()=>salGo(),250);return}
-  if(/^(sal|close)-/.test(tag)){tab='more';setView='close';render();return}
-  if(/^b80-/.test(tag)){const b=tag.split('-')[1];tab='dash';setView=null;curB=BUDG.includes(b)?b:null;render();setTimeout(()=>asstAsk('Was darf ich heute noch ausgeben?'),250);return}
-  if(/^abo-/.test(tag)){tab='more';setView='abos';render();return}
-  if(/^sub-/.test(tag)){tab='dash';render();setTimeout(()=>{asstOpen=true;renderAsst()},200);return}
-  if(/^goal-/.test(tag)){tab='wish';render();return}
-  if(tag=='urge'){tab='wish';render();setTimeout(()=>openUrge(),200);return}
-  tab='dash';render();asstOpen=true;renderAsst()}
+  /* v505: Zahlung – Abruf zeigt die Buchung selbst in Penny */if(/^pay(-|$)/.test(tag)||tag=='stale'){tab='dash';render();setTimeout(()=>siriPull(true),200);return}
+  /* v505: Mitteilung selbst immer als Karte in Penny zeigen, passende Aktion als Knopf darunter */let go=null,gl='Öffnen';
+  if(/^due-/.test(tag)){gl='Zahlung ansehen';go=()=>{const i=(S.rec||[]).findIndex(r=>r.id==id);tab='more';setView='rec';render();if(i>=0)setTimeout(()=>openRec(i),200)}}
+  else if(/^ctr-/.test(tag)){gl='Vertrag ansehen';go=()=>{const i=(S.contracts||[]).findIndex(c=>c.id==id);tab='rep';repV='Verträge';render();if(i>=0)setTimeout(()=>openContract(i),200)}}
+  else if(/^wish-/.test(tag)){gl='Wunsch ansehen';go=()=>{tab='wish';wishV='Wünsche';render();const i=(S.wish||[]).findIndex(w=>w.id==id);if(i>=0)setTimeout(()=>openKaufCheck(i),200)}}
+  else if(/^rg-/.test(tag)){gl='Buchung ansehen';go=()=>{const e=S.exp.find(x=>x.id==id);tab='list';render();if(e)setTimeout(()=>openSheet(e),200)}}
+  else if(tag=='chk'){gl='Check-in starten';go=()=>{tab='dash';render();setTimeout(()=>openCheckin(),200)}}
+  else if(/^sal-/.test(tag)&&salP().rows.length){gl='Gehalt verteilen';go=()=>{tab='dash';render();setTimeout(()=>salGo(),250)}}
+  else if(/^(sal|close)-/.test(tag)){gl='Monatsabschluss';go=()=>{tab='more';setView='close';render()}}
+  else if(/^b80-/.test(tag)){const b=tag.split('-')[1];gl='Was darf ich noch ausgeben?';go=()=>{tab='dash';setView=null;curB=BUDG.includes(b)?b:null;render();setTimeout(()=>asstAsk('Was darf ich heute noch ausgeben?'),250)}}
+  else if(/^abo-/.test(tag)){gl='Abos ansehen';go=()=>{tab='more';setView='abos';render()}}
+  else if(/^goal-/.test(tag)){gl='Ziele ansehen';go=()=>{tab='wish';render()}}
+  else if(tag=='urge'){gl='Kaufimpuls prüfen';go=()=>{tab='wish';render();setTimeout(()=>openUrge(),200)}}
+  AQ.msgs.push({q:'',h:briefCard(n.title||'Mitteilung',n.body),a:go?[[gl,go]]:null});tab='dash';render();ASH='full';asstOpen=true;asstNew=[];renderAsst();setTimeout(()=>{const s=document.querySelector('#asstRoot .apop-b'),c=[...document.querySelectorAll('#asstRoot .brf')].pop();if(s&&c)s.scrollTop=c.getBoundingClientRect().top-s.getBoundingClientRect().top+s.scrollTop-8},80)}
 try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',e=>{/* v485: Zahlung kommt bei offener App an – sofort abholen */if(e.data&&e.data.cfPush&&/^(pay|siri)/.test(e.data.cfPush)&&document.visibilityState==='visible'){setTimeout(()=>siriPull(),1500);return}if(e.data&&e.data.cfNotif){const n=e.data.cfNotif;setTimeout(()=>{if(Date.now()-visSince<3000)lock();notifOpen(n)},450)}})}catch(e){}
-setTimeout(()=>{try{const q=new URLSearchParams(location.search),n=q.get('n');if(!n)return;history.replaceState(history.state,'',location.pathname);notifOpen(JSON.parse(n))}catch(e){}},1000);
+setTimeout(()=>{try{const q=new URLSearchParams(location.search),n=q.get('n');if(!n)return;history.replaceState(history.state,'',location.pathname);notifOpen(JSON.parse(n))}catch(e){}},1000);setTimeout(notifTake,1300);
 /* ---------- summary for Claude ---------- */
 /* Übersicht und Rückblick direkt mit Penny besprechen */
 function pennyTalk(kind){const ai=!!aiCfg().on,sr=(a,b,c)=>`<div class="srow"><div class="srow-h"><span>${esc(a)}</span><span></span><b>${b}</b></div>${c?`<div class="a-s" style="font-size:12px">${c}</div>`:''}</div>`;let q,h,f,ctx=null;
