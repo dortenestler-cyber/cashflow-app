@@ -7,7 +7,7 @@ Zuständig für das ganze Repo cashflow-app. Jedes Claude-Konto darf diese Rolle
 Belegt-Zeile: `Belegt: Konto A · Sitzung <Link> · seit JJJJ-MM-TT HH:MM` oder `Belegt: frei`. Beim Start zuerst setzen und pushen, beim Ende auf `frei`. Bei nahendem Limit `· Limit erwartet` anhängen, bei Übernahme `· übernommen von Konto A`. Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
 
 ## Stand in einem Satz
-Version 1.1.4 (Build 496, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
+Version 1.2 (Build 497, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 
 ## In Arbeit
 - Nichts.
@@ -38,5 +38,6 @@ Version 1.1.4 (Build 496, 25.11.) läuft, keine offenen Bugs in `BUGS.md`.
 - v494: Bereiche im Rückblick klappen erst ihre Kategorien auf, jede Kategorie dann ihre Buchungen.
 - v495: Vermögen › Sparkonten-Chart mit eigener Zeitraum-Auswahl (1W, 1M, 3M, 6M, YTD, 1J), `vRange`.
 - v496: Sparkonten-Chart zeigt Zinsen im Zeitraum als goldene Fläche (eigene Skala, unteres Drittel), per Legende „Zinsen bisher“ ein-/ausblendbar (`vOff.__zins`).
+- v497 = Version 1.2: Schuldenfrei neu (Ring, Ratenkette, Restschuld-Leiste mit Zinsanteil, Meilensteine, Eckdaten-Zeile), Erklärtext unten entfällt. Branch `release-1.2`.
 - v485/v486: Apple Pay – zweite Zahlung kurz nach der ersten, gleiche Zahlungen, „schon gebucht“-Markierung, Datum als Betrag (BUGS Nr. 29, 30).
 - Übergabe-Datei angelegt (24.11.).

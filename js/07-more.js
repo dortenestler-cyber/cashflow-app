@@ -160,16 +160,27 @@ function viewSet(k){if(String(k).startsWith('g:'))return viewMoreGroup(k);const 
    <div class="sec"><div class="sh">Erscheinungsbild</div><div class="seg" id="thSeg">${[['system','Automatisch'],['light','Hell'],['dark','Dunkel']].map(x=>`<button class="${themeGet()==x[0]?'on':''}" data-f="${x[0]}">${x[1]}</button>`).join('')}</div></div>
    <div class="group"><div class="cell plain"><div class="t"><div>Große Schrift im Kalender</div><div class="s">Beträge in den Tagesfeldern größer anzeigen</div></div><input type="checkbox" class="switch" id="bigCal" ${S.bigCal?'checked':''}></div>
     <div class="cell plain"><div class="t"><div>Erfolge feiern</div><div class="s">Kurze Animation, wenn du verzichtest oder ein Ziel schaffst</div></div><input type="checkbox" class="switch" id="celeOn" ${S.cele!==false?'checked':''}></div></div>`;
-  if(k=='debts'){const D=S.debts||[];return back+`<h1 class="lt">Schuldenfrei</h1></div>
-   <div class="anchor">${I('lock',16)}<span>Solange ein Kredit läuft, gibt es keine neuen Ratenkäufe. Jede Rate bringt dich dem Tag näher, an dem dein Geld wieder ganz dir gehört.</span></div>
-   ${D.map((d,i)=>{const x=debtInfo(d);return `<div class="mmcard"><div class="srow"><div class="srow-h"><span><b>${esc(d.n)}</b></span><span></span><span>${eur(d.rate||0)} / Monat</span></div>${d.note?`<div class="s" style="font-size:12px;color:var(--muted)">${esc(d.note)}</div>`:''}
-     <div class="bar" style="height:10px"><i style="width:${(x.pct*100).toFixed(0)}%;background:var(--ok)"></i></div>
-     <div class="srow-h" style="font-size:13px"><span>${eur(x.paid)} getilgt</span><span></span><b>${eur(x.rest)} offen</b></div></div>
-     <div class="cmp" style="grid-template-columns:1.4fr 1fr"><span>Gesamtbetrag</span><span>${eur(d.total||0)}</span><span>davon Zinsen</span><span>${d.interest?eur(d.interest):'–'}</span><span>Raten übrig</span><span>${x.n}</span><span>Schuldenfrei</span><b>${x.rest?x.last.toLocaleDateString('de-DE',{month:'long',year:'numeric'}):'jetzt'}</b><span>Noch</span><span>${x.rest?(x.days>60?Math.round(x.days/30.4)+' Monate':x.days+' Tage'):'–'}</span></div>
-     ${x.pays.length?`<div class="srow"><div class="s" style="font-size:12px;color:var(--muted)">Erkannte Raten: ${x.pays.slice(-4).map(e=>new Date(e.t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+eur0(e.a)).join(', ')}</div></div>`:''}
-     <div class="srow"><div class="choices" style="margin:0"><button data-dedit="${i}">Bearbeiten</button><button data-ddel="${i}" style="color:var(--bad)">Entfernen</button></div></div></div>`}).join('')||'<div class="mmcard"><div class="empty">Kein Kredit eingetragen. Schön!</div></div>'}
-   <button class="btn soft" id="debtAdd">Kredit oder Ratenkauf hinzufügen</button>
-   <div class="note">Raten werden an der Notiz erkannt, zum Beispiel „Anyfin“. Sie laufen als wiederkehrende Buchung über dein Eingangskonto.</div>`}
+  if(k=='debts'){const D=S.debts||[];/* v497: Schuldenfrei als Ziel – Ring, Ratenkette, Restschuld-Leiste, Meilensteine (Backlog 27) */
+   const ML=d=>d.toLocaleDateString('de-DE',{month:'long',year:'numeric'}),MS=d=>d.toLocaleDateString('de-DE',{month:'short',year:'numeric'});
+   return back+`<h1 class="lt">Schuldenfrei</h1></div>
+   ${D.map((d,i)=>{const x=debtInfo(d),r=debtRate(d)||d.rate||0,tot=d.total||0,Nt=r?Math.max(1,Math.ceil(tot/r)):0,pN=Nt?Math.min(Nt,Math.round(x.paid/r)):0,pc=Math.round(x.pct*100),C=2*Math.PI*52;
+     const dAt=k=>new Date(x.last.getFullYear(),x.last.getMonth()-(Nt-pN-1)+(k-pN),1);/* Rate k (0-basiert), letzte offene Rate = x.last */
+     let dots='',yr=null;for(let k=0;k<Nt&&Nt<=120;k++){const dt=dAt(k);if(dt.getFullYear()!==yr){yr=dt.getFullYear();dots+=`<span class="sf-yr">${yr}</span>`}dots+=`<i class="${k<pN?'ok':k==pN&&x.rest?'nx':''}" title="${MS(dt)}"></i>`}
+     const zi=Math.min(d.interest||0,x.rest),ms=Nt?[[0,'Erste Rate'],[Math.ceil(Nt*.25)-1,'Ein Viertel geschafft'],[Math.ceil(Nt*.5)-1,'Halbzeit'],[Math.ceil(Nt*.75)-1,'Drei Viertel'],[Nt-1,'Schuldenfrei 🎉']]:[];
+     return `<div class="sf">
+     <div class="sf-top"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="${pc} % getilgt"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--fill)" stroke-width="9"/><circle cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${Math.max(x.pct*C,4).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="60" text-anchor="middle" font-size="26" font-weight="800" fill="var(--fg)">${pc} %</text><text x="60" y="80" text-anchor="middle" font-size="12" fill="var(--muted)">getilgt</text></svg>
+      <div class="sf-t">${x.rest?`<span>schuldenfrei im</span><b>${ML(x.last)}</b><div>noch ${x.n} Rate${x.n==1?'':'n'} · ${eur0(x.rest)} offen</div>`:`<b>Geschafft!</b><div>Alles getilgt.</div>`}</div></div>
+     <div class="sf-sh"><span>${esc(d.n)}</span><b>${eur0(r)} / Monat</b></div>${d.note?`<div class="sf-note">${esc(d.note)}</div>`:''}
+     ${dots?`<div class="sf-dots">${dots}</div><div class="sf-leg"><span><i class="ok"></i>bezahlt</span>${x.rest?`<span><i class="nx"></i>nächste Rate · ${MS(dAt(pN))}</span><span><i></i>offen</span>`:''}</div>`:''}
+     <div class="sf-sh"><span>Restschuld</span><b>${eur(x.rest)}</b></div>
+     <div class="sf-bar"><i style="flex:${x.paid};background:var(--accent)"></i><i style="flex:${Math.max(x.rest-zi,0)};background:var(--fill)"></i><i style="flex:${zi};background:var(--warn);opacity:.8"></i></div>
+     <div class="lh-ro"><span>Getilgt <b>${eur0(x.paid)}</b></span>${d.interest?`<span>davon Zinsen <b>${eur0(d.interest)}</b></span>`:''}</div>
+     ${ms.length?`<div class="sf-sh"><span>Meilensteine</span><span></span></div><div class="sf-ms">${ms.map(([k,l])=>`<div class="${k<pN?'f':''}"><b>${l}</b><span>${MS(dAt(k))}</span></div>`).join('')}</div>`:''}
+     <div class="sf-facts"><span>Gesamt <b>${eur0(tot)}</b></span>${d.interest?`<span>Zinsen <b>${eur0(d.interest)}</b></span>`:''}<span>Rate <b>${eur0(r)}</b></span></div>
+     ${x.pays.length?`<div class="sf-note">Erkannte Raten: ${x.pays.slice(-4).map(e=>new Date(e.t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+eur0(e.a)).join(', ')}</div>`:''}
+     <div class="sf-q">${I('lock',14)}<span>Solange ein Kredit läuft, keine neuen Ratenkäufe.</span></div>
+     <div class="choices" style="margin:12px 0 0"><button data-dedit="${i}">Bearbeiten</button><button data-ddel="${i}" style="color:var(--bad)">Entfernen</button></div></div>`}).join('')||'<div class="mmcard"><div class="empty">Kein Kredit eingetragen. Schön!</div></div>'}
+   <button class="btn soft" id="debtAdd">Kredit oder Ratenkauf hinzufügen</button>`}
   if(k=='rules'){const pv=S.accts.filter(a=>isRoll(a)&&a.kind=='budget'&&a.n!=S.rollTo&&!isStock(a.n)).map(a=>[a.n,Math.max(calc(a.n).rest,0)]);
    const sw=(id,on,l,s)=>`<div class="cell plain"><div class="t"><div>${l}</div>${s?`<div class="s">${s}</div>`:''}</div><input type="checkbox" class="switch" data-rule="${id}" ${on?'checked':''}></div>`;
    const locks=S.accts.filter(a=>a.kind=='budget'&&isLock(a.n)).map(a=>SHORT[a.n]||a.n),tabus=S.accts.filter(a=>isTabu(a.n)&&!tabuFrei(a)).map(a=>SHORT[a.n]||a.n),rolls=S.accts.filter(a=>a.kind=='budget'&&isRoll(a)&&a.n!=S.rollTo).map(a=>SHORT[a.n]||a.n);
