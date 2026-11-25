@@ -427,7 +427,7 @@ Nicht geprüft (braucht echte Daten/Geräte): Penny-KI-Antworten (Testset), Face
 
 **Erweiterung (21.11.):** Generell alle Benachrichtigungspunkte und besonderen Hinweise (z. B. Zähler/Punkte in der Leiste `.abar`, Hinweis-Badges) im selben Lachston, nicht nur bei Penny. Vorher klären, was als „besonderer Hinweis“ zählt und was Warnung/Fehler bleibt (`--warn`, `--bad`).
 
-## 25. Buchungen: Kopf aufräumen (25.11.2026, Konzept, wartet auf Freigabe – frühestens Fenster 04.12.)
+## 25. Buchungen: Kopf aufräumen (25.11.2026) – freigegeben und auf Wunsch sofort umgesetzt in v491 (= Version 1.1)
 
 **Wunsch:** Der Kopf der Seite Buchungen ist unübersichtlich: vier Symbole, Penny-Satz, drei gleich große Summen, Block „Geplant“ mit Erklärtext, Rückzahlung, Link „Geplante anzeigen“.
 

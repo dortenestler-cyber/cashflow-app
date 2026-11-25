@@ -1740,3 +1740,14 @@ button.link,button.ed-link,#sinkEx{position:relative}button.link::after,button.e
 html body.mm .lcats,html body .lcats{background:none;box-shadow:none;border-radius:0;padding:4px 0 0;border-top:.5px solid var(--sep)}
 .ab-sel{min-height:36px;padding:0 10px;box-sizing:border-box}.ab-sel select{min-height:36px;font-size:14px}
 @media (pointer:fine) and (min-width:1000px){.hb-leg{font-size:13px}}
+/* v491: Buchungen – Kopf nach Konzept 25 */
+.hc-month b:has(.hc-msub){display:flex;flex-direction:column;align-items:center;line-height:1.15}.hc-msub{font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;font-family:var(--font)}.stickhead.cmp .hc-msub{display:none}
+.lhero{padding:14px 2px 4px}.lh-big{font-family:var(--round);font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}.lh-big span{font-size:28px;color:var(--muted);font-weight:700}.lh-big.out{color:var(--out)}
+.lh-lb{font-size:14px;color:var(--muted);margin-top:2px}.lh-bar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin-top:16px}.lh-bar i{display:block;min-width:2px}.lh-bar .in{background:var(--in)}.lh-bar .out{background:var(--out)}
+.lh-ro{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}.lh-ro b{color:var(--fg);font-weight:600}
+.lhero .pnline{color:var(--muted)!important;font-size:13px;padding:10px 0 0;margin:0}.lhero .pnline>svg{margin-top:1px}
+.lplan{margin-top:0}.lp-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:12px 2px;background:none;border:0;border-top:.5px solid var(--sep);border-bottom:.5px solid var(--sep);color:var(--fg);font:inherit;font-size:15px;cursor:pointer;font-variant-numeric:tabular-nums;text-align:left}
+.lp-row b{font-weight:600}.lp-n{color:var(--muted);flex:1}.lp-row .in{color:var(--in);font-weight:600}.lp-o{font-weight:600}.lp-ch{color:var(--muted);transition:transform .2s}.lp-ch.on{transform:rotate(90deg)}.lplan .mmcard.plan{margin-top:10px}
+.lrf{display:flex;align-items:center;gap:10px;background:var(--fill);border-radius:14px;padding:10px 12px;margin-top:12px;font-size:14px;cursor:pointer}.lrf>svg{flex:none;color:var(--accent)}.lrf-t{flex:1;min-width:0;line-height:1.3}.lrf-t small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lrf-a{color:var(--in);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lrf .chip.lrf-b{background:var(--accent-fill)!important;color:#fff!important;border:0!important;min-height:36px;padding:0 14px!important;flex:none}
+.dayh.dayh2{grid-template-columns:1fr auto auto!important}.dayh2>.dlab{grid-column:1!important}.dlab{font-weight:700;font-size:15px}.empty.dempty{padding:10px 16px;text-align:left;color:var(--muted);font-size:14px}
