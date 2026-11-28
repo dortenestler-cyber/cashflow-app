@@ -568,7 +568,42 @@ function viewTax(){const T=taxData(taxY),ys=[...new Set(S.exp.filter(e=>e.tax).m
   <div class="note">Für deine Steuererklärung oder Steuerberatung. Keine Steuerberatung durch die App – die Zuordnung prüft bitte jemand mit Fachwissen.</div>`}
 async function taxPrint(){const T=taxData(taxY),F=[],P=[];for(const e of T.L.filter(hasDoc)){if(e.doc&&e.doc.typ=='pdf'){P.push(e);continue}const b=e.doc?await docBlob(e).catch(()=>null):null,src=b?await docRead(b).catch(()=>e.img):e.img;if(src)F.push([e,src])}
   const html=`<div class="pr"><h1>Steuerrelevante Ausgaben ${taxY}</h1><p>Erstellt am ${new Date().toLocaleDateString('de-DE')} mit CashFlow · Summe ${eur(T.sum)}</p>${Object.keys(TAXK).filter(k=>T.G[k]).map(k=>`<h2>${TAXK[k]} · ${eur(T.G[k].reduce((s,e)=>s+e.a,0))}</h2><table><tr><th>Datum</th><th>Beschreibung</th><th>Kategorie</th><th style="text-align:right">Betrag</th></tr>${T.G[k].map(e=>`<tr><td>${new Date(e.t).toLocaleDateString('de-DE')}</td><td>${esc(e.n||'')}</td><td>${esc(e.c||'')}</td><td style="text-align:right">${eur(e.a)}</td></tr>`).join('')}</table>`).join('')}${P.length?`<h2>PDF-Belege (separat beilegen)</h2><table>${P.map(e=>`<tr><td>${new Date(e.t).toLocaleDateString('de-DE')}</td><td>${esc(e.n||e.c||'')}</td><td>${esc(e.doc.name)}</td><td style="text-align:right">${eur(e.a)}</td></tr>`).join('')}</table>`:''}${F.length?`<h2>Belege</h2>${F.map(([e,src])=>`<figure><img src="${src}" alt=""><figcaption>${new Date(e.t).toLocaleDateString('de-DE')} · ${esc(e.n||e.c||'')} · ${eur(e.a)}</figcaption></figure>`).join('')}`:''}</div>`;
-  let r=$('printRoot');if(!r){r=document.createElement('div');r.id='printRoot';document.body.appendChild(r)}r.innerHTML=html;document.body.classList.add('printing');setTimeout(()=>{window.print();setTimeout(()=>{document.body.classList.remove('printing');r.innerHTML=''},800)},100)}
+  printDoc(html)}
+/* v511: Kontoauszug – nur gebuchte Einträge je Monat, Gesamt oder je Konto, mit mitlaufendem Saldo; Druck/PDF und CSV laufen lokal */
+let stK='Gesamt';
+const stKonten=()=>S.accts.filter(a=>a.kind=='konto'&&a.vis).map(a=>a.n);
+const stSet=k=>k=='Gesamt'||!stKonten().includes(k)?S.accts.filter(a=>a.kind=='konto'&&a.vis&&!isVerm(a)).map(a=>a.n):[k];
+function stBal(b,T){const a=acc(b),an=ancD(a)&&T>a.baseD,A=S.exp.filter(e=>e.t<T&&!isPlan(e)&&(!an||e.t>=a.baseD)),sm=f=>A.filter(f).reduce((s,e)=>s+e.a,0);
+  return (typeof zinsAt=='function'?zinsAt(b,Math.min(T,Date.now())):0)+(an?+a.baseVal:(a.start||0))+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b)}
+function stmtData(k,o){const p=period(o),set=stSet(k),has=n=>set.includes(n),T0=p.s.getTime(),T1=p.e.getTime(),now0=Date.now();let open=0,end=0,zi=0;
+  set.forEach(b=>{open+=stBal(b,T0);end+=stBal(b,T1);if(typeof zinsAt=='function')zi+=zinsAt(b,Math.min(T1,now0))-zinsAt(b,Math.min(T0,now0))});
+  const rows=[];let bal=open,sumD=0;
+  S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&(has(e.b)||(e.type=='tr'&&has(e.to)))).sort((x,y)=>x.t-y.t).forEach(e=>{
+    if(e.type=='tr'&&has(e.b)&&has(e.to))return;/* Umbuchung innerhalb der Auswahl hebt sich auf */
+    const d=e.type=='in'?e.a:e.type=='out'?-e.a:(has(e.to)?e.a:0)-(has(e.b)?e.a:0);bal+=d;sumD+=d;
+    const tx=e.corr?'Kontoabgleich':e.type=='tr'?'Umbuchung '+(k=='Gesamt'?e.b+' → '+e.to:has(e.b)?'→ '+e.to:'← '+e.b):(e.n||e.c||'Buchung');
+    rows.push({t:e.t,tx,sub:e.type=='tr'||e.corr?'':[e.c,e.sc].filter(x=>x&&x!=tx).join(' / ')+(k=='Gesamt'&&set.length>1?(e.c?' · ':'')+e.b:''),tr:e.type=='tr',d,s:bal})});
+  if(Math.abs(zi)>=.005){bal+=zi;sumD+=zi;rows.push({t:T1-1,tx:'Zinsen (berechnet)',sub:'',tr:false,d:zi,s:bal})}
+  const adj=end-(open+sumD);if(Math.abs(adj)>=.005){bal+=adj;rows.push({t:T1-1,tx:'Differenz (nicht aus Buchungen)',sub:'',tr:false,d:adj,s:bal,adj:true})}
+  const inc=rows.reduce((s,r)=>s+(r.d>0?r.d:0),0),out=rows.reduce((s,r)=>s+(r.d<0?-r.d:0),0);
+  return{p,k,open,end,inc,out,rows,adj}}
+const stFmt=v=>(v<0?'−':'')+eur(Math.abs(v)),stD=t=>new Date(t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});
+function stmtCsv(D){const q=x=>`"${String(x).replace(/"/g,'""')}"`,n2=v=>v.toFixed(2).replace('.',',');
+  return [['Datum','Text','Details','Betrag','Saldo'],[stD(D.p.s.getTime()),'Anfangssaldo','','',n2(D.open)]].concat(D.rows.map(r=>[stD(r.t),r.tx,r.sub,n2(r.d),n2(r.s)])).concat([[stD(D.p.e.getTime()-864e5),'Endsaldo','','',n2(D.end)]]).map(r=>r.map(q).join(';')).join('\n')}
+function printDoc(html){let r=$('printRoot');if(!r){r=document.createElement('div');r.id='printRoot';document.body.appendChild(r)}r.innerHTML=html;document.body.classList.add('printing');setTimeout(()=>{window.print();setTimeout(()=>{document.body.classList.remove('printing');r.innerHTML=''},800)},100)}
+function stmtPrint(){const D=stmtData(stK,off),nm=D.k=='Gesamt'?'Alle Konten':D.k,row=(a,b,c,d)=>`<tr><td>${a}</td><td>${b}</td><td style="text-align:right">${c}</td><td style="text-align:right">${d}</td></tr>`;
+  printDoc(`<div class="pr"><h1>Kontoauszug ${esc(nm)}</h1><p>${esc(D.p.label)} · erstellt am ${new Date().toLocaleDateString('de-DE')} mit CashFlow</p>
+   <table><tr><td>Anfangssaldo</td><td style="text-align:right">${stFmt(D.open)}</td><td>Summe Eingänge</td><td style="text-align:right">${stFmt(D.inc)}</td></tr><tr><td>Endsaldo</td><td style="text-align:right"><b>${stFmt(D.end)}</b></td><td>Summe Ausgänge</td><td style="text-align:right">${stFmt(-D.out)}</td></tr></table>
+   <table><thead><tr><th>Datum</th><th>Text</th><th style="text-align:right">Betrag</th><th style="text-align:right">Saldo</th></tr></thead><tbody>${row(stD(D.p.s.getTime()),'Anfangssaldo','',stFmt(D.open))}${D.rows.map(r=>row(stD(r.t),esc(r.tx)+(r.sub?'<br><small>'+esc(r.sub)+'</small>':''),stFmt(r.d),stFmt(r.s))).join('')}${row(stD(D.p.e.getTime()-864e5),'<b>Endsaldo</b>','',`<b>${stFmt(D.end)}</b>`)}</tbody></table></div>`)}
+async function stmtShareCsv(){const D=stmtData(stK,off),name='Kontoauszug-'+(D.k=='Gesamt'?'Gesamt':D.k.replace(/[^\wäöüÄÖÜß-]+/g,'_'))+'-'+ymd(D.p.m.getTime())+'.csv',f=new File(['﻿'+stmtCsv(D)],name,{type:'text/csv'});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'Kontoauszug'});else{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove()}}catch(e){if(e&&e.name!='AbortError')toast('CSV konnte nicht geteilt werden.')}}
+function viewStmt(){const ks=stKonten(),D=stmtData(stK,off),ok=!D.rows.some(r=>r.adj);
+  return `${appbar({title:'Kontoauszug',back:'setBack',noGear:true,month:true})}
+  <div class="group"><div class="cell plain"><label for="stSel">Konto</label><select id="stSel"><option value="Gesamt" ${stK=='Gesamt'?'selected':''}>Gesamt (alle Konten)</option>${ks.map(n=>`<option ${stK==n?'selected':''}>${esc(n)}</option>`).join('')}</select></div></div>
+  <div class="mmcard"><div class="srow"><div class="srow-h"><span>Anfangssaldo</span><span></span><span>${stFmt(D.open)}</span></div></div><div class="srow"><div class="srow-h"><span>Summe Eingänge</span><span></span><span class="in">${stFmt(D.inc)}</span></div></div><div class="srow"><div class="srow-h"><span>Summe Ausgänge</span><span></span><span class="out">${stFmt(-D.out)}</span></div></div><div class="srow"><div class="srow-h"><b>Endsaldo</b><span></span><b>${stFmt(D.end)}</b></div></div></div>
+  ${ok?`<div class="note">Endsaldo stimmt mit dem Kontostand in der App überein. Stimmt er nicht mit der Bank? <a href="#" id="stAbg">Kontostand abgleichen</a></div>`:`<div class="tip bad">Der Endsaldo weicht um ${eur(Math.abs(D.rows.find(r=>r.adj).d))} von der Summe der Buchungen ab. Meist ist ein Startwert von Hand gesetzt. <a href="#" id="stAbg">Mit der Bank abgleichen</a></div>`}
+  <div class="sec"><div class="sh">Gebuchte Einträge</div>${D.rows.length?`<table class="rp-tab rp-list"><thead><tr><th>Datum</th><th>Text</th><th>Betrag</th><th>Saldo</th></tr></thead><tbody>${D.rows.map(r=>`<tr><td>${stD(r.t).slice(0,5)}</td><td>${esc(r.tx)}${r.sub?`<br><small>${esc(r.sub)}</small>`:''}</td><td class="${r.d>0?'in':'out'}">${stFmt(r.d)}</td><td>${stFmt(r.s)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Keine gebuchten Einträge in diesem Monat.</div>'}<div class="note">Geplantes steht nicht im Auszug. Umbuchungen zwischen Konten heben sich bei „Gesamt“ auf.</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn" id="stPdf">Drucken / PDF</button><button class="btn soft" id="stCsv">CSV teilen</button></div>`}
 /* 7 Sinking-Ziele: Stand je Ziel aus dem Sinking-Funds-Saldo (Verteilung nach Fälligkeit), Monate aussetzen */
 const sinkAcc=()=>ALL.find(n=>{const a=S.accts.find(x=>x.n==n);return a&&a.stufe?a.stufe=='sparen'&&a.kind=='budget':/sinking/i.test(n)});
 function yplanStatus(){const it=yplanItems().map(x=>{const d=yplanNext(x),mo=Math.max(1,(d.getFullYear()-now.getFullYear())*12+d.getMonth()-now.getMonth());return Object.assign(x,{d,mo})}).sort((a,b)=>a.d-b.d);
@@ -1496,6 +1531,11 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
   if(!opt.readonly&&typeof corrBook=='function'){const b=[];abgleichAccs().forEach(n=>{[123.45,-67.89].forEach(d=>{const ziel=Math.round((calc(n).rest+d)*100)/100;corrBook(n,ziel);
       if(Math.abs(calc(n).rest-ziel)>E)b.push(n+': nach Abgleich '+f2(calc(n).rest)+' statt Bankstand '+f2(ziel));if(corrBook(n,ziel)!==0)b.push(n+': zweiter Abgleich bucht erneut')})});
     add(KB,'Kontoabgleich trifft den Bankstand',b)}
+  {const b=[],ks=stKonten();[-2,-1,0].forEach(o=>{let sE=0;const P=period(o);ks.forEach(n=>{const D=stmtData(n,o),c=calc(n,o).total,D0=stmtData(n,o-1);
+      if(Math.abs(D.end-c)>E)b.push(n+' '+P.label+': Auszug '+f2(D.end)+' statt '+f2(c));if(Math.abs(D.open+D.inc-D.out-D.end)>E)b.push(n+' '+P.label+': Anfang+Eingänge−Ausgänge≠Ende');
+      if(Math.abs(D0.end-D.open)>E)b.push(n+' '+P.label+': Anfangssaldo ≠ Endsaldo Vormonat');if(D.rows.some(r=>r.adj))b.push(n+' '+P.label+': Differenz nicht aus Buchungen '+f2(D.rows.find(r=>r.adj).d));
+      let run=D.open;D.rows.forEach(r=>{run+=r.d;if(Math.abs(run-r.s)>E)b.push(n+': Saldo je Zeile stimmt nicht')});if(!isVerm(acc(n)))sE+=D.end});
+    const G=stmtData('Gesamt',o);if(Math.abs(G.end-sE)>E)b.push(P.label+': Gesamt '+f2(G.end)+' statt Summe der Konten '+f2(sE))});add(KB,'Kontoauszug: Salden stimmen (Anfang, Ende, Zeile, Gesamt)',b)}
   return R}
 /* Selbsttest für Penny: höchstens einmal pro Datenstand und Tag, nur Fehler (keine Warnungen) */
 /* v420: Archivdaten vor dem 01.10.2026 bleiben im Selbsttest außen vor */const PLAUSI_AB=new Date(2026,9,1).getTime();let plausiC=null;function plausiTip(){const k=DV+'|'+new Date().toDateString();if(plausiC&&plausiC.k==k)return plausiC.r;let r=[];try{r=plausiRun({readonly:true,ab:PLAUSI_AB}).filter(x=>!x.ok&&!x.warn)}catch(e){r=[{regel:'Selbsttest',msg:String(e&&e.message||e)}]}plausiC={k,r};return r}

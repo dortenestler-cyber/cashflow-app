@@ -474,3 +474,6 @@ Geplante Ausgaben (auch wiederkehrende) aus einem Monatsbudget bis Monatsende we
 ## Umbuchungen auf Vermögen im Monatsrest (umgesetzt in v509, freigegeben 28.11.2026)
 
 **Ziel:** Umbuchungen auf Vermögenskonten/Bestand (z. B. Sparplan → ETF, Sinking Funds) verkleinern den Rest in Buchungen (blau „Gespart“) und werden im Tagesbudget vorab reserviert. Eins raus: Penny-Hinweiszeile im Buchungen-Kopf.
+
+## Kontoauszug (umgesetzt in v511, 28.11.2026)
+Freigabe der Nutzerin am 28.11.2026 sofort, außerhalb des Änderungsfensters. Eins rein, eins raus: ersetzt die drei CSV-Exporte (Export & Backup, Monats-CSV im Rückblick, CSV im Finanzbericht).
