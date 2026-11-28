@@ -175,6 +175,9 @@ function setSperre(a,art,on){if(on){a.sperre=Object.assign({},a.sperre&&a.sperre
 const inP=(e,p)=>e.t>=p.s.getTime()&&e.t<p.e.getTime();
 let NOWT=Date.now();const isPlan=e=>e.t>Date.now();
 /* v509: Umbuchung auf Vermögen/Bestand (Sparen) – senkt den Monatsrest, zählt aber nicht als Ausgabe */const isSpar=e=>!!e&&e.type=='tr'&&!e.alloc&&!!e.to&&e.b!=e.to&&!e.corr&&(isVerm(acc(e.to))||isStock(e.to))&&!(isVerm(acc(e.b))||isStock(e.b));
+/* v513: eine Rechenquelle für Rein/Raus/Gespart – Buchungen-Kopf, Kalender, Rückblick-Kopf und Geldfluss rechnen alle damit (ohne Kontoabgleich-Buchungen) */
+const isSparIn=e=>!!e&&e.type=='in'&&!e.corr&&isVerm(acc(e.b));
+function flowSum(L){let inc=0,out=0,sv=0;(L||[]).forEach(e=>{if(!e||e.corr)return;if(e.type=='in')inc+=e.a;else if(e.type=='out')out+=e.a;if(isSpar(e)||isSparIn(e))sv+=e.a});const r2=v=>Math.round(v*100)/100;inc=r2(inc);out=r2(out);sv=r2(sv);return{inc,out,sv,rest:r2(inc-out-sv)}}
 function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e));
   if(isK(b)){const _a=acc(b),_an=ancD(_a)&&p.e.getTime()>_a.baseD,A=S.exp.filter(e=>e.t<p.e.getTime()&&!isPlan(e)&&(!_an||e.t>=_a.baseD)),sm=(f)=>A.filter(f).reduce((s,e)=>s+e.a,0);
     const bal=(typeof zinsAt=='function'?zinsAt(b,Math.min(p.e.getTime(),Date.now())):0)+(_an?+_a.baseVal:(_a.start||0))+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);

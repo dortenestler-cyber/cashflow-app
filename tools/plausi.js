@@ -20,6 +20,7 @@ const EXTRA=`(()=>{const k=S.accts.find(a=>a.kind=='konto'),bs=S.accts.filter(a=
   if(bs.length>1)S.exp.push({id:uid(),type:'tr',b:bs[0].n,to:bs[1].n,c:'',a:20,n:'Plausi Topf→Topf',t:t(1)});
   if(bs[0])S.exp.push({id:uid(),type:'out',b:bs[0].n,c:'Sonstiges',a:0.1,n:'Plausi 0,10',t:t(1)},{id:uid(),type:'out',b:bs[0].n,c:'Sonstiges',a:0.2,n:'Plausi 0,20',t:t(1)});
   if(bs[0])S.exp.push({id:uid(),type:'out',b:bs[0].n,c:'Sonstiges',a:50,n:'Plausi geplant',t:T+3*D});
+  if(k)S.exp.push({id:uid(),type:'in',b:k.n,c:'',a:77,n:'Plausi Abgleich',t:t(1),corr:true},{id:uid(),type:'out',b:k.n,c:'',a:19,n:'Plausi Abgleich',t:t(1),corr:true});/* v513: Kontoabgleich zählt weder in Buchungen noch im Rückblick */
   if(k)S.exp.push({id:uid(),type:'out',b:k.n,c:'Sonstiges',a:5000,n:'Plausi ins Minus',t:t(0)});})()`;
 
 /* Stufe 2: dieselbe Zahl an jedem Ort – Heute gegen calc() */

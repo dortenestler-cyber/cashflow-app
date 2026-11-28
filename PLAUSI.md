@@ -32,6 +32,9 @@ Stichtage: Monatsmitte, Monatsende 23:30, Monatsanfang 00:30, 29.02.2028, Zeitum
 - Fixkosten nie doppelt, auch nicht bei erneutem Lauf; Monatsabschluss wiederholbar
 - Kontoabgleich trifft den Bankstand (auch ins Minus), zweiter Abgleich bucht nichts
 - Heute: „Übrig im Monat“, „Heute noch frei“ und Budget-Reste = berechnete Werte
+### 2 Rückblick & Buchungen – umgesetzt seit v513
+- Rein/Raus/Gespart im Rückblick = Buchungen (Quelle `flowSum`, ohne Kontoabgleich); Kopf „übrig“ = Geldfluss = Rein − Raus − Gespart; „Am Monatsende noch da“ = Konten + Budgets + Geplantes.
+
 ### 2 Rückblick & Prognose – offen
 Rückblick-Summen = Summe der Buchungen je Monat/Kategorie; Jahr = Σ Monate; Prognose = Stand + Fixkosten + Geplantes.
 ### 3 Vermögen & Depot – offen

@@ -967,26 +967,26 @@ function invMonth(n,o){const D=depot().filter(h=>h.to==n||(!h.to&&/etf|depot/i.t
   return{b:Math.round(b*100)/100,pl}}
 function anaData(o){const p=period(o),pp=period(o-1),V=vaultAccs(),pa=pufAcc(),L=RX().filter(e=>inP(e,p)&&!isPlan(e)&&!e.corr),LP=RX().filter(e=>inP(e,pp)&&!isPlan(e)&&!e.corr);
   const sum=(A,f)=>A.filter(f).reduce((s,e)=>s+e.a,0),inc=A=>sum(A,e=>e.type=='in'),out=A=>sum(A,e=>e.type=='out');
-  const intoV=e=>(e.type=='tr'&&V.includes(e.to)&&!V.includes(e.b))||(e.type=='in'&&V.includes(e.b)),saved=sum(L,intoV),goalDep=S.goals.reduce((s,g)=>s+g.dep.filter(d=>inP({t:d.t},p)).reduce((q,d)=>q+d.a,0),0);
-  const fix=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&isRecE(e)):0,oneK=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&!isRecE(e)):0,budUsed=TOT.reduce((s,b)=>s+calc(b,o).used,0);
+  const FS=flowSum(L),saved=FS.sv,goalDep=S.goals.reduce((s,g)=>s+g.dep.filter(d=>inP({t:d.t},p)).reduce((q,d)=>q+d.a,0),0);
+  const fix=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&isRecE(e)):0,oneK=pa?sum(L,e=>e.b==pa.n&&e.type=='out'&&!isRecE(e)):0;
   const accs=S.accts.map(a=>{const n=a.n,c=calc(n,o),A=L;return{n,col:a.col,k:a.kind,in:sum(A,e=>e.type=='in'&&e.b==n),out:sum(A,e=>e.type=='out'&&e.b==n),trI:sum(A,e=>e.type=='tr'&&e.to==n),trO:sum(A,e=>e.type=='tr'&&e.b==n),end:c.rest,start:a.kind=='konto'?calc(n,o-1).rest:null,tot:c.total,used:c.used,inv:invMonth(n,o)}}).filter(x=>(x.in||x.out||x.trI||x.trO||x.k=='konto')&&x.n!=rlAccN()/* v409: Rücklagen nur Planung */);
   const byC={};L.filter(e=>e.type=='out').forEach(e=>{const k=e.c||'Sonstiges';byC[k]=byC[k]||{v:0,n:0,acc:{}};byC[k].v+=e.a;byC[k].n++;byC[k].acc[e.b]=1});
   const cats=Object.entries(byC).sort((a,b)=>b[1].v-a[1].v);
-  const rec=(S.rec||[]).map((r,i)=>{const be=L.find(e=>e.rid==r.id);return{r,booked:!!be,amt:be?be.a:recA(r,p),adj:be?be.adj:adjOf(r,p)}}).filter(x=>x.r.type=='tr'&&V.includes(x.r.to)&&(x.booked||(!x.r.paused&&recDue(x.r,p))));
+  const rec=(S.rec||[]).map((r,i)=>{const be=L.find(e=>e.rid==r.id);return{r,booked:!!be,amt:be?be.a:recA(r,p),adj:be?be.adj:adjOf(r,p)}}).filter(x=>isSpar(x.r)&&(x.booked||(!x.r.paused&&recDue(x.r,p))));
   const outs=L.filter(e=>e.type=='out'),wd=[0,0,0,0,0,0,0];outs.forEach(e=>wd[new Date(e.t).getDay()]+=e.a);const wmax=wd.indexOf(Math.max(...wd));
   const kons=sum(outs,e=>KONSUM.includes(e.c)),varOut=sum(outs,e=>!isRecE(e)),recOut=sum(outs,e=>isRecE(e));
   const ws=S.wish,nw=ws.filter(w=>inP({t:w.t},p)).length,gone=ws.filter(w=>w.dt&&inP({t:w.dt},p)&&w.s=='verworfen'),bought=ws.filter(w=>w.dt&&inP({t:w.dt},p)&&w.s=='gekauft');
-  const I1=inc(L),O1=out(L),I0=inc(LP),O0=out(LP);
+  const I1=FS.inc,O1=FS.out,I0=flowSum(LP).inc,O0=flowSum(LP).out,budUsed=Math.round((O1-fix-oneK)*100)/100;/* v513: alles, was nicht Fix/Einmaliges des Eingangskontos ist */
   return{p,I1,O1,I0,O0,saved,goalDep,fix,oneK,budUsed,accs,cats,rec,wd,wmax,kons,varOut,recOut,cnt:outs.length,days:p.len||30,nw,gone,bought,quote:I1?saved/I1:0}}
 function viewReview(){const o=S.revOff??-1,R=reviewData(o);
   return `${appbar({title:'Monatsanalyse',back:'setBack',noGear:true,stats:`<div class="hc-month"><button class="hc-ic" id="rvP" aria-label="Voriger Monat">${I('back',18)}</button><b>${R.p.label}</b><button class="hc-ic" id="rvN" ${o>=0?'disabled':''} aria-label="Nächster Monat">${I('fwd',18)}</button></div>`})}${reviewBody(o)}`}
 function reviewBody(o){const R=reviewData(o),k=pkey(R.p),note=(S.reviews||{})[k]||{};
   return `${o>=0?'':`<div class="minis">${R.bs.map(x=>{const s=stat(x.c);return `<div class="mini tank st-${s.k}" style="--c:${COL[x.b]};cursor:default">${tankFx(x.c)}<div class="mini-n"><span class="dotc"></span>${esc(SHORT[x.b])}</div><div class="mini-r ${x.c.rest<0?'out':''}">${eur0(x.c.rest)}</div><div class="mini-s">${eur0(x.c.used)} von ${eur0(x.c.total)}</div></div>`}).join('')}</div>`}
   ${(()=>{const A=anaData(o),WD=['So','Mo','Di','Mi','Do','Fr','Sa'],pc=(a,b)=>b?Math.round((a-b)/b*100):0,cmax=A.cats.length?A.cats[0][1].v:1,dO=pc(A.O1,A.O0);
-   const flow=[['Einnahmen',A.I1,'in'],['Fixkosten '+(pufAcc()?esc(pufAcc().n):''),-A.fix,''],['Einmaliges '+(pufAcc()?esc(pufAcc().n):''),-A.oneK,''],['Budgets verbraucht',-A.budUsed,''],['Ins Vermögen',-A.saved,'']].filter(x=>x[1]);
+   const flow=[['Einnahmen',A.I1,'in'],['Fixkosten '+(pufAcc()?esc(pufAcc().n):''),-A.fix,''],['Einmaliges '+(pufAcc()?esc(pufAcc().n):''),-A.oneK,''],['Budgets & weitere Konten',-A.budUsed,''],['Ins Vermögen',-A.saved,'']].filter(x=>x[1]);
    const rest=flow.reduce((s,x)=>s+x[1],0);
    /* v302: Kennzahlen sind Kacheln mit Füllstand und führen zu den passenden Buchungen */const KT=(l,v,sub,go,f,cls)=>`<button class="kpi kt" data-kgo="${go}" data-ko="${o}" style="--fp:${Math.max(0,Math.min(100,Math.round((f||0)*100)))}%" aria-label="${l} öffnen">${l}<b class="${cls||''}">${v}</b>${sub?`<small>${sub}</small>`:''}<span class="kt-c" aria-hidden="true">›</span></button>`,bl=A.I1?Math.max(0,1-A.O1/A.I1):0,pc0=(a,b)=>b?Math.round((a-b)/b*100):null,dI=pc0(A.I1,A.I0);
-   return `${heroH(A.I1,A.O1,'übrig im Monat','','sm')}<button class="lh-sub" data-kgo="geld" data-ko="${o}">${(()=>{if(!(o>=0))return `Gespart <b>${eur0(A.saved)}</b> · Sparquote <b>${Math.round(A.quote*100)} %</b>`;const due=A.rec.filter(x=>!x.booked).reduce((s,x)=>s+x.amt,0),br=Math.max(0,TOT.filter(b=>!isStock(b)).reduce((s,b)=>s+calc(b,o).rest,0)),ex=A.saved+due+br;return `Gespart <b>${eur0(A.saved)}</b> · Sparquote voraussichtl. <b>${A.I1?Math.round(ex/A.I1*100)+' %':'–'}</b>`})()}<span aria-hidden="true">›</span></button>
+   return `${heroH(A.I1,A.O1,'übrig im Monat','','sm',A.saved)}${o<0?`<button class="lh-sub" data-kgo="geld" data-ko="${o}">Gespart <b>${eur0(A.saved)}</b> · Sparquote <b>${Math.round(A.quote*100)} %</b><span aria-hidden="true">›</span></button>`:o==0?meHtml():''}
    <div class="note" style="padding:0 4px">${A.O0?`Ausgaben ${dO>0?'+':''}${dO} % zum Vormonat (${eur0(A.O0)})`:'Kein Vormonat zum Vergleich'}${A.I0?` · Einnahmen ${pc(A.I1,A.I0)>0?'+':''}${pc(A.I1,A.I0)} %`:''}</div>
    <div class="sec"><div class="sh">Geldfluss</div><div class="mmcard"><div class="ana-flow">${flow.map(([l,v,c])=>`<span>${l}</span><b class="${v<0?'out':c}">${v<0?'−':'+'}${eur(Math.abs(v))}</b>`).join('')}<span class="ana-sum">Bleibt übrig</span><b class="ana-sum ${rest<0?'out':'in'}">${eur(rest)}</b></div></div></div>
    ${(()=>{const AR=x=>`<div class="srow"><div class="srow-h"><span><span class="dotc" style="--c:${x.col};display:inline-block;margin-right:6px"></span><b>${esc(x.n)}</b></span><span></span><b class="${x.end<0?'out':''}">${WH(x.n)?MASK:eur(x.end)}</b></div>
@@ -1536,6 +1536,16 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
       if(Math.abs(D0.end-D.open)>E)b.push(n+' '+P.label+': Anfangssaldo ≠ Endsaldo Vormonat');if(D.rows.some(r=>r.adj))b.push(n+' '+P.label+': Differenz nicht aus Buchungen '+f2(D.rows.find(r=>r.adj).d));
       let run=D.open;D.rows.forEach(r=>{run+=r.d;if(Math.abs(run-r.s)>E)b.push(n+': Saldo je Zeile stimmt nicht')});if(!isVerm(acc(n)))sE+=D.end});
     const G=stmtData('Gesamt',o);if(Math.abs(G.end-sE)>E)b.push(P.label+': Gesamt '+f2(G.end)+' statt Summe der Konten '+f2(sE))});add(KB,'Kontoauszug: Salden stimmen (Anfang, Ende, Zeile, Gesamt)',b)}
+  /* v513: Rückblick und Buchungen rechnen mit einer Quelle (flowSum); Geldfluss geht auf; Monatsende-Zahl setzt sich aus Teilen zusammen */
+  {const RB='Rückblick & Buchungen',b=[],b2=[],b3=[],pe=v=>{const n=/[−-]/.test(v)?-1:1,x=parseFloat(String(v).replace(/[^\d,]/g,'').replace(',','.'));return n*(isNaN(x)?0:x)};
+    [-2,-1,0].forEach(o=>{const P=period(o);if(P.s.getTime()<histT())return;const A=anaData(o),F=flowSum(expV(P.s.getTime(),P.e.getTime()).filter(e=>inP(e,P)&&!isPlan(e)&&!isHistE(e)));
+      [['Rein',A.I1,F.inc],['Raus',A.O1,F.out],['Gespart',A.saved,F.sv]].forEach(([l,x,y])=>{if(Math.abs(x-y)>E)b.push(P.label+' '+l+': Rückblick '+f2(x)+' statt Buchungen '+f2(y))});
+      const h=reviewBody(o),hm=h.match(/lh-big[^>]*>([^<]*)<span>([^<]*)</),fm=h.match(/ana-sum (?:out|in)">([^<]*)</);
+      if(hm&&fm){const hv=pe(hm[1]+hm[2]),fv=pe(fm[1]);if(Math.abs(hv-fv)>E)b2.push(P.label+': Kopf '+f2(hv)+' statt Geldfluss '+f2(fv));if(Math.abs(hv-(A.I1-A.O1-A.saved))>E)b2.push(P.label+': Kopf '+f2(hv)+' statt Rein−Raus−Gespart '+f2(A.I1-A.O1-A.saved))}});
+    {const M=monthEndLeft(),kN=pmRows().filter(a=>isK(a.n)).reduce((s,a)=>s+calc(a.n).rest,0);
+      if(Math.abs(M.kon+M.bud-M.now)>E)b3.push('Konten + Budgets ≠ Stand heute');if(Math.abs(M.now+M.in-M.out-M.sp-M.end)>E)b3.push('Stand + Geplantes ≠ Monatsende '+f2(M.end));
+      if(Math.abs(M.kon-kN)>E)b3.push('Konten-Stand '+f2(M.kon)+' statt '+f2(kN))}
+    add(RB,'Rein/Raus/Gespart im Rückblick = Buchungen (eine Quelle)',b);add(RB,'Kopf „übrig“ = Geldfluss = Rein − Raus − Gespart',b2);add(RB,'Am Monatsende noch da setzt sich aus Konten, Budgets und Geplantem zusammen',b3)}
   return R}
 /* Selbsttest für Penny: höchstens einmal pro Datenstand und Tag, nur Fehler (keine Warnungen) */
 /* v420: Archivdaten vor dem 01.10.2026 bleiben im Selbsttest außen vor */const PLAUSI_AB=new Date(2026,9,1).getTime();let plausiC=null;function plausiTip(){const k=DV+'|'+new Date().toDateString();if(plausiC&&plausiC.k==k)return plausiC.r;let r=[];try{r=plausiRun({readonly:true,ab:PLAUSI_AB}).filter(x=>!x.ok&&!x.warn)}catch(e){r=[{regel:'Selbsttest',msg:String(e&&e.message||e)}]}plausiC={k,r};return r}

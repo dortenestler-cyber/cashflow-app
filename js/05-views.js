@@ -241,7 +241,7 @@ function viewSummeM(p){const L=S.exp.filter(e=>inP(e,p)),pp=period(off-1),LP=S.e
   <div class="sec"><div class="sh">Ausgaben nach Konto</div><div class="mmcard">${Object.entries(byA).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span class="out">${eur(v)}</span></div><div class="bar" style="height:6px"><i style="width:${(v/mxA*100).toFixed(0)}%;background:${COL[k]||'var(--muted)'}"></i></div></div>`).join('')||'<div class="empty">Keine Ausgaben.</div>'}</div></div>
   ${Object.keys(trs).length?`<div class="sec"><div class="sh">Umbuchungen</div><div class="mmcard">${Object.entries(trs).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span>${eur(v)}</span></div></div>`).join('')}</div></div>`:''}`}
 function viewCal(){const p=period(off),ALLX=expV(p.s.getTime()-8*864e5,p.e.getTime()+15*864e5),L=ALLX.filter(e=>inP(e,p)&&(off>0||!isPlan(e))&&(flt=='Alle'||e.b==flt||e.to==flt)),tflt='Alle';
-  const out=L.filter(e=>e.type=='out'&&!e.corr).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&!e.corr).reduce((s,e)=>s+e.a,0);
+  const FS=flowSum(L),out=FS.out,inc=FS.inc,sv=FS.sv;
   const sum=(i,o)=>`<div class="mmsum1" aria-label="Einnahmen, Ausgaben, Saldo">${off>0?'<span class="pl1">geplant</span>':''}<span class="in">+${eur(i)}</span><span class="out">−${eur(o)}</span>${sv?`<span class="sv">−${eur(sv)}</span>`:''}<b class="${i-o-sv<0?'out':''}">= ${eur(i-o-sv)}</b></div>`;/* v440: Summen in einer Zeile */
   const head=appbar({title:'Kalender',month:true,left:`<button class="ab-ic ${showF||flt!='Alle'?'act':''}" id="fBtn" aria-label="Konto filtern">${I('filter',21)}</button><button class="ab-ic vsw" data-tabgo="list" aria-label="Listenansicht" title="Liste">${I('list',21)}</button>`});
 const DOTC=['#3b8fd9','#f25c54','#a06bf2','#2fc4a3','#f0a12d','#e56bb0','#5fb35a','#8a8f98'];
@@ -259,7 +259,7 @@ const DOTC=['#3b8fd9','#f25c54','#a06bf2','#2fc4a3','#f0a12d','#e56bb0','#5fb35a
         <span class="nums">${co?`<span class="out">${nf(co)}</span>`:ci?`<span class="in">+${nf(ci)}</span>`:''}</span></button>`)}
     const sel=calDay?ALLX.filter(e=>new Date(e.t).toDateString()==calDay&&(flt=='Alle'||e.b==flt||e.to==flt)&&(tflt=='Alle'||e.type==tflt)):null;
     /* v297: Tages-Chips (Design 2.0) */const c0=calDay?new Date(calDay):(now>=p.s&&now<p.e?now:p.s),dch=`<div class="dchips">${[-3,-2,-1,0,1,2,3].map(k=>{const d=new Date(c0.getFullYear(),c0.getMonth(),c0.getDate()+k),ds=d.toDateString(),inM=d>=p.s&&d<p.e,n=ALLX.filter(e=>new Date(e.t).toDateString()==ds).length;return `<button class="dchip ${inM?'':'out-m'} ${(calDay||now.toDateString())==ds?'on':''}" data-day="${ds}"><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{weekday:'short'}).replace('.','')}</span>${n?'<i></i>':''}</button>`}).join('')}</div>`;
-    return head+heroH(inc,out,off>0?'geplant im Zeitraum':null,'','sm')+`${showF||flt!='Alle'?`${fltSeg()}`:''}
+    return head+heroH(inc,out,off>0?'geplant im Zeitraum':null,'','sm',sv)+`${showF||flt!='Alle'?`${fltSeg()}`:''}
     <div class="cal2"><div class="calh2">${['Mo','Di','Mi','Do','Fr','Sa','So'].map((w,i)=>`<span class="${i==6?'sun':i==5?'sat':''}">${w}</span>`).join('')}</div><div class="calg2">${cells.join('')}</div></div>
     
     ${sel?`<button class="btn soft" id="calAdd" data-dt="${calDay}">+ Buchung am ${new Date(calDay).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}</button>`+(()=>{const jd=(S.journal||[]).filter(j=>new Date(j.t).toDateString()==calDay).sort((a,b)=>a.t-b.t);return jd.length?`<div class="sec"><div class="sh">Journal</div><div class="mmcard">${jd.map(jRow).join('')}</div></div>`:''})()+dayBlocks(sel):''}`}
@@ -270,7 +270,7 @@ function viewList(){const p=period(off);let L=expV(p.s.getTime(),p.e.getTime()).
   if(tflt!='Alle')L=L.filter(e=>e.type==tflt);
   const nH=L.filter(isHistE).length;if(!S.histShow)L=L.filter(e=>!isHistE(e));const hbar=nH?`<button class="chip histtg" id="histTg">${I('calendar',13)} ${S.histShow?'Historie ausblenden':'Historie zeigen ('+nH+')'}</button>`:'';
   const LW=wk?L.filter(e=>e.t>=wk[0]&&e.t<wk[1]):L;
-  const LA=off>0?LW:LW.filter(e=>!isPlan(e)),out=LA.filter(e=>e.type=='out').reduce((s,e)=>s+e.a,0),inc=LA.filter(e=>e.type=='in').reduce((s,e)=>s+e.a,0),sv=LA.filter(isSpar).reduce((s,e)=>s+e.a,0);/* v509: Umbuchungen auf Vermögen verkleinern den Rest */
+  const LA=off>0?LW:LW.filter(e=>!isPlan(e)),FS=flowSum(LA),out=FS.out,inc=FS.inc,sv=FS.sv;/* v509: Umbuchungen auf Vermögen verkleinern den Rest */
   const fAct=flt!='Alle'||tflt!='Alle'||!!q||!!wk;
   const bal=inc-out-sv;const head0=appbar({title:'Buchungen',month:true,mlab:true,right:`<span class="hc-cx ${bal<0?'out':'in'}" title="Einnahmen − Ausgaben − Gespart">${eur(bal)}</span>`,left:`<button class="ab-ic ${showF||fAct?'act':''}" id="fBtn" aria-label="Suchen und filtern">${I('search',21)}</button>${featOn('cal')?`<button class="ab-ic vsw" data-tabgo="cal" aria-label="Kalenderansicht" title="Kalender">${I('calendar',21)}</button>`:''}`});/* v440: Täglich/Summe als Symbol im Kopf */
   /* v297: Kategorie-Szene im Kopf + Kategorie-Chips (Design 2.0) */
@@ -420,6 +420,12 @@ function pmModel(o){const P=period(o),n=P.len,D=864e5,now=Date.now(),s=P.s.getTi
   const sum=Array.from({length:n},(_,i)=>rows.reduce((x,r)=>x+r.vals[i],0)),bk=Array.from({length:n},()=>[]);
   fut.forEach(e=>{if(e.t<s||!rows.some(r=>r.k&&pmF(e,r.n)))return;const i=Math.floor((e.t-s)/D);if(i>=0&&i<n&&i>ti)bk[i].push(e)});
   return{P,n,ti,rows,sum,bk,s}}
+/* v513: „Am Monatsende noch da“ – Bestand aller Konten und Budgets ohne Vermögen/Depot/Rücklagen/Bestände (Regeln wie pmRows) plus Geplantes bis Monatsende */
+function monthEndLeft(){const P=period(0),R=pmRows(),fut=S.exp.filter(e=>isPlan(e)&&!e.tpl&&!e.corr&&e.t<P.e.getTime()).concat(recVirt(Date.now(),P.e.getTime()).filter(e=>!e.corr)),r2=v=>Math.round(v*100)/100;
+  let kon=0,bud=0,D=0,pin=0,psp=0;
+  R.forEach(a=>{const n=a.n,k=isK(n);(k?kon+=calc(n).rest:bud+=calc(n).rest);fut.forEach(e=>{const d=k?pmF(e,n):-pmU(e,n);if(!d)return;D+=d;if(e.type=='in'&&d>0)pin+=d;else if(isSpar(e)&&d<0)psp-=d})});
+  const now=kon+bud;return{kon:r2(kon),bud:r2(bud),now:r2(now),in:r2(pin),sp:r2(psp),out:r2(pin-psp-D),end:r2(now+D)}}
+function meHtml(){try{const M=monthEndLeft();return `<div class="lh-sub" style="cursor:default"><span style="flex:none">Am Monatsende noch da</span><b class="${M.end<0?'out':''}" style="margin-left:auto">${eur0(M.end)}</b></div><div class="note" style="padding:0 4px 8px">Heute ${eur0(M.now)} (Konten ${eur0(M.kon)} + Budgets ${eur0(M.bud)})${M.in?` + ${eur0(M.in)} geplant rein`:''}${M.out?` − ${eur0(M.out)} geplant raus`:''}${M.sp?` − ${eur0(M.sp)} ins Vermögen`:''}. Ohne Vermögen, Depot, Rücklagen und Sinking Funds.</div>`}catch(e){return ''}}
 function pmChartH(){const o=pmO=Math.max(0,Math.min(12,pmO)),M=pmModel(o),{P,n,ti,rows,sum,bk,s}=M,D=864e5;if(!rows.length)return '';
   const dl=i=>new Date(s+i*D),f=i=>dl(i).getDate()+'.'+(dl(i).getMonth()+1)+'.',lab=P.m.toLocaleDateString('de-DE',{month:'long',year:'numeric'});
   let mi=0;sum.forEach((v,i)=>{if(v<sum[mi])mi=i});
