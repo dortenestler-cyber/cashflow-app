@@ -109,7 +109,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='507 (25.11.)';
+const APP_VER='508 (28.11.)';
 /* v481: Release-Version. Bugfixes zählen automatisch als 1.0.x (Build − REL_B), echte Änderungen erhöhen REL (1.1, 1.2 …) und setzen REL_B auf den neuen Build */
 const REL='1.5',REL_B=507;function relVer(){const p=parseInt(APP_VER)-REL_B;return REL+(p>0?'.'+p:'')}
 function verText(){return relVer()+' · Build '+APP_VER}
@@ -610,6 +610,10 @@ function salGo(){const L=salRecs(),open=L.filter(r=>!r.done),dn=L.filter(r=>r.do
   const h=`<p><b>Gehalt verteilen</b> von ${esc(SHORT[src]||src)}, zuerst ins Sparen:</p>${open.map(clipLine).join('')||'<p>Alles ist diesen Monat schon gebucht.</p>'}${dn.length?`<p class="a-s">Schon gebucht, daher übersprungen: ${dn.map(r=>esc(SHORT[r.to]||r.to)+' '+eur(r.a)).join(', ')}</p>`:''}<p class="a-s">Danach auf ${esc(SHORT[src]||src)}: ${eur(calc(src).rest-open.reduce((s,r)=>s+r.a,0))}</p>`;
   const a=[];if(open.length)a.push([open.length==1?'Buchen':'Alle '+open.length+' buchen',()=>{S.salDone=S.salDone||{};S.salDone[k]=Date.now();clipCommit(open)}]);a.push(['Plan ändern',()=>{asstOpen=false;renderAsst();tab='more';setView='salplan';render()}]);a.push(['Diesen Monat nicht',()=>{S.salDone=S.salDone||{};S.salDone[k]=Date.now();save();renderAsst()}]);
   AQ.msgs.push({q:'Gehalt verteilen',h,a});if(AQ.msgs.length>20)AQ.msgs.shift();asstOpen=true;renderAsst();aiScroll()}
+let salPrev=false,salPrevB=[];
+function salPrevH(){const L=salRecs(),P=salP(),per=period(0),src=P.src,open=L.filter(r=>!r.done),sum=open.reduce((s,r)=>s+r.a,0),rest=calc(src).rest-sum,bk=L.filter(r=>r.done&&salPrevB.includes(r.to)),
+  d=per.s.toLocaleDateString('de-DE',{day:'numeric',month:'long'}),row=r=>{const b=r.done&&salPrevB.includes(r.to);return `<div class="cell plain" style="${r.done?'opacity:.55':''}"><div class="t"><div>${esc(SHORT[src]||src)} → ${esc(SHORT[r.to]||r.to)}</div><div class="s">${r.done?(b?'Gebucht':'Übersprungen, schon gebucht (Dauerauftrag)'):'Wird gebucht'}</div></div><div class="v">${eur(r.a)}</div></div>`};
+  return `<div class="sec"><div class="sh"><span>Zahltag ${esc(d)}</span><button class="link" id="spClose">Schließen</button></div><div class="mmcard"><div class="note" style="padding:2px 4px 8px">Gehaltskonto ${esc(SHORT[src]||src)} · Vorschau, es wird noch nichts gebucht.</div>${L.map(row).join('')||'<div class="empty">Noch kein Verteilplan angelegt.</div>'}<div class="ns-f" style="margin:8px 4px"><span>Summe <b>${eur(L.reduce((s,r)=>s+r.a,0))}</b></span><span>Rest auf ${esc(SHORT[src]||src)} <b style="${rest<0?'color:var(--red,#d33)':''}">${eur(rest)}</b></span></div>${rest<0?'<div class="note" style="color:var(--red,#d33);padding:0 4px 8px">Achtung: Nach der Verteilung wäre das Gehaltskonto im Minus.</div>':''}${open.length?`<button class="btn" id="spBook">Jetzt buchen</button>`:L.length?`<div class="note" style="padding:0 4px 4px">${bk.length?'Gebucht.':'Alles diesen Monat schon gebucht.'}</div>`:''}</div></div>`}
 function salHtml(){const P=salP(),sum=P.rows.reduce((s,r)=>s+(+r.a||0),0),V=vaultAccs();
   return `<div class="anchor">${I('coins',16)}<span>Lege einmal fest, was am Zahltag wohin geht. Kommt das Gehalt, fragt der Assistent und bucht alles mit einem Tipp. Spar- und Sparkonten kommen immer zuerst.</span></div>
    <div class="sec"><div class="group"><div class="cell plain"><label for="spSrc">Gehalt kommt auf</label><select id="spSrc">${ALL.map(a=>`<option ${a==P.src?'selected':''}>${esc(a)}</option>`).join('')}</select></div></div></div>
@@ -621,7 +625,7 @@ function bindSal(){if(!$('spSrc'))return;const P=salP();$('spSrc').onchange=()=>
   document.querySelectorAll('[data-spto]').forEach(s0=>s0.onchange=()=>{P.rows[+s0.dataset.spto].to=s0.value;save()});
   document.querySelectorAll('[data-spa]').forEach(i=>i.onchange=()=>{P.rows[+i.dataset.spa].a=Math.round((pNum(i.value)||0)*100)/100;save();render()});
   document.querySelectorAll('[data-spdel]').forEach(b=>b.onclick=()=>{P.rows.splice(+b.dataset.spdel,1);save();render()});
-  if($('spGo'))$('spGo').onclick=()=>salGo()}
+  if($('spGo'))$('spGo').onclick=()=>{salPrev=true;salPrevB=[];setView=null;curB=null;tab='wish';wishV='Monat';render();scrollTo(0,0)}}
 const AIRX=/^(warum|wieso|weshalb|soll(te)? ich|wie (kann|könnte|sollte) ich|wo kann ich|wie spare|spartipps?|tipps?\b|hilf mir|was (empfiehlst|rätst) du|analysier|erklär|bewerte|wie (sieht|steht) es (insgesamt|allgemein)|plane?\b)/i;
 /* v362: „Penny weiß“ – eigene Kurznotizen, eine pro Zeile, gehen als Kontext mit */
 const pnKnowL=()=>String(S.pnKnow||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,20);
