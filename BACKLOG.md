@@ -477,3 +477,6 @@ Geplante Ausgaben (auch wiederkehrende) aus einem Monatsbudget bis Monatsende we
 
 ## Kontoauszug (umgesetzt in v511, 28.11.2026)
 Freigabe der Nutzerin am 28.11.2026 sofort, außerhalb des Änderungsfensters. Eins rein, eins raus: ersetzt die drei CSV-Exporte (Export & Backup, Monats-CSV im Rückblick, CSV im Finanzbericht).
+
+## Kontoauszug im Bericht (umgesetzt in v512, 28.11.2026)
+Freigabe der Nutzerin am 28.11.2026 sofort, außerhalb des Änderungsfensters. Auszug liegt jetzt als Umschalter „Bericht | Auszug“ im Finanzbericht (Rückblick), mit Monat/Quartal/Jahr/Frei. Eins raus: Einstieg Mehr › Daten & Sync › Kontoauszug und eigene Ansicht; Einstieg im Konto bleibt (öffnet den Auszug im Bericht).

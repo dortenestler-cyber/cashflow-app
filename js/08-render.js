@@ -85,7 +85,7 @@ function bind(){try{repTidy()}catch(e){}{const main=!setView&&!curB;if(main){bin
   on('yPrev',()=>{yOff--;render()});on('yNext',()=>{if(yOff<0){yOff++;render()}});
   document.querySelectorAll('[data-ym]').forEach(b=>b.onclick=()=>{off=+b.dataset.ym;drill=null;repV='Analyse';render();scrollTo(0,0)});
   document.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{off=+b.dataset.cm;tab='list';listV='Täglich';flt=drill.b;q=drill.sc||drill.c;tflt=drill.type;wk=null;drill=null;render();scrollTo(0,0)});
-  document.querySelectorAll('#rpP button').forEach(b=>b.onclick=()=>{rpP=b.dataset.f;rpOpen=null;render()});
+  document.querySelectorAll('#rpM button').forEach(b=>b.onclick=()=>{rpM=b.dataset.f;render()});document.querySelectorAll('#rpP button').forEach(b=>b.onclick=()=>{rpP=b.dataset.f;rpOpen=null;render()});
   document.querySelectorAll('[data-rpc]').forEach(b=>b.onclick=()=>{rpOpen=rpOpen==b.dataset.rpc?null:b.dataset.rpc;render()});
   if($('rpFrom'))$('rpFrom').onchange=()=>{rpFrom=$('rpFrom').value;render()};if($('rpTo'))$('rpTo').onchange=()=>{rpTo=$('rpTo').value;render()};
   if($('rpList'))$('rpList').onchange=()=>{rpList=$('rpList').checked;render()};
@@ -130,7 +130,7 @@ function bind(){try{repTidy()}catch(e){}{const main=!setView&&!curB;if(main){bin
     if($('apufz'))$('apufz').onchange=()=>{const v=pNum($('apufz').value);if(v>0)S.pufZiel=v;else delete S.pufZiel;save();render()};
     document.querySelectorAll('#akind button').forEach(b=>b.onclick=()=>{a.kind=b.dataset.f;delete a.stufe;delete a.konsum;if(a.kind=='konto'){a.tot=false;a.start=a.start||0}else{S.budgets[a.n]=S.budgets[a.n]||0}refreshA();save();render()});
     if($('abank'))$('abank').onchange=()=>{if($('abank').value)a.bank=$('abank').value;else delete a.bank;save();render()};if($('abud'))$('abud').onchange=()=>{S.budgets[a.n]=parseFloat($('abud').value)||0;save();render()};
-    if($('aAbg'))$('aAbg').onclick=()=>openAbgleich(a.n);if($('aStmt'))$('aStmt').onclick=()=>{stK=a.n;setParent=setView;setView='stmt';render();scrollTo(0,0)};if($('astart'))$('astart').onchange=()=>{const v=pNum($('astart').value)||0;if(a.kind=='konto'&&ancD(a)){const net=S.exp.reduce((s,e)=>e.t>a.baseD-1||isPlan(e)?s:((e.type=='in'&&e.b==a.n)||(e.type=='tr'&&e.to==a.n))?s+e.a:((e.type=='out'||e.type=='tr')&&e.b==a.n)?s-e.a:s,0);a.baseVal=Math.round(v*100)/100;a.start=Math.round((v-net)*100)/100;for(const k in ZM)delete ZM[k]}else a.start=v;a.baseAt=Date.now();if(a.kind=='budget')a.startT=period(0).s.getTime();save();render()};
+    if($('aAbg'))$('aAbg').onclick=()=>openAbgleich(a.n);if($('aStmt'))$('aStmt').onclick=()=>{stK=a.n;rpM='Auszug';rpP='Monat';setParent=setView;setView='report';render();scrollTo(0,0)};if($('astart'))$('astart').onchange=()=>{const v=pNum($('astart').value)||0;if(a.kind=='konto'&&ancD(a)){const net=S.exp.reduce((s,e)=>e.t>a.baseD-1||isPlan(e)?s:((e.type=='in'&&e.b==a.n)||(e.type=='tr'&&e.to==a.n))?s+e.a:((e.type=='out'||e.type=='tr')&&e.b==a.n)?s-e.a:s,0);a.baseVal=Math.round(v*100)/100;a.start=Math.round((v-net)*100)/100;for(const k in ZM)delete ZM[k]}else a.start=v;a.baseAt=Date.now();if(a.kind=='budget')a.startT=period(0).s.getTime();save();render()};
     document.querySelectorAll('#acarry button').forEach(b=>b.onclick=()=>{const f=b.dataset.f;if(f=='carry')a.rest='bleibt';else if(f=='roll')a.rest='umbuchen';else delete a.rest;save();render()});
     if($('avis'))$('avis').onchange=()=>{a.vis=$('avis').checked;refreshA();save();render()};
     if($('atot'))$('atot').onchange=()=>{a.tot=$('atot').checked;refreshA();save();render()};

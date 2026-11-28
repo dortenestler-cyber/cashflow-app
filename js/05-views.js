@@ -447,7 +447,7 @@ function cumChart(bs,o,col,kf){const{p,v}=dayVals(bs,o,kf),pr=dayVals(bs,o-1,kf)
     ...(lim?[{pts:ideal,col:'var(--muted)',dash:'3 4',w:1.4,name:'Plan'}]:[]),{pts:cum2,col:col,w:1.6,op:.35,name:'Vormonat'},{pts:cum,col:col,area:true,dot:true,name:'Dieser Monat'}],tipLab:i=>new Date(p.s.getTime()+i*864e5).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})})}
     <div class="legend"><span><i style="background:${col}"></i>Dieser Monat</span><span><i style="background:${col};opacity:.35"></i>Vormonat</span><span><i style="background:var(--muted)"></i>Plan</span></div>
     ${o==0&&p.idx>=7&&lim?`<div class="note" style="padding:6px 4px 0">Hochrechnung bis Monatsende: <b style="color:${exp>lim?'var(--bad)':'var(--ok)'}">${eur0(exp)}</b> von ${eur0(lim)}</div>`:''}</div>`}
-let rpP='Monat',rpFrom='',rpTo='',rpList=true,rpOpen=null;
+let rpM='Bericht',rpP='Monat',rpFrom='',rpTo='',rpList=true,rpOpen=null;
 function rpDet(R,c){if(rpOpen!=c.type+'|'+c.c)return'';const L=R.L.filter(x=>x.type==c.type&&x.c==c.c).reverse();return L.map(x=>`<tr class="sub"><td>${new Date(x.t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} · ${esc(x.n||x.sc||x.c)}</td><td></td><td class="${c.type=='in'?'in':''}">${eur(x.a)}</td><td></td></tr>`).join('')}
 function rpRange(){const p=period(off);if(rpP=='Monat')return[p.s.getTime(),p.e.getTime(),p.label];
   if(rpP=='Quartal'){const y=p.m.getFullYear(),q=Math.floor(p.m.getMonth()/3),s=period(monthOff(y,q*3)).s,e=period(monthOff(y,q*3+3)).s;return[s.getTime(),e.getTime(),`${q+1}. Quartal ${y}`]}
@@ -463,9 +463,11 @@ function reportText(R){let t=`Finanzbericht ${R.label}\nKonten: ${repB=='Alle'?'
   R.cat.filter(c=>c.type=='out').forEach(c=>{t+=`- ${c.c}: ${eur(c.v)} (${Math.round(c.v/R.out*100)} %, ${c.n}×)\n`;Object.entries(c.sub).forEach(([k,v])=>t+=`    ${k}: ${eur(v)}\n`)});
   t+=`\nEinnahmen nach Kategorie\n`;R.cat.filter(c=>c.type=='in').forEach(c=>t+=`- ${c.c}: ${eur(c.v)}\n`);
   if(rpList){t+=`\nBuchungen\n`;R.L.forEach(x=>t+=`${new Date(x.t).toLocaleDateString('de-DE')}\t${x.type=='in'?'+':x.type=='out'?'−':'⇄'}${eur(x.a)}\t${x.type=='tr'?x.b+' → '+x.to:x.c+(x.sc?' / '+x.sc:'')}\t${x.n||''}\n`)}return t}
-function viewReport(bs,head){const R=reportData(bs),outs=R.cat.filter(c=>c.type=='out'),ins=R.cat.filter(c=>c.type=='in');
+function viewReport(bs,head){const MS=`<div class="seg" id="rpM">${['Bericht','Auszug'].map(x=>`<button class="${rpM==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>`;
+  if(rpM=='Auszug'){const[s0,e0]=rpRange();return head+MS+`<div class="seg" id="rpP">${['Monat','Quartal','Jahr','Frei'].map(x=>`<button class="${rpP==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>${rpP=='Frei'?`<div class="group"><div class="cell plain"><label for="rpFrom">Von</label><input id="rpFrom" type="date" value="${rpFrom||ymd(s0)}"></div><div class="cell plain"><label for="rpTo">Bis</label><input id="rpTo" type="date" value="${rpTo||ymd(e0-864e5)}"></div></div>`:''}`+stmtBody()}
+  const R=reportData(bs),outs=R.cat.filter(c=>c.type=='out'),ins=R.cat.filter(c=>c.type=='in');
   const parts=outs.map((c,i)=>({k:c.c,v:c.v,ico:icoOf(c.b,c.c),col:`color-mix(in srgb,${HEX[c.b]||'#888'} ${100-Math.min(i,6)*12}%,var(--card))`}));
-  return head+`<div class="seg" id="rpP">${['Monat','Quartal','Jahr','Frei'].map(x=>`<button class="${rpP==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>
+  return head+MS+`<div class="seg" id="rpP">${['Monat','Quartal','Jahr','Frei'].map(x=>`<button class="${rpP==x?'on':''}" data-f="${x}">${x}</button>`).join('')}</div>
   ${rpP=='Frei'?`<div class="group"><div class="cell plain"><label for="rpFrom">Von</label><input id="rpFrom" type="date" value="${rpFrom||ymd(R.s)}"></div><div class="cell plain"><label for="rpTo">Bis</label><input id="rpTo" type="date" value="${rpTo||ymd(R.e-864e5)}"></div></div>`:''}
   <button class="btn soft" id="toYear" style="display:flex;justify-content:center;gap:6px;align-items:center">${I('gauge',18)}Jahresübersicht ${period(off).m.getFullYear()}</button>
   <div class="report"><div class="rp-h"><div><div class="rp-k">Finanzbericht</div><div class="rp-t">${R.label}</div></div><div class="rp-k" style="text-align:right">Konten<br><b>${repB=='Alle'?'Alle Budgets':esc(repB)}</b></div></div>
