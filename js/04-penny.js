@@ -109,7 +109,7 @@ function tipsList0(){const P=period(0),soll=Math.min((P.idx||P.len)/P.len,1),pct
   newSubs().forEach(x=>t.push({sev:'info',act:'sub',sk:x.k,ttl:`Sieht nach Abo aus: ${x.e.n}`,txt:`${x.n}× ${eur(x.e.a)} im Monatsabstand von ${esc(x.e.b)}, aber nicht in den Fixkosten. Soll es dort rein, damit du Kosten und Kündigungsfrist im Blick hast?`}));
   const ovn=(S.ovrLog||[]).filter(x=>inP({t:x.t},P)).length;if(ovn)t.push({sev:ovn>1?'warn':'info',ttl:`Notfallbremse ${ovn}× gelöst`,txt:'Schau im Kalender nach, was die Gründe waren. Gibt es ein Muster, plane es nächsten Monat ein.'});
   const ord={bad:0,warn:1,info:2,ok:3};return t.sort((a,b)=>ord[a.sev]-ord[b.sev])}
-const APP_VER='514 (28.11.)';
+const APP_VER='515 (28.11.)';
 /* v481: Release-Version. Bugfixes zählen automatisch als 1.0.x (Build − REL_B), echte Änderungen erhöhen REL (1.1, 1.2 …) und setzen REL_B auf den neuen Build */
 const REL='1.9',REL_B=513;function relVer(){const p=parseInt(APP_VER)-REL_B;return REL+(p>0?'.'+p:'')}
 function verText(){return relVer()+' · Build '+APP_VER}
