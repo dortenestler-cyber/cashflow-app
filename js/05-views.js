@@ -239,8 +239,7 @@ function viewSummeM(p){const L=S.exp.filter(e=>inP(e,p)),pp=period(off-1),LP=S.e
     <span>Ausgaben</span><span class="out">${eur0(co)}</span><span>${eur0(po)}</span><span class="${ch(co,po)>0?'out':'in'}">${po?(ch(co,po)>0?'+':'')+ch(co,po)+' %':'–'}</span></div></div>
     ${off==0?'<div class="note">Der laufende Monat ist noch nicht vorbei.</div>':''}</div>
   <div class="sec"><div class="sh">Ausgaben nach Konto</div><div class="mmcard">${Object.entries(byA).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span class="out">${eur(v)}</span></div><div class="bar" style="height:6px"><i style="width:${(v/mxA*100).toFixed(0)}%;background:${COL[k]||'var(--muted)'}"></i></div></div>`).join('')||'<div class="empty">Keine Ausgaben.</div>'}</div></div>
-  ${Object.keys(trs).length?`<div class="sec"><div class="sh">Umbuchungen</div><div class="mmcard">${Object.entries(trs).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span>${eur(v)}</span></div></div>`).join('')}</div></div>`:''}
-  <button class="btn soft" id="csvMonth">Diesen Monat als CSV kopieren</button><div class="note" id="csvMsg"></div><textarea class="box" id="csvOut" hidden readonly></textarea>`}
+  ${Object.keys(trs).length?`<div class="sec"><div class="sh">Umbuchungen</div><div class="mmcard">${Object.entries(trs).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span>${eur(v)}</span></div></div>`).join('')}</div></div>`:''}`}
 function viewCal(){const p=period(off),ALLX=expV(p.s.getTime()-8*864e5,p.e.getTime()+15*864e5),L=ALLX.filter(e=>inP(e,p)&&(off>0||!isPlan(e))&&(flt=='Alle'||e.b==flt||e.to==flt)),tflt='Alle';
   const out=L.filter(e=>e.type=='out'&&!e.corr).reduce((s,e)=>s+e.a,0),inc=L.filter(e=>e.type=='in'&&!e.corr).reduce((s,e)=>s+e.a,0);
   const sum=(i,o)=>`<div class="mmsum1" aria-label="Einnahmen, Ausgaben, Saldo">${off>0?'<span class="pl1">geplant</span>':''}<span class="in">+${eur(i)}</span><span class="out">−${eur(o)}</span>${sv?`<span class="sv">−${eur(sv)}</span>`:''}<b class="${i-o-sv<0?'out':''}">= ${eur(i-o-sv)}</b></div>`;/* v440: Summen in einer Zeile */
@@ -479,7 +478,7 @@ function viewReport(bs,head){const R=reportData(bs),outs=R.cat.filter(c=>c.type=
    ${rpList?`<div class="rp-s">Buchungen</div><table class="rp-tab rp-list"><tbody>${R.L.slice().reverse().map(x=>`<tr><td>${new Date(x.t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</td><td>${esc(x.n||x.c||'Umbuchung')}<br><small>${x.type=='tr'?esc(x.b)+' → '+esc(x.to):esc(x.c)+(x.sc?' / '+esc(x.sc):'')}</small></td><td class="${x.type=='in'?'in':x.type=='out'?'out':''}">${x.type=='out'?'−':''}${eur(x.a)}</td></tr>`).join('')}</tbody></table>`:''}
    <div class="rp-f">Erstellt am ${new Date().toLocaleDateString('de-DE')}</div></div>
   <div class="group"><div class="cell plain"><label for="rpList">Einzelbuchungen anhängen</label><span style="flex:1"></span><input id="rpList" type="checkbox" class="switch" ${rpList?'checked':''}></div></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn soft" id="rpCopy">Bericht kopieren</button><button class="btn soft" id="rpCsv">Als CSV kopieren</button></div>
+  <button class="btn soft" id="rpCopy">Bericht kopieren</button>
   <div class="note" id="rpMsg"></div><textarea class="box" id="rpOut" hidden readonly></textarea>`}
 let drill=null,yOff=0;
 const MN=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
