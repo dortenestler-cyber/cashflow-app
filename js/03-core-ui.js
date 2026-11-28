@@ -14,8 +14,9 @@ function todayFree(){const P=period(0),T=new Date().setHours(0,0,0,0),left=Math.
   const B=BUDG.filter(b=>!isK(b)&&!isTabu(b)&&!isStock(b)).map(b=>{const c=calc(b),today=S.exp.reduce((s,e)=>s+(e.type=='out'&&e.b==b&&!isPlan(e)&&!e.corr&&e.t>=T&&inP(e,P)?e.a:0),0),plan=FUT.reduce((s,e)=>s+(e.b==b&&(e.type=='out'||(e.type=='tr'&&!e.alloc&&!BUDG.includes(e.to)))?(+e.a||0):0),0),rf=RF.reduce((s,e)=>s+(e.b==b?(+(e.rf.a||e.a)||0):0),0),day=Math.max(0,c.rest-plan+rf+today)/left;return{b,c,day,today,plan,rf,free:Math.max(0,day-today)}});
   /* v425: Tagesrest darf negativ werden (rot), damit Überziehen sichtbar ist */
   /* v435: nach Überziehen statt Minus der neue Tagesschnitt inkl. heute */
-  const plan=B.reduce((s,x)=>s+x.plan,0),rf=B.reduce((s,x)=>s+x.rf,0),rest=B.reduce((s,x)=>s+x.c.rest,0)-plan+rf,next=Math.max(0,rest)/left;
-  return{tot:B.reduce((s,x)=>s+x.day-x.today,0),B,left,next,plan,rf,rest}}
+  /* v509: geplante Umbuchungen auf Vermögen von Konten ohne Tagesbudget (z. B. Sparplan ab Girokonto) vorab reservieren; ab Budget-Quellen zählen sie schon oben */const svp=FUT.reduce((s,e)=>s+(isSpar(e)&&!B.some(x=>x.b==e.b)?(+e.a||0):0),0);
+  const plan=B.reduce((s,x)=>s+x.plan,0)+svp,rf=B.reduce((s,x)=>s+x.rf,0),rest=B.reduce((s,x)=>s+x.c.rest,0)-plan+rf,next=Math.max(0,rest)/left;
+  return{tot:B.reduce((s,x)=>s+x.day-x.today,0)-svp/left,B,left,next,plan,rf,rest}}
 function kontoSlide(b,c){return `<div class="slide" data-k="${b}" style="${bgStyle(b)}" role="button" tabindex="0" aria-label="${esc(b)} öffnen">
    <div class="lbl">${esc(b)} <span style="opacity:.7">›</span></div><div class="bal">${WH(b)?MASK:eur(c.rest)}</div><div style="font-size:13px;opacity:.9">Kontostand${acc(b).tot?'':' · nicht im Gesamtbudget'}</div>
    <div class="pills" style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.22)">+${eur0(c.inc+c.trI)} rein</span><span class="pill" style="background:rgba(255,255,255,.22)">−${eur0(c.out+c.trO)} raus</span></div>
@@ -64,7 +65,7 @@ function renderTabs(){$('tabbar').innerHTML=`<button class="tb-new" id="tbNew" a
 /* v297: Einstellungen über das Zahnrad oben rechts (Design 2.0) */
 const gearBtn=()=>`<button class="hc-ic hc-gear" data-tabgo="more" aria-label="Einstellungen" title="Einstellungen">${I('gear',20)}</button>`;
 /* v491/v492: Hauptzahl mit Rein/Raus-Leiste (Konzept 25) – Buchungen, Kalender, Rückblick, Planen */
-function heroH(i,o,lb,extra,cls){const b=i-o,[w,c]=eur(Math.abs(b)).split(',');return `<div class="lhero ${cls||''}"><div class="lh-big ${b<0?'out':''}">${b<0?'−':''}${w}<span>,${c}</span></div><div class="lh-lb">${lb||(b<0?'mehr ausgegeben als eingenommen':'übrig im Zeitraum')}</div>${i||o?`<div class="lh-bar"><i class="in" style="flex:${i}"></i><i class="out" style="flex:${o}"></i></div>`:''}<div class="lh-ro"><span>Rein <b>${eur0(i)}</b></span><span>Raus <b>${eur0(o)}</b></span></div>${extra||''}</div>`}
+function heroH(i,o,lb,extra,cls,sv){sv=sv||0;const b=i-o-sv,[w,c]=eur(Math.abs(b)).split(',');return `<div class="lhero ${cls||''}"><div class="lh-big ${b<0?'out':''}">${b<0?'−':''}${w}<span>,${c}</span></div><div class="lh-lb">${lb||(b<0?'mehr ausgegeben als eingenommen':'übrig im Zeitraum')}</div>${i||o?`<div class="lh-bar"><i class="in" style="flex:${i}"></i><i class="out" style="flex:${o}"></i></div>`:''}<div class="lh-ro"><span>Rein <b>${eur0(i)}</b></span><span>Raus <b>${eur0(o)}</b></span>${sv?`<span>Gespart <b class="sv">${eur0(sv)}</b></span>`:''}</div>${extra||''}</div>`}
 /* v492: eine Hauptzahl mit Zeile darunter statt Kennzahl-Kacheln */function statH(v,lb,sub,cls){return `<div class="lhero sm"><div class="lh-big ${cls||''}">${v}</div><div class="lh-lb">${lb}</div>${sub?`<div class="lh-ro" style="justify-content:flex-start;gap:16px">${sub}</div>`:''}</div>`}
 function appbar(o){const items=o.tabs?o.tabs.items.map(([v,l,n])=>`<button class="${o.tabs.cur==v?'on':''}" data-f="${esc(v)}">${l}${n?` <span class="cnt">${n}</span>`:''}</button>`).join(''):'';
   /* v299: eine Designsprache – Titel groß links, runde Knöpfe rechts, Monat als Pille, keine farbigen Kopfkästen mehr */

@@ -174,6 +174,7 @@ const isCarry=a=>!!a&&a.rest=='bleibt',isRoll=a=>!!a&&a.rest=='umbuchen',isVerm=
 function setSperre(a,art,on){if(on){a.sperre=Object.assign({},a.sperre&&a.sperre.art==art?a.sperre:{},{art});delete a.sperre.frei}else if(a.sperre&&a.sperre.art==art)delete a.sperre}
 const inP=(e,p)=>e.t>=p.s.getTime()&&e.t<p.e.getTime();
 let NOWT=Date.now();const isPlan=e=>e.t>Date.now();
+/* v509: Umbuchung auf Vermögen/Bestand (Sparen) – senkt den Monatsrest, zählt aber nicht als Ausgabe */const isSpar=e=>!!e&&e.type=='tr'&&!e.alloc&&!!e.to&&e.b!=e.to&&!e.corr&&(isVerm(acc(e.to))||isStock(e.to))&&!(isVerm(acc(e.b))||isStock(e.b));
 function calc(b,off=0){const p=period(off),L=S.exp.filter(e=>inP(e,p)&&!isPlan(e));
   if(isK(b)){const _a=acc(b),_an=ancD(_a)&&p.e.getTime()>_a.baseD,A=S.exp.filter(e=>e.t<p.e.getTime()&&!isPlan(e)&&(!_an||e.t>=_a.baseD)),sm=(f)=>A.filter(f).reduce((s,e)=>s+e.a,0);
     const bal=(typeof zinsAt=='function'?zinsAt(b,Math.min(p.e.getTime(),Date.now())):0)+(_an?+_a.baseVal:(_a.start||0))+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b);

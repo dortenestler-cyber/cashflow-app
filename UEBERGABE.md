@@ -7,6 +7,7 @@ Zuständig für das ganze Repo cashflow-app. Jedes Claude-Konto darf diese Rolle
 Belegt-Zeile: `Belegt: Konto A · Sitzung <Link> · seit JJJJ-MM-TT HH:MM` oder `Belegt: frei`. Beim Start zuerst setzen und pushen, beim Ende auf `frei`. Bei nahendem Limit `· Limit erwartet` anhängen, bei Übernahme `· übernommen von Konto A`. Konten nur als „Konto A“ / „Konto B“, nie mit E-Mail.
 
 ## Stand in einem Satz
+Release 1.6 (Build 509, 28.11.): Umbuchungen auf Vermögen/Bestand verkleinern den Rest in Buchungen (blau „Gespart“) und werden im Tagesbudget vorab reserviert; Penny-Hinweiszeile im Buchungen-Kopf entfällt. Freigabe der Nutzerin am 28.11.2026, außerhalb des Fensters. Darunter der ältere Stand:
 Version 1.5.1 (Build 508, 28.11.) – Zahltag-Vorschau in Planen statt toter Button; zuvor 1.5 (Build 507, 25.11.) läuft – Heute-Nebenzeile als Kennzahlenzeile, keine offenen Bugs in `BUGS.md`.
 
 ## In Arbeit
@@ -22,6 +23,8 @@ Version 1.5.1 (Build 508, 28.11.) – Zahltag-Vorschau in Planen statt toter But
 - 2026-11-24 · Nutzerin: Alle Claude-Konten dürfen auf beiden Repos arbeiten, z. B. wenn ein Konto sein Limit erreicht. Abstimmung nur über Belegt-Zeile und Übergabe-Datei · Grund: Sitzungen verschiedener Konten können sich keine Nachrichten schicken
 
 - 2026-11-25 · Nutzerin: Neues App-Symbol „Pegel“ (Münze mit Wasserstand) sofort umsetzen, außerhalb des Änderungsfensters · Grund: ausdrücklicher Wunsch
+
+- 2026-11-28 · Nutzerin: Umbuchungen auf Vermögen im Monatsrest (Kopfzeile + Tagesbudget) sofort umsetzen · Grund: ausdrücklicher Wunsch; `isSpar()` in `02-core-state.js`
 
 ## Fallstricke
 - Direkt auf `main`: nie zwei Sitzungen gleichzeitig, vor jedem Commit `git fetch origin main` und abgleichen.

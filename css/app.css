@@ -1790,3 +1790,6 @@ html body .dp-mode .chip{min-height:36px;padding:0 14px;border-radius:999px;bord
 @media (pointer:fine){.dp-ed{display:inline-flex}}
 /* v504: Hauptzahl über die volle Breite, wenn die Seite zweispaltig ist (iPad, Computer) */
 .view>.lhero,.view>.lh-sub,.view>.dp-kr{grid-column:1/-1}
+
+/* v509: Gespart/Umgebucht auf Vermögen */
+.lh-ro b.sv,.lp-row .sv,.mmsum1 .sv{color:var(--blue,#4F6BED);font-weight:600}
