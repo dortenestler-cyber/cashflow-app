@@ -215,8 +215,8 @@ function viewSumme(p){const WS=sumWeeks(p);let R=sumR!='m'?WS.find(w=>w[0]+','+w
   const sel=`<label class="ssel"><span>Zeitraum</span><select id="sumR" aria-label="Zeitraum"><option value="m" ${R?'':'selected'}>Ganzer Monat</option>${WS.map(w=>`<option value="${w[0]},${w[1]}" ${R&&w[0]==R[0]?'selected':''}>${wl(w)}${now>=w[0]&&now<w[1]?' (diese Woche)':''}</option>`).join('')}</select></label>`;
   if(R)return sel+viewSummeW(p,R);
   return sel+viewSummeM(p)}
-function viewSummeW(p,R){const RP=[R[0]-7*864e5,R[0]],days=(R[1]-R[0])/864e5,L=S.exp.filter(e=>e.t>=R[0]&&e.t<R[1]&&!isPlan(e)),LP=S.exp.filter(e=>e.t>=RP[0]&&e.t<RP[1]);
-  const s=(A,t)=>A.filter(e=>e.type==t).reduce((q,e)=>q+e.a,0),ci=s(L,'in'),co=s(L,'out'),pi=s(LP,'in'),po=s(LP,'out');
+function viewSummeW(p,R){const RP=[R[0]-7*864e5,R[0]],days=(R[1]-R[0])/864e5,L=S.exp.filter(e=>e.t>=R[0]&&e.t<R[1]&&!isPlan(e)&&!e.corr),LP=S.exp.filter(e=>e.t>=RP[0]&&e.t<RP[1]&&!isPlan(e)&&!e.corr);
+  const ci=flowSum(L).inc,co=flowSum(L).out,pi=flowSum(LP).inc,po=flowSum(LP).out;/* v517: eine Rechenquelle, ohne Kontoabgleich */
   const ch=(a,b)=>b?Math.round((a-b)/b*100):0,byA={},trs={};L.filter(e=>e.type=='out').forEach(e=>byA[e.b]=(byA[e.b]||0)+e.a);
   L.filter(e=>e.type=='tr').forEach(e=>{const k=e.b+' → '+e.to;trs[k]=(trs[k]||0)+e.a});const mxA=Math.max(...Object.values(byA),1);
   return `<div class="sec"><div class="sh">Budgetstatus dieser Woche</div><div class="mmcard">${BUDG.filter(b=>!isStock(b)).map(b=>{const c=calc(b,off),t=c.total*days/p.len,u=L.filter(e=>e.type=='out'&&e.b==b).reduce((q,e)=>q+e.a,0),r=t-u;return `<div class="srow"><div class="srow-h"><span>${esc(b)}</span>${r<0?`<span class="badge" style="background:color-mix(in srgb,var(--warn) 18%,transparent);color:color-mix(in srgb,var(--warn) 70%,var(--fg))">${eur0(-r)} über Wochenplan</span>`:''}<span class="${r<0?'out':''}">${eur(u)} / ${eur0(t)}</span></div>
@@ -228,8 +228,8 @@ function viewSummeW(p,R){const RP=[R[0]-7*864e5,R[0]],days=(R[1]-R[0])/864e5,L=S
   <div class="sec"><div class="sh">Ausgaben nach Konto</div><div class="mmcard">${Object.entries(byA).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span class="out">${eur(v)}</span></div><div class="bar" style="height:6px"><i style="width:${(v/mxA*100).toFixed(0)}%;background:${COL[k]||'var(--muted)'}"></i></div></div>`).join('')||'<div class="empty">Keine Ausgaben.</div>'}</div></div>
   ${Object.keys(trs).length?`<div class="sec"><div class="sh">Umbuchungen</div><div class="mmcard">${Object.entries(trs).map(([k,v])=>`<div class="srow"><div class="srow-h"><span>${esc(k)}</span><span></span><span>${eur(v)}</span></div></div>`).join('')}</div></div>`:''}
   <button class="btn soft" data-wk="${R[0]},${R[1]}">Buchungen dieser Woche anzeigen</button>`}
-function viewSummeM(p){const L=S.exp.filter(e=>inP(e,p)),pp=period(off-1),LP=S.exp.filter(e=>inP(e,pp));
-  const s=(A,t)=>A.filter(e=>e.type==t).reduce((q,e)=>q+e.a,0),ci=s(L,'in'),co=s(L,'out'),pi=s(LP,'in'),po=s(LP,'out');
+function viewSummeM(p){const L=S.exp.filter(e=>inP(e,p)&&!e.corr&&(off>0||!isPlan(e))),pp=period(off-1),LP=S.exp.filter(e=>inP(e,pp)&&!e.corr&&!isPlan(e));
+  const ci=flowSum(L).inc,co=flowSum(L).out,pi=flowSum(LP).inc,po=flowSum(LP).out;/* v517: wie Buchungen-Kopf: ohne Kontoabgleich, Geplantes nur in Zukunftsmonaten */
   const ch=(a,b)=>b?Math.round((a-b)/b*100):0,byA={},trs={};L.filter(e=>e.type=='out').forEach(e=>byA[e.b]=(byA[e.b]||0)+e.a);
   L.filter(e=>e.type=='tr').forEach(e=>{const k=e.b+' → '+e.to;trs[k]=(trs[k]||0)+e.a});const mxA=Math.max(...Object.values(byA),1);
   return `<div class="sec"><div class="sh">Budgetstatus</div><div class="mmcard">${BUDG.map(b=>{const c=calc(b,off),st=stat(c);return `<div class="srow"><div class="srow-h"><span>${esc(b)}</span>${badge(st)}<span class="${st.k=='bad'?'out':''}">${eur(c.used)} / ${eur0(c.total)}</span></div>
@@ -459,7 +459,7 @@ function rpRange(){const p=period(off);if(rpP=='Monat')return[p.s.getTime(),p.e.
   if(rpP=='Quartal'){const y=p.m.getFullYear(),q=Math.floor(p.m.getMonth()/3),s=period(monthOff(y,q*3)).s,e=period(monthOff(y,q*3+3)).s;return[s.getTime(),e.getTime(),`${q+1}. Quartal ${y}`]}
   if(rpP=='Jahr'){const y=p.m.getFullYear(),s=period(monthOff(y,0)).s,e=period(monthOff(y+1,0)).s;return[s.getTime(),e.getTime(),'Jahr '+y]}
   const s=rpFrom?new Date(rpFrom+'T00:00').getTime():p.s.getTime(),e=rpTo?new Date(rpTo+'T00:00').getTime()+864e5:p.e.getTime();return[s,e,new Date(s).toLocaleDateString('de-DE')+' – '+new Date(e-864e5).toLocaleDateString('de-DE')]}
-function reportData(bs){const[s,e,label]=rpRange(),L=RX().filter(x=>x.t>=s&&x.t<e&&(bs.includes(x.b)||bs.includes(x.to))).sort((a,b)=>a.t-b.t);
+function reportData(bs){const[s,e,label]=rpRange(),L=RX().filter(x=>x.t>=s&&x.t<e&&!x.corr&&!isPlan(x)/* v517: Kontoabgleich und Geplantes zählen nicht, wie in Buchungen und Rückblick */&&(bs.includes(x.b)||bs.includes(x.to))).sort((a,b)=>a.t-b.t);
   const inc=L.filter(x=>x.type=='in').reduce((q,x)=>q+x.a,0),out=L.filter(x=>x.type=='out').reduce((q,x)=>q+x.a,0),cat={};
   L.filter(x=>x.type!='tr').forEach(x=>{const k=x.type+'|'+x.c;cat[k]=cat[k]||{type:x.type,c:x.c,b:x.b,v:0,n:0,sub:{}};cat[k].v+=x.a;cat[k].n++;if(x.sc){cat[k].sub[x.sc]=(cat[k].sub[x.sc]||0)+x.a}});
   const months={};L.forEach(x=>{const d=new Date(x.t),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');months[k]=months[k]||{i:0,o:0};if(x.type=='in')months[k].i+=x.a;if(x.type=='out')months[k].o+=x.a});
