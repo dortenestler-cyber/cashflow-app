@@ -577,21 +577,38 @@ const stSet=k=>k=='Gesamt'||!stKonten().includes(k)?S.accts.filter(a=>a.kind=='k
 const stBud=x=>!!x&&!isK(x)&&!isVerm(acc(x))&&!isStock(x);
 function stBal(b,T,G){const a=acc(b),an=ancD(a)&&T>a.baseD,A=S.exp.filter(e=>e.t<T&&!isPlan(e)&&(!an||e.t>=a.baseD)),sm=f=>A.filter(f).reduce((s,e)=>s+e.a,0);
   return (typeof zinsAt=='function'?zinsAt(b,Math.min(T,Date.now())):0)+(an?+a.baseVal:(a.start||0))+sm(e=>e.type=='in'&&e.b==b)+sm(e=>e.type=='tr'&&e.to==b)-sm(e=>e.type=='out'&&e.b==b)-sm(e=>e.type=='tr'&&e.b==b)+(G?sm(e=>e.type=='tr'&&e.b==b&&stBud(e.to))-sm(e=>e.type=='tr'&&e.to==b&&stBud(e.b)):0)}
-/* v516: Gesamt listet auch die Buchungen der Budgets (Flow, Gönn dir …), rechnet sie aber nicht in den Saldo: der Kontostand enthält sie bereits (Kontoabgleich), sonst würden sie doppelt abgezogen */
-const stIn=(n,set)=>set.includes(n)||stBud(n);
 const stBuds=()=>S.accts.filter(a=>a.kind=='budget'&&a.vis!==false&&!isStock(a.n)).map(a=>a.n);
 /* v514: Budget-Auszug – Zuteilungen, Einnahmen und Ausgaben des Budgets im Zeitraum; Saldo läuft ab 0 (Budgets starten je Zeitraum neu) */
 function stmtBud(k,p){const rows=[];let bal=0;S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&!e.corr&&(e.b==k||e.to==k)).sort((x,y)=>x.t-y.t).forEach(e=>{const d=e.type=='in'?e.a:e.type=='out'?-e.a:(e.to==k?e.a:0)-(e.b==k?e.a:0);bal+=d;rows.push({t:e.t,tx:e.type=='tr'?'Umbuchung '+e.b+' → '+e.to:(e.n||e.c||'Buchung'),sub:e.type=='tr'?'':[e.c,e.sc].filter(x=>x&&x!=(e.n||e.c)).join(' / '),tr:e.type=='tr',d,s:bal})});
   return{p,k,open:0,end:bal,inc:rows.reduce((s,r)=>s+(r.d>0?r.d:0),0),out:rows.reduce((s,r)=>s+(r.d<0?-r.d:0),0),rows,adj:false,bud:true}}
-function stmtData(k,o){const p=typeof o=='object'?o:period(o);if(stBuds().includes(k)&&!stKonten().includes(k))return stmtBud(k,p);const set=stSet(k),has=n=>set.includes(n),T0=p.s.getTime(),T1=p.e.getTime(),now0=Date.now();let open=0,end=0,zi=0;
-  const G=k=='Gesamt',inS=n=>G?stIn(n,set):has(n),nt=e=>G&&(e.type=='tr'?((has(e.b)&&stBud(e.to))||(has(e.to)&&stBud(e.b))||(stBud(e.b)&&!inS(e.to))||(stBud(e.to)&&!inS(e.b))):stBud(e.b)),bo=e=>G&&stBud(e.b)&&e.type!='tr'||(G&&e.type=='tr'&&!has(e.b)&&!has(e.to));
+/* v517: Auszug „Gesamt“ rechnet mit derselben Basis wie Buchungen (flowSum): Eingänge = Rein, Ausgänge = Raus, Gespart getrennt, Umbuchungen neutral.
+   Der Saldo hängt am heutigen Stand der Konten und läuft rückwärts: Anfang/Ende = heutiger Stand − alle Veränderungen seit dem Stichtag, so passen Monate aneinander. */
+function stmtGes(p){const set=stSet('Gesamt'),has=n=>set.includes(n),T0=p.s.getTime(),T1=p.e.getTime(),now0=Date.now();
+  const evs=t0=>expV(t0,now0+1).filter(e=>e.t>=t0&&!isPlan(e));
+  const row=e=>{if(e.corr){if(!has(e.b))return null;return{k:'corr',d:e.type=='in'?e.a:-e.a,tx:'Kontoabgleich',sub:''}}
+    if(isHistE(e))return null;const sub=[e.c,e.sc].filter(x=>x&&x!=(e.n||e.c)).join(' / ')+(e.c?' · ':'')+e.b,tx=e.n||e.c||'Buchung';
+    if(e.type=='in')return isSparIn(e)?{k:'svin',d:0,nt:1,amt:e.a,tx,sub:sub+' · Vermögen'}:{k:'in',d:e.a,tx,sub};
+    if(e.type=='out')return{k:'out',d:-e.a,tx,sub};
+    if(e.type!='tr')return null;
+    if(isSpar(e))return{k:'sv',d:-e.a,tr:1,tx:'Umbuchung '+e.b+' → '+e.to,sub:'Gespart'};
+    if((has(e.b)&&stBud(e.to))||(has(e.to)&&stBud(e.b)))return{k:'tr',d:0,nt:1,tr:1,amt:has(e.b)?-e.a:e.a,tx:'Umbuchung '+e.b+' → '+e.to,sub:'neutral, Geld bleibt im Topf'};
+    return null};
+  const zi=(a,b)=>typeof zinsAt=='function'?set.reduce((s,n)=>s+zinsAt(n,Math.min(b,now0))-zinsAt(n,Math.min(a,now0)),0):0;
+  const bNow=set.reduce((s,n)=>s+stBal(n,now0+1,true),0),after=T=>T>now0?0:evs(T).reduce((s,e)=>{const r=row(e);return s+(r?r.d:0)},0)+zi(T,now0);
+  const open=bNow-after(T0),end=bNow-after(T1);
+  const rows=[];let bal=open;evs(T0).filter(e=>e.t<T1).sort((x,y)=>x.t-y.t).forEach(e=>{const r=row(e);if(!r)return;bal+=r.d;rows.push({t:e.t,tx:r.tx,sub:r.sub,tr:!!r.tr,d:r.d,s:bal,nt:!!r.nt,amt:r.amt||0,k:r.k})});
+  const z=zi(T0,T1);if(Math.abs(z)>=.005){bal+=z;rows.push({t:T1-1,tx:'Zinsen (berechnet)',sub:'',tr:false,d:z,s:bal,k:'zi'})}
+  const FS=flowSum(expV(T0,T1).filter(e=>inP(e,p)&&!isPlan(e)&&!isHistE(e))),oth=rows.reduce((s,r)=>s+(r.k=='corr'||r.k=='zi'?r.d:0),0);
+  return{p,k:'Gesamt',open,end,inc:FS.inc,out:FS.out,sv:FS.sv,oth,rows,adj:false,ges:true}}
+function stmtData(k,o){const p=typeof o=='object'?o:period(o);if(k=='Gesamt')return stmtGes(p);if(stBuds().includes(k)&&!stKonten().includes(k))return stmtBud(k,p);const set=stSet(k),has=n=>set.includes(n),T0=p.s.getTime(),T1=p.e.getTime(),now0=Date.now();let open=0,end=0,zi=0;
+  const G=k=='Gesamt',nt=e=>G&&e.type=='tr'&&((has(e.b)&&stBud(e.to))||(has(e.to)&&stBud(e.b)));
   set.forEach(b=>{open+=stBal(b,T0,G);end+=stBal(b,T1,G);if(typeof zinsAt=='function')zi+=zinsAt(b,Math.min(T1,now0))-zinsAt(b,Math.min(T0,now0))});
   const rows=[];let bal=open,sumD=0;
-  S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&(inS(e.b)||(e.type=='tr'&&inS(e.to)))).sort((x,y)=>x.t-y.t).forEach(e=>{
-    const ntr=nt(e);if(e.type=='tr'&&inS(e.b)&&inS(e.to)&&!ntr)return;/* Umbuchung innerhalb der Auswahl hebt sich auf */
-    const d=ntr?0:e.type=='in'?e.a:e.type=='out'?-e.a:(inS(e.to)?e.a:0)-(inS(e.b)?e.a:0);bal+=d;sumD+=d;
+  S.exp.filter(e=>inP(e,p)&&!isPlan(e)&&(has(e.b)||(e.type=='tr'&&has(e.to)))).sort((x,y)=>x.t-y.t).forEach(e=>{
+    if(e.type=='tr'&&has(e.b)&&has(e.to))return;/* Umbuchung innerhalb der Auswahl hebt sich auf */
+    const ntr=nt(e),d=ntr?0:e.type=='in'?e.a:e.type=='out'?-e.a:(has(e.to)?e.a:0)-(has(e.b)?e.a:0);bal+=d;sumD+=d;
     const tx=e.corr?'Kontoabgleich':e.type=='tr'?'Umbuchung '+(k=='Gesamt'?e.b+' → '+e.to:has(e.b)?'→ '+e.to:'← '+e.b):(e.n||e.c||'Buchung');
-    rows.push({t:e.t,tx,sub:ntr?(bo(e)?[e.c,e.sc].filter(x=>x&&x!=tx).join(' / ')+(e.c?' · ':'')+e.b+' · im Kontostand enthalten':'neutral, Geld bleibt im Topf'):e.type=='tr'||e.corr?'':[e.c,e.sc].filter(x=>x&&x!=tx).join(' / ')+(k=='Gesamt'&&set.length>1?(e.c?' · ':'')+e.b:''),tr:e.type=='tr',d,s:bal,nt:ntr,amt:ntr?(e.type=='in'?e.a:e.type=='out'?-e.a:(has(e.b)||(stBud(e.b)&&!has(e.to))?-e.a:e.a)):0})});
+    rows.push({t:e.t,tx,sub:ntr?'neutral, Geld bleibt im Topf':e.type=='tr'||e.corr?'':[e.c,e.sc].filter(x=>x&&x!=tx).join(' / ')+(k=='Gesamt'&&set.length>1?(e.c?' · ':'')+e.b:''),tr:e.type=='tr',d,s:bal,nt:ntr,amt:ntr?(has(e.b)?-e.a:e.a):0})});
   if(Math.abs(zi)>=.005){bal+=zi;sumD+=zi;rows.push({t:T1-1,tx:'Zinsen (berechnet)',sub:'',tr:false,d:zi,s:bal})}
   const adj=end-(open+sumD);if(Math.abs(adj)>=.005){bal+=adj;rows.push({t:T1-1,tx:'Differenz (nicht aus Buchungen)',sub:'',tr:false,d:adj,s:bal,adj:true})}
   const inc=rows.reduce((s,r)=>s+(r.d>0?r.d:0),0),out=rows.reduce((s,r)=>s+(r.d<0?-r.d:0),0);
@@ -609,9 +626,9 @@ async function stmtShareCsv(){const D=stmtData(stK,stP()),name='Kontoauszug-'+(D
   try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'Kontoauszug'});else{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove()}}catch(e){if(e&&e.name!='AbortError')toast('CSV konnte nicht geteilt werden.')}}
 function stmtBody(){const ks=stKonten(),D=stmtData(stK,stP()),ok=!D.rows.some(r=>r.adj);
   return `<div class="group"><div class="cell plain"><label for="stSel">Konto</label><select id="stSel"><option value="Gesamt" ${stK=='Gesamt'?'selected':''}>Gesamt (alle Konten)</option>${ks.map(n=>`<option ${stK==n?'selected':''}>${esc(n)}</option>`).join('')}<optgroup label="Budgets">${stBuds().map(n=>`<option ${stK==n?'selected':''}>${esc(n)}</option>`).join('')}</optgroup></select></div></div>
-  <div class="mmcard"><div class="srow"><div class="srow-h"><span>Anfangssaldo</span><span></span><span>${stFmt(D.open)}</span></div></div><div class="srow"><div class="srow-h"><span>Summe Eingänge</span><span></span><span class="in">${stFmt(D.inc)}</span></div></div><div class="srow"><div class="srow-h"><span>Summe Ausgänge</span><span></span><span class="out">${stFmt(-D.out)}</span></div></div><div class="srow"><div class="srow-h"><b>Endsaldo</b><span></span><b>${stFmt(D.end)}</b></div></div></div>
-  ${D.bud?`<div class="note">Budget-Auszug: alle Zuteilungen, Einnahmen und Ausgaben des Budgets im Zeitraum. Der Saldo läuft ab 0 und ist kein Restbudget.</div>`:ok?`<div class="note">Endsaldo stimmt mit dem Kontostand in der App überein. Stimmt er nicht mit der Bank? <a href="#" id="stAbg">Kontostand abgleichen</a></div>`:`<div class="tip bad">Der Endsaldo weicht um ${eur(Math.abs(D.rows.find(r=>r.adj).d))} von der Summe der Buchungen ab. Meist ist ein Startwert von Hand gesetzt. <a href="#" id="stAbg">Mit der Bank abgleichen</a></div>`}
-  <div class="sec"><div class="sh">Gebuchte Einträge</div>${D.rows.length?`<table class="rp-tab rp-list"><thead><tr><th>Datum</th><th>Text</th><th>Betrag</th><th>Saldo</th></tr></thead><tbody>${D.rows.map(r=>`<tr><td>${stD(r.t).slice(0,5)}</td><td>${esc(r.tx)}${r.sub?`<br><small>${esc(r.sub)}</small>`:''}</td><td class="${r.nt?'':r.d>0?'in':'out'}" ${r.nt?'style="opacity:.55"':''}>${r.nt?'('+stFmt(r.amt)+')':stFmt(r.d)}</td><td>${stFmt(r.s)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Keine gebuchten Einträge in diesem Zeitraum.</div>'}<div class="note">Geplantes steht nicht im Auszug. „Gesamt“ listet alle Buchungen, auch die auf Budgets (Flow, Gönn dir …). Budget-Buchungen stehen grau in Klammern, ihr Geld steckt schon im Kontostand und zählt nicht ein zweites Mal. Umbuchungen zwischen Konten und in Budgets zählen bei „Gesamt“ nicht als Eingang, Ausgang oder Saldo-Änderung.</div></div>
+  <div class="mmcard"><div class="srow"><div class="srow-h"><span>Anfangssaldo</span><span></span><span>${stFmt(D.open)}</span></div></div><div class="srow"><div class="srow-h"><span>Summe Eingänge</span><span></span><span class="in">${stFmt(D.inc)}</span></div></div><div class="srow"><div class="srow-h"><span>Summe Ausgänge</span><span></span><span class="out">${stFmt(-D.out)}</span></div></div>${D.ges&&Math.abs(D.sv)>=.005?`<div class="srow"><div class="srow-h"><span>Gespart (Vermögen)</span><span></span><span>${stFmt(-D.sv)}</span></div></div>`:''}${D.ges&&Math.abs(D.oth)>=.005?`<div class="srow"><div class="srow-h"><span>Kontoabgleich, Zinsen</span><span></span><span>${stFmt(D.oth)}</span></div></div>`:''}<div class="srow"><div class="srow-h"><b>Endsaldo</b><span></span><b>${stFmt(D.end)}</b></div></div></div>
+  ${D.ges?`<div class="note">Eingänge, Ausgänge und Gespart wie in Buchungen (alle Konten und Budgets, Umbuchungen neutral). Anfangs- und Endsaldo laufen vom heutigen Kontostand rückwärts: Anfang + Eingänge − Ausgänge − Gespart ${Math.abs(D.oth)>=.005?'± Abgleich/Zinsen ':''}= Endsaldo.</div>`:D.bud?`<div class="note">Budget-Auszug: alle Zuteilungen, Einnahmen und Ausgaben des Budgets im Zeitraum. Der Saldo läuft ab 0 und ist kein Restbudget.</div>`:ok?`<div class="note">Endsaldo stimmt mit dem Kontostand in der App überein. Stimmt er nicht mit der Bank? <a href="#" id="stAbg">Kontostand abgleichen</a></div>`:`<div class="tip bad">Der Endsaldo weicht um ${eur(Math.abs(D.rows.find(r=>r.adj).d))} von der Summe der Buchungen ab. Meist ist ein Startwert von Hand gesetzt. <a href="#" id="stAbg">Mit der Bank abgleichen</a></div>`}
+  <div class="sec"><div class="sh">Gebuchte Einträge</div>${D.rows.length?`<table class="rp-tab rp-list"><thead><tr><th>Datum</th><th>Text</th><th>Betrag</th><th>Saldo</th></tr></thead><tbody>${D.rows.map(r=>`<tr><td>${stD(r.t).slice(0,5)}</td><td>${esc(r.tx)}${r.sub?`<br><small>${esc(r.sub)}</small>`:''}</td><td class="${r.nt?'':r.d>0?'in':'out'}" ${r.nt?'style="opacity:.55"':''}>${r.nt?'('+stFmt(r.amt)+')':stFmt(r.d)}</td><td>${stFmt(r.s)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Keine gebuchten Einträge in diesem Zeitraum.</div>'}<div class="note">Geplantes steht nicht im Auszug. Umbuchungen zwischen Konten und Budgets (Flow, Gönn dir …) zählen bei „Gesamt“ nicht als Eingang oder Ausgang und stehen grau in Klammern.</div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn" id="stPdf">Drucken / PDF</button><button class="btn soft" id="stCsv">CSV teilen</button></div>`}
 /* 7 Sinking-Ziele: Stand je Ziel aus dem Sinking-Funds-Saldo (Verteilung nach Fälligkeit), Monate aussetzen */
 const sinkAcc=()=>ALL.find(n=>{const a=S.accts.find(x=>x.n==n);return a&&a.stufe?a.stufe=='sparen'&&a.kind=='budget':/sinking/i.test(n)});
@@ -1544,7 +1561,12 @@ function plausiRun(opt){opt=opt||{};const R=[],E=0.01,f2=v=>(Math.round(v*100)/1
       if(Math.abs(D.end-c)>E)b.push(n+' '+P.label+': Auszug '+f2(D.end)+' statt '+f2(c));if(Math.abs(D.open+D.inc-D.out-D.end)>E)b.push(n+' '+P.label+': Anfang+Eingänge−Ausgänge≠Ende');
       if(Math.abs(D0.end-D.open)>E)b.push(n+' '+P.label+': Anfangssaldo ≠ Endsaldo Vormonat');if(D.rows.some(r=>r.adj))b.push(n+' '+P.label+': Differenz nicht aus Buchungen '+f2(D.rows.find(r=>r.adj).d));
       let run=D.open;D.rows.forEach(r=>{run+=r.d;if(Math.abs(run-r.s)>E)b.push(n+': Saldo je Zeile stimmt nicht')});if(!isVerm(acc(n)))sE+=stBal(n,P.e.getTime(),true)});
-    const G=stmtData('Gesamt',o);if(Math.abs(G.end-sE)>E)b.push(P.label+': Gesamt '+f2(G.end)+' statt Summe der Konten '+f2(sE))});add(KB,'Kontoauszug: Salden stimmen (Anfang, Ende, Zeile, Gesamt)',b)}
+    const G=stmtData('Gesamt',o),G0=stmtData('Gesamt',o-1),FS=flowSum(expV(P.s.getTime(),P.e.getTime()).filter(e=>inP(e,P)&&!isPlan(e)&&!isHistE(e)));
+    if(o==0&&Math.abs(G.end-sE)>E)b.push(P.label+': Gesamt '+f2(G.end)+' statt Summe der Konten '+f2(sE));
+    if(Math.abs(G.open+G.inc-G.out-G.sv+G.oth-G.end)>E)b.push(P.label+': Gesamt Anfang+Eingänge−Ausgänge−Gespart≠Ende');
+    if(Math.abs(G0.end-G.open)>E)b.push(P.label+': Gesamt Anfangssaldo ≠ Endsaldo Vormonat');
+    if(Math.abs(G.inc-FS.inc)>E||Math.abs(G.out-FS.out)>E||Math.abs(G.sv-FS.sv)>E)b.push(P.label+': Gesamt Eingänge/Ausgänge/Gespart weichen von Buchungen ab');
+    {let run=G.open;G.rows.forEach(r=>{run+=r.d});if(Math.abs(run-G.end)>E)b.push(P.label+': Gesamt Zeilen ergeben '+f2(run)+' statt Endsaldo '+f2(G.end))}});add(KB,'Kontoauszug: Salden stimmen (Anfang, Ende, Zeile, Gesamt)',b)}
   /* v513: Rückblick und Buchungen rechnen mit einer Quelle (flowSum); Geldfluss geht auf; Monatsende-Zahl setzt sich aus Teilen zusammen */
   {const RB='Rückblick & Buchungen',b=[],b2=[],b3=[],pe=v=>{const n=/[−-]/.test(v)?-1:1,x=parseFloat(String(v).replace(/[^\d,]/g,'').replace(',','.'));return n*(isNaN(x)?0:x)};
     [-2,-1,0].forEach(o=>{const P=period(o);if(P.s.getTime()<histT())return;const A=anaData(o),F=flowSum(expV(P.s.getTime(),P.e.getTime()).filter(e=>inP(e,P)&&!isPlan(e)&&!isHistE(e)));
