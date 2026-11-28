@@ -470,3 +470,7 @@ Entfällt: Kennzahl-Kacheln, Positions-Legende unter dem Chart, Marker-Haufen am
 
 ## 29. Geplante Ausgaben vorab reservieren (25.11.2026) – auf Wunsch sofort umgesetzt in v501 (= Version 1.4)
 Geplante Ausgaben (auch wiederkehrende) aus einem Monatsbudget bis Monatsende werden vom Rest abgezogen, bevor das Tagesbudget berechnet wird (`todayFree`). Heute zeigt „x € bis Monatsende · y € verplant“, Penny „davon y € verplant“. Kontostände und Budget-Rest selbst bleiben unverändert (zählen weiter erst am Tag).
+
+## Umbuchungen auf Vermögen im Monatsrest (umgesetzt in v509, freigegeben 28.11.2026)
+
+**Ziel:** Umbuchungen auf Vermögenskonten/Bestand (z. B. Sparplan → ETF, Sinking Funds) verkleinern den Rest in Buchungen (blau „Gespart“) und werden im Tagesbudget vorab reserviert. Eins raus: Penny-Hinweiszeile im Buchungen-Kopf.
